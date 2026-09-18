@@ -1,0 +1,398 @@
+import time
+import os
+import psutil
+import subprocess
+from collections import deque, defaultdict
+from typing import Dict, List, Any
+
+# Try importing pynvml
+try:
+    import pynvml
+    pynvml.nvmlInit()
+    NVML_AVAILABLE = True
+except Exception as e:
+    print("NVML initialization warning:", e)
+    NVML_AVAILABLE = False
+
+TRAINING_UIDS = {
+    1021: "labriset",
+    1016: "training1",
+    1017: "training2",
+    1018: "training3",
+    1019: "training4",
+    1020: "training5",
+    1022: "training6",
+    1023: "training7",
+    1024: "training8",
+    1025: "training9",
+    1026: "training10",
+}
+
+# Daftar proses/layanan sistem yang diproteksi secara mutlak dari penghentian (Kill)
+PROTECTED_PROCESS_NAMES = {
+    "systemd", "init", "sshd", "cloudflared", "dockerd", "containerd",
+    "1panel", "portainer", "uvicorn", "gunicorn", "jupyterhub",
+    "jupyterhub-singleuser", "bash", "sh", "zsh", "login",
+    "xorg", "xwayland", "gnome-shell", "dbus-daemon", "polkitd",
+    "nginx", "apache2", "redis-server", "mysqld", "postgres", "su", "sudo"
+}
+
+# In-memory history buffer (last 60 seconds)
+HISTORY_MAX = 60
+history_buffer = deque(maxlen=HISTORY_MAX)
+
+# In-memory user CPU tracking
+_prev_user_cpu_times: Dict[str, float] = {}
+_prev_cpu_timestamp: float = time.time()
+
+def read_cgroup_file(path: str) -> int:
+    try:
+        if os.path.exists(path):
+            with open(path, "r") as f:
+                val = f.read().strip()
+                if val.isdigit():
+                    return int(val)
+                elif val == "max":
+                    return -1
+    except Exception:
+        pass
+    return 0
+
+def get_gpu_telemetry() -> List[Dict[str, Any]]:
+    gpus = []
+    if not NVML_AVAILABLE:
+        return gpus
+    try:
+        device_count = pynvml.nvmlDeviceGetCount()
+        for i in range(device_count):
+            handle = pynvml.nvmlDeviceGetHandleByIndex(i)
+            name = pynvml.nvmlDeviceGetName(handle)
+            mem_info = pynvml.nvmlDeviceGetMemoryInfo(handle)
+            util = pynvml.nvmlDeviceGetUtilizationRates(handle)
+            temp = pynvml.nvmlDeviceGetTemperature(handle, pynvml.NVML_TEMPERATURE_GPU)
+            try:
+                power = pynvml.nvmlDeviceGetPowerUsage(handle) / 1000.0
+            except Exception:
+                power = 0.0
+            try:
+                power_limit = pynvml.nvmlDeviceGetEnforcedPowerLimit(handle) / 1000.0
+            except Exception:
+                power_limit = 180.0
+            try:
+                fan = pynvml.nvmlDeviceGetFanSpeed(handle)
+            except Exception:
+                fan = 0
+
+            # Running processes on GPU
+            procs = []
+            raw_procs = []
+            try:
+                raw_procs += pynvml.nvmlDeviceGetComputeRunningProcesses(handle)
+            except Exception:
+                pass
+            try:
+                raw_procs += pynvml.nvmlDeviceGetGraphicsRunningProcesses(handle)
+            except Exception:
+                pass
+            for p in raw_procs:
+                pid = p.pid
+                gpu_mem_mb = round(p.usedGpuMemory / (1024 ** 2), 1) if p.usedGpuMemory else 0
+                username = "unknown"
+                proc_name = "process"
+                cmdline = ""
+                cpu_pct = 0.0
+                ram_mb = 0.0
+                uptime_str = "-"
+
+                try:
+                    ps = psutil.Process(pid)
+                    username = ps.username()
+                    proc_name = ps.name()
+                    cmd = ps.cmdline()
+                    cmdline = " ".join(cmd)[:80] if cmd else proc_name
+                    cpu_pct = round(ps.cpu_percent(interval=None), 1)
+                    ram_mb = round(ps.memory_info().rss / (1024 ** 2), 1)
+                    create_t = ps.create_time()
+                    elapsed = int(time.time() - create_t)
+                    m, s = divmod(elapsed, 60)
+                    h, m = divmod(m, 60)
+                    uptime_str = f"{h:02d}:{m:02d}:{s:02d}"
+                except Exception:
+                    pass
+
+                # Check if system / protected process
+                is_system = (username not in TRAINING_UIDS.values()) or (proc_name.lower() in PROTECTED_PROCESS_NAMES)
+                is_killable = (username in TRAINING_UIDS.values()) and (proc_name.lower() not in PROTECTED_PROCESS_NAMES)
+
+                procs.append({
+                    "pid": pid,
+                    "username": username,
+                    "name": proc_name,
+                    "cmdline": cmdline,
+                    "vram_mb": gpu_mem_mb,
+                    "ram_mb": ram_mb,
+                    "cpu_percent": cpu_pct,
+                    "uptime": uptime_str,
+                    "is_system": is_system,
+                    "is_killable": is_killable
+                })
+
+            gpus.append({
+                "index": i,
+                "name": name,
+                "tier": "Level 1 (Riset)" if i == 0 else "Level 2 (Praktikum)",
+                "assigned": "labriset" if i == 0 else "training1-10",
+                "vram_total_mb": round(mem_info.total / (1024 ** 2), 1),
+                "vram_used_mb": round(mem_info.used / (1024 ** 2), 1),
+                "vram_free_mb": round(mem_info.free / (1024 ** 2), 1),
+                "vram_percent": round((mem_info.used / mem_info.total) * 100, 1),
+                "compute_percent": util.gpu,
+                "memory_util_percent": util.memory,
+                "temperature_c": temp,
+                "power_w": round(power, 1),
+                "power_limit_w": round(power_limit, 1),
+                "fan_speed_percent": fan,
+                "processes": procs
+            })
+    except Exception as e:
+        print("Error reading GPU telemetry:", e)
+    return gpus
+
+def get_system_telemetry() -> Dict[str, Any]:
+    vm = psutil.virtual_memory()
+    swap = psutil.swap_memory()
+    cpu_cores = psutil.cpu_percent(percpu=True)
+    cpu_avg = round(sum(cpu_cores) / len(cpu_cores), 1) if cpu_cores else 0.0
+
+    # Read user.slice (Umbrella 100G)
+    user_slice_current = read_cgroup_file("/sys/fs/cgroup/user.slice/memory.current")
+    user_slice_max = read_cgroup_file("/sys/fs/cgroup/user.slice/memory.max")
+    user_slice_used_gb = round(user_slice_current / (1024 ** 3), 2)
+    user_slice_max_gb = round(user_slice_max / (1024 ** 3), 1) if user_slice_max > 0 else 100.0
+
+    # Read labriset user-1021.slice
+    labriset_current = read_cgroup_file("/sys/fs/cgroup/user.slice/user-1021.slice/memory.current")
+    labriset_max = read_cgroup_file("/sys/fs/cgroup/user.slice/user-1021.slice/memory.max")
+    labriset_used_gb = round(labriset_current / (1024 ** 3), 2)
+    labriset_max_gb = round(labriset_max / (1024 ** 3), 1) if labriset_max > 0 else 70.0
+
+    # Disks
+    root_disk = psutil.disk_usage("/")
+    home_disk = psutil.disk_usage("/home")
+
+    return {
+        "cpu": {
+            "overall_percent": cpu_avg,
+            "cores_percent": cpu_cores,
+            "core_count": len(cpu_cores)
+        },
+        "memory": {
+            "total_gb": round(vm.total / (1024 ** 3), 1),
+            "used_gb": round(vm.used / (1024 ** 3), 1),
+            "available_gb": round(vm.available / (1024 ** 3), 1),
+            "percent": vm.percent,
+            "user_slice_used_gb": user_slice_used_gb,
+            "user_slice_max_gb": user_slice_max_gb,
+            "user_slice_percent": round((user_slice_used_gb / user_slice_max_gb) * 100, 1) if user_slice_max_gb else 0,
+            "labriset_used_gb": labriset_used_gb,
+            "labriset_max_gb": labriset_max_gb
+        },
+        "swap": {
+            "total_gb": round(swap.total / (1024 ** 3), 1),
+            "used_gb": round(swap.used / (1024 ** 3), 1),
+            "percent": swap.percent
+        },
+        "disks": {
+            "root": {
+                "total_gb": round(root_disk.total / (1024 ** 3), 1),
+                "used_gb": round(root_disk.used / (1024 ** 3), 1),
+                "free_gb": round(root_disk.free / (1024 ** 3), 1),
+                "percent": root_disk.percent
+            },
+            "home": {
+                "total_gb": round(home_disk.total / (1024 ** 3), 1),
+                "used_gb": round(home_disk.used / (1024 ** 3), 1),
+                "free_gb": round(home_disk.free / (1024 ** 3), 1),
+                "percent": home_disk.percent
+            }
+        }
+    }
+
+def get_per_user_gpu_metrics(gpus: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    global _prev_user_cpu_times, _prev_cpu_timestamp
+    now = time.time()
+    dt = max(now - _prev_cpu_timestamp, 0.1)
+
+    # Build a lookup of processes per user from the GPU telemetry
+    user_gpu_map = {}
+    for gpu in gpus:
+        gpu_idx = gpu["index"]
+        for p in gpu.get("processes", []):
+            u = p["username"]
+            if u not in user_gpu_map:
+                user_gpu_map[u] = []
+            user_gpu_map[u].append({
+                "gpu_index": gpu_idx,
+                "pid": p["pid"],
+                "name": p["name"],
+                "cmdline": p["cmdline"],
+                "vram_mb": p["vram_mb"],
+                "cpu_percent": p["cpu_percent"],
+                "uptime": p["uptime"]
+            })
+
+    # Active logged-in users via psutil
+    logged_in_users = {}
+    try:
+        for u in psutil.users():
+            logged_in_users[u.name] = {
+                "terminal": u.terminal,
+                "host": u.host or "local",
+                "started": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(u.started))
+            }
+    except Exception:
+        pass
+
+    # Sample all running processes per user to compute CPU usage, active cores, and physical RAM
+    current_user_times = defaultdict(float)
+    user_active_cores = defaultdict(set)
+    user_all_proc_count = defaultdict(int)
+    user_rss_bytes = defaultdict(int)
+
+    valid_usernames = set(TRAINING_UIDS.values())
+    try:
+        for p in psutil.process_iter(["pid", "username", "cpu_times", "cpu_num", "memory_info"]):
+            try:
+                u = p.info.get("username")
+                if u in valid_usernames:
+                    user_all_proc_count[u] += 1
+                    t = p.info.get("cpu_times")
+                    if t:
+                        current_user_times[u] += (t.user + t.system)
+                    c = p.info.get("cpu_num")
+                    if c is not None:
+                        user_active_cores[u].add(c)
+                    m = p.info.get("memory_info")
+                    if m:
+                        user_rss_bytes[u] += m.rss
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                pass
+    except Exception:
+        pass
+
+    results = []
+    for uid, uname in sorted(TRAINING_UIDS.items()):
+        is_riset = (uid == 1021)
+        assigned_gpu_idx = 0 if is_riset else 1
+        assigned_gpu_name = f"GPU {assigned_gpu_idx}"
+        tier = "Riset" if is_riset else "Praktikum"
+
+        # VRAM limit recommendation: 100% (16311 MB) for labriset, 30% (~4893 MB) for practical
+        vram_recommended_limit_mb = 16311.0 if is_riset else 4893.0
+
+        user_procs = user_gpu_map.get(uname, [])
+        total_vram_mb = round(sum(p["vram_mb"] for p in user_procs), 1)
+
+        # Slice memory & Process RSS
+        slice_dir = f"/sys/fs/cgroup/user.slice/user-{uid}.slice"
+        is_active = os.path.exists(slice_dir)
+        mem_curr_bytes = read_cgroup_file(f"{slice_dir}/memory.current")
+        mem_max_bytes = read_cgroup_file(f"{slice_dir}/memory.max")
+        ram_used_bytes = max(mem_curr_bytes, user_rss_bytes.get(uname, 0))
+        ram_used_mb = round(ram_used_bytes / (1024 ** 2), 1)
+        ram_max_mb = round(mem_max_bytes / (1024 ** 2), 1) if mem_max_bytes > 0 else (71680.0 if is_riset else 3072.0)
+
+        # CPU Metrics & Core Allocations
+        # Core limits: 20 Cores for labriset (Tier 1), 2 Cores for training1-10 (Tier 2)
+        cores_limit = 20 if is_riset else 2
+        prev_time = _prev_user_cpu_times.get(uname, current_user_times.get(uname, 0.0))
+        delta_time = max(0.0, current_user_times.get(uname, 0.0) - prev_time)
+        cpu_percent = round((delta_time / dt) * 100.0, 1)
+        cores_used = round(cpu_percent / 100.0, 1)
+        cpu_quota_percent = min(100.0, round((cores_used / cores_limit) * 100.0, 1)) if cores_limit > 0 else 0.0
+        active_cores_list = sorted(list(user_active_cores.get(uname, set())))
+
+        login_info = logged_in_users.get(uname)
+
+        # Determine compute state
+        if total_vram_mb > 0:
+            if not is_riset and total_vram_mb > vram_recommended_limit_mb:
+                status = "VRAM Exceeded (>30%)"
+                status_color = "red"
+            else:
+                status = "Training Active (GPU)"
+                status_color = "green"
+        elif cpu_percent > 10.0:
+            status = "Compute Active (CPU)"
+            status_color = "indigo"
+        elif is_active or login_info or user_all_proc_count.get(uname, 0) > 0:
+            status = "Online (Idle)"
+            status_color = "blue"
+        else:
+            status = "Offline"
+            status_color = "gray"
+
+        results.append({
+            "uid": uid,
+            "username": uname,
+            "tier": tier,
+            "gpu_assigned": assigned_gpu_name,
+            "gpu_index": assigned_gpu_idx,
+            "vram_used_mb": total_vram_mb,
+            "vram_limit_mb": vram_recommended_limit_mb,
+            "vram_percent_of_gpu": round((total_vram_mb / 16311.0) * 100, 1),
+            "vram_percent_of_quota": round((total_vram_mb / vram_recommended_limit_mb) * 100, 1),
+            "cpu_percent": cpu_percent,
+            "cpu_cores_used": cores_used,
+            "cpu_cores_limit": cores_limit,
+            "cpu_quota_percent": cpu_quota_percent,
+            "active_cores": active_cores_list,
+            "total_process_count": user_all_proc_count.get(uname, 0),
+            "process_count": len(user_procs),
+            "processes": user_procs,
+            "status": status,
+            "status_color": status_color,
+            "is_online": bool(is_active or login_info or user_all_proc_count.get(uname, 0) > 0),
+            "ip": login_info.get("host", "-") if login_info else "-",
+            "terminal": login_info.get("terminal", "-") if login_info else "-",
+            "ram_used_mb": ram_used_mb,
+            "ram_max_mb": ram_max_mb,
+            "ram_percent": round((ram_used_mb / ram_max_mb) * 100, 1) if ram_max_mb else 0.0
+        })
+
+    # Update cache for next iteration
+    _prev_user_cpu_times = current_user_times
+    _prev_cpu_timestamp = now
+
+    return results
+
+def get_snapshot() -> Dict[str, Any]:
+    gpus = get_gpu_telemetry()
+    system = get_system_telemetry()
+    user_gpu_metrics = get_per_user_gpu_metrics(gpus)
+    now_str = time.strftime("%H:%M:%S")
+
+    # Append to history buffer
+    gpu0_comp = gpus[0]["compute_percent"] if len(gpus) > 0 else 0
+    gpu1_comp = gpus[1]["compute_percent"] if len(gpus) > 1 else 0
+    gpu0_vram = gpus[0]["vram_percent"] if len(gpus) > 0 else 0
+    gpu1_vram = gpus[1]["vram_percent"] if len(gpus) > 1 else 0
+
+    history_buffer.append({
+        "time": now_str,
+        "gpu0_compute": gpu0_comp,
+        "gpu1_compute": gpu1_comp,
+        "gpu0_vram": gpu0_vram,
+        "gpu1_vram": gpu1_vram,
+        "cpu": system["cpu"]["overall_percent"],
+        "ram": system["memory"]["percent"]
+    })
+
+    return {
+        "timestamp": time.time(),
+        "time_str": now_str,
+        "gpus": gpus,
+        "system": system,
+        "users": user_gpu_metrics,
+        "history": list(history_buffer)
+    }

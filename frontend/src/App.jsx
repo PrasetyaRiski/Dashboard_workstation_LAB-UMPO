@@ -167,28 +167,33 @@ export default function App() {
     }
   };
 
-  // Kill All User Jobs
+  // Kill All User Jobs / Active Sessions
   const handleKillAllUser = async (username) => {
+    const user = (data?.users || []).find((u) => u.username === username);
     const userProcs = (data?.all_processes || []).filter((p) => p.username === username);
-    if (userProcs.length === 0) {
-      showToast(`Tidak ada proses aktif untuk ${username}`, 'info');
-      return;
-    }
-    if (!confirm(`Hentikan seluruh (${userProcs.length}) proses komputasi milik ${username}?`)) return;
 
-    let killed = 0;
-    for (const proc of userProcs) {
-      try {
-        const res = await fetch('/api/kill-process', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ pid: proc.pid }),
-        });
-        if (res.ok) killed++;
-      } catch (e) { console.error(e); }
+    const confirmMsg = userProcs.length > 0
+      ? `Hentikan seluruh (${userProcs.length}) proses komputasi dan sesi milik ${username}?`
+      : `User ${username} sedang online. Hentikan seluruh sesi aktif dan proses milik ${username}?`;
+
+    if (!confirm(confirmMsg)) return;
+
+    try {
+      const res = await fetch('/api/kill-user-all', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username }),
+      });
+      const result = await res.json();
+      if (res.ok && result.success) {
+        showToast(result.message || `Seluruh sesi dan proses milik ${username} berhasil dihentikan.`, 'success');
+        fetchStatus();
+      } else {
+        showToast(result.detail || result.message || 'Gagal menghentikan user', 'error');
+      }
+    } catch (err) {
+      showToast('Gagal menghubungi server: ' + err.message, 'error');
     }
-    showToast(`Berhasil menghentikan ${killed} proses milik ${username}.`, 'success');
-    fetchStatus();
   };
 
   // Run Simulation

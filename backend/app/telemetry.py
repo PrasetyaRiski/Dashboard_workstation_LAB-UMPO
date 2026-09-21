@@ -233,12 +233,16 @@ def get_per_user_gpu_metrics(gpus: List[Dict[str, Any]]) -> List[Dict[str, Any]]
                 user_gpu_map[u] = []
             user_gpu_map[u].append({
                 "gpu_index": gpu_idx,
+                "gpu_name": f"GPU {gpu_idx}",
                 "pid": p["pid"],
                 "name": p["name"],
                 "cmdline": p["cmdline"],
                 "vram_mb": p["vram_mb"],
+                "ram_mb": p.get("ram_mb", 0.0),
                 "cpu_percent": p["cpu_percent"],
-                "uptime": p["uptime"]
+                "uptime": p["uptime"],
+                "is_system": p.get("is_system", False),
+                "is_killable": p.get("is_killable", True)
             })
 
     # Active logged-in users via psutil
@@ -260,11 +264,15 @@ def get_per_user_gpu_metrics(gpus: List[Dict[str, Any]]) -> List[Dict[str, Any]]
     user_rss_bytes = defaultdict(int)
 
     valid_usernames = set(TRAINING_UIDS.values())
+    gpu_proc_pids = {pr["pid"] for procs in user_gpu_map.values() for pr in procs}
+    user_cpu_procs = defaultdict(list)
+
     try:
-        for p in psutil.process_iter(["pid", "username", "cpu_times", "cpu_num", "memory_info"]):
+        for p in psutil.process_iter(["pid", "username", "name", "cmdline", "create_time", "cpu_times", "cpu_num", "memory_info"]):
             try:
                 u = p.info.get("username")
                 if u in valid_usernames:
+                    pid = p.info["pid"]
                     user_all_proc_count[u] += 1
                     t = p.info.get("cpu_times")
                     if t:
@@ -273,8 +281,36 @@ def get_per_user_gpu_metrics(gpus: List[Dict[str, Any]]) -> List[Dict[str, Any]]
                     if c is not None:
                         user_active_cores[u].add(c)
                     m = p.info.get("memory_info")
-                    if m:
-                        user_rss_bytes[u] += m.rss
+                    rss = m.rss if m else 0
+                    user_rss_bytes[u] += rss
+
+                    # Record non-GPU processes (CPU scripts, Jupyter kernels, shells)
+                    if pid not in gpu_proc_pids:
+                        name = p.info.get("name") or "process"
+                        cmd_list = p.info.get("cmdline") or []
+                        cmdline = " ".join(cmd_list)[:80] if cmd_list else name
+                        create_t = p.info.get("create_time") or now
+                        elapsed = max(0, int(now - create_t))
+                        em, es = divmod(elapsed, 60)
+                        eh, em = divmod(em, 60)
+                        uptime_str = f"{eh:02d}:{em:02d}:{es:02d}"
+
+                        is_system = (name.lower() in PROTECTED_PROCESS_NAMES)
+                        is_killable = not is_system
+
+                        user_cpu_procs[u].append({
+                            "gpu_index": None,
+                            "gpu_name": "CPU / Sesi",
+                            "pid": pid,
+                            "name": name,
+                            "cmdline": cmdline,
+                            "vram_mb": 0.0,
+                            "ram_mb": round(rss / (1024 ** 2), 1),
+                            "cpu_percent": 0.0,
+                            "uptime": uptime_str,
+                            "is_system": is_system,
+                            "is_killable": is_killable
+                        })
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 pass
     except Exception:
@@ -290,8 +326,12 @@ def get_per_user_gpu_metrics(gpus: List[Dict[str, Any]]) -> List[Dict[str, Any]]
         # VRAM limit recommendation: 100% (16311 MB) for labriset, 30% (~4893 MB) for practical
         vram_recommended_limit_mb = 16311.0 if is_riset else 4893.0
 
-        user_procs = user_gpu_map.get(uname, [])
-        total_vram_mb = round(sum(p["vram_mb"] for p in user_procs), 1)
+        gpu_procs = user_gpu_map.get(uname, [])
+        total_vram_mb = round(sum(p["vram_mb"] for p in gpu_procs), 1)
+
+        # Merge GPU procs and non-GPU user procs (sorted by RAM usage descending)
+        cpu_procs = sorted(user_cpu_procs.get(uname, []), key=lambda x: x.get("ram_mb", 0.0), reverse=True)
+        user_procs = gpu_procs + cpu_procs
 
         # Slice memory & Process RSS
         slice_dir = f"/sys/fs/cgroup/user.slice/user-{uid}.slice"

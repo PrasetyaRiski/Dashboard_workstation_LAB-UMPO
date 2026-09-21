@@ -252,15 +252,44 @@ function UserCard({ user, isAdmin, onOpenKillModal, onKillAllUser, onOpenReset }
         </div>
       ) : (
         <div
-          className="px-4 py-3"
+          className="px-4 py-3 flex items-center justify-between"
           style={{ borderBottom: '1px solid var(--border-sub)' }}
         >
-          <p
-            className="metric-value italic"
-            style={{ fontSize: '0.5625rem', color: 'var(--text-muted)' }}
-          >
-            Tidak ada proses berjalan
-          </p>
+          <div className="flex items-center gap-1.5">
+            <span
+              className="w-1.5 h-1.5 rounded-full"
+              style={{ background: user.is_online ? 'var(--accent-emerald)' : 'var(--text-muted)' }}
+            />
+            <p
+              className="metric-value"
+              style={{
+                fontSize: '0.5625rem',
+                color: user.is_online ? 'var(--accent-emerald)' : 'var(--text-muted)',
+                fontWeight: user.is_online ? 600 : 400
+              }}
+            >
+              {user.is_online ? 'User Online (Sesi Aktif)' : 'Tidak ada proses berjalan'}
+            </p>
+          </div>
+          {isAdmin && user.is_online && onKillAllUser && (
+            <button
+              onClick={() => onKillAllUser(user.username)}
+              className="flex items-center gap-1 cursor-pointer transition hover:opacity-80"
+              style={{
+                fontSize: '0.5625rem',
+                color: 'var(--accent-rose)',
+                fontWeight: 600,
+                background: 'rgba(244,63,94,0.1)',
+                border: '1px solid rgba(244,63,94,0.25)',
+                padding: '3px 8px',
+                borderRadius: 5,
+              }}
+              title="Hentikan sesi online user ini"
+            >
+              <StopCircle className="w-3 h-3" />
+              Kill Sesi User
+            </button>
+          )}
         </div>
       )}
 
@@ -546,24 +575,45 @@ function UserGpuMonitor({ users = [], isAdmin = false, onOpenKillModal, onResetP
                         {user.processes?.length || 0} job
                       </td>
                       <td style={{ textAlign: 'right' }}>
-                        {isAdmin ? (
-                          <button
-                            onClick={() => handleOpenReset(user.username)}
-                            className="flex items-center gap-1 ml-auto cursor-pointer"
-                            style={{
-                              fontSize: '0.5625rem',
-                              fontWeight: 600,
-                              color: 'var(--accent-indigo)',
-                              background: 'none',
-                              border: 'none',
-                            }}
-                          >
-                            <Key className="w-3 h-3" />
-                            Reset PW
-                          </button>
-                        ) : (
-                          <Lock className="w-3 h-3 ml-auto" style={{ color: 'var(--text-muted)' }} />
-                        )}
+                        <div className="flex items-center gap-1.5 justify-end">
+                          {isAdmin && user.is_online && onKillAllUser && (
+                            <button
+                              onClick={() => onKillAllUser(user.username)}
+                              className="flex items-center gap-1 cursor-pointer transition hover:opacity-80"
+                              style={{
+                                fontSize: '0.5625rem',
+                                fontWeight: 600,
+                                color: 'var(--accent-rose)',
+                                background: 'rgba(244,63,94,0.1)',
+                                border: '1px solid rgba(244,63,94,0.25)',
+                                padding: '2px 6px',
+                                borderRadius: 4,
+                              }}
+                              title="Hentikan sesi online user ini"
+                            >
+                              <StopCircle className="w-2.5 h-2.5" />
+                              Kill Sesi
+                            </button>
+                          )}
+                          {isAdmin ? (
+                            <button
+                              onClick={() => handleOpenReset(user.username)}
+                              className="flex items-center gap-1 cursor-pointer"
+                              style={{
+                                fontSize: '0.5625rem',
+                                fontWeight: 600,
+                                color: 'var(--accent-indigo)',
+                                background: 'none',
+                                border: 'none',
+                              }}
+                            >
+                              <Key className="w-3 h-3" />
+                              Reset PW
+                            </button>
+                          ) : (
+                            <Lock className="w-3 h-3 ml-auto" style={{ color: 'var(--text-muted)' }} />
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );

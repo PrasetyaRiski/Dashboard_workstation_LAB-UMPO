@@ -60,25 +60,53 @@ class SimulationRequest(BaseModel):
 def get_full_snapshot():
     s = get_snapshot()
 
-    # Aggregate all active GPU processes for unified Process Manager
+    # Aggregate all active processes (GPU & non-GPU user processes) for unified Process Manager
     all_processes = []
+    seen_pids = set()
+
     for gpu in s.get("gpus", []):
         g_idx = gpu.get("index")
         for p in gpu.get("processes", []):
-            all_processes.append({
-                "gpu_index": g_idx,
-                "gpu_name": f"GPU {g_idx}",
-                "pid": p.get("pid"),
-                "username": p.get("username"),
-                "name": p.get("name"),
-                "cmdline": p.get("cmdline"),
-                "vram_mb": p.get("vram_mb"),
-                "ram_mb": p.get("ram_mb", 0.0),
-                "cpu_percent": p.get("cpu_percent"),
-                "uptime": p.get("uptime"),
-                "is_system": p.get("is_system", False),
-                "is_killable": p.get("is_killable", True)
-            })
+            pid = p.get("pid")
+            if pid not in seen_pids:
+                seen_pids.add(pid)
+                all_processes.append({
+                    "gpu_index": g_idx,
+                    "gpu_name": f"GPU {g_idx}",
+                    "pid": pid,
+                    "username": p.get("username"),
+                    "name": p.get("name"),
+                    "cmdline": p.get("cmdline"),
+                    "vram_mb": p.get("vram_mb", 0.0),
+                    "ram_mb": p.get("ram_mb", 0.0),
+                    "cpu_percent": p.get("cpu_percent", 0.0),
+                    "uptime": p.get("uptime", "00:00:00"),
+                    "is_system": p.get("is_system", False),
+                    "is_killable": p.get("is_killable", True)
+                })
+
+    # Include user CPU & session processes
+    for u in s.get("users", []):
+        uname = u.get("username")
+        for p in u.get("processes", []):
+            pid = p.get("pid")
+            if pid and pid not in seen_pids:
+                seen_pids.add(pid)
+                all_processes.append({
+                    "gpu_index": p.get("gpu_index"),
+                    "gpu_name": p.get("gpu_name", "CPU / Sesi"),
+                    "pid": pid,
+                    "username": uname,
+                    "name": p.get("name"),
+                    "cmdline": p.get("cmdline"),
+                    "vram_mb": p.get("vram_mb", 0.0),
+                    "ram_mb": p.get("ram_mb", 0.0),
+                    "cpu_percent": p.get("cpu_percent", 0.0),
+                    "uptime": p.get("uptime", "00:00:00"),
+                    "is_system": p.get("is_system", False),
+                    "is_killable": p.get("is_killable", True)
+                })
+
     s["all_processes"] = all_processes
 
     # Check for over-quota users and log to audit_logs once per minute
@@ -164,15 +192,26 @@ def kill_user_all(req: KillUserAllRequest, request: Request):
         raise HTTPException(status_code=400, detail="User tidak valid")
 
     try:
-        subprocess.run(["sudo", "pkill", "-u", req.username, "-f", "python3"], check=False)
+        # 1. Hentikan seluruh proses komputasi dan script user
+        subprocess.run(["pkill", "-u", req.username], check=False)
+        time.sleep(0.3)
+        # 2. Paksa hentikan proses yang masih bertahan (SIGKILL)
+        subprocess.run(["pkill", "-9", "-u", req.username], check=False)
+
+        # 3. Putus sesi login/terminal user jika ada
+        try:
+            subprocess.run(["loginctl", "terminate-user", req.username], check=False, timeout=2)
+        except Exception:
+            pass
+
         audit_logs.appendleft({
             "time": time.strftime("%H:%M:%S"),
             "action": "KILL_USER_ALL",
             "target": req.username,
-            "detail": f"Semua proses komputasi python3 milik '{req.username}' dihentikan paksa.",
+            "detail": f"Seluruh sesi dan proses milik user '{req.username}' berhasil dihentikan paksa oleh Admin.",
             "type": "danger"
         })
-        return {"success": True, "message": f"Semua proses komputasi milik {req.username} berhasil dihentikan."}
+        return {"success": True, "message": f"Seluruh sesi dan proses komputasi milik user '{req.username}' berhasil dihentikan."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

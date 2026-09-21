@@ -475,7 +475,7 @@ function UserGpuMonitor({ users = [], isAdmin = false, onOpenKillModal, onResetP
           className="text-center py-12 panel-raised metric-value"
           style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}
         >
-          Tidak ada data praktikan yang sesuai kriteria.
+          Tidak ada data user yang sesuai kriteria.
         </div>
       ) : viewMode === 'card' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
@@ -596,7 +596,7 @@ function UserGpuMonitor({ users = [], isAdmin = false, onOpenKillModal, onResetP
             >
               <Key className="w-4 h-4" style={{ color: 'var(--accent-indigo)' }} />
               <h3 className="font-bold" style={{ fontSize: '0.875rem', color: 'var(--text-primary)' }}>
-                Ganti Password Praktikan
+                Ganti Password User
               </h3>
             </div>
             <div className="p-5">

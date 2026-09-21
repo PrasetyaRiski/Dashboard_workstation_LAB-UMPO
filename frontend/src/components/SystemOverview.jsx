@@ -13,44 +13,43 @@ function MetricCard({ icon: Icon, iconColor, label, value, unit, sub, percent, b
 
   return (
     <div
-      className="panel-raised flex flex-col gap-3 p-4"
-      style={{ minWidth: 0 }}
+      className="panel-raised flex flex-col gap-3"
+      style={{ padding: '16px 18px' }}
     >
       {/* Row 1: label + value */}
       <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <div
-            className="flex items-center justify-center rounded-md shrink-0"
+            className="flex items-center justify-center rounded-lg shrink-0"
             style={{
-              width: 28,
-              height: 28,
-              background: `${iconColor}14`,
+              width: 32,
+              height: 32,
+              background: `color-mix(in srgb, ${iconColor} 12%, transparent)`,
               color: iconColor,
-              border: `1px solid ${iconColor}20`,
             }}
           >
-            <Icon className="w-3.5 h-3.5" />
+            <Icon className="w-4 h-4" />
           </div>
           <span
             className="font-semibold"
-            style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)' }}
+            style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}
           >
             {label}
           </span>
         </div>
         <span
           className="metric-value font-bold shrink-0"
-          style={{ fontSize: '0.875rem', color: iconColor, letterSpacing: '-0.02em' }}
+          style={{ fontSize: '1rem', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}
         >
           {value}<span style={{ fontSize: '0.6875rem', fontWeight: 500, marginLeft: 2, color: 'var(--text-muted)' }}>{unit}</span>
         </span>
       </div>
 
       {/* Progress track */}
-      <div className="progress-track" style={{ height: 4 }}>
+      <div className="progress-track" style={{ height: 6 }}>
         <div
           className="progress-fill"
-          style={{ width: `${safePercent}%`, height: 4, background: barBg }}
+          style={{ width: `${safePercent}%`, height: 6, background: barBg }}
         />
       </div>
 
@@ -58,7 +57,7 @@ function MetricCard({ icon: Icon, iconColor, label, value, unit, sub, percent, b
       {sub && (
         <p
           className="metric-value"
-          style={{ fontSize: '0.6rem', color: 'var(--text-muted)', marginTop: -6 }}
+          style={{ fontSize: '0.625rem', color: 'var(--text-muted)', marginTop: -4 }}
         >
           {sub}
         </p>
@@ -91,28 +90,38 @@ function SystemOverview({ system, gpus = [] }) {
     : 'var(--accent-blue)';
 
   return (
-    <div className="panel-raised fade-in-up" style={{ padding: '20px 24px 24px' }}>
+    <div className="panel-raised fade-in-up" style={{ padding: '24px 28px 28px' }}>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5">
-        <div className="flex items-center gap-2">
-          <Server className="w-4 h-4" style={{ color: 'var(--accent-indigo)' }} />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
+        <div className="flex items-center gap-2.5">
+          <div
+            className="flex items-center justify-center rounded-lg"
+            style={{
+              width: 32,
+              height: 32,
+              background: 'color-mix(in srgb, var(--accent-indigo) 12%, transparent)',
+              color: 'var(--accent-indigo)',
+            }}
+          >
+            <Server className="w-4 h-4" />
+          </div>
           <h2
             className="font-bold"
-            style={{ fontSize: '0.8125rem', color: 'var(--text-primary)', letterSpacing: '-0.01em' }}
+            style={{ fontSize: '0.9375rem', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}
           >
             Infrastruktur Triad — CPU · RAM · GPU · Storage
           </h2>
         </div>
         <span
           className="metric-value"
-          style={{ fontSize: '0.625rem', color: 'var(--text-muted)' }}
+          style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}
         >
           24 vCPU · 128 GB RAM · Dual RTX 5060 Ti (32 GB VRAM)
         </span>
       </div>
 
       {/* 4-column metric cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <MetricCard
           icon={Cpu}
           iconColor="var(--accent-violet)"
@@ -156,12 +165,10 @@ function SystemOverview({ system, gpus = [] }) {
 
       {/* CPU Core Heat Matrix */}
       <div>
-        <div
-          className="section-label mb-2"
-        >
+        <div className="section-label mb-2.5">
           CPU Core Load Matrix — {cpu.core_count} Threads
         </div>
-        <div className="flex items-end gap-0.5 h-6">
+        <div className="flex items-end gap-0.5" style={{ height: 28 }}>
           {cpu.cores_percent && cpu.cores_percent.map((c, idx) => {
             const color = c > 80
               ? 'var(--accent-rose)'
@@ -170,7 +177,7 @@ function SystemOverview({ system, gpus = [] }) {
               : c > 15
               ? 'var(--accent-violet)'
               : 'var(--surface-3)';
-            const h = Math.max(4, Math.round((c / 100) * 24));
+            const h = Math.max(4, Math.round((c / 100) * 28));
             return (
               <div
                 key={idx}
@@ -179,7 +186,7 @@ function SystemOverview({ system, gpus = [] }) {
                   flex: 1,
                   height: `${h}px`,
                   background: color,
-                  borderRadius: '2px',
+                  borderRadius: '3px',
                   transition: 'height 0.5s ease, background 0.5s ease',
                   cursor: 'default',
                 }}
@@ -188,7 +195,7 @@ function SystemOverview({ system, gpus = [] }) {
           })}
         </div>
         <div
-          className="flex justify-between metric-value mt-1"
+          className="flex justify-between metric-value mt-1.5"
           style={{ fontSize: '0.5625rem', color: 'var(--text-muted)' }}
         >
           <span>Core #0</span>

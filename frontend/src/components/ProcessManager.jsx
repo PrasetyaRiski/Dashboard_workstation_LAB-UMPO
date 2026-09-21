@@ -94,7 +94,7 @@ function ProcessDrawer({ proc, onClose, onKill, isAdmin }) {
             ) : (
               <span className="badge badge-indigo">
                 <Zap className="w-3 h-3" />
-                Job Praktikan
+                Job User
               </span>
             )}
             {proc.username === 'labriset' && (
@@ -287,7 +287,7 @@ function ProcessManager({
 
   const filterChips = [
     { id: 'all',    label: `Semua (${processes.length})` },
-    { id: 'user',   label: `Praktikan (${stats.userJobs})` },
+    { id: 'user',   label: `User (${stats.userJobs})` },
     { id: 'system', label: `Sistem (${stats.sysJobs})` },
   ];
 
@@ -450,7 +450,7 @@ function ProcessManager({
               <p
                 style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', marginTop: 4 }}
               >
-                Job praktikan akan muncul di sini ketika skrip Python/PyTorch berjalan.
+                Job user akan muncul di sini ketika skrip Python/PyTorch berjalan.
               </p>
             </div>
             {isAdmin && (
@@ -548,7 +548,7 @@ function ProcessManager({
                         ) : (
                           <span className="badge badge-indigo" style={{ fontSize: '0.5rem' }}>
                             <Zap className="w-2.5 h-2.5" />
-                            Praktikan
+                            User
                           </span>
                         )}
                       </td>

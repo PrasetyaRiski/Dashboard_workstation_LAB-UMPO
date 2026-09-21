@@ -15,7 +15,7 @@ function Sparkline({ data = [], color = '#6366f1', height = 28, width = 80 }) {
       <polyline
         fill="none"
         stroke={color}
-        strokeWidth="1.5"
+        strokeWidth="1.2"
         strokeLinejoin="round"
         strokeLinecap="round"
         points={points}
@@ -63,9 +63,9 @@ function VramBlockGrid({ processes = [], totalMb = 16311 }) {
   return (
     <div>
       <div
-        className="section-label mb-2"
+        className="section-label mb-2 text-slate-500 font-medium"
       >
-        VRAM Block Allocation Grid — {totalMb > 16311 ? '16 GB' : '16 GB'} GDDR7
+        VRAM Allocation ({totalMb > 16311 ? '16 GB' : '16 GB'})
       </div>
       <div className="flex items-end gap-0.5">
         {blockMap.map((proc, idx) => {
@@ -214,7 +214,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, sparkHistory = [] }) {
         {/* CUDA Compute */}
         <div>
           <div className="flex justify-between items-center mb-1.5">
-            <span className="section-label">CUDA Compute Utilisation</span>
+            <span className="section-label">GPU Usage</span>
             <span className="metric-value font-bold" style={{ fontSize: '0.6875rem', color: computeBar }}>
               {computePct}%
             </span>

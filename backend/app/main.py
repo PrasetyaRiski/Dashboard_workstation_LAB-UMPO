@@ -19,6 +19,9 @@ app = FastAPI(title="AI Lab Compute Dashboard", version="2.1.0")
 # Default Admin PIN (dapat diubah via Environment Variable LAB_ADMIN_PIN)
 LAB_ADMIN_PIN = os.getenv("LAB_ADMIN_PIN", "umpo2026")
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PROJECT_ROOT = os.path.dirname(BASE_DIR)
+
 # In-Memory Audit Logs Buffer
 audit_logs = deque(maxlen=60)
 audit_logs.append({
@@ -43,19 +46,16 @@ class VerifyPinRequest(BaseModel):
 
 class KillProcessRequest(BaseModel):
     pid: int
-    admin_pin: Optional[str] = None
 
 class KillUserAllRequest(BaseModel):
     username: str
-    admin_pin: Optional[str] = None
 
 class ResetPasswordRequest(BaseModel):
     username: str
     new_password: str
-    admin_pin: Optional[str] = None
 
 class SimulationRequest(BaseModel):
-    admin_pin: Optional[str] = None
+    pass
 
 def get_full_snapshot():
     s = get_snapshot()
@@ -96,7 +96,7 @@ def get_full_snapshot():
                     "type": "alert"
                 })
     s["audit_logs"] = list(audit_logs)
-    s["admin_pin_required"] = True
+    s["admin_pin_required"] = False
     return s
 
 @app.get("/api/status")
@@ -105,9 +105,7 @@ def get_status():
 
 @app.post("/api/verify-pin")
 def verify_pin(req: VerifyPinRequest):
-    if req.pin == LAB_ADMIN_PIN:
-        return {"success": True, "message": "PIN Admin valid. Sesi administratif diaktifkan."}
-    raise HTTPException(status_code=401, detail="PIN Admin tidak valid. Akses ditolak.")
+    return {"success": True, "message": "Mode Admin (PIN dihapus)."}
 
 @app.get("/api/export-telemetry")
 def export_telemetry():
@@ -115,11 +113,6 @@ def export_telemetry():
 
 @app.post("/api/kill-process")
 def kill_process(req: KillProcessRequest, request: Request):
-    header_pin = request.headers.get("X-Admin-Pin")
-    pin = req.admin_pin or header_pin
-    if pin != LAB_ADMIN_PIN:
-        raise HTTPException(status_code=401, detail="Hanya Role Admin yang berhak mematikan proses.")
-
     try:
         p = psutil.Process(req.pid)
         username = p.username()
@@ -127,7 +120,7 @@ def kill_process(req: KillProcessRequest, request: Request):
         cmd = p.cmdline()
         cmdline = " ".join(cmd) if cmd else proc_name
 
-        # 1. Proteksi Akun Sistem: Hanya akun praktikan/riset yang boleh di-kill
+        # 1. Proteksi Akun Sistem: Hanya akun user/riset yang boleh di-kill
         allowed_users = set(TRAINING_UIDS.values())
         if username not in allowed_users:
             raise HTTPException(
@@ -153,11 +146,11 @@ def kill_process(req: KillProcessRequest, request: Request):
             "time": time.strftime("%H:%M:%S"),
             "action": "KILL_PROCESS",
             "target": f"{username} (PID {req.pid})",
-            "detail": f"Proses komputasi '{proc_name}' ({req.pid}) milik praktikan {username} dihentikan oleh Admin.",
+            "detail": f"Proses komputasi '{proc_name}' ({req.pid}) milik user {username} dihentikan oleh Admin.",
             "type": "danger"
         })
 
-        return {"success": True, "message": f"Proses PID {req.pid} ({proc_name}) milik praktikan {username} berhasil dihentikan."}
+        return {"success": True, "message": f"Proses PID {req.pid} ({proc_name}) milik user {username} berhasil dihentikan."}
     except psutil.NoSuchProcess:
         return {"success": False, "message": f"Proses PID {req.pid} sudah tidak aktif lagi."}
     except HTTPException:
@@ -167,11 +160,6 @@ def kill_process(req: KillProcessRequest, request: Request):
 
 @app.post("/api/kill-user-all")
 def kill_user_all(req: KillUserAllRequest, request: Request):
-    header_pin = request.headers.get("X-Admin-Pin")
-    pin = req.admin_pin or header_pin
-    if pin != LAB_ADMIN_PIN:
-        raise HTTPException(status_code=401, detail="Hanya Role Admin yang berhak mematikan proses praktikan.")
-
     if req.username not in TRAINING_UIDS.values():
         raise HTTPException(status_code=400, detail="User tidak valid")
 
@@ -190,11 +178,6 @@ def kill_user_all(req: KillUserAllRequest, request: Request):
 
 @app.post("/api/reset-password")
 def reset_password(req: ResetPasswordRequest, request: Request):
-    header_pin = request.headers.get("X-Admin-Pin")
-    pin = req.admin_pin or header_pin
-    if pin != LAB_ADMIN_PIN:
-        raise HTTPException(status_code=401, detail="Hanya Role Admin yang berhak mereset password akun mahasiswa.")
-
     if req.username not in TRAINING_UIDS.values():
         raise HTTPException(status_code=400, detail="User target tidak valid")
     if len(req.new_password) < 4:
@@ -213,30 +196,25 @@ def reset_password(req: ResetPasswordRequest, request: Request):
             "time": time.strftime("%H:%M:%S"),
             "action": "RESET_PASSWORD",
             "target": req.username,
-            "detail": f"Password praktikan '{req.username}' berhasil diperbarui oleh Admin.",
+            "detail": f"Password user '{req.username}' berhasil diperbarui oleh Admin.",
             "type": "warning"
         })
 
-        return {"success": True, "message": f"Password untuk praktikan {req.username} berhasil diubah."}
+        return {"success": True, "message": f"Password untuk user {req.username} berhasil diubah."}
     except subprocess.CalledProcessError as e:
         raise HTTPException(status_code=500, detail=f"Gagal mengubah password: {e.stderr}")
 
 @app.post("/api/run-simulation")
 def run_simulation(req: SimulationRequest, request: Request):
-    header_pin = request.headers.get("X-Admin-Pin")
-    pin = req.admin_pin or header_pin
-    if pin != LAB_ADMIN_PIN:
-        raise HTTPException(status_code=401, detail="Hanya Role Admin yang dapat menjalankan simulasi pengujian komputasi.")
-
     try:
         # Run test_simulation.py via subprocess
-        script_path = "/home/public/web/panel-lab/test_simulation.py"
+        script_path = os.path.join(PROJECT_ROOT, "test_simulation.py")
         subprocess.Popen(["sudo", "python3", script_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
         audit_logs.appendleft({
             "time": time.strftime("%H:%M:%S"),
             "action": "SIMULATION_START",
-            "target": "11 Akun Praktikan & Riset",
+            "target": "11 Akun User & Riset",
             "detail": "Simulasi komputasi serentak 11 akun diluncurkan oleh Admin untuk pengujian beban & Kill Process.",
             "type": "info"
         })
@@ -246,17 +224,13 @@ def run_simulation(req: SimulationRequest, request: Request):
 
 @app.post("/api/stop-simulation")
 def stop_simulation(req: SimulationRequest, request: Request):
-    header_pin = request.headers.get("X-Admin-Pin")
-    pin = req.admin_pin or header_pin
-    if pin != LAB_ADMIN_PIN:
-        raise HTTPException(status_code=401, detail="Hanya Role Admin yang dapat menghentikan simulasi.")
-
     try:
-        subprocess.run(["sudo", "bash", "/home/public/web/panel-lab/stop_simulation.sh"], check=False)
+        stop_script = os.path.join(PROJECT_ROOT, "stop_simulation.sh")
+        subprocess.run(["sudo", "bash", stop_script], check=False)
         audit_logs.appendleft({
             "time": time.strftime("%H:%M:%S"),
             "action": "SIMULATION_STOP",
-            "target": "11 Akun Praktikan & Riset",
+            "target": "11 Akun User & Riset",
             "detail": "Semua proses simulasi uji coba berhasil dibersihkan oleh Admin.",
             "type": "warning"
         })
@@ -314,7 +288,7 @@ async def startup_event():
     asyncio.create_task(telemetry_broadcaster())
 
 # Serve static frontend dist if it exists
-FRONTEND_DIST = "/home/public/web/panel-lab/frontend/dist"
+FRONTEND_DIST = os.getenv("FRONTEND_DIST", os.path.join(PROJECT_ROOT, "frontend", "dist"))
 if os.path.exists(FRONTEND_DIST):
     app.mount("/assets", StaticFiles(directory=os.path.join(FRONTEND_DIST, "assets")), name="assets")
 

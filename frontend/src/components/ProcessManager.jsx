@@ -219,26 +219,15 @@ function ProcessDrawer({ proc, onClose, onKill, isAdmin }) {
           className="mt-auto p-5"
           style={{ borderTop: '1px solid var(--border-base)' }}
         >
-          {!isProtected && isAdmin ? (
-            <button
-              onClick={() => { onKill(proc); onClose(); }}
-              className="btn-kill w-full justify-center py-2.5"
-              style={{ fontSize: '0.75rem', padding: '10px' }}
-            >
-              <XCircle className="w-4 h-4" />
-              Hentikan Proses (SIGTERM / SIGKILL)
-            </button>
-          ) : (
-            <div
-              className="text-center metric-value"
-              style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}
-            >
-              {isProtected
-                ? 'Proses terproteksi tidak dapat dihentikan'
-                : 'Login sebagai Admin untuk mengontrol proses ini'
-              }
-            </div>
-          )}
+          <div
+            className="text-center metric-value"
+            style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}
+          >
+            {isProtected
+              ? 'Proses sistem terproteksi tidak dapat dihentikan.'
+              : 'Kontrol dan penghentian proses user dikelola melalui menu User.'
+            }
+          </div>
         </div>
       </div>
     </div>
@@ -485,7 +474,7 @@ function ProcessManager({
                   <th style={{ color: 'var(--accent-violet)' }}>CPU%</th>
                   <th style={{ color: 'var(--accent-blue)' }}>RAM</th>
                   <th style={{ color: 'var(--accent-amber)' }}>VRAM</th>
-                  <th style={{ textAlign: 'right' }}>Aksi</th>
+                  <th style={{ textAlign: 'right' }}>Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -577,34 +566,13 @@ function ProcessManager({
                       </td>
                       <td style={{ textAlign: 'right' }} onClick={e => e.stopPropagation()}>
                         {isProtected ? (
-                          <span className="badge badge-neutral" style={{ fontSize: '0.5rem', cursor: 'not-allowed' }}>
+                          <span className="badge badge-neutral" style={{ fontSize: '0.5rem' }}>
                             <Shield className="w-2.5 h-2.5" style={{ color: 'var(--accent-emerald)' }} />
                             Terlindungi
                           </span>
-                        ) : isAdmin ? (
-                          <button
-                            onClick={() =>
-                              onOpenKillModal({
-                                pid: proc.pid,
-                                username: proc.username,
-                                procName: proc.name,
-                                cmdline: proc.cmdline,
-                                vramMb: proc.vram_mb,
-                                is_system: proc.is_system
-                              })
-                            }
-                            className="btn-kill"
-                          >
-                            <XCircle className="w-3 h-3" />
-                            Kill
-                          </button>
                         ) : (
-                          <span
-                            className="metric-value flex items-center gap-1 justify-end"
-                            style={{ fontSize: '0.5625rem', color: 'var(--text-muted)' }}
-                          >
-                            <Lock className="w-3 h-3" />
-                            R/O
+                          <span className="badge badge-emerald" style={{ fontSize: '0.5rem' }}>
+                            Aktif
                           </span>
                         )}
                       </td>
@@ -619,14 +587,14 @@ function ProcessManager({
         {/* Row count */}
         {filteredProcesses.length > 0 && (
           <div
-            className="px-5 py-2.5 flex items-center justify-between"
+            className="p-4 flex items-center justify-between"
             style={{ borderTop: '1px solid var(--border-sub)' }}
           >
-            <span className="metric-value" style={{ fontSize: '0.5625rem', color: 'var(--text-muted)' }}>
-              Klik baris untuk membuka Process Inspector
+            <span className="metric-value" style={{ fontSize: '0.625rem', color: 'var(--text-muted)' }}>
+              Menampilkan {filteredProcesses.length} proses dari {processes.length} total
             </span>
-            <span className="metric-value" style={{ fontSize: '0.5625rem', color: 'var(--text-muted)' }}>
-              {filteredProcesses.length} dari {processes.length} proses ditampilkan
+            <span className="metric-value" style={{ fontSize: '0.625rem', color: 'var(--text-muted)' }}>
+              Klik baris untuk melihat inspeksi detail
             </span>
           </div>
         )}
@@ -637,14 +605,6 @@ function ProcessManager({
         <ProcessDrawer
           proc={inspectedProc}
           onClose={() => setInspectedProc(null)}
-          onKill={(p) => onOpenKillModal({
-            pid: p.pid,
-            username: p.username,
-            procName: p.name,
-            cmdline: p.cmdline,
-            vramMb: p.vram_mb,
-            is_system: p.is_system
-          })}
           isAdmin={isAdmin}
         />
       )}

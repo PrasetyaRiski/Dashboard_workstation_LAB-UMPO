@@ -330,7 +330,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, sparkHistory = [] }) {
                   <th>Task</th>
                   <th>VRAM</th>
                   <th>CPU%</th>
-                  <th style={{ textAlign: 'right' }}>Aksi</th>
+                  <th style={{ textAlign: 'right' }}>Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -361,37 +361,18 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, sparkHistory = [] }) {
                       {proc.is_system || !proc.is_killable ? (
                         <span
                           className="badge badge-neutral"
-                          style={{ fontSize: '0.5625rem', cursor: 'not-allowed' }}
+                          style={{ fontSize: '0.5625rem' }}
                           title="Proses sistem terproteksi"
                         >
                           <Shield className="w-2.5 h-2.5" style={{ color: 'var(--accent-emerald)' }} />
                           Sistem
                         </span>
-                      ) : isAdmin ? (
-                        <button
-                          onClick={() =>
-                            onOpenKillModal({
-                              pid: proc.pid,
-                              username: proc.username,
-                              procName: proc.name,
-                              cmdline: proc.cmdline,
-                              vramMb: proc.vram_mb,
-                              is_system: proc.is_system
-                            })
-                          }
-                          className="btn-kill"
-                          title="Hentikan Proses (SIGKILL)"
-                        >
-                          <XCircle className="w-3 h-3" />
-                          Kill
-                        </button>
                       ) : (
                         <span
-                          className="badge badge-neutral"
-                          style={{ fontSize: '0.5625rem', cursor: 'default' }}
+                          className="badge badge-emerald"
+                          style={{ fontSize: '0.5625rem' }}
                         >
-                          <Lock className="w-2.5 h-2.5" />
-                          R/O
+                          Aktif
                         </span>
                       )}
                     </td>

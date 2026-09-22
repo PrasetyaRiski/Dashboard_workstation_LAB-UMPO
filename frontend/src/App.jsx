@@ -314,13 +314,11 @@ export default function App() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                   <GpuCard
                     gpu={data?.gpus?.[0]}
-                    onOpenKillModal={handleOpenKillModal}
                     isAdmin={isAdmin}
                     sparkHistory={data?.history || []}
                   />
                   <GpuCard
                     gpu={data?.gpus?.[1]}
-                    onOpenKillModal={handleOpenKillModal}
                     isAdmin={isAdmin}
                     sparkHistory={data?.history || []}
                   />
@@ -328,7 +326,6 @@ export default function App() {
                 <ProcessManager
                   processes={activeProcesses}
                   isAdmin={isAdmin}
-                  onOpenKillModal={handleOpenKillModal}
                   onRunSimulation={handleRunSimulation}
                   onStopSimulation={handleStopSimulation}
                   isSimulating={isSimulating}
@@ -341,7 +338,6 @@ export default function App() {
                 <ProcessManager
                   processes={activeProcesses}
                   isAdmin={isAdmin}
-                  onOpenKillModal={handleOpenKillModal}
                   onRunSimulation={handleRunSimulation}
                   onStopSimulation={handleStopSimulation}
                   isSimulating={isSimulating}

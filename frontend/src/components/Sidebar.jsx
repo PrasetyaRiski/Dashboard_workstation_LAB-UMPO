@@ -6,8 +6,6 @@ import {
   Server,
   FileText,
   Cpu,
-  Sun,
-  Moon,
   PanelLeftClose,
   PanelLeftOpen,
   Palette
@@ -20,8 +18,6 @@ export default function Sidebar({
   timeStr,
   onManualRefresh,
   isRefreshing,
-  theme = 'dark',
-  onToggleTheme,
   auditCount = 0,
   processCount = 0,
   isOpen = true,
@@ -68,8 +64,8 @@ export default function Sidebar({
 
       {/* ── Brand ── */}
       <div
-        className="flex items-center gap-3 px-5 shrink-0"
-        style={{ height: 64, borderBottom: '1px solid var(--border-sub)' }}
+        className="flex items-center gap-3 px-5 shrink-0 border-b border-[#46455430]"
+        style={{ height: 64,  }}
       >
         <div
           className="flex items-center justify-center shrink-0 overflow-hidden"
@@ -80,13 +76,13 @@ export default function Sidebar({
         <div className="flex-1 min-w-0">
           <div
             className="font-bold tracking-tight truncate"
-            style={{ fontSize: '0.9375rem', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}
+            style={{ fontSize: '0.9375rem', color: '#dfe2ef', letterSpacing: '-0.02em' }}
           >
             Lab Komputasi AI
           </div>
           <div
             className="truncate"
-            style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', marginTop: -1 }}
+            style={{ fontSize: '0.6875rem', color: '#908fa0', marginTop: -1 }}
           >
             TI UMPO
           </div>
@@ -123,15 +119,15 @@ export default function Sidebar({
 
       {/* ── Bottom controls ── */}
       <div
-        className="p-3 flex flex-col gap-2.5 shrink-0"
-        style={{ borderTop: '1px solid var(--border-sub)' }}
+        className="p-3 flex flex-col gap-2.5 shrink-0 border-t border-[#46455430]"
+        style={{  }}
       >
         {/* Live status row */}
         <div
-          className="flex items-center gap-2.5 px-3 py-2 rounded-lg"
+          className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-[#1c1f29] border border-[#46455430]"
           style={{
-            background: 'var(--surface-2)',
-            border: '1px solid var(--border-sub)',
+            
+            
           }}
         >
           <span className="relative flex shrink-0" style={{ width: 8, height: 8 }}>
@@ -156,7 +152,7 @@ export default function Sidebar({
           <span className="flex-1" />
           <span
             className="metric-value"
-            style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}
+            style={{ fontSize: '0.75rem', color: '#c7c4d7' }}
           >
             {timeStr || '--:--:--'}
           </span>
@@ -164,17 +160,7 @@ export default function Sidebar({
 
         {/* Action buttons row */}
         <div className="flex items-center gap-2">
-          <button
-            onClick={onToggleTheme}
-            className="icon-btn flex-1"
-            style={{ width: 'auto', height: 34 }}
-            title={theme === 'dark' ? 'Mode Terang' : 'Mode Gelap'}
-          >
-            {theme === 'dark'
-              ? <Sun className="w-4 h-4" style={{ color: 'var(--accent-amber)' }} />
-              : <Moon className="w-4 h-4" style={{ color: 'var(--accent-indigo)' }} />
-            }
-          </button>
+          
 
           <button
             onClick={onManualRefresh}

@@ -69,7 +69,7 @@ function VramBlockGrid({ processes = [], totalMb = 16311 }) {
       </div>
       <div className="flex items-end gap-0.5">
         {blockMap.map((proc, idx) => {
-          const color = proc ? colorMap[proc.username] : 'var(--surface-3)';
+          const color = proc ? colorMap[proc.username] : '#262a34';
           const title = proc
             ? `${proc.username} — ${proc.name}\nVRAM: ${proc.vram_mb} MB`
             : `Blok #${idx + 1}: Kosong`;
@@ -96,7 +96,7 @@ function VramBlockGrid({ processes = [], totalMb = 16311 }) {
             <span
               key={username}
               className="metric-value flex items-center gap-1"
-              style={{ fontSize: '0.5625rem', color: 'var(--text-muted)' }}
+              style={{ fontSize: '0.5625rem', color: '#908fa0' }}
             >
               <span
                 style={{
@@ -139,7 +139,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, sparkHistory = [] }) {
     ? 'var(--accent-rose)'
     : gpu.temperature_c >= 65
     ? 'var(--accent-amber)'
-    : 'var(--text-primary)';
+    : '#dfe2ef';
 
   const topProc = gpu.processes && gpu.processes[0];
   const uniqueUsers = Array.from(new Set((gpu.processes || []).map(p => p.username)));
@@ -226,7 +226,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, sparkHistory = [] }) {
       </div>
 
       {/* Compute + VRAM bars */}
-      <div className="p-5 pb-4 flex flex-col gap-4" style={{ borderBottom: '1px solid var(--border-sub)' }}>
+      <div className="p-5 pb-4 flex flex-col gap-4" style={{ borderBottom: '1px solid #46455430' }}>
         {/* CUDA Compute */}
         <div>
           <div className="flex justify-between items-center mb-1.5">
@@ -249,7 +249,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, sparkHistory = [] }) {
             <span className="section-label">Memori VRAM GDDR7</span>
             <span className="metric-value font-bold" style={{ fontSize: '0.6875rem', color: vramBar }}>
               {(gpu.vram_used_mb / 1024).toFixed(2)} GB
-              <span style={{ fontWeight: 400, color: 'var(--text-muted)', marginLeft: 3 }}>
+              <span style={{ fontWeight: 400, color: '#908fa0', marginLeft: 3 }}>
                 / {(gpu.vram_total_mb / 1024).toFixed(1)} GB ({vramPct}%)
               </span>
             </span>
@@ -262,7 +262,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, sparkHistory = [] }) {
           </div>
           <div
             className="metric-value flex justify-between mt-1"
-            style={{ fontSize: '0.5625rem', color: 'var(--text-muted)' }}
+            style={{ fontSize: '0.5625rem', color: '#908fa0' }}
           >
             <span>Tersedia: {(gpu.vram_free_mb / 1024).toFixed(2)} GB</span>
             <span>Mem Controller: {gpu.memory_util_percent}%</span>
@@ -277,10 +277,10 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, sparkHistory = [] }) {
       <div
         className="grid grid-cols-3 divide-x"
         style={{
-          borderBottom: '1px solid var(--border-sub)',
+          borderBottom: '1px solid #46455430',
           ['--tw-divide-opacity']: 1,
-          borderTopColor: 'var(--border-sub)',
-          ['--divide-color']: 'var(--border-sub)',
+          borderTopColor: '#46455430',
+          ['--divide-color']: '#46455430',
         }}
       >
         {[
@@ -295,19 +295,19 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, sparkHistory = [] }) {
             label: 'Daya',
             value: `${gpu.power_w}W`,
             sub: `/ ${gpu.power_limit_w}W`,
-            color: 'var(--text-primary)',
+            color: '#dfe2ef',
           },
           {
             icon: <Wind className="w-3 h-3" style={{ color: 'var(--accent-blue)' }} />,
             label: 'Kipas',
             value: `${gpu.fan_speed_percent}%`,
-            color: 'var(--text-primary)',
+            color: '#dfe2ef',
           },
         ].map((sensor, i) => (
           <div
             key={i}
             className="flex flex-col items-center py-3 gap-0.5"
-            style={{ borderColor: 'var(--border-sub)' }}
+            style={{ borderColor: '#46455430' }}
           >
             <div className="flex items-center gap-1 mb-0.5">
               {sensor.icon}
@@ -317,7 +317,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, sparkHistory = [] }) {
               {sensor.value}
             </span>
             {sensor.sub && (
-              <span className="metric-value" style={{ fontSize: '0.5625rem', color: 'var(--text-muted)' }}>
+              <span className="metric-value" style={{ fontSize: '0.5625rem', color: '#908fa0' }}>
                 {sensor.sub}
               </span>
             )}
@@ -331,13 +331,13 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, sparkHistory = [] }) {
           <span className="section-label">
             Proses Aktif ({gpu.processes?.length || 0})
           </span>
-          <span className="metric-value" style={{ fontSize: '0.5625rem', color: 'var(--text-muted)' }}>
+          <span className="metric-value" style={{ fontSize: '0.5625rem', color: '#908fa0' }}>
             Real-time telemetry
           </span>
         </div>
 
         {gpu.processes && gpu.processes.length > 0 ? (
-          <div className="overflow-x-auto" style={{ borderRadius: 8, border: '1px solid var(--border-base)' }}>
+          <div className="overflow-x-auto" style={{ borderRadius: 8, border: '1px solid #46455430' }}>
             <table className="data-table" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
               <thead>
                 <tr>
@@ -357,11 +357,11 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, sparkHistory = [] }) {
                         {proc.username}
                       </span>
                     </td>
-                    <td style={{ color: 'var(--text-muted)' }}>{proc.pid}</td>
+                    <td style={{ color: '#908fa0' }}>{proc.pid}</td>
                     <td>
                       <div
                         className="truncate font-medium"
-                        style={{ maxWidth: 140, color: 'var(--text-primary)', fontSize: '0.6875rem' }}
+                        style={{ maxWidth: 140, color: '#dfe2ef', fontSize: '0.6875rem' }}
                         title={proc.cmdline || proc.name}
                       >
                         {proc.name}
@@ -372,7 +372,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, sparkHistory = [] }) {
                         {proc.vram_mb} MB
                       </span>
                     </td>
-                    <td style={{ color: 'var(--text-secondary)' }}>{proc.cpu_percent}%</td>
+                    <td style={{ color: '#c7c4d7' }}>{proc.cpu_percent}%</td>
                     <td style={{ textAlign: 'right' }}>
                       {proc.is_system || !proc.is_killable ? (
                         <span
@@ -401,10 +401,10 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, sparkHistory = [] }) {
           <div
             className="text-center py-5 metric-value"
             style={{
-              border: '1px dashed var(--border-base)',
+              border: '1px dashed #46455430',
               borderRadius: 8,
               fontSize: '0.6875rem',
-              color: 'var(--text-muted)',
+              color: '#908fa0',
             }}
           >
             Tidak ada proses aktif di GPU ini.

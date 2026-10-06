@@ -81,14 +81,14 @@ function SystemOverview({ system, gpus = [] }) {
           </div>
           <h2
             className="font-bold"
-            style={{ fontSize: '0.9375rem', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}
+            style={{ fontSize: '0.9375rem', color: '#dfe2ef', letterSpacing: '-0.02em' }}
           >
             Infrastruktur Triad — CPU · RAM · GPU · Storage
           </h2>
         </div>
         <span
           className="metric-value"
-          style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}
+          style={{ fontSize: '0.6875rem', color: '#908fa0' }}
         >
           24 vCPU · 128 GB RAM · Dual RTX 5060 Ti (32 GB VRAM)
         </span>
@@ -150,7 +150,7 @@ function SystemOverview({ system, gpus = [] }) {
               ? 'var(--accent-amber)'
               : c > 15
               ? 'var(--accent-violet)'
-              : 'var(--surface-3)';
+              : '#262a34';
             const h = Math.max(4, Math.round((c / 100) * 28));
             return (
               <div
@@ -170,7 +170,7 @@ function SystemOverview({ system, gpus = [] }) {
         </div>
         <div
           className="flex justify-between metric-value mt-1.5"
-          style={{ fontSize: '0.5625rem', color: 'var(--text-muted)' }}
+          style={{ fontSize: '0.5625rem', color: '#908fa0' }}
         >
           <span>Core #0</span>
           <span>Core #{(cpu.core_count || 24) - 1}</span>

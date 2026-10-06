@@ -27,26 +27,7 @@ export default function App() {
   const [toast, setToast]             = useState(null);
   const [activeTab, setActiveTab]     = useState('overview');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
-  // Theme State (Dark Mode default, persists in localStorage)
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('lab_theme') || 'dark';
-  });
-
-  const handleToggleTheme = () => {
-    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
-  };
-
-  useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    localStorage.setItem('lab_theme', theme);
-  }, [theme]);
-
-  const [pendingAction, setPendingAction]   = useState(null);
+const [pendingAction, setPendingAction]   = useState(null);
   const [isSimulating, setIsSimulating]     = useState(false);
 
 
@@ -282,8 +263,8 @@ export default function App() {
 
   return (
     <div
-      className="flex h-screen overflow-hidden font-sans"
-      style={{ background: 'var(--surface-0)', color: 'var(--text-primary)' }}
+      className="dark flex h-screen overflow-hidden font-sans bg-[#0f131c] text-[#dfe2ef]"
+      
     >
       <Sidebar
         activeTab={activeTab}
@@ -293,8 +274,6 @@ export default function App() {
         onManualRefresh={fetchStatus}
         isRefreshing={isRefreshing}
         isAdmin={isAdmin}
-        theme={theme}
-        onToggleTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
         auditCount={data?.audit_logs?.length || 0}
         processCount={activeProcesses.length}
         isOpen={isSidebarOpen}
@@ -450,7 +429,7 @@ export default function App() {
             {activeTab === 'overview' && (
               <div className="flex flex-col gap-6 fade-in-up">
                 <SystemOverview system={data?.system} gpus={data?.gpus} />
-                <LiveChart history={data?.history} theme={theme} />
+                <LiveChart history={data?.history} theme="dark" />
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                   <GpuCard
                     gpu={data?.gpus?.[0]}
@@ -511,25 +490,25 @@ export default function App() {
                   <div className="panel-raised" style={{ padding: '20px 24px' }}>
                     <div className="flex items-center gap-2 mb-4">
                       <Layers className="w-4 h-4" style={{ color: 'var(--accent-indigo)' }} />
-                      <h3 className="font-bold" style={{ fontSize: '0.8125rem', color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
+                      <h3 className="font-bold" style={{ fontSize: '0.8125rem', color: '#dfe2ef', letterSpacing: '-0.01em' }}>
                         Alokasi Payung Cgroups v2 (RAM)
                       </h3>
                     </div>
-                    <p style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', marginBottom: 16, lineHeight: 1.6 }}>
+                    <p style={{ fontSize: '0.6875rem', color: '#908fa0', marginBottom: 16, lineHeight: 1.6 }}>
                       Isolasi memori dilakukan pada kernel Linux untuk mencegah satu mahasiswa menghabiskan seluruh memori server.
                     </p>
-                    <div className="flex flex-col" style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--border-base)' }}>
+                    <div className="flex flex-col" style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid #46455430' }}>
                       {[
                         { label: 'user.slice (Umbrella Limit)', sub: 'Batas total seluruh user & riset',     value: '100 GB RAM', color: 'var(--accent-indigo)' },
                         { label: 'user-1021.slice (labriset)',   sub: 'Riset Dosen & Skripsi Informatika',   value: '70 GB RAM',  color: 'var(--accent-indigo)' },
                         { label: 'training1 s.d training10',     sub: 'Kuota aman per user',                 value: '3 GB / user', color: 'var(--accent-emerald)' },
                       ].map((row, i) => (
-                        <div key={i} className="flex justify-between items-center" style={{ padding: '10px 14px', borderBottom: i < 2 ? '1px solid var(--border-sub)' : 'none' }}>
+                        <div key={i} className="flex justify-between items-center" style={{ padding: '10px 14px', borderBottom: i < 2 ? '1px solid #46455430' : 'none' }}>
                           <div>
                             <span className="metric-value font-bold block" style={{ fontSize: '0.6875rem', color: row.color }}>{row.label}</span>
-                            <span style={{ fontSize: '0.5625rem', color: 'var(--text-muted)' }}>{row.sub}</span>
+                            <span style={{ fontSize: '0.5625rem', color: '#908fa0' }}>{row.sub}</span>
                           </div>
-                          <span className="metric-value font-bold shrink-0" style={{ fontSize: '0.6875rem', color: 'var(--text-primary)', marginLeft: 12 }}>{row.value}</span>
+                          <span className="metric-value font-bold shrink-0" style={{ fontSize: '0.6875rem', color: '#dfe2ef', marginLeft: 12 }}>{row.value}</span>
                         </div>
                       ))}
                     </div>
@@ -539,22 +518,22 @@ export default function App() {
                   <div className="panel-raised" style={{ padding: '20px 24px' }}>
                     <div className="flex items-center gap-2 mb-4">
                       <ShieldCheck className="w-4 h-4" style={{ color: 'var(--accent-emerald)' }} />
-                      <h3 className="font-bold" style={{ fontSize: '0.8125rem', color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
+                      <h3 className="font-bold" style={{ fontSize: '0.8125rem', color: '#dfe2ef', letterSpacing: '-0.01em' }}>
                         Konfigurasi CUDA & Driver
                       </h3>
                     </div>
-                    <p style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', marginBottom: 16, lineHeight: 1.6 }}>
+                    <p style={{ fontSize: '0.6875rem', color: '#908fa0', marginBottom: 16, lineHeight: 1.6 }}>
                       Status lingkungan eksekusi PyTorch, driver GPU, dan framework komputasi kecerdasan buatan.
                     </p>
-                    <div className="flex flex-col" style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--border-base)' }}>
+                    <div className="flex flex-col" style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid #46455430' }}>
                       {[
                         { label: 'NVIDIA Driver Version', value: '595.84',                          color: 'var(--accent-emerald)' },
-                        { label: 'CUDA Runtime Version',  value: 'CUDA 13.2',                       color: 'var(--text-primary)' },
+                        { label: 'CUDA Runtime Version',  value: 'CUDA 13.2',                       color: '#dfe2ef' },
                         { label: 'Python Environment',    value: 'Python 3.12.3 (/opt/ai_env)',      color: 'var(--accent-indigo)' },
-                        { label: 'PyTorch Acceleration',  value: 'cu128 (RTX 5060 Ti Dual Arch)',   color: 'var(--text-primary)' },
+                        { label: 'PyTorch Acceleration',  value: 'cu128 (RTX 5060 Ti Dual Arch)',   color: '#dfe2ef' },
                       ].map((row, i, arr) => (
-                        <div key={i} className="flex justify-between items-center" style={{ padding: '9px 14px', borderBottom: i < arr.length - 1 ? '1px solid var(--border-sub)' : 'none' }}>
-                          <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>{row.label}</span>
+                        <div key={i} className="flex justify-between items-center" style={{ padding: '9px 14px', borderBottom: i < arr.length - 1 ? '1px solid #46455430' : 'none' }}>
+                          <span style={{ fontSize: '0.6875rem', color: '#908fa0' }}>{row.label}</span>
                           <span className="metric-value font-bold" style={{ fontSize: '0.6875rem', color: row.color }}>{row.value}</span>
                         </div>
                       ))}
@@ -588,11 +567,11 @@ export default function App() {
                 ? <AlertCircle className="w-4.5 h-4.5 shrink-0" style={{ color: 'var(--accent-rose)' }} />
                 : <Info className="w-4.5 h-4.5 shrink-0" style={{ color: 'var(--accent-indigo)' }} />
               }
-              <span style={{ fontSize: '0.8125rem', color: 'var(--text-primary)', fontWeight: 500 }}>{toast.message}</span>
+              <span style={{ fontSize: '0.8125rem', color: '#dfe2ef', fontWeight: 500 }}>{toast.message}</span>
               <button
                 onClick={() => setToast(null)}
                 className="ml-auto shrink-0 cursor-pointer"
-                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', padding: '2px' }}
+                style={{ background: 'none', border: 'none', color: '#908fa0', padding: '2px' }}
               >
                 ✕
               </button>

@@ -361,12 +361,16 @@ export default function UnifiedUserManagement({
                                     <span className="text-xs font-bold text-amber-400 flex items-center gap-1">
                                       <Zap className="w-3.5 h-3.5" fill="currentColor" /> Priority Mode
                                     </span>
-                                    <div className="text-[10px] text-slate-400 font-mono">
+                                    <span className="text-[10px] text-amber-500/70 font-mono">20 Core | 70GB RAM | GPU 0</span>
+                                    <div className="text-[10px] text-slate-400 font-mono mt-1">
                                       Expires: <LiveCountdown expiresAt={item.boost_expires_at} />
                                     </div>
                                   </div>
                                 ) : (
-                                  <span className="text-xs text-slate-500 font-medium px-2 py-1 bg-slate-800/50 rounded border border-slate-700/50">Standard Quota</span>
+                                  <div className="flex flex-col gap-1">
+                                    <span className="text-xs text-slate-400 font-medium px-2 py-0.5 bg-slate-800/50 rounded border border-slate-700/50 w-fit">Standard Quota</span>
+                                    <span className="text-[10px] text-slate-500 font-mono mt-1">2 Core | 3GB RAM | GPU 1</span>
+                                  </div>
                                 )}
                               </td>
                               <td className="px-6 py-4 text-right">

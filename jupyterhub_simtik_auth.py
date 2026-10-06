@@ -68,13 +68,25 @@ class SimtikAuthenticator(Authenticator):
         if not nim or not password:
             return None
 
-        # 1. Verifikasi kredensial ke SIMTIK UMPO secara live
+        # 1. Kasus Akun Sistem Lab (labriset, edy, training1-10) -> gunakan Linux PAM lokal
+        SYSTEM_ACCOUNTS = {"labriset", "edy", "root", "admin", "labadmin"}
+        if nim in SYSTEM_ACCOUNTS or nim.startswith("training"):
+            try:
+                import pamela
+                pamela.authenticate(nim, password)
+                logger.info(f"Login sukses via Linux PAM: Akun Sistem {nim}")
+                return nim
+            except Exception as e:
+                logger.warning(f"Login PAM ditolak untuk {nim}: {e}")
+                return None
+
+        # 2. Kasus Mahasiswa -> Verifikasi kredensial ke SIMTIK UMPO secara live
         is_valid, msg, user_data = verify_simtik_credentials(nim, password)
         if not is_valid:
             logger.warning(f"Login ditolak untuk NIM {nim}: {msg}")
             return None
 
-        # 2. Sinkronisasi ke Database User Management Lab
+        # 3. Sinkronisasi ke Database User Management Lab
         nama = user_data.get("nama", f"Mahasiswa {nim}")
         user_record = get_or_create_user(nim, nama)
 

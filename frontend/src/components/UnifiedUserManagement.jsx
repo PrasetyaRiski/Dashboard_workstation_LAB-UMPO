@@ -273,73 +273,12 @@ export default function UnifiedUserManagement({
         {activeTab === 'users' && (
           <div className="space-y-6">
             {/* Bento Grid Metrics — Stitch Design */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-[#181b25] border border-[#46455430] rounded-2xl p-5 hover:border-[#c0c1ff]/40 transition-all shadow-lg group relative overflow-hidden">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#c0c1ff]/15 flex items-center justify-center border border-[#c0c1ff]/30 text-[#c0c1ff]">
-                    <Users className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-[#dfe2ef] font-mono tracking-tight">{totalStudents}</div>
-                    <div className="text-[11px] text-[#908fa0] font-mono uppercase tracking-wider">Total Akun SIMTIK</div>
-                  </div>
-                </div>
-                <div className="flex gap-2 font-mono text-[11px]">
-                  <span className="px-2 py-0.5 bg-[#1c1f29] rounded-lg text-[#dfe2ef] border border-[#46455430] flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#4edea3] animate-pulse"></span>
-                    <strong className="text-[#4edea3]">{onlineStudents}</strong> Online
-                  </span>
-                  <span className="px-2 py-0.5 bg-[#1c1f29] rounded-lg text-[#dfe2ef] border border-[#46455430] flex items-center gap-1">
-                    <strong className="text-[#c0c1ff]">{adminStudents}</strong> Admin
-                  </span>
-                </div>
-              </div>
-
-              <div className="bg-[#181b25] border border-[#46455430] rounded-2xl p-5 hover:border-[#4cd7f6]/40 transition-all shadow-lg group relative overflow-hidden">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#4cd7f6]/15 flex items-center justify-center border border-[#4cd7f6]/30 text-[#4cd7f6]">
-                    <Zap className="w-5 h-5" fill="currentColor" />
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-[#dfe2ef] font-mono tracking-tight">{boostedStudents} / 1</div>
-                    <div className="text-[11px] text-[#908fa0] font-mono uppercase tracking-wider">GPU 0 Monster Slot</div>
-                  </div>
-                </div>
-                <div className="w-full bg-[#262a34] h-1.5 rounded-full overflow-hidden mb-1.5">
-                  <div className="bg-[#4cd7f6] h-full rounded-full transition-all" style={{ width: `${Math.min(boostedStudents * 100, 100)}%` }}></div>
-                </div>
-                <p className="text-[10px] text-[#908fa0] font-mono">20 Core · 70GB RAM · GPU 0 Dedicated</p>
-              </div>
-
-              <div className="bg-[#181b25] border border-[#46455430] rounded-2xl p-5 hover:border-[#4edea3]/40 transition-all shadow-lg group relative overflow-hidden">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#4edea3]/15 flex items-center justify-center border border-[#4edea3]/30 text-[#4edea3]">
-                    <Activity className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-[#dfe2ef] font-mono tracking-tight">{onlineSystem} / {systemUsers?.length || 0}</div>
-                    <div className="text-[11px] text-[#908fa0] font-mono uppercase tracking-wider">System Sessions</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1.5 text-[10px] font-mono text-[#4edea3]">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#4edea3] animate-pulse"></span> Sesi Linux Aktif (Riset/Training)
-                </div>
-              </div>
-
-              <div className="bg-[#181b25] border border-[#46455430] rounded-2xl p-5 transition-all shadow-lg relative overflow-hidden">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#8083ff]/15 flex items-center justify-center border border-[#8083ff]/30 text-[#c0c1ff]">
-                    <Database className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-[#dfe2ef] font-mono uppercase tracking-wider">SIMTIK SSO Policy</div>
-                    <div className="text-[10px] text-[#908fa0]">OAuth2 / Local DB Sync</div>
-                  </div>
-                </div>
-                <div className="text-[10px] font-mono text-[#c7c4d7] bg-[#1c1f29] p-2 rounded-xl border border-[#46455425]">
-                  Auto cgroups: <span className="text-[#4cd7f6]">user-slice.slice</span>
-                </div>
-              </div>
+            {/* Ringkasan singkat */}
+            <div className="flex flex-wrap items-center gap-x-8 gap-y-2 px-1 text-sm text-[#908fa0]">
+              <span><strong className="text-[#dfe2ef] text-base">{totalStudents}</strong> akun SIMTIK</span>
+              <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-[#4edea3]"></span><strong className="text-[#dfe2ef] text-base">{onlineStudents}</strong> online</span>
+              <span><strong className="text-[#dfe2ef] text-base">{boostedStudents}/1</strong> slot GPU prioritas</span>
+              <span><strong className="text-[#dfe2ef] text-base">{onlineSystem}/{systemUsers?.length || 0}</strong> sesi sistem</span>
             </div>
 
             {/* Filter & Search Header — Stitch Style */}

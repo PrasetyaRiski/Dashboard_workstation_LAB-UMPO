@@ -360,3 +360,26 @@ def auto_expire_priorities() -> List[str]:
     finally:
         cur.close()
         conn.close()
+
+
+def get_audit_logs(limit: int = 100) -> List[Dict[str, Any]]:
+    conn, engine = get_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute(f"SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT {limit}")
+        rows = cur.fetchall()
+        results = []
+        for r in rows:
+            if engine == "postgres":
+                item = dict(r) if hasattr(r, "keys") else {
+                    "id": r[0], "nim": r[1], "action": r[2], "detail": r[3], "created_at": r[4]
+                }
+            else:
+                item = dict(r)
+            if item.get("created_at"):
+                item["created_at"] = str(item["created_at"])
+            results.append(item)
+        return results
+    finally:
+        cur.close()
+        conn.close()

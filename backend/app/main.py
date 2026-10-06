@@ -1,11 +1,13 @@
 import asyncio
 import os
+import secrets
 import signal
 import subprocess
 import time
 from collections import deque
 import psutil
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Request
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Request, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
@@ -22,6 +24,49 @@ from app.db import (
 )
 
 app = FastAPI(title="AI Lab Compute Dashboard", version="2.1.0")
+
+security = HTTPBearer()
+ADMIN_PIN = os.getenv("ADMIN_PIN", "123456")
+ACTIVE_TOKENS = set()
+
+def verify_admin(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    if credentials.credentials not in ACTIVE_TOKENS:
+        raise HTTPException(status_code=401, detail="Token admin tidak valid atau sudah kedaluwarsa")
+    return True
+
+class LoginRequest(BaseModel):
+    pin: str
+
+@app.post("/api/admin/login")
+def admin_login(req: LoginRequest):
+    if req.pin == ADMIN_PIN:
+        token = secrets.token_hex(32)
+        ACTIVE_TOKENS.add(token)
+        return {"success": True, "token": token}
+    raise HTTPException(status_code=401, detail="PIN Admin salah")
+
+@app.post("/api/admin/logout")
+def admin_logout(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    ACTIVE_TOKENS.discard(credentials.credentials)
+    return {"success": True}
+
+@app.get("/api/stats/capacity")
+def get_capacity():
+    users = list_users()
+    active_boosts = 0
+    now = datetime.now()
+    for u in users:
+        if u.get("is_priority") and u.get("priority_expires_at"):
+            exp_dt = datetime.strptime(u.get("priority_expires_at"), "%Y-%m-%d %H:%M:%S")
+            if exp_dt > now:
+                active_boosts += 1
+    return {"success": True, "total_slots": 1, "used_slots": active_boosts}
+
+@app.get("/api/audit-logs")
+def get_audit_logs_api(limit: int = 100, _=Depends(verify_admin)):
+    from app.db import get_audit_logs
+    return {"success": True, "logs": get_audit_logs(limit)}
+
 
 # Default Admin PIN (dapat diubah via Environment Variable LAB_ADMIN_PIN)
 LAB_ADMIN_PIN = os.getenv("LAB_ADMIN_PIN", "umpo2026")
@@ -317,7 +362,7 @@ async def auth_simtik(req: SimtikLoginRequest):
     }
 
 @app.get("/api/users/students")
-def get_students():
+def get_students(_=Depends(verify_admin)):
     """Mengambil daftar seluruh mahasiswa terdaftar beserta status mode prioritas"""
     users = list_users()
     return {"success": True, "users": users}
@@ -325,7 +370,7 @@ def get_students():
 from datetime import datetime
 
 @app.post("/api/users/boost")
-def boost_student(req: BoostUserRequest):
+def boost_student(req: BoostUserRequest, _=Depends(verify_admin)):
     """Menaikkan NIM ke Mode Prioritas (Monster: 20 Core, 70G, GPU 0)"""
     
     # --- Admission Control ---
@@ -362,7 +407,7 @@ def boost_student(req: BoostUserRequest):
     raise HTTPException(status_code=400, detail="Gagal mengaktifkan mode prioritas.")
 
 @app.post("/api/users/unboost")
-def unboost_student(req: UserActionRequest):
+def unboost_student(req: UserActionRequest, _=Depends(verify_admin)):
     """Mengembalikan NIM ke Mode Normal (Praktikan: 2 Core, 3G, GPU 1)"""
     success = unset_user_priority(req.nim)
     if success:
@@ -377,7 +422,7 @@ def unboost_student(req: UserActionRequest):
     raise HTTPException(status_code=400, detail="Gagal menonaktifkan mode prioritas.")
 
 @app.post("/api/users/toggle-admin")
-def toggle_admin(req: UserActionRequest):
+def toggle_admin(req: UserActionRequest, _=Depends(verify_admin)):
     """Toggle hak akses admin dashboard untuk NIM tertentu"""
     success = toggle_user_admin(req.nim)
     if success:
@@ -385,7 +430,7 @@ def toggle_admin(req: UserActionRequest):
     raise HTTPException(status_code=404, detail="User tidak ditemukan.")
 
 @app.post("/api/users/toggle-active")
-def toggle_active(req: UserActionRequest):
+def toggle_active(req: UserActionRequest, _=Depends(verify_admin)):
     """Toggle status aktif/blokir akses untuk NIM tertentu"""
     success = toggle_user_active(req.nim)
     if success:

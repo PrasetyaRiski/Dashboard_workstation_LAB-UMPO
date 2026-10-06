@@ -14,6 +14,7 @@ import pwd
 import subprocess
 import logging
 import asyncio
+import re
 from jupyterhub.auth import Authenticator
 
 for _p in ("/home/public/web/backend", "/home/public/web/panel-lab/backend",
@@ -27,6 +28,9 @@ logger = logging.getLogger("jupyterhub_simtik")
 USER_PREFIX = "m"
 SYSTEM_ACCOUNTS = {"labriset", "edy", "labadmin"}
 LEVEL1_SYSTEM = {"labriset"}
+
+# Validasi ketat NIM menggunakan regex
+NIM_REGEX = re.compile(r"^\d{8,15}$")
 
 
 def is_system_account(name: str) -> bool:
@@ -49,6 +53,7 @@ def ensure_linux_user(username: str) -> bool:
         return True
     except KeyError:
         pass
+    # useradd tanpa hak sudo
     cmd = ["useradd", "-m", "-s", "/bin/bash", username]
     if os.geteuid() != 0:
         cmd = ["sudo", "-n"] + cmd
@@ -56,7 +61,12 @@ def ensure_linux_user(username: str) -> bool:
     if res.returncode != 0:
         logger.error(f"useradd {username} gagal ({res.returncode}): {res.stderr.strip()}")
         return False
-    logger.info(f"User Linux {username} berhasil dibuat.")
+    # Set permission home dir ke 0700 (akses pribadi saja)
+    chmod_cmd = ["chmod", "0700", f"/home/{username}"]
+    if os.geteuid() != 0:
+        chmod_cmd = ["sudo", "-n"] + chmod_cmd
+    subprocess.run(chmod_cmd)
+    logger.info(f"User Linux {username} berhasil dibuat dengan akses terbatas.")
     return True
 
 
@@ -79,15 +89,15 @@ class SimtikAuthenticator(Authenticator):
             return None
 
         try:
-            # 1) Akun sistem lab -> password Linux
+            # 1) Akun sistem lab -> password Linux (Whitelist ketat)
             if is_system_account(username):
                 ok = await asyncio.to_thread(_pam_check, username, password)
                 return username if ok else None
 
             # Izinkan mahasiswa mengetik "m21533045" maupun "21533045"
             nim = username_to_nim(username)
-            if not nim.isdigit():
-                logger.warning(f"Username tidak dikenal: {username}")
+            if not NIM_REGEX.match(nim):
+                logger.warning(f"Username ditolak (bukan akun sistem atau format NIM tidak valid): {username}")
                 return None
 
             # 2) Mahasiswa -> SIMTIK
@@ -131,14 +141,38 @@ def simtik_pre_spawn_hook(spawner):
 
     if priority:
         logger.info(f"[QoS] {username} -> LEVEL 1 (20 core, 70G, GPU 0)")
-        spawner.unit_extra_properties = {"Slice": "compute-level1.slice"}
+        # Gunakan list/string properties untuk systemd
+        # TasksMax default 2048, MemorySwapMax 0 (no swap)
+        spawner.unit_extra_properties = {
+            "Slice": "compute-level1.slice",
+            "TasksMax": "2048",
+            "MemorySwapMax": "0",
+            "DevicePolicy": "closed",
+            "DeviceAllow": [
+                "/dev/nvidia0 rw",
+                "/dev/nvidiactl rw",
+                "/dev/nvidia-uvm rw",
+                "/dev/nvidia-uvm-tools rw"
+            ]
+        }
         spawner.cpu_limit = 20.0
         spawner.mem_limit = "70G"
         spawner.environment = {"OMP_NUM_THREADS": "20", "OPENBLAS_NUM_THREADS": "20",
                                "CUDA_VISIBLE_DEVICES": "0"}
     else:
         logger.info(f"[QoS] {username} -> LEVEL 2 (2 core, 3G, GPU 1)")
-        spawner.unit_extra_properties = {"Slice": "compute-level2.slice"}
+        spawner.unit_extra_properties = {
+            "Slice": "compute-level2.slice",
+            "TasksMax": "512",
+            "MemorySwapMax": "0",
+            "DevicePolicy": "closed",
+            "DeviceAllow": [
+                "/dev/nvidia1 rw",
+                "/dev/nvidiactl rw",
+                "/dev/nvidia-uvm rw",
+                "/dev/nvidia-uvm-tools rw"
+            ]
+        }
         spawner.cpu_limit = 2.0
         spawner.mem_limit = "3G"
         spawner.environment = {"OMP_NUM_THREADS": "2", "OPENBLAS_NUM_THREADS": "2",

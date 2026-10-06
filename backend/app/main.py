@@ -322,9 +322,33 @@ def get_students():
     users = list_users()
     return {"success": True, "users": users}
 
+from datetime import datetime
+
 @app.post("/api/users/boost")
 def boost_student(req: BoostUserRequest):
     """Menaikkan NIM ke Mode Prioritas (Monster: 20 Core, 70G, GPU 0)"""
+    
+    # --- Admission Control ---
+    # Hitung jumlah user yang sedang dalam masa boost prioritas
+    users = list_users()
+    active_boosts = 0
+    now = datetime.now()
+    for u in users:
+        if u.get("is_priority"):
+            exp_str = u.get("priority_expires_at")
+            if exp_str:
+                exp_dt = datetime.strptime(exp_str, "%Y-%m-%d %H:%M:%S")
+                if exp_dt > now:
+                    active_boosts += 1
+                    
+    # Maksimal 1 user boost karena hanya ada 1 slot GPU 0 (dedicated)
+    if active_boosts >= 1:
+        raise HTTPException(
+            status_code=400, 
+            detail="Kapasitas Penuh: Saat ini sudah ada slot prioritas (GPU 0) yang digunakan. Silakan tunggu hingga sesi sebelumnya selesai/expired."
+        )
+    # -------------------------
+
     success = set_user_priority(req.nim, req.hours, req.reason or "Admin Boost")
     if success:
         audit_logs.appendleft({

@@ -59,6 +59,11 @@ def get_connection():
     # SQLite Fallback
     os.makedirs(os.path.dirname(SQLITE_PATH), exist_ok=True)
     conn = sqlite3.connect(SQLITE_PATH, timeout=10)
+    
+    # Aktifkan WAL mode untuk konkurensi (JupyterHub + FastAPI)
+    conn.execute("PRAGMA journal_mode=WAL;")
+    conn.execute("PRAGMA busy_timeout=5000;")
+    
     conn.row_factory = sqlite3.Row
     if not _TABLES_READY:
         # Pastikan tabel selalu ada, walau init_db() belum dipanggil (mis. dari JupyterHub)

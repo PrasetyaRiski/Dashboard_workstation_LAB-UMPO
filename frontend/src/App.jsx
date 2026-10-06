@@ -325,7 +325,7 @@ const [pendingAction, setPendingAction]   = useState(null);
               <div className="flex items-center gap-1.5 bg-[#181b25] px-2.5 py-1 rounded-lg border border-[#46455430] text-[#dfe2ef]">
                 <span className="text-[#4cd7f6]">⚡</span>
                 <span className="text-[#908fa0]">GPU 0 Slot:</span>
-                <span className="text-[#4cd7f6] font-semibold">{students.filter(s => s.is_boosted).length}/1 Occupied</span>
+                <span className="text-[#4cd7f6] font-semibold">{students.filter(s => s.is_priority).length}/1 Occupied</span>
               </div>
             </div>
           </div>

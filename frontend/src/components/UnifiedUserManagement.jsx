@@ -3,7 +3,7 @@ import {
   Users, Zap, RotateCcw, Shield, ShieldCheck, Search, CheckCircle2,
   AlertCircle, Clock, UserCheck, UserX, Sparkles, KeyRound, RefreshCw,
   Lock, LogOut, ChevronLeft, ChevronRight, Activity, Cpu, MoreVertical,
-  Database, Server, Ban, AlertTriangle, Trash2, UserPlus
+  Database, Server, Ban, AlertTriangle, Trash2
 } from 'lucide-react';
 import AuditLogView from './AuditLogView';
 
@@ -51,28 +51,6 @@ export default function UnifiedUserManagement({
   
   // API interaction modals
   const [boostModal, setBoostModal] = useState({ isOpen: false, nim: null, nama: '', hours: 4, reason: '' });
-  const [addUserModal, setAddUserModal] = useState({ isOpen: false, nim: '', nama: '', is_admin: false });
-
-  const handleAddUser = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await fetch('/api/users', {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(addUserModal)
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        showToast('User berhasil ditambahkan', 'success');
-        setAddUserModal({ isOpen: false, nim: '', nama: '', is_admin: false });
-        fetchStudents();
-      } else {
-        showToast(data.detail || 'Gagal tambah user', 'error');
-      }
-    } catch (err) {
-      showToast('Error: ' + err.message, 'error');
-    }
-  };
 
   const handleDeleteUser = async (nim) => {
     if (!confirm(`Hapus user ${nim} dari sistem secara permanen? Semua sesi OS akan di-kill.`)) return;
@@ -183,7 +161,6 @@ export default function UnifiedUserManagement({
   };
 
   const fetchAuditLogs = useCallback(async () => {
-    if (!isAdmin) return;
     try {
       const res = await fetch(`/api/audit-logs?_t=${Date.now()}`, { 
         headers: getAuthHeaders(),
@@ -196,23 +173,52 @@ export default function UnifiedUserManagement({
     } catch (err) {
       console.error(err);
     }
-  }, [isAdmin]);
+  }, []);
 
   useEffect(() => {
-    if (activeTab === 'audit' && isAdmin) {
+    if (activeTab === 'audit') {
       fetchAuditLogs();
     }
-  }, [activeTab, fetchAuditLogs, isAdmin]);
+  }, [activeTab, fetchAuditLogs]);
 
-  // Combine Users
+  // Combine Users & Deduplicate SIMTIK accounts with OS telemetry
   const unifiedList = useMemo(() => {
     const list = [];
-    (systemUsers || []).forEach(su => {
+    
+    // 1. Pure System Users (labriset, training1-10, etc.)
+    const pureSystemUsers = (systemUsers || []).filter(
+      su => !(su.username?.startsWith('m') && /^\d+$/.test(su.username.slice(1)))
+    );
+    pureSystemUsers.forEach(su => {
       list.push({ ...su, type: 'system' });
     });
-    (students || []).forEach(st => {
-      list.push({ ...st, type: 'student' });
+
+    // 2. Map OS telemetry for students by NIM
+    const studentTelemetryMap = new Map();
+    (systemUsers || []).forEach(su => {
+      if (su.username?.startsWith('m') && /^\d+$/.test(su.username.slice(1))) {
+        const nim = su.username.slice(1);
+        studentTelemetryMap.set(nim, su);
+      }
     });
+
+    // 3. Process SIMTIK students
+    (students || []).forEach(st => {
+      const osUser = studentTelemetryMap.get(st.nim);
+      const isOnline = Boolean(st.is_active && (osUser?.is_online || (osUser?.total_process_count > 0)));
+      list.push({
+        ...st,
+        type: 'student',
+        is_online: isOnline,
+        os_user: osUser || null,
+        ram_used_mb: osUser?.ram_used_mb || 0,
+        ram_max_mb: osUser?.ram_max_mb || (st.is_priority ? 71680 : 3072),
+        vram_used_mb: osUser?.vram_used_mb || 0,
+        cpu_percent: osUser?.cpu_percent || 0,
+        processes: osUser?.processes || []
+      });
+    });
+
     return list;
   }, [systemUsers, students]);
 
@@ -230,14 +236,14 @@ export default function UnifiedUserManagement({
     });
   }, [unifiedList, filterType, searchQuery]);
 
-  // Metrics (Preserving Bento Grid)
+  // Metrics (Synced with Priority QoS & SIMTIK)
   const totalStudents = students?.length || 0;
   const activeStudents = students?.filter(s => s.is_active)?.length || 0;
-  const onlineStudents = students?.filter(s => s.is_active && systemUsers?.some(su => su.username === `m${s.nim}`))?.length || 0;
-  const boostedStudents = students?.filter(s => s.is_boosted)?.length || 0;
+  const onlineStudents = students?.filter(s => s.is_active && systemUsers?.some(su => su.username === `m${s.nim}` && (su.is_online || su.total_process_count > 0)))?.length || 0;
+  const boostedStudents = students?.filter(s => s.is_priority)?.length || 0;
   const adminStudents = students?.filter(s => s.is_admin)?.length || 0;
 
-  const onlineSystem = systemUsers?.filter(u => u.is_online)?.length || 0;
+  const onlineSystem = (systemUsers || []).filter(u => u.is_online && !u.username?.startsWith('m'))?.length || 0;
   
   return (
     <div className="flex flex-col h-full bg-slate-900 rounded-xl border border-slate-800 shadow-2xl overflow-hidden">
@@ -298,14 +304,8 @@ export default function UnifiedUserManagement({
                   </button>
                 ))}
               </div>
-              <div className="relative w-full sm:w-72 flex gap-3">
-                {isAdmin && (
-                  <button onClick={() => setAddUserModal({ ...addUserModal, isOpen: true })} className="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg flex items-center gap-2 text-sm font-semibold transition-colors whitespace-nowrap">
-                    <UserPlus className="w-4 h-4" /> Add
-                  </button>
-                )}
-                <div className="relative w-full">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <div className="relative w-full sm:w-72">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="text"
                   placeholder="Cari username / NIM / nama..."
@@ -313,7 +313,6 @@ export default function UnifiedUserManagement({
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 pl-9 pr-4 text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
                 />
-                </div>
               </div>
             </div>
 
@@ -341,13 +340,15 @@ export default function UnifiedUserManagement({
                     ) : (
                       filteredData.map((item, idx) => {
                         if (item.type === 'student') {
+                          const ramMax = item.is_priority ? 71680 : 3072;
+                          const ramPct = item.is_online ? Math.min(Math.round(((item.ram_used_mb || 0) / ramMax) * 100), 100) : 0;
                           return (
                             <tr key={`student-${item.nim}`} className="hover:bg-[#1c1f29]/70 transition-colors border-b border-[#46455420] group">
                               {/* 1. Student / Researcher */}
                               <td className="px-5 py-3.5">
                                 <div className="flex items-center gap-3">
                                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs uppercase font-mono border ${
-                                    item.is_boosted 
+                                    item.is_priority 
                                       ? 'bg-[#4cd7f6]/20 text-[#4cd7f6] border-[#4cd7f6]/40' 
                                       : 'bg-[#1c1f29] text-[#c0c1ff] border-[#46455430]'
                                   }`}>
@@ -368,12 +369,12 @@ export default function UnifiedUserManagement({
                                 <div className="flex flex-col gap-0.5">
                                   <span className="font-mono text-xs font-semibold text-[#4cd7f6]">{item.nim}</span>
                                   {item.is_active ? (
-                                    systemUsers?.some(su => su.username === `m${item.nim}`) ? (
+                                    item.is_online ? (
                                       <span className="text-[10px] font-mono text-[#4edea3] flex items-center gap-1.5" title="User sedang online (sesi aktif)">
                                         <span className="w-1.5 h-1.5 rounded-full bg-[#4edea3] animate-pulse"></span> Online
                                       </span>
                                     ) : (
-                                      <span className="text-[10px] font-mono text-[#908fa0] flex items-center gap-1.5" title="Akun valid (sedang offline)">
+                                      <span className="text-[10px] font-mono text-[#908fa0] flex items-center gap-1.5" title="Akun terdaftar (sedang offline)">
                                         <span className="w-1.5 h-1.5 rounded-full bg-[#908fa0]"></span> Offline
                                       </span>
                                     )
@@ -385,22 +386,22 @@ export default function UnifiedUserManagement({
                                 </div>
                               </td>
 
-                              {/* 3. Tier & cgroup (Stitch Screen 2) */}
+                              {/* 3. Tier & cgroup (Official QoS Terms) */}
                               <td className="px-5 py-3.5">
                                 <div className="flex flex-col gap-0.5">
-                                  {item.is_boosted ? (
+                                  {item.is_priority ? (
                                     <>
                                       <span className="px-2 py-0.5 rounded bg-[#4cd7f6]/20 text-[#4cd7f6] border border-[#4cd7f6]/40 font-mono text-[9px] font-bold w-fit shadow-sm">
-                                        TIER 3 (MONSTER)
+                                        Level 1 (Priority)
                                       </span>
-                                      <span className="text-[10px] text-[#908fa0] font-mono">/slice/monster.slice</span>
+                                      <span className="text-[10px] text-[#908fa0] font-mono">compute-level1.slice</span>
                                     </>
                                   ) : (
                                     <>
                                       <span className="px-2 py-0.5 rounded bg-[#262a34] text-[#c7c4d7] border border-[#46455440] font-mono text-[9px] font-medium w-fit">
-                                        TIER 2 (STANDARD)
+                                        Level 2 (Standard)
                                       </span>
-                                      <span className="text-[10px] text-[#908fa0] font-mono">/slice/student.slice</span>
+                                      <span className="text-[10px] text-[#908fa0] font-mono">compute-level2.slice</span>
                                     </>
                                   )}
                                 </div>
@@ -408,15 +409,17 @@ export default function UnifiedUserManagement({
 
                               {/* 4. Active Hardware */}
                               <td className="px-5 py-3.5">
-                                {item.is_boosted ? (
+                                {item.is_priority ? (
                                   <div className="flex flex-col gap-0.5">
                                     <span className="text-xs font-mono font-bold text-[#4cd7f6] flex items-center gap-1">
                                       <Zap className="w-3.5 h-3.5" fill="currentColor"/> GPU 0 (Dedicated)
                                     </span>
-                                    <span className="text-[10px] text-[#908fa0] font-mono">20 Cores | 70GB VRAM</span>
-                                    <div className="text-[10px] text-[#fbbf24] font-mono">
-                                      Expires: <LiveCountdown expiresAt={item.boost_expires_at} />
-                                    </div>
+                                    <span className="text-[10px] text-[#908fa0] font-mono">20 Cores | 70GB RAM</span>
+                                    {item.priority_expires_at && (
+                                      <div className="text-[10px] text-[#fbbf24] font-mono">
+                                        Expires: <LiveCountdown expiresAt={item.priority_expires_at} />
+                                      </div>
+                                    )}
                                   </div>
                                 ) : (
                                   <div className="flex flex-col gap-0.5">
@@ -426,19 +429,19 @@ export default function UnifiedUserManagement({
                                 )}
                               </td>
 
-                              {/* 5. RAM & Quota Progress (Stitch Screen 2) */}
+                              {/* 5. RAM & Quota Progress */}
                               <td className="px-5 py-3.5">
                                 <div className="flex flex-col gap-1 w-32">
                                   <div className="flex justify-between text-[10px] font-mono">
-                                    <span className="text-[#908fa0]">{item.is_boosted ? 'Alloc: 70GB' : 'Alloc: 3GB'}</span>
-                                    <span className={item.is_boosted ? 'text-[#4cd7f6] font-bold' : 'text-[#c7c4d7]'}>
-                                      {item.is_boosted ? 'Max Cap' : 'Norm'}
+                                    <span className="text-[#908fa0]">{item.is_priority ? 'Alloc: 70GB' : 'Alloc: 3GB'}</span>
+                                    <span className={item.is_priority ? 'text-[#4cd7f6] font-bold' : 'text-[#c7c4d7]'}>
+                                      {item.is_online ? `${Math.round(item.ram_used_mb || 0)} MB` : '0 MB'}
                                     </span>
                                   </div>
                                   <div className="w-full bg-[#262a34] h-1.5 rounded-full overflow-hidden">
                                     <div
-                                      className={`h-full rounded-full transition-all ${item.is_boosted ? 'bg-[#4cd7f6]' : 'bg-[#c0c1ff]'}`}
-                                      style={{ width: item.is_boosted ? '100%' : '35%' }}
+                                      className={`h-full rounded-full transition-all ${item.is_priority ? 'bg-[#4cd7f6]' : 'bg-[#c0c1ff]'}`}
+                                      style={{ width: `${item.is_online ? Math.max(ramPct, 5) : 0}%` }}
                                     ></div>
                                   </div>
                                 </div>
@@ -448,19 +451,24 @@ export default function UnifiedUserManagement({
                               <td className="px-5 py-3.5 text-right">
                                 {isAdmin ? (
                                   <div className="flex items-center justify-end gap-1.5 opacity-90 group-hover:opacity-100 transition-opacity">
-                                    {item.is_boosted ? (
-                                      <button onClick={() => handleUnboost(item.nim)} className="px-2 py-1 rounded-lg bg-[#fbbf24]/15 text-[#fbbf24] border border-[#fbbf24]/30 hover:bg-[#fbbf24]/25 text-xs font-mono transition-colors flex items-center gap-1" title="Revert to Normal">
+                                    {item.is_online && (
+                                      <button onClick={() => onKillAllUser(`m${item.nim}`)} className="px-2 py-1 rounded-lg bg-rose-500/15 text-rose-300 border border-rose-500/30 hover:bg-rose-500/25 text-xs font-mono transition-colors flex items-center gap-1" title="Kill Sesi Notebook Mahasiswa">
+                                        <Ban className="w-3.5 h-3.5" /> Kill Sesi
+                                      </button>
+                                    )}
+                                    {item.is_priority ? (
+                                      <button onClick={() => handleUnboost(item.nim)} className="px-2 py-1 rounded-lg bg-[#fbbf24]/15 text-[#fbbf24] border border-[#fbbf24]/30 hover:bg-[#fbbf24]/25 text-xs font-mono transition-colors flex items-center gap-1" title="Kembalikan ke Level 2 (Standard)">
                                         <RotateCcw className="w-3.5 h-3.5" /> Revert
                                       </button>
                                     ) : (
-                                      <button onClick={() => setBoostModal({ isOpen: true, nim: item.nim, nama: item.nama, hours: 4, reason: '' })} className="px-2 py-1 rounded-lg bg-[#4cd7f6]/15 text-[#4cd7f6] border border-[#4cd7f6]/30 hover:bg-[#4cd7f6]/25 text-xs font-mono font-medium transition-colors flex items-center gap-1 shadow-sm" title="Boost Resource to Monster">
+                                      <button onClick={() => setBoostModal({ isOpen: true, nim: item.nim, nama: item.nama, hours: 4, reason: '' })} className="px-2 py-1 rounded-lg bg-[#4cd7f6]/15 text-[#4cd7f6] border border-[#4cd7f6]/30 hover:bg-[#4cd7f6]/25 text-xs font-mono font-medium transition-colors flex items-center gap-1 shadow-sm" title="Boost Resource ke Level 1 (GPU 0)">
                                         <Zap className="w-3.5 h-3.5" /> Boost
                                       </button>
                                     )}
                                     <button onClick={() => handleToggleActive(item.nim)} className={`px-2 py-1 rounded-lg border text-xs font-mono transition-colors flex items-center gap-1 ${item.is_active ? 'bg-[#ffb4ab]/15 text-[#ffb4ab] border-[#ffb4ab]/30 hover:bg-[#ffb4ab]/25' : 'bg-[#4edea3]/15 text-[#4edea3] border-[#4edea3]/30 hover:bg-[#4edea3]/25'}`} title={item.is_active ? 'Block User & Kill Sessions' : 'Unblock User'}>
                                       {item.is_active ? <UserX className="w-3.5 h-3.5"/> : <UserCheck className="w-3.5 h-3.5"/>}
                                     </button>
-                                    <button onClick={() => handleToggleAdmin(item.nim)} className={`px-2 py-1 rounded-lg border text-xs font-mono transition-colors ${item.is_admin ? 'bg-[#c0c1ff]/20 text-[#c0c1ff] border-[#c0c1ff]/40' : 'bg-[#1c1f29] text-[#908fa0] border-[#46455430] hover:text-white'}`} title="Toggle Admin Privileges">
+                                    <button onClick={() => handleToggleAdmin(item.nim)} className={`px-2 py-1 rounded-lg border text-xs font-mono transition-colors ${item.is_admin ? 'bg-[#c0c1ff]/20 text-[#c0c1ff] border-[#c0c1ff]/40' : 'bg-[#1c1f29] text-[#908fa0] border-[#46455430] hover:text-white'}`} title="Toggle Hak Admin">
                                       <ShieldCheck className="w-3.5 h-3.5" />
                                     </button>
                                     <button onClick={() => handleDeleteUser(item.nim)} className="px-2 py-1 rounded-lg border border-rose-500/30 bg-rose-500/15 text-rose-300 hover:bg-rose-500/25 transition-colors" title="Delete User & Kill Sessions">
@@ -516,9 +524,9 @@ export default function UnifiedUserManagement({
                               <td className="px-5 py-3.5">
                                 <div className="flex flex-col gap-0.5">
                                   <span className="px-2 py-0.5 rounded bg-[#c0c1ff]/20 text-[#c0c1ff] border border-[#c0c1ff]/40 font-mono text-[9px] font-bold w-fit">
-                                    {isRiset ? 'TIER 1 (RISET)' : 'TIER 2 (TRAINING)'}
+                                    {isRiset ? 'Level 1 (Riset)' : 'Level 2 (Praktikum)'}
                                   </span>
-                                  <span className="text-[10px] text-[#908fa0] font-mono">/slice/{item.username}.slice</span>
+                                  <span className="text-[10px] text-[#908fa0] font-mono">{isRiset ? 'compute-level1.slice' : 'compute-level2.slice'}</span>
                                 </div>
                               </td>
 
@@ -568,46 +576,10 @@ export default function UnifiedUserManagement({
         )}
 
         {/* Audit Tab */}
-        {activeTab === 'audit' && isAdmin && (
+        {activeTab === 'audit' && (
           <AuditLogView logs={auditLogs} />
         )}
       </div>
-
-      {/* Add User Modal */}
-      {addUserModal.isOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-950 border border-slate-800 rounded-3xl max-w-md w-full p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
-                <UserPlus className="w-6 h-6 text-indigo-400 fill-current" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-white tracking-tight">Add New User</h3>
-                <p className="text-sm text-slate-400">Tambah akun secara manual</p>
-              </div>
-            </div>
-
-            <form onSubmit={handleAddUser} className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Username / NIM</label>
-                <input required type="text" value={addUserModal.nim} onChange={(e) => setAddUserModal((prev) => ({ ...prev, nim: e.target.value }))} className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-white text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all" placeholder="Misal: training12 atau 23533000" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Nama Lengkap</label>
-                <input required type="text" value={addUserModal.nama} onChange={(e) => setAddUserModal((prev) => ({ ...prev, nama: e.target.value }))} className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-white text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all" placeholder="Nama mahasiswa / asisten" />
-              </div>
-              <div className="flex items-center gap-3 mt-4">
-                <input type="checkbox" id="is_admin" checked={addUserModal.is_admin} onChange={(e) => setAddUserModal((prev) => ({ ...prev, is_admin: e.target.checked }))} className="w-4 h-4 rounded bg-slate-900 border-slate-700 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-slate-950" />
-                <label htmlFor="is_admin" className="text-sm font-medium text-slate-300">Jadikan Admin (Bisa Akses Dashboard)</label>
-              </div>
-              <div className="flex items-center justify-end gap-3 pt-4">
-                <button type="button" onClick={() => setAddUserModal({ isOpen: false, nim: '', nama: '', is_admin: false })} className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-sm font-medium transition-colors">Batal</button>
-                <button type="submit" className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold transition-colors">Simpan User</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* Boost Modal */}
       {boostModal.isOpen && (
@@ -619,8 +591,8 @@ export default function UnifiedUserManagement({
                   <Zap className="w-5 h-5 text-indigo-400" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-white">Boost Resource</h3>
-                  <p className="text-xs text-slate-400">Tingkatkan limit VRAM & CPU</p>
+                  <h3 className="font-bold text-white">Boost Resource Level 1</h3>
+                  <p className="text-xs text-slate-400">Alokasi 20 Core, 70G RAM & GPU 0 Dedicated</p>
                 </div>
               </div>
             </div>
@@ -628,12 +600,12 @@ export default function UnifiedUserManagement({
               <div>
                 <p className="text-sm text-slate-400 mb-4">Target: <span className="text-white font-mono">{boostModal.nim}</span></p>
                 <label className="block text-sm font-medium text-slate-300 mb-2">Durasi (Jam)</label>
-                <input type="number" min="1" max="72" value={boostModal.hours} onChange={e => setBoostModal({...boostModal, hours: e.target.value})} className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white" />
+                <input type="number" min="1" max="24" value={boostModal.hours} onChange={e => setBoostModal({...boostModal, hours: e.target.value})} className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white" />
               </div>
               <div className="flex justify-end gap-3 pt-2">
                 <button type="button" onClick={() => setBoostModal({ isOpen: false, nim: null, nama: '', hours: 4, reason: '' })} className="px-4 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 border border-transparent">Batal</button>
                 <button type="submit" className="px-4 py-2 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 flex items-center gap-2">
-                  <Zap className="w-4 h-4"/> Apply Boost
+                  <Zap className="w-4 h-4"/> Aktifkan Boost
                 </button>
               </div>
             </form>

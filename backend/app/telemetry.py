@@ -32,7 +32,7 @@ TRAINING_UIDS = {
 PROTECTED_PROCESS_NAMES = {
     "systemd", "init", "sshd", "cloudflared", "dockerd", "containerd",
     "1panel", "portainer", "uvicorn", "gunicorn", "jupyterhub",
-    "jupyterhub-singleuser", "bash", "sh", "zsh", "login",
+    "bash", "sh", "zsh", "login",
     "xorg", "xwayland", "gnome-shell", "dbus-daemon", "polkitd",
     "nginx", "apache2", "redis-server", "mysqld", "postgres", "su", "sudo"
 }
@@ -324,13 +324,20 @@ def get_per_user_gpu_metrics(gpus: List[Dict[str, Any]]) -> List[Dict[str, Any]]
     valid_tracked = sorted([u for u in all_tracked if u in TRAINING_UIDS.values() or (u.startswith("m") and u[1:].isdigit())])
     rev_training = {v: k for k, v in TRAINING_UIDS.items()}
     
+    import pwd
     for uname in valid_tracked:
+        real_uid = None
+        try:
+            real_uid = pwd.getpwnam(uname).pw_uid
+        except Exception:
+            pass
+
         if uname in rev_training:
             uid = rev_training[uname]
             is_riset = (uid == 1021)
             tier = "Riset" if is_riset else "Praktikum"
         else:
-            uid = int(uname[1:]) if uname[1:].isdigit() else 0
+            uid = real_uid if real_uid is not None else (int(uname[1:]) if uname[1:].isdigit() else 0)
             is_riset = False
             tier = "SIMTIK"
             
@@ -347,8 +354,9 @@ def get_per_user_gpu_metrics(gpus: List[Dict[str, Any]]) -> List[Dict[str, Any]]
         cpu_procs = sorted(user_cpu_procs.get(uname, []), key=lambda x: x.get("ram_mb", 0.0), reverse=True)
         user_procs = gpu_procs + cpu_procs
 
-        # Slice memory & Process RSS
-        slice_dir = f"/sys/fs/cgroup/user.slice/user-{uid}.slice"
+        # Slice memory & Process RSS (check real UID user slice)
+        cgroup_uid = real_uid if real_uid is not None else uid
+        slice_dir = f"/sys/fs/cgroup/user.slice/user-{cgroup_uid}.slice"
         is_active = os.path.exists(slice_dir)
         mem_curr_bytes = read_cgroup_file(f"{slice_dir}/memory.current")
         mem_max_bytes = read_cgroup_file(f"{slice_dir}/memory.max")

@@ -226,7 +226,7 @@ def set_user_priority(nim: str, hours: int = 4, reason: str = "Admin Boost") -> 
         )
         cur.execute(
             f"INSERT INTO audit_logs (nim, action, detail) VALUES ({placeholder}, {placeholder}, {placeholder})",
-            (nim, "BOOST_PRIORITY", f"Menaikkan ke mode Monster selama {hours} jam. Alasan: {reason}")
+            (nim, "BOOST_PRIORITY", f"Menaikkan ke mode Prioritas Level 1 (20 Core, 70G, GPU 0) selama {hours} jam. Alasan: {reason}")
         )
         conn.commit()
         return True
@@ -246,7 +246,7 @@ def unset_user_priority(nim: str) -> bool:
         )
         cur.execute(
             f"INSERT INTO audit_logs (nim, action, detail) VALUES ({placeholder}, {placeholder}, {placeholder})",
-            (nim, "UNBOOST_PRIORITY", "Dikembalikan ke mode Normal (Praktikan)")
+            (nim, "UNBOOST_PRIORITY", "Dikembalikan ke mode Standard Level 2 (2 Core, 3G, GPU 1)")
         )
         conn.commit()
         return True
@@ -376,10 +376,32 @@ def get_audit_logs(limit: int = 100) -> List[Dict[str, Any]]:
                 }
             else:
                 item = dict(r)
-            if item.get("created_at"):
-                item["created_at"] = str(item["created_at"])
-            results.append(item)
+            created_str = str(item.get("created_at") or "")
+            target_val = item.get("nim") or "System"
+            action_val = item.get("action") or "INFO"
+
+            act = action_val.upper()
+            if any(k in act for k in ["KILL", "BLOCK", "DELETE"]):
+                log_type = "danger"
+            elif any(k in act for k in ["OVER_QUOTA", "RESET", "WARN"]):
+                log_type = "warning"
+            elif any(k in act for k in ["BOOST", "SUCCESS"]):
+                log_type = "success"
+            else:
+                log_type = "info"
+
+            results.append({
+                "id": item.get("id"),
+                "nim": target_val,
+                "target": target_val,
+                "action": action_val,
+                "detail": item.get("detail") or "",
+                "time": created_str,
+                "created_at": created_str,
+                "type": log_type
+            })
         return results
     finally:
         cur.close()
         conn.close()
+

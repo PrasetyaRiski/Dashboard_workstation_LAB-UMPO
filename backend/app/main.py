@@ -63,7 +63,7 @@ def get_capacity():
     return {"success": True, "total_slots": 1, "used_slots": active_boosts}
 
 @app.get("/api/audit-logs")
-def get_audit_logs_api(limit: int = 100, _=Depends(verify_admin)):
+def get_audit_logs_api(limit: int = 100):
     from app.db import get_audit_logs
     return {"success": True, "logs": get_audit_logs(limit)}
 
@@ -83,6 +83,29 @@ audit_logs.append({
     "detail": "Dashboard Monitoring v2.1 aktif. Sistem kontrol hak akses Admin siap.",
     "type": "info"
 })
+
+def record_audit(target: str, action: str, detail: str, log_type: str = "info"):
+    now_time = time.strftime("%H:%M:%S")
+    audit_logs.appendleft({
+        "time": now_time,
+        "action": action,
+        "target": target,
+        "detail": detail,
+        "type": log_type
+    })
+    try:
+        conn, engine = get_connection()
+        cur = conn.cursor()
+        placeholder = "%s" if engine == "postgres" else "?"
+        cur.execute(
+            f"INSERT INTO audit_logs (nim, action, detail) VALUES ({placeholder}, {placeholder}, {placeholder})",
+            (target, action, detail)
+        )
+        conn.commit()
+        cur.close()
+        conn.close()
+    except Exception as e:
+        print("Error writing to audit_logs DB:", e)
 
 # Allow CORS
 app.add_middleware(
@@ -180,14 +203,14 @@ def get_full_snapshot():
             uname = u.get("username")
             recent_keys = [f"{log.get('target')}_{log.get('time')[:5]}" for log in audit_logs if log.get('action') == "OVER_QUOTA"]
             if f"{uname}_{now_m}" not in recent_keys:
-                audit_logs.appendleft({
-                    "time": time.strftime("%H:%M:%S"),
-                    "action": "OVER_QUOTA",
-                    "target": uname,
-                    "detail": f"Penggunaan VRAM ({u.get('vram_used_mb')} MB) melebihi ambang batas praktikum (30%)",
-                    "type": "alert"
-                })
-    s["audit_logs"] = list(audit_logs)
+                record_audit(
+                    target=uname,
+                    action="OVER_QUOTA",
+                    detail=f"Penggunaan VRAM ({u.get('vram_used_mb')} MB) melebihi ambang batas praktikum (30%)",
+                    log_type="warning"
+                )
+    from app.db import get_audit_logs
+    s["audit_logs"] = get_audit_logs(60)
     s["admin_pin_required"] = False
     return s
 
@@ -204,7 +227,7 @@ def export_telemetry():
     return get_full_snapshot()
 
 @app.post("/api/kill-process")
-def kill_process(req: KillProcessRequest, request: Request):
+def kill_process(req: KillProcessRequest, request: Request, _=Depends(verify_admin)):
     try:
         p = psutil.Process(req.pid)
         username = p.username()
@@ -220,13 +243,15 @@ def kill_process(req: KillProcessRequest, request: Request):
                 detail=f"Ditolak: Proses '{proc_name}' (PID {req.pid}) milik akun sistem '{username}' diproteksi dan TIDAK DAPAT dimatikan."
             )
 
-        # 2. Proteksi Layanan / Shell Sistem Penting
-        critical_keywords = ["cloudflared", "jupyterhub", "1panel", "portainer", "systemd", "dockerd", "uvicorn", "sshd", "gunicorn"]
-        if proc_name.lower() in PROTECTED_PROCESS_NAMES or any(k in cmdline.lower() for k in critical_keywords):
-            raise HTTPException(
-                status_code=403,
-                detail=f"Ditolak: Proses '{proc_name}' (PID {req.pid}) merupakan layanan/shell sistem penting dan diproteksi dari penghentian."
-            )
+        # 2. Proteksi Layanan / Shell Sistem Penting (Kecuali server notebook singleuser mahasiswa)
+        critical_keywords = ["cloudflared", "1panel", "portainer", "systemd", "dockerd", "uvicorn", "sshd", "gunicorn"]
+        is_student_notebook = (proc_name.lower() == "jupyterhub-singleuser" or "singleuser" in cmdline.lower())
+        if not is_student_notebook:
+            if proc_name.lower() in PROTECTED_PROCESS_NAMES or any(k in cmdline.lower() for k in critical_keywords) or ("jupyterhub" in cmdline.lower() and "singleuser" not in cmdline.lower()):
+                raise HTTPException(
+                    status_code=403,
+                    detail=f"Ditolak: Proses '{proc_name}' (PID {req.pid}) merupakan layanan/shell sistem penting dan diproteksi dari penghentian."
+                )
 
         p.terminate()
         try:
@@ -234,13 +259,12 @@ def kill_process(req: KillProcessRequest, request: Request):
         except psutil.TimeoutExpired:
             p.kill()
 
-        audit_logs.appendleft({
-            "time": time.strftime("%H:%M:%S"),
-            "action": "KILL_PROCESS",
-            "target": f"{username} (PID {req.pid})",
-            "detail": f"Proses komputasi '{proc_name}' ({req.pid}) milik user {username} dihentikan oleh Admin.",
-            "type": "danger"
-        })
+        record_audit(
+            target=f"{username} (PID {req.pid})",
+            action="KILL_PROCESS",
+            detail=f"Proses komputasi '{proc_name}' ({req.pid}) milik user {username} dihentikan oleh Admin.",
+            log_type="danger"
+        )
 
         return {"success": True, "message": f"Proses PID {req.pid} ({proc_name}) milik user {username} berhasil dihentikan."}
     except psutil.NoSuchProcess:
@@ -251,7 +275,7 @@ def kill_process(req: KillProcessRequest, request: Request):
         raise HTTPException(status_code=500, detail=f"Gagal menghentikan proses: {str(e)}")
 
 @app.post("/api/kill-user-all")
-def kill_user_all(req: KillUserAllRequest, request: Request):
+def kill_user_all(req: KillUserAllRequest, request: Request, _=Depends(verify_admin)):
     if req.username not in TRAINING_UIDS.values() and not (req.username.startswith("m") and req.username[1:].isdigit()):
         raise HTTPException(status_code=400, detail="User tidak valid")
 
@@ -268,21 +292,20 @@ def kill_user_all(req: KillUserAllRequest, request: Request):
         except Exception:
             pass
 
-        audit_logs.appendleft({
-            "time": time.strftime("%H:%M:%S"),
-            "action": "KILL_USER_ALL",
-            "target": req.username,
-            "detail": f"Seluruh sesi dan proses milik user '{req.username}' berhasil dihentikan paksa oleh Admin.",
-            "type": "danger"
-        })
+        record_audit(
+            target=req.username,
+            action="KILL_USER_ALL",
+            detail=f"Seluruh sesi dan proses milik user '{req.username}' berhasil dihentikan paksa oleh Admin.",
+            log_type="danger"
+        )
         return {"success": True, "message": f"Seluruh sesi dan proses komputasi milik user '{req.username}' berhasil dihentikan."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/reset-password")
-def reset_password(req: ResetPasswordRequest, request: Request):
+def reset_password(req: ResetPasswordRequest, request: Request, _=Depends(verify_admin)):
     if req.username not in TRAINING_UIDS.values():
-        raise HTTPException(status_code=400, detail="User target tidak valid")
+        raise HTTPException(status_code=400, detail="User target tidak valid (Hanya akun lab/training yang dapat direset)")
     if len(req.new_password) < 4:
         raise HTTPException(status_code=400, detail="Password minimal 4 karakter")
 
@@ -295,48 +318,45 @@ def reset_password(req: ResetPasswordRequest, request: Request):
             check=True
         )
 
-        audit_logs.appendleft({
-            "time": time.strftime("%H:%M:%S"),
-            "action": "RESET_PASSWORD",
-            "target": req.username,
-            "detail": f"Password user '{req.username}' berhasil diperbarui oleh Admin.",
-            "type": "warning"
-        })
+        record_audit(
+            target=req.username,
+            action="RESET_PASSWORD",
+            detail=f"Password user '{req.username}' berhasil diperbarui oleh Admin.",
+            log_type="warning"
+        )
 
         return {"success": True, "message": f"Password untuk user {req.username} berhasil diubah."}
     except subprocess.CalledProcessError as e:
         raise HTTPException(status_code=500, detail=f"Gagal mengubah password: {e.stderr}")
 
 @app.post("/api/run-simulation")
-def run_simulation(req: SimulationRequest, request: Request):
+def run_simulation(req: SimulationRequest, request: Request, _=Depends(verify_admin)):
     try:
         # Run test_simulation.py via subprocess
         script_path = os.path.join(PROJECT_ROOT, "test_simulation.py")
         subprocess.Popen(["sudo", "python3", script_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-        audit_logs.appendleft({
-            "time": time.strftime("%H:%M:%S"),
-            "action": "SIMULATION_START",
-            "target": "11 Akun User & Riset",
-            "detail": "Simulasi komputasi serentak 11 akun diluncurkan oleh Admin untuk pengujian beban & Kill Process.",
-            "type": "info"
-        })
+        record_audit(
+            target="11 Akun User & Riset",
+            action="SIMULATION_START",
+            detail="Simulasi komputasi serentak 11 akun diluncurkan oleh Admin untuk pengujian beban & Kill Process.",
+            log_type="info"
+        )
         return {"success": True, "message": "Simulasi komputasi serentak 11 user berhasil dijalankan! Beban CPU, RAM & GPU akan termonitor dalam 2-3 detik."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/stop-simulation")
-def stop_simulation(req: SimulationRequest, request: Request):
+def stop_simulation(req: SimulationRequest, request: Request, _=Depends(verify_admin)):
     try:
         stop_script = os.path.join(PROJECT_ROOT, "stop_simulation.sh")
         subprocess.run(["sudo", "bash", stop_script], check=False)
-        audit_logs.appendleft({
-            "time": time.strftime("%H:%M:%S"),
-            "action": "SIMULATION_STOP",
-            "target": "11 Akun User & Riset",
-            "detail": "Semua proses simulasi uji coba berhasil dibersihkan oleh Admin.",
-            "type": "warning"
-        })
+        record_audit(
+            target="11 Akun User & Riset",
+            action="SIMULATION_STOP",
+            detail="Semua proses simulasi uji coba berhasil dibersihkan oleh Admin.",
+            log_type="warning"
+        )
         return {"success": True, "message": "Seluruh proses komputasi uji coba telah dihentikan dan dibersihkan."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -362,8 +382,8 @@ async def auth_simtik(req: SimtikLoginRequest):
     }
 
 @app.get("/api/users/students")
-def get_students(_=Depends(verify_admin)):
-    """Mengambil daftar seluruh mahasiswa terdaftar beserta status mode prioritas"""
+def get_students():
+    """Mengambil daftar seluruh mahasiswa terdaftar beserta status mode prioritas (Public Read-Only)"""
     users = list_users()
     return {"success": True, "users": users}
 
@@ -371,7 +391,7 @@ from datetime import datetime
 
 @app.post("/api/users/boost")
 def boost_student(req: BoostUserRequest, _=Depends(verify_admin)):
-    """Menaikkan NIM ke Mode Prioritas (Monster: 20 Core, 70G, GPU 0)"""
+    """Menaikkan NIM ke Mode Prioritas Level 1 (20 Core, 70G, GPU 0)"""
     
     # --- Admission Control ---
     # Hitung jumlah user yang sedang dalam masa boost prioritas
@@ -396,29 +416,27 @@ def boost_student(req: BoostUserRequest, _=Depends(verify_admin)):
 
     success = set_user_priority(req.nim, req.hours, req.reason or "Admin Boost")
     if success:
-        audit_logs.appendleft({
-            "time": time.strftime("%H:%M:%S"),
-            "action": "BOOST_PRIORITY",
-            "target": f"NIM {req.nim}",
-            "detail": f"Dinaikkan ke Mode Prioritas (20 Core, 70G, GPU 0) selama {req.hours} jam.",
-            "type": "success"
-        })
-        return {"success": True, "message": f"NIM {req.nim} berhasil di-boost ke Mode Prioritas selama {req.hours} jam."}
+        record_audit(
+            target=f"NIM {req.nim}",
+            action="BOOST_PRIORITY",
+            detail=f"Dinaikkan ke Mode Prioritas Level 1 (20 Core, 70G, GPU 0) selama {req.hours} jam.",
+            log_type="success"
+        )
+        return {"success": True, "message": f"NIM {req.nim} berhasil di-boost ke Mode Prioritas Level 1 selama {req.hours} jam."}
     raise HTTPException(status_code=400, detail="Gagal mengaktifkan mode prioritas.")
 
 @app.post("/api/users/unboost")
 def unboost_student(req: UserActionRequest, _=Depends(verify_admin)):
-    """Mengembalikan NIM ke Mode Normal (Praktikan: 2 Core, 3G, GPU 1)"""
+    """Mengembalikan NIM ke Mode Standard Level 2 (2 Core, 3G, GPU 1)"""
     success = unset_user_priority(req.nim)
     if success:
-        audit_logs.appendleft({
-            "time": time.strftime("%H:%M:%S"),
-            "action": "UNBOOST_PRIORITY",
-            "target": f"NIM {req.nim}",
-            "detail": "Dikembalikan ke Mode Normal (2 Core, 3G, GPU 1).",
-            "type": "info"
-        })
-        return {"success": True, "message": f"NIM {req.nim} dikembalikan ke Mode Normal."}
+        record_audit(
+            target=f"NIM {req.nim}",
+            action="UNBOOST_PRIORITY",
+            detail="Dikembalikan ke Mode Standard Level 2 (2 Core, 3G, GPU 1).",
+            log_type="info"
+        )
+        return {"success": True, "message": f"NIM {req.nim} dikembalikan ke Mode Standard Level 2."}
     raise HTTPException(status_code=400, detail="Gagal menonaktifkan mode prioritas.")
 
 @app.post("/api/users/toggle-admin")
@@ -555,13 +573,12 @@ async def startup_event():
             try:
                 expired_nims = auto_expire_priorities()
                 for nim in expired_nims:
-                    audit_logs.appendleft({
-                        "time": time.strftime("%H:%M:%S"),
-                        "action": "AUTO_EXPIRE_BOOST",
-                        "target": f"NIM {nim}",
-                        "detail": "Durasi Prioritas habis. Otomatis kembali ke Mode Normal.",
-                        "type": "info"
-                    })
+                    record_audit(
+                        target=f"NIM {nim}",
+                        action="AUTO_EXPIRE_BOOST",
+                        detail="Durasi Prioritas habis. Otomatis kembali ke Mode Standard Level 2.",
+                        log_type="info"
+                    )
             except Exception as e:
                 print("Auto expire worker error:", e)
             await asyncio.sleep(60.0)

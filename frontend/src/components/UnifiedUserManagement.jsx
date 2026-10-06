@@ -3,7 +3,7 @@ import {
   Users, Zap, RotateCcw, Shield, ShieldCheck, Search, CheckCircle2,
   AlertCircle, Clock, UserCheck, UserX, Sparkles, KeyRound, RefreshCw,
   Lock, LogOut, ChevronLeft, ChevronRight, Activity, Cpu, MoreVertical,
-  Database, Server, Ban, AlertTriangle
+  Database, Server, Ban, AlertTriangle, Trash2, UserPlus
 } from 'lucide-react';
 import AuditLogView from './AuditLogView';
 
@@ -51,6 +51,47 @@ export default function UnifiedUserManagement({
   
   // API interaction modals
   const [boostModal, setBoostModal] = useState({ isOpen: false, nim: null, nama: '', hours: 4, reason: '' });
+  const [addUserModal, setAddUserModal] = useState({ isOpen: false, nim: '', nama: '', is_admin: false });
+
+  const handleAddUser = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch('/api/users', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(addUserModal)
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast('User berhasil ditambahkan', 'success');
+        setAddUserModal({ isOpen: false, nim: '', nama: '', is_admin: false });
+        fetchStudents();
+      } else {
+        showToast(data.detail || 'Gagal tambah user', 'error');
+      }
+    } catch (err) {
+      showToast('Error: ' + err.message, 'error');
+    }
+  };
+
+  const handleDeleteUser = async (nim) => {
+    if (!confirm(`Hapus user ${nim} dari sistem secara permanen? Semua sesi OS akan di-kill.`)) return;
+    try {
+      const res = await fetch(`/api/users/${nim}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast(`User ${nim} berhasil dihapus.`, 'success');
+        fetchStudents();
+      } else {
+        showToast(data.detail || 'Gagal menghapus', 'error');
+      }
+    } catch (err) {
+      showToast('Error: ' + err.message, 'error');
+    }
+  };
   
   const getAuthHeaders = () => ({
     'Content-Type': 'application/json',
@@ -291,8 +332,14 @@ export default function UnifiedUserManagement({
                   </button>
                 ))}
               </div>
-              <div className="relative w-full sm:w-72">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <div className="relative w-full sm:w-72 flex gap-3">
+                {isAdmin && (
+                  <button onClick={() => setAddUserModal({ ...addUserModal, isOpen: true })} className="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg flex items-center gap-2 text-sm font-semibold transition-colors shadow-lg shadow-indigo-600/20 whitespace-nowrap">
+                    <UserPlus className="w-4 h-4" /> Add
+                  </button>
+                )}
+                <div className="relative w-full">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="text"
                   placeholder="Cari username / NIM / nama..."
@@ -300,6 +347,7 @@ export default function UnifiedUserManagement({
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 pl-9 pr-4 text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
                 />
+                </div>
               </div>
             </div>
 
@@ -391,6 +439,9 @@ export default function UnifiedUserManagement({
                                     <button onClick={() => handleToggleAdmin(item.nim)} className={`px-2.5 py-1.5 rounded border text-xs font-medium transition-colors ${item.is_admin ? 'bg-amber-500/10 text-amber-400 border-amber-500/20 hover:bg-amber-500/20' : 'bg-slate-700/50 text-slate-400 border-slate-600 hover:bg-slate-700'}`} title="Toggle Admin">
                                       <ShieldCheck className="w-3.5 h-3.5" />
                                     </button>
+                                    <button onClick={() => handleDeleteUser(item.nim)} className="px-2.5 py-1.5 rounded border border-rose-500/20 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-colors" title="Delete User">
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
                                   </div>
                                 ) : (
                                   <span className="text-xs text-slate-500">Read-only</span>
@@ -479,6 +530,42 @@ export default function UnifiedUserManagement({
           <AuditLogView logs={auditLogs} />
         )}
       </div>
+
+      {/* Add User Modal */}
+      {addUserModal.isOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-950 border border-slate-800 rounded-3xl max-w-md w-full p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+                <UserPlus className="w-6 h-6 text-indigo-400 fill-current" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white tracking-tight">Add New User</h3>
+                <p className="text-sm text-slate-400">Tambah akun secara manual</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleAddUser} className="space-y-5">
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Username / NIM</label>
+                <input required type="text" value={addUserModal.nim} onChange={(e) => setAddUserModal((prev) => ({ ...prev, nim: e.target.value }))} className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-white text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all" placeholder="Misal: training12 atau 23533000" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Nama Lengkap</label>
+                <input required type="text" value={addUserModal.nama} onChange={(e) => setAddUserModal((prev) => ({ ...prev, nama: e.target.value }))} className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-white text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all" placeholder="Nama mahasiswa / asisten" />
+              </div>
+              <div className="flex items-center gap-3 mt-4">
+                <input type="checkbox" id="is_admin" checked={addUserModal.is_admin} onChange={(e) => setAddUserModal((prev) => ({ ...prev, is_admin: e.target.checked }))} className="w-4 h-4 rounded bg-slate-900 border-slate-700 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-slate-950" />
+                <label htmlFor="is_admin" className="text-sm font-medium text-slate-300">Jadikan Admin (Bisa Akses Dashboard)</label>
+              </div>
+              <div className="flex items-center justify-end gap-3 pt-4">
+                <button type="button" onClick={() => setAddUserModal({ isOpen: false, nim: '', nama: '', is_admin: false })} className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-sm font-medium transition-colors">Batal</button>
+                <button type="submit" className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold shadow-lg shadow-indigo-600/20 transition-colors">Simpan User</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Boost Modal */}
       {boostModal.isOpen && (

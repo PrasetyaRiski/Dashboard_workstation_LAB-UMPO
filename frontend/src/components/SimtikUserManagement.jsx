@@ -18,7 +18,9 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  Activity
+  Activity,
+  Cpu,
+  MoreVertical
 } from 'lucide-react';
 
 const LiveCountdown = ({ expiresAt }) => {
@@ -39,16 +41,16 @@ const LiveCountdown = ({ expiresAt }) => {
         const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const s = Math.floor((diff % (1000 * 60)) / 1000);
         let timeString = '';
-        if (h > 0) timeString += `${h} Jam `;
-        if (m > 0 || h > 0) timeString += `${m} Menit `;
-        timeString += `${s} Detik`;
-        setTimeLeft(timeString + ' tersisa');
+        if (h > 0) timeString += `${h}h `;
+        if (m > 0 || h > 0) timeString += `${m}m `;
+        timeString += `${s}s`;
+        setTimeLeft(timeString);
       }
     }, 1000);
     return () => clearInterval(interval);
   }, [expiresAt]);
 
-  return <span className="text-amber-400 font-semibold">{timeLeft || 'Menghitung...'}</span>;
+  return <span className="text-amber-400 font-semibold">{timeLeft || '...'}</span>;
 };
 
 export default function SimtikUserManagement({ isAdmin, showToast }) {
@@ -298,26 +300,31 @@ export default function SimtikUserManagement({ isAdmin, showToast }) {
 
   if (!adminToken) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] p-5">
-        <div className="panel-raised p-8 max-w-sm w-full text-center bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
-          <Lock className="w-12 h-12 text-indigo-400 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-white mb-2">Admin Login</h2>
-          <p className="text-xs text-slate-400 mb-6">Silakan masukkan PIN Admin untuk melanjutkan</p>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <input
-              type="password"
-              value={pin}
-              onChange={(e) => setPin(e.target.value)}
-              placeholder="Masukkan PIN"
-              className="w-full px-4 py-2 rounded-xl bg-slate-950 border border-slate-800 text-center text-white text-lg tracking-[0.5em] focus:outline-none focus:border-indigo-500 transition font-mono"
-              autoFocus
-            />
-            {loginError && <div className="text-rose-400 text-xs">{loginError}</div>}
+      <div className="fixed inset-0 bg-slate-950 flex flex-col items-center justify-center p-5 z-50">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950"></div>
+        <div className="relative p-10 max-w-sm w-full text-center bg-slate-950/50 backdrop-blur-md border border-slate-800 rounded-3xl shadow-2xl">
+          <div className="w-16 h-16 mx-auto mb-6 bg-indigo-500/10 rounded-2xl flex items-center justify-center border border-indigo-500/20 shadow-[0_0_30px_-5px_rgba(99,102,241,0.3)]">
+            <Lock className="w-8 h-8 text-indigo-400" />
+          </div>
+          <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">Admin Portal</h2>
+          <p className="text-sm text-slate-400 mb-8">Secure access required</p>
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div>
+              <input
+                type="password"
+                value={pin}
+                onChange={(e) => setPin(e.target.value)}
+                placeholder="Enter PIN"
+                className="w-full px-5 py-3.5 rounded-2xl bg-slate-900 border border-slate-800 text-center text-white text-xl tracking-[0.5em] focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-mono placeholder:tracking-normal placeholder:text-slate-600"
+                autoFocus
+              />
+            </div>
+            {loginError && <div className="text-rose-400 text-sm font-medium bg-rose-500/10 py-2 rounded-lg">{loginError}</div>}
             <button
               type="submit"
-              className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold transition shadow-lg shadow-indigo-600/20 cursor-pointer"
+              className="w-full py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition-all shadow-lg shadow-indigo-600/20 active:scale-[0.98] cursor-pointer"
             >
-              Masuk
+              Authenticate
             </button>
           </form>
         </div>
@@ -335,232 +342,332 @@ export default function SimtikUserManagement({ isAdmin, showToast }) {
   const priorityCount = students.filter((s) => s.is_priority).length;
   
   const isCapacityFull = capacity.used_slots >= capacity.total_slots && capacity.total_slots > 0;
+  const capacityPercent = capacity.total_slots > 0 ? (capacity.used_slots / capacity.total_slots) * 100 : 0;
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className="panel-raised p-5 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-indigo-400" />
-            <h2 className="text-base font-bold text-white tracking-tight">
-              Manajemen Pengguna Terintegrasi SIMTIK UMPO
-            </h2>
-            <span className="text-xs font-mono font-bold text-rose-400 ml-2 bg-rose-500/10 px-2 py-1 rounded">
-              [🔴 Slot Prioritas: {capacity.used_slots}/{capacity.total_slots} Terpakai]
-            </span>
+    <div className="flex flex-col min-h-screen bg-slate-950 text-slate-200 font-sans">
+      {/* Header */}
+      <header className="sticky top-0 z-30 bg-slate-950/80 backdrop-blur-md border-b border-slate-800 px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+            <Cpu className="w-5 h-5 text-indigo-400" />
           </div>
-          <p className="text-xs text-slate-400 mt-1">
-            Mahasiswa otomatis terdaftar saat login pertama kali menggunakan NIM & Password SIMTIK. Admin dapat memprioritaskan performa (Dynamic QoS).
-          </p>
+          <div>
+            <h1 className="text-lg font-bold text-white tracking-tight leading-tight">SIMTIK UMPO</h1>
+            <p className="text-xs text-slate-400 font-medium">Admission Control & Resource Management</p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <button
             onClick={() => setTestLoginModal({ isOpen: true, nim: '', password: '', loading: false, result: null })}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-600/30 transition text-xs font-medium cursor-pointer"
+            className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-slate-900 border border-slate-800 hover:bg-slate-800 transition text-slate-400 hover:text-white"
+            title="Test Authentication"
           >
-            <KeyRound className="w-3.5 h-3.5" />
-            Uji Otentikasi SIMTIK
+            <KeyRound className="w-4 h-4" />
           </button>
           <button
             onClick={() => { fetchStudents(); fetchCapacity(); }}
             disabled={loading}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 transition text-xs font-medium cursor-pointer"
+            className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-slate-900 border border-slate-800 hover:bg-slate-800 transition text-slate-400 hover:text-white"
+            title="Refresh Data"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
+          <div className="w-px h-6 bg-slate-800 mx-1"></div>
           <button
             onClick={handleLogout}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/20 text-rose-400 border border-rose-500/30 hover:bg-rose-500/30 transition text-xs font-medium cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900 border border-slate-800 hover:bg-slate-800 hover:border-rose-500/50 transition text-sm font-medium text-slate-300 hover:text-rose-400"
           >
-            <LogOut className="w-3.5 h-3.5" />
+            <LogOut className="w-4 h-4" />
             Logout
           </button>
         </div>
-      </div>
+      </header>
 
-      <div className="flex gap-2 border-b border-slate-800">
-        <button 
-          className={`px-4 py-2 text-sm font-semibold transition ${activeTab === 'users' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-slate-400 hover:text-slate-300'}`}
-          onClick={() => setActiveTab('users')}
-        >
-          <div className="flex items-center gap-2">
-            <Users className="w-4 h-4" /> Users
-          </div>
-        </button>
-        <button 
-          className={`px-4 py-2 text-sm font-semibold transition flex items-center gap-2 ${activeTab === 'audit' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-slate-400 hover:text-slate-300'}`}
-          onClick={() => setActiveTab('audit')}
-        >
-          <Activity className="w-4 h-4"/> Audit Logs
-        </button>
-      </div>
-
-      {activeTab === 'users' && (
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="panel-raised p-4 flex items-center justify-between">
-              <div>
-                <span className="text-[11px] font-mono text-slate-400 uppercase">Total Mahasiswa Terdaftar</span>
-                <div className="text-xl font-bold text-white mt-0.5">{students.length}</div>
-              </div>
-              <Users className="w-6 h-6 text-slate-600" />
+      <main className="flex-1 p-6 max-w-7xl mx-auto w-full space-y-8">
+        
+        {/* Metric Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-6 opacity-10">
+              <Users className="w-24 h-24" />
             </div>
-
-            <div className="panel-raised p-4 flex items-center justify-between border-l-2 border-l-amber-500">
-              <div>
-                <span className="text-[11px] font-mono text-amber-400 uppercase">Mode Prioritas Aktif (Boosted)</span>
-                <div className="text-xl font-bold text-amber-300 mt-0.5">{priorityCount} User</div>
-                <span className="text-[10px] text-slate-400">Jatah: 20 Core, 70G RAM, GPU 0</span>
-              </div>
-              <Zap className="w-6 h-6 text-amber-400 animate-pulse" />
-            </div>
-
-            <div className="panel-raised p-4 flex items-center justify-between border-l-2 border-l-emerald-500">
-              <div>
-                <span className="text-[11px] font-mono text-emerald-400 uppercase">Mode Normal (Praktikan)</span>
-                <div className="text-xl font-bold text-emerald-300 mt-0.5">{students.length - priorityCount} User</div>
-                <span className="text-[10px] text-slate-400">Jatah: 2 Core, 3G RAM, GPU 1</span>
-              </div>
-              <CheckCircle2 className="w-6 h-6 text-emerald-500" />
-            </div>
+            <h3 className="text-sm font-medium text-slate-400 mb-1">Total Users</h3>
+            <div className="text-4xl font-bold text-white mb-2">{students.length}</div>
+            <p className="text-xs text-slate-500 flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+              {students.length - priorityCount} Normal users
+            </p>
           </div>
 
-          <div className="panel-raised p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-              <div className="relative flex-1 min-w-[220px] max-w-sm">
+          <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-6 opacity-10">
+              <Zap className="w-24 h-24" />
+            </div>
+            <h3 className="text-sm font-medium text-amber-400/80 mb-1">Boosted Users</h3>
+            <div className="text-4xl font-bold text-amber-400 mb-2">{priorityCount}</div>
+            <p className="text-xs text-slate-500">20 Cores / 70G RAM / GPU 0</p>
+          </div>
+
+          <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 relative flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="text-sm font-medium text-slate-400">GPU Slot Utilization</h3>
+                <span className="text-xs font-bold text-white">{capacity.used_slots} / {capacity.total_slots}</span>
+              </div>
+              <div className="text-4xl font-bold text-white mb-4">
+                {capacityPercent.toFixed(0)}%
+              </div>
+            </div>
+            <div className="w-full bg-slate-950 rounded-full h-2.5 border border-slate-800 overflow-hidden">
+              <div 
+                className={`h-2.5 rounded-full ${capacityPercent >= 100 ? 'bg-rose-500' : 'bg-indigo-500'}`} 
+                style={{ width: `${Math.min(100, capacityPercent)}%` }}
+              ></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Content Area */}
+        <div className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+          
+          {/* Controls Bar */}
+          <div className="p-4 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            
+            {/* Segmented Control */}
+            <div className="inline-flex bg-slate-950 border border-slate-800 rounded-full p-1">
+              <button
+                onClick={() => setActiveTab('users')}
+                className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                  activeTab === 'users' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Users className="w-4 h-4" /> Users
+              </button>
+              <button
+                onClick={() => setActiveTab('audit')}
+                className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                  activeTab === 'audit' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Activity className="w-4 h-4" /> Audit Logs
+              </button>
+            </div>
+
+            {/* Search (only for users tab) */}
+            {activeTab === 'users' && (
+              <div className="relative max-w-sm w-full sm:w-72">
                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-                  placeholder="Cari NIM atau Nama mahasiswa..."
-                  className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-slate-950/80 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono"
+                  placeholder="Search by NIM or Name..."
+                  className="w-full pl-9 pr-4 py-2 rounded-full bg-slate-950 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
                 />
               </div>
-              <span className="text-xs text-slate-400 font-mono">
-                Menampilkan {paginatedStudents.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} - {Math.min(currentPage * itemsPerPage, filteredStudents.length)} dari {filteredStudents.length} mahasiswa
-              </span>
-            </div>
+            )}
+          </div>
 
-            <div className="overflow-x-auto min-h-[300px]">
-              <table className="w-full text-left text-xs">
+          {/* Users Tab */}
+          {activeTab === 'users' && (
+            <div className="flex flex-col">
+              <div className="overflow-x-auto min-h-[400px]">
+                <table className="w-full text-left whitespace-nowrap">
+                  <thead>
+                    <tr className="border-b border-slate-800/50 bg-slate-900/20 text-slate-400 text-xs uppercase tracking-wider font-medium">
+                      <th className="px-6 py-4">User</th>
+                      <th className="px-6 py-4">Status & QoS</th>
+                      <th className="px-6 py-4">Boost Timer</th>
+                      <th className="px-6 py-4">Last Login</th>
+                      <th className="px-6 py-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/50">
+                    {paginatedStudents.length === 0 ? (
+                      <tr>
+                        <td colSpan="5" className="px-6 py-12 text-center text-slate-500 text-sm">
+                          No matching records found.
+                        </td>
+                      </tr>
+                    ) : (
+                      paginatedStudents.map((s) => (
+                        <tr key={s.nim} className="hover:bg-slate-900/50 transition-colors group">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-xs text-slate-300">
+                                {s.nim.slice(-2)}
+                              </div>
+                              <div>
+                                <div className="font-semibold text-white flex items-center gap-2">
+                                  {s.nim}
+                                  {s.is_admin && <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />}
+                                </div>
+                                <div className="text-xs text-slate-500">{s.nama || 'No Name'}</div>
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col items-start gap-1.5">
+                              {s.is_active ? (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                  Active
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                                  Blocked
+                                </span>
+                              )}
+                              {s.is_priority ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                  <Zap className="w-2.5 h-2.5 fill-current" /> Priority
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-800 text-slate-400 border border-slate-700">
+                                  Normal
+                                </span>
+                              )}
+                            </div>
+                          </td>
+
+                          <td className="px-6 py-4 text-xs font-mono">
+                            {s.is_priority && s.priority_expires_at ? (
+                              <LiveCountdown expiresAt={s.priority_expires_at} />
+                            ) : (
+                              <span className="text-slate-600">--</span>
+                            )}
+                          </td>
+
+                          <td className="px-6 py-4 text-xs text-slate-400 font-mono">
+                            {s.last_login ? s.last_login.slice(0, 16).replace('T', ' ') : 'Never'}
+                          </td>
+
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              
+                              {s.is_priority ? (
+                                <button
+                                  onClick={() => handleUnboost(s.nim)}
+                                  className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-colors"
+                                  title="Revoke Priority"
+                                >
+                                  <RotateCcw className="w-4 h-4" />
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => setBoostModal({ isOpen: true, nim: s.nim, nama: s.nama, hours: 4, reason: 'Kebutuhan Riset / Skripsi' })}
+                                  disabled={isCapacityFull}
+                                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                                    isCapacityFull 
+                                      ? 'bg-slate-800 text-slate-600 cursor-not-allowed' 
+                                      : 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20'
+                                  }`}
+                                  title={isCapacityFull ? 'Capacity Full' : 'Boost User'}
+                                >
+                                  <Zap className="w-4 h-4" />
+                                </button>
+                              )}
+
+                              <button
+                                onClick={() => handleToggleAdmin(s.nim)}
+                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                                  s.is_admin 
+                                    ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' 
+                                    : 'bg-slate-800 text-slate-400 hover:text-white'
+                                }`}
+                                title="Toggle Admin Status"
+                              >
+                                <Shield className="w-4 h-4" />
+                              </button>
+
+                              <button
+                                onClick={() => handleToggleActive(s.nim)}
+                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                                  s.is_active 
+                                    ? 'bg-slate-800 text-slate-400 hover:text-rose-400' 
+                                    : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                                }`}
+                                title="Toggle Account Status"
+                              >
+                                {s.is_active ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
+                              </button>
+
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              
+              {/* Pagination Footer */}
+              {totalPages > 0 && (
+                <div className="p-4 border-t border-slate-800 flex items-center justify-between bg-slate-900/30">
+                  <span className="text-xs text-slate-500">
+                    Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredStudents.length)} of {filteredStudents.length} entries
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="w-8 h-8 rounded-full flex items-center justify-center bg-slate-800 text-slate-400 disabled:opacity-30 hover:bg-slate-700 transition"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                    <span className="text-xs text-white font-medium px-2">
+                      {currentPage} / {totalPages}
+                    </span>
+                    <button
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                      className="w-8 h-8 rounded-full flex items-center justify-center bg-slate-800 text-slate-400 disabled:opacity-30 hover:bg-slate-700 transition"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Audit Tab */}
+          {activeTab === 'audit' && (
+            <div className="overflow-x-auto min-h-[400px]">
+              <table className="w-full text-left whitespace-nowrap">
                 <thead>
-                  <tr className="border-b border-slate-800 text-slate-400 font-mono uppercase text-[11px]">
-                    <th className="pb-3 font-semibold">NIM & Mahasiswa</th>
-                    <th className="pb-3 font-semibold">Mode Hardware (QoS)</th>
-                    <th className="pb-3 font-semibold">Sisa Waktu Boost</th>
-                    <th className="pb-3 font-semibold">Hak Dashboard</th>
-                    <th className="pb-3 font-semibold">Status Akun</th>
-                    <th className="pb-3 font-semibold">Login Terakhir</th>
-                    <th className="pb-3 text-right font-semibold">Aksi Admin</th>
+                  <tr className="border-b border-slate-800/50 bg-slate-900/20 text-slate-400 text-xs uppercase tracking-wider font-medium">
+                    <th className="px-6 py-4">Timestamp</th>
+                    <th className="px-6 py-4">Admin</th>
+                    <th className="px-6 py-4">Action</th>
+                    <th className="px-6 py-4 w-full">Details</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 font-mono">
-                  {paginatedStudents.length === 0 ? (
+                <tbody className="divide-y divide-slate-800/50">
+                  {auditLogs.length === 0 ? (
                     <tr>
-                      <td colSpan="7" className="py-8 text-center text-slate-500">
-                        Tidak ada data yang cocok.
+                      <td colSpan="4" className="px-6 py-12 text-center text-slate-500 text-sm">
+                        No audit logs found.
                       </td>
                     </tr>
                   ) : (
-                    paginatedStudents.map((s) => (
-                      <tr key={s.nim} className="hover:bg-slate-800/30 transition">
-                        <td className="py-3 font-bold text-white">
-                          <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold text-xs border border-indigo-500/20">
-                              {s.nim.slice(-2)}
-                            </div>
-                            <div>
-                              <div>{s.nim}</div>
-                              <div className="text-[10px] text-slate-400 font-normal">{s.nama}</div>
-                            </div>
-                          </div>
+                    auditLogs.map((log, i) => (
+                      <tr key={i} className="hover:bg-slate-900/50 transition-colors">
+                        <td className="px-6 py-3 text-xs text-slate-400 font-mono">
+                          {log.created_at ? new Date(log.created_at).toLocaleString() : '--'}
                         </td>
-
-                        <td className="py-3">
-                          {s.is_priority ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 shadow-sm shadow-amber-500/10">
-                              <Zap className="w-3 h-3 text-amber-400 fill-amber-400" />
-                              PRIORITAS
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-medium bg-slate-800 text-slate-300 border border-slate-700">
-                              Normal
-                            </span>
-                          )}
+                        <td className="px-6 py-3 text-xs font-semibold text-white">
+                          {log.admin_username || log.admin_nim || '--'}
                         </td>
-
-                        <td className="py-3 text-slate-300 text-[11px]">
-                          {s.is_priority && s.priority_expires_at ? (
-                            <LiveCountdown expiresAt={s.priority_expires_at} />
-                          ) : (
-                            <span className="text-slate-500">-</span>
-                          )}
+                        <td className="px-6 py-3 text-xs">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+                            {log.action || '--'}
+                          </span>
                         </td>
-
-                        <td className="py-3">
-                          {s.is_admin ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-400">
-                              <ShieldCheck className="w-3.5 h-3.5" /> Admin
-                            </span>
-                          ) : (
-                            <span className="text-[10px] text-slate-500">Mahasiswa</span>
-                          )}
-                        </td>
-
-                        <td className="py-3">
-                          {s.is_active ? (
-                            <span className="text-emerald-400 text-[10px] font-semibold flex items-center gap-1">
-                              <CheckCircle2 className="w-3 h-3" /> Aktif
-                            </span>
-                          ) : (
-                            <span className="text-rose-400 text-[10px] font-semibold flex items-center gap-1">
-                              <AlertCircle className="w-3 h-3" /> Diblokir
-                            </span>
-                          )}
-                        </td>
-
-                        <td className="py-3 text-slate-400 text-[10px]">
-                          {s.last_login ? s.last_login.slice(0, 16) : '-'}
-                        </td>
-
-                        <td className="py-3 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            {s.is_priority ? (
-                              <button
-                                onClick={() => handleUnboost(s.nim)}
-                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition cursor-pointer text-[11px]"
-                              >
-                                <RotateCcw className="w-3 h-3" /> Reset
-                              </button>
-                            ) : (
-                              <button
-                                onClick={() => setBoostModal({ isOpen: true, nim: s.nim, nama: s.nama, hours: 4, reason: 'Kebutuhan Riset / Skripsi' })}
-                                disabled={isCapacityFull}
-                                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg transition text-[11px] font-bold ${isCapacityFull ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700' : 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 cursor-pointer'}`}
-                                title={isCapacityFull ? 'Slot Prioritas Penuh' : 'Tingkatkan performa'}
-                              >
-                                <Zap className={`w-3 h-3 ${isCapacityFull ? 'text-slate-500' : 'text-amber-400'}`} />
-                                Boost
-                              </button>
-                            )}
-
-                            <button
-                              onClick={() => handleToggleAdmin(s.nim)}
-                              className={`p-1.5 rounded-lg border transition cursor-pointer ${s.is_admin ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30' : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-white'}`}
-                            >
-                              <Shield className="w-3 h-3" />
-                            </button>
-
-                            <button
-                              onClick={() => handleToggleActive(s.nim)}
-                              className={`p-1.5 rounded-lg border transition cursor-pointer ${s.is_active ? 'bg-slate-800 text-slate-400 border-slate-700 hover:text-rose-400' : 'bg-rose-500/20 text-rose-400 border-rose-500/30'}`}
-                            >
-                              {s.is_active ? <UserX className="w-3 h-3" /> : <UserCheck className="w-3 h-3" />}
-                            </button>
-                          </div>
+                        <td className="px-6 py-3 text-xs text-slate-400">
+                          {log.details || log.target || '--'}
                         </td>
                       </tr>
                     ))
@@ -568,184 +675,146 @@ export default function SimtikUserManagement({ isAdmin, showToast }) {
                 </tbody>
               </table>
             </div>
+          )}
 
-            {totalPages > 1 && (
-              <div className="flex items-center justify-end gap-2 mt-4 pt-4 border-t border-slate-800">
-                <button
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="p-1.5 rounded bg-slate-800 text-slate-400 disabled:opacity-50 hover:bg-slate-700"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <span className="text-xs text-slate-400 font-mono">
-                  Hal {currentPage} / {totalPages}
-                </span>
-                <button
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  className="p-1.5 rounded bg-slate-800 text-slate-400 disabled:opacity-50 hover:bg-slate-700"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            )}
-          </div>
-        </>
-      )}
-
-      {activeTab === 'audit' && (
-        <div className="panel-raised p-5">
-          <h3 className="text-sm font-bold text-white mb-4">Riwayat Audit (Audit Logs)</h3>
-          <div className="overflow-x-auto min-h-[300px]">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-slate-800 text-slate-400 font-mono uppercase text-[11px]">
-                  <th className="pb-3 font-semibold w-40">Waktu</th>
-                  <th className="pb-3 font-semibold w-32">Admin</th>
-                  <th className="pb-3 font-semibold w-40">Aksi</th>
-                  <th className="pb-3 font-semibold">Target / Detail</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60 font-mono">
-                {auditLogs.length === 0 ? (
-                  <tr>
-                    <td colSpan="4" className="py-8 text-center text-slate-500">Belum ada riwayat audit.</td>
-                  </tr>
-                ) : (
-                  auditLogs.map((log, i) => (
-                    <tr key={i} className="hover:bg-slate-800/30 transition">
-                      <td className="py-3 text-slate-400">{log.created_at ? new Date(log.created_at).toLocaleString() : '-'}</td>
-                      <td className="py-3 text-indigo-300 font-semibold">{log.admin_username || log.admin_nim || '-'}</td>
-                      <td className="py-3 text-amber-300">{log.action || '-'}</td>
-                      <td className="py-3 text-slate-300">{log.details || log.target || '-'}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
         </div>
-      )}
+      </main>
 
-      {/* Modal Boost Prioritas */}
+      {/* Modals */}
+      
+      {/* Boost Modal */}
       {boostModal.isOpen && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20">
-                <Zap className="w-5 h-5 fill-amber-400" />
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-950 border border-slate-800 rounded-3xl max-w-md w-full p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
+                <Zap className="w-6 h-6 text-amber-400 fill-current" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-white">Aktifkan Mode Prioritas</h3>
-                <p className="text-xs text-slate-400 font-mono">
-                  Mahasiswa: <span className="text-amber-400 font-semibold">{boostModal.nim}</span>
-                </p>
+                <h3 className="text-xl font-bold text-white tracking-tight">Enable Priority</h3>
+                <p className="text-sm text-slate-400">Target: <span className="text-white font-mono">{boostModal.nim}</span></p>
               </div>
             </div>
 
-            <form onSubmit={handleBoost} className="space-y-4">
+            <form onSubmit={handleBoost} className="space-y-5">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Durasi Mode Prioritas</label>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Duration</label>
                 <select
                   value={boostModal.hours}
                   onChange={(e) => setBoostModal((prev) => ({ ...prev, hours: Number(e.target.value) }))}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs font-mono focus:outline-none focus:border-amber-500 transition"
+                  className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-white text-sm focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all appearance-none"
                 >
-                  <option value={1}>1 Jam</option>
-                  <option value={2}>2 Jam</option>
-                  <option value={4}>4 Jam (Rekomendasi Skripsi)</option>
-                  <option value={6}>6 Jam</option>
-                  <option value={12}>12 Jam</option>
-                  <option value={24}>24 Jam</option>
+                  <option value={1}>1 Hour</option>
+                  <option value={2}>2 Hours</option>
+                  <option value={4}>4 Hours (Recommended)</option>
+                  <option value={6}>6 Hours</option>
+                  <option value={12}>12 Hours</option>
+                  <option value={24}>24 Hours</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Alasan</label>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Justification</label>
                 <input
                   type="text"
                   value={boostModal.reason}
                   onChange={(e) => setBoostModal((prev) => ({ ...prev, reason: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-600 text-xs focus:outline-none focus:border-amber-500 transition font-mono"
+                  className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-white text-sm focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"
+                  placeholder="e.g. Model Training"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2">
+              <div className="flex items-center justify-end gap-3 pt-4">
                 <button
                   type="button"
                   onClick={() => setBoostModal({ isOpen: false, nim: null, nama: '', hours: 4, reason: '' })}
-                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium cursor-pointer"
-                >Batal</button>
+                  className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-sm font-medium transition-colors"
+                >
+                  Cancel
+                </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold shadow-lg shadow-amber-500/20 cursor-pointer"
-                >Boost</button>
+                  className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-sm font-bold shadow-lg shadow-amber-500/20 transition-colors"
+                >
+                  Confirm Boost
+                </button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* Modal Uji Otentikasi SIMTIK */}
+      {/* Test SIMTIK Modal */}
       {testLoginModal.isOpen && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
-                <KeyRound className="w-5 h-5" />
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-950 border border-slate-800 rounded-3xl max-w-md w-full p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+                <KeyRound className="w-6 h-6 text-indigo-400" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-white">Uji Otentikasi SIMTIK UMPO</h3>
+                <h3 className="text-xl font-bold text-white tracking-tight">Test Authentication</h3>
+                <p className="text-sm text-slate-400">Validate SIMTIK connection</p>
               </div>
             </div>
 
-            <form onSubmit={handleTestSimtik} className="space-y-4">
+            <form onSubmit={handleTestSimtik} className="space-y-5">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">NIM Mahasiswa</label>
+                <label className="block text-sm font-medium text-slate-300 mb-2">NIM</label>
                 <input
                   type="text"
                   required
                   value={testLoginModal.nim}
                   onChange={(e) => setTestLoginModal((prev) => ({ ...prev, nim: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs font-mono"
+                  className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-white text-sm font-mono focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                  placeholder="Enter NIM"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Password SIMTIK</label>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Password</label>
                 <input
                   type="password"
                   required
                   value={testLoginModal.password}
                   onChange={(e) => setTestLoginModal((prev) => ({ ...prev, password: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs font-mono"
+                  className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-white text-sm font-mono focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                  placeholder="Enter Password"
                 />
               </div>
 
               {testLoginModal.result && (
-                <div className={`p-3 rounded-xl text-xs flex items-center gap-2 ${testLoginModal.result.success ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400' : 'bg-rose-500/10 border border-rose-500/30 text-rose-400'}`}>
-                  {testLoginModal.result.success ? <CheckCircle2 className="w-4 h-4 shrink-0" /> : <AlertCircle className="w-4 h-4 shrink-0" />}
-                  <span>{testLoginModal.result.message}</span>
+                <div className={`p-4 rounded-xl text-sm flex items-start gap-3 border ${
+                  testLoginModal.result.success 
+                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+                    : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
+                }`}>
+                  {testLoginModal.result.success ? <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" /> : <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />}
+                  <span className="leading-relaxed">{testLoginModal.result.message}</span>
                 </div>
               )}
 
-              <div className="flex items-center justify-end gap-2 pt-2">
+              <div className="flex items-center justify-end gap-3 pt-4">
                 <button
                   type="button"
                   onClick={() => setTestLoginModal((prev) => ({ ...prev, isOpen: false }))}
-                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium cursor-pointer"
-                >Tutup</button>
+                  className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-sm font-medium transition-colors"
+                >
+                  Close
+                </button>
                 <button
                   type="submit"
                   disabled={testLoginModal.loading}
-                  className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium disabled:opacity-50 cursor-pointer"
-                >{testLoginModal.loading ? 'Memeriksa...' : 'Uji Sekarang'}</button>
+                  className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium shadow-lg shadow-indigo-600/20 transition-colors disabled:opacity-50 disabled:shadow-none"
+                >
+                  {testLoginModal.loading ? 'Authenticating...' : 'Test Login'}
+                </button>
               </div>
             </form>
           </div>
         </div>
       )}
+
     </div>
   );
 }

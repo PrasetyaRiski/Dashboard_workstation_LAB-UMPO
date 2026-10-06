@@ -26,11 +26,22 @@ try:
 except ImportError:
     logger.warning("psycopg2 tidak ditemukan. Menggunakan SQLite lokal sebagai database.")
 
-SQLITE_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "lab_users.db")
+# Lokasi DB bersama: dashboard (panel-lab) dan JupyterHub HARUS memakai file yang sama.
+# Bisa dioverride lewat env LAB_DB_PATH.
+_DEFAULT_SHARED_DIR = "/home/public/web/data"
+if os.getenv("LAB_DB_PATH"):
+    SQLITE_PATH = os.getenv("LAB_DB_PATH")
+elif os.path.isdir("/home/public/web"):
+    SQLITE_PATH = os.path.join(_DEFAULT_SHARED_DIR, "lab_users.db")
+else:
+    SQLITE_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "lab_users.db")
+
+_TABLES_READY = False
 
 
 def get_connection():
     """Mengembalikan koneksi database PostgreSQL atau SQLite fallback"""
+    global _TABLES_READY
     if USE_POSTGRES:
         try:
             conn = psycopg2.connect(
@@ -47,8 +58,20 @@ def get_connection():
     
     # SQLite Fallback
     os.makedirs(os.path.dirname(SQLITE_PATH), exist_ok=True)
-    conn = sqlite3.connect(SQLITE_PATH)
+    conn = sqlite3.connect(SQLITE_PATH, timeout=10)
     conn.row_factory = sqlite3.Row
+    if not _TABLES_READY:
+        # Pastikan tabel selalu ada, walau init_db() belum dipanggil (mis. dari JupyterHub)
+        conn.execute("""CREATE TABLE IF NOT EXISTS users (
+            nim TEXT PRIMARY KEY, nama TEXT, is_admin INTEGER DEFAULT 0,
+            is_priority INTEGER DEFAULT 0, priority_expires_at TIMESTAMP NULL,
+            is_active INTEGER DEFAULT 1, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            last_login TIMESTAMP NULL)""")
+        conn.execute("""CREATE TABLE IF NOT EXISTS audit_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, nim TEXT, action TEXT, detail TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)""")
+        conn.commit()
+        _TABLES_READY = True
     return conn, "sqlite"
 
 

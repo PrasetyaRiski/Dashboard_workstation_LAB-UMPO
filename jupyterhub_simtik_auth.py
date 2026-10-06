@@ -1,6 +1,11 @@
 """
-JupyterHub SIMTIK Authenticator & Dynamic QoS Spawner Hook
-Versi 3.0 (Bulletproof: Native Async, PAM Fallback, Auto Useradd, Exception Shield)
+JupyterHub SIMTIK Authenticator & Dynamic QoS Spawner Hook (v4)
+
+- Akun sistem (labriset, training1-10, edy, labadmin) -> password Linux (PAM)
+- Mahasiswa (NIM) -> diverifikasi ke SIMTIK UMPO
+- NIM murni angka tidak valid sebagai username Linux/systemd, sehingga akun
+  Linux/Jupyter mahasiswa memakai prefix "m" (contoh: NIM 21533045 -> m21533045).
+  Database dashboard tetap memakai NIM asli.
 """
 
 import os
@@ -8,168 +13,133 @@ import sys
 import pwd
 import subprocess
 import logging
+import asyncio
 from jupyterhub.auth import Authenticator
 
-# Tambahkan path backend ke sys.path
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-for path_cand in [
-    os.path.join(BASE_DIR, "backend"),
-    os.path.join(BASE_DIR, "panel-lab", "backend"),
-    "/home/public/web/backend",
-    "/home/public/web/panel-lab/backend"
-]:
-    if os.path.exists(path_cand) and path_cand not in sys.path:
-        sys.path.append(path_cand)
+for _p in ("/home/public/web/backend", "/home/public/web/panel-lab/backend",
+           os.path.join(os.path.dirname(os.path.abspath(__file__)), "backend")):
+    if os.path.isdir(_p) and _p not in sys.path:
+        sys.path.insert(0, _p)
+        break
 
 logger = logging.getLogger("jupyterhub_simtik")
 
+USER_PREFIX = "m"
+SYSTEM_ACCOUNTS = {"labriset", "edy", "labadmin"}
+LEVEL1_SYSTEM = {"labriset"}
 
-def ensure_linux_user(username: str):
-    """
-    Memastikan akun Linux lokal ada untuk NIM mahasiswa agar SystemdSpawner bisa membuat workspace.
-    """
+
+def is_system_account(name: str) -> bool:
+    return name in SYSTEM_ACCOUNTS or (name.startswith("training") and name[8:].isdigit())
+
+
+def nim_to_username(nim: str) -> str:
+    return f"{USER_PREFIX}{nim}"
+
+
+def username_to_nim(username: str) -> str:
+    if username.startswith(USER_PREFIX) and username[len(USER_PREFIX):].isdigit():
+        return username[len(USER_PREFIX):]
+    return username
+
+
+def ensure_linux_user(username: str) -> bool:
     try:
         pwd.getpwnam(username)
         return True
     except KeyError:
-        logger.info(f"Membuat user Linux lokal untuk mahasiswa: {username}")
-        try:
-            # Gunakan useradd standar tanpa parameter group kaku
-            cmd = ["useradd", "-m", "-s", "/bin/bash", username]
-            if os.geteuid() != 0:
-                cmd = ["sudo"] + cmd
-            res = subprocess.run(cmd, check=False, capture_output=True, text=True)
-            if res.returncode == 0:
-                logger.info(f"User Linux {username} berhasil dibuat.")
-                return True
-            else:
-                logger.warning(f"useradd returned code {res.returncode}: {res.stderr}")
-                return False
-        except Exception as e:
-            logger.error(f"Gagal memanggil useradd untuk {username}: {e}")
-            return False
+        pass
+    cmd = ["useradd", "-m", "-s", "/bin/bash", username]
+    if os.geteuid() != 0:
+        cmd = ["sudo", "-n"] + cmd
+    res = subprocess.run(cmd, capture_output=True, text=True)
+    if res.returncode != 0:
+        logger.error(f"useradd {username} gagal ({res.returncode}): {res.stderr.strip()}")
+        return False
+    logger.info(f"User Linux {username} berhasil dibuat.")
+    return True
+
+
+def _pam_check(username: str, password: str) -> bool:
+    import pamela
+    try:
+        pamela.authenticate(username, password, service="login")
+        return True
+    except Exception as e:
+        logger.warning(f"PAM menolak {username}: {e}")
+        return False
 
 
 class SimtikAuthenticator(Authenticator):
-    """
-    Authenticator kustom JupyterHub dengan metode Native Async:
-    1. Akun Sistem (labriset, edy, training1-10) -> Verifikasi via PAM Linux lokal
-    2. Mahasiswa (NIM) -> Verifikasi via SIMTIK UMPO secara live
-    """
 
     async def authenticate(self, handler, data):
+        username = (data.get("username") or "").strip().lower()
+        password = data.get("password") or ""
+        if not username or not password:
+            return None
+
         try:
-            username = data.get("username", "").strip()
-            password = data.get("password", "").strip()
+            # 1) Akun sistem lab -> password Linux
+            if is_system_account(username):
+                ok = await asyncio.to_thread(_pam_check, username, password)
+                return username if ok else None
 
-            if not username or not password:
+            # Izinkan mahasiswa mengetik "m21533045" maupun "21533045"
+            nim = username_to_nim(username)
+            if not nim.isdigit():
+                logger.warning(f"Username tidak dikenal: {username}")
                 return None
 
-            # ==========================================================
-            # 1. KASUS AKUN SISTEM LAB (labriset, edy, training1-10, dll)
-            # ==========================================================
-            SYSTEM_ACCOUNTS = {"labriset", "edy", "root", "admin", "labadmin"}
-            if username in SYSTEM_ACCOUNTS or username.startswith("training"):
-                try:
-                    import pamela
-                    pamela.authenticate(username, password)
-                    logger.info(f"Login sukses via Linux PAM: Akun {username}")
-                    return username
-                except Exception as e:
-                    logger.warning(f"Login PAM ditolak untuk {username}: {e}")
-                    return None
-
-            # ==========================================================
-            # 2. KASUS MAHASISWA (NIM) -> Verifikasi ke SIMTIK UMPO
-            # ==========================================================
-            try:
-                from app.simtik_auth import verify_simtik_credentials
-                is_valid, msg, user_data = verify_simtik_credentials(username, password)
-            except Exception as e:
-                logger.error(f"Gagal memanggil modul verify_simtik_credentials: {e}")
-                return None
-
+            # 2) Mahasiswa -> SIMTIK
+            from app.simtik_auth import verify_simtik_credentials
+            is_valid, msg, user_data = await asyncio.to_thread(verify_simtik_credentials, nim, password)
             if not is_valid:
-                logger.warning(f"Login SIMTIK ditolak untuk NIM {username}: {msg}")
+                logger.warning(f"SIMTIK menolak NIM {nim}: {msg}")
                 return None
 
-            # 3. Sinkronisasi ke Database User Management Lab (Opsional / Non-blocking)
+            # 3) Sinkron ke DB dashboard (tidak boleh menggagalkan login)
             try:
                 from app.db import get_or_create_user
-                nama = user_data.get("nama", f"Mahasiswa {username}")
-                user_rec = get_or_create_user(username, nama)
-                if user_rec and not user_rec.get("is_active", True):
-                    logger.warning(f"Akses ditolak: Akun NIM {username} dinonaktifkan oleh Admin.")
+                rec = get_or_create_user(nim, user_data.get("nama"))
+                if rec and not rec.get("is_active", True):
+                    logger.warning(f"NIM {nim} diblokir admin.")
                     return None
             except Exception as e:
-                logger.warning(f"Gagal sinkronisasi DB (diabaikan agar login tetap jalan): {e}")
+                logger.warning(f"Sinkron DB gagal (diabaikan): {e}")
 
-            # 4. Pastikan Akun Linux Lokal Ada untuk SystemdSpawner
-            ensure_linux_user(username)
+            # 4) Akun Linux untuk SystemdSpawner
+            linux_user = nim_to_username(nim)
+            if not ensure_linux_user(linux_user):
+                return None
 
-            logger.info(f"Login sukses: Mahasiswa NIM {username}")
-            return username
-
-        except Exception as e:
-            logger.exception(f"Unhandled error in SimtikAuthenticator.authenticate: {e}")
+            logger.info(f"Login SIMTIK sukses: NIM {nim} -> {linux_user}")
+            return linux_user
+        except Exception:
+            logger.exception("Error tak terduga di SimtikAuthenticator.authenticate")
             return None
 
 
 def simtik_pre_spawn_hook(spawner):
-    """
-    Hook yang dijalankan sebelum server notebook mahasiswa dinyalakan.
-    Menginjeksi jatah CPU, RAM, GPU, dan Systemd Slice (Cgroups v2).
-    """
-    try:
-        username = spawner.user.name
+    username = spawner.user.name
+    priority = username in LEVEL1_SYSTEM
+    if not priority and not is_system_account(username):
+        try:
+            from app.db import is_user_priority
+            priority = is_user_priority(username_to_nim(username))
+        except Exception as e:
+            logger.warning(f"Cek prioritas gagal untuk {username}: {e}")
 
-        # Cek apakah user berhak atas Level 1 (Monster/Prioritas)
-        is_priority = False
-        if username in {"labriset", "edy", "labadmin"}:
-            is_priority = True
-        else:
-            try:
-                from app.db import is_user_priority
-                is_priority = is_user_priority(username)
-            except Exception as e:
-                logger.warning(f"Gagal cek prioritas DB untuk {username}: {e}")
-                is_priority = False
-
-        if is_priority:
-            # ==========================================
-            # JATAH LEVEL 1 (PRIORITAS / LABRISET)
-            # ==========================================
-            logger.info(f"[DYNAMIC QoS] User {username} dialokasikan ke LEVEL 1 PRIORITAS (20 Core, 70G, GPU 0)")
-            spawner.unit_extra_properties = {
-                'Slice': 'compute-level1.slice',
-                'MemorySwapMax': '0',
-            }
-            spawner.cpu_limit = 20.0                          # 20 Core CPU
-            spawner.mem_limit = "70G"                         # 70 GB RAM
-            spawner.environment = {
-                'OMP_NUM_THREADS': '20',
-                'OPENBLAS_NUM_THREADS': '20',
-                'CUDA_VISIBLE_DEVICES': '0',                  # GPU 0 (Full 16GB VRAM)
-            }
-        else:
-            # ==========================================
-            # JATAH LEVEL 2 (NORMAL / PRAKTIKAN)
-            # ==========================================
-            logger.info(f"[DYNAMIC QoS] User {username} dialokasikan ke LEVEL 2 NORMAL (2 Core, 3G, GPU 1)")
-            spawner.unit_extra_properties = {
-                'Slice': 'compute-level2.slice',
-                'MemorySwapMax': '0',
-            }
-            spawner.cpu_limit = 2.0                           # 2 Core CPU
-            spawner.mem_limit = "3G"                          # 3 GB RAM (3072 MB)
-            spawner.environment = {
-                'OMP_NUM_THREADS': '2',
-                'OPENBLAS_NUM_THREADS': '2',
-                'CUDA_VISIBLE_DEVICES': '1',                  # GPU 1 (Shared ~4.8GB VRAM)
-            }
-    except Exception as e:
-        logger.exception(f"Unhandled error in simtik_pre_spawn_hook: {e}")
-        # Fallback aman ke level 2
-        spawner.unit_extra_properties = {'Slice': 'compute-level2.slice'}
+    if priority:
+        logger.info(f"[QoS] {username} -> LEVEL 1 (20 core, 70G, GPU 0)")
+        spawner.unit_extra_properties = {"Slice": "compute-level1.slice"}
+        spawner.cpu_limit = 20.0
+        spawner.mem_limit = "70G"
+        spawner.environment = {"OMP_NUM_THREADS": "20", "OPENBLAS_NUM_THREADS": "20",
+                               "CUDA_VISIBLE_DEVICES": "0"}
+    else:
+        logger.info(f"[QoS] {username} -> LEVEL 2 (2 core, 3G, GPU 1)")
+        spawner.unit_extra_properties = {"Slice": "compute-level2.slice"}
         spawner.cpu_limit = 2.0
         spawner.mem_limit = "3G"
+        spawner.environment = {"OMP_NUM_THREADS": "2", "OPENBLAS_NUM_THREADS": "2",
+                               "CUDA_VISIBLE_DEVICES": "1"}

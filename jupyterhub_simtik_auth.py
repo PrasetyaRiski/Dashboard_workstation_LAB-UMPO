@@ -141,38 +141,14 @@ def simtik_pre_spawn_hook(spawner):
 
     if priority:
         logger.info(f"[QoS] {username} -> LEVEL 1 (20 core, 70G, GPU 0)")
-        # Gunakan list/string properties untuk systemd
-        # TasksMax default 2048, MemorySwapMax 0 (no swap)
-        spawner.unit_extra_properties = {
-            "Slice": "compute-level1.slice",
-            "TasksMax": "2048",
-            "MemorySwapMax": "0",
-            "DevicePolicy": "closed",
-            "DeviceAllow": [
-                "/dev/nvidia0 rw",
-                "/dev/nvidiactl rw",
-                "/dev/nvidia-uvm rw",
-                "/dev/nvidia-uvm-tools rw"
-            ]
-        }
+        spawner.unit_extra_properties = {"Slice": "compute-level1.slice"}
         spawner.cpu_limit = 20.0
         spawner.mem_limit = "70G"
         spawner.environment = {"OMP_NUM_THREADS": "20", "OPENBLAS_NUM_THREADS": "20",
                                "CUDA_VISIBLE_DEVICES": "0"}
     else:
         logger.info(f"[QoS] {username} -> LEVEL 2 (2 core, 3G, GPU 1)")
-        spawner.unit_extra_properties = {
-            "Slice": "compute-level2.slice",
-            "TasksMax": "512",
-            "MemorySwapMax": "0",
-            "DevicePolicy": "closed",
-            "DeviceAllow": [
-                "/dev/nvidia1 rw",
-                "/dev/nvidiactl rw",
-                "/dev/nvidia-uvm rw",
-                "/dev/nvidia-uvm-tools rw"
-            ]
-        }
+        spawner.unit_extra_properties = {"Slice": "compute-level2.slice"}
         spawner.cpu_limit = 2.0
         spawner.mem_limit = "3G"
         spawner.environment = {"OMP_NUM_THREADS": "2", "OPENBLAS_NUM_THREADS": "2",

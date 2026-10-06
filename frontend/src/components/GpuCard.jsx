@@ -1,5 +1,5 @@
 import React, { memo, useRef } from 'react';
-import { Thermometer, Wind, XCircle, Lock, Shield } from 'lucide-react';
+import { Thermometer, Wind, XCircle, Lock, Shield, Zap, Users, Flame } from 'lucide-react';
 
 /* Sparkline mini SVG — last 20 compute% readings */
 function Sparkline({ data = [], color = '#6366f1', height = 28, width = 80 }) {
@@ -141,71 +141,87 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, sparkHistory = [] }) {
     ? 'var(--accent-amber)'
     : 'var(--text-primary)';
 
+  const topProc = gpu.processes && gpu.processes[0];
+  const uniqueUsers = Array.from(new Set((gpu.processes || []).map(p => p.username)));
+
   return (
-    <div className="panel-raised flex flex-col gap-0 overflow-hidden fade-in-up">
-      {/* Header strip */}
-      <div
-        className="flex items-start justify-between gap-3 p-5 pb-4"
-        style={{ borderBottom: '1px solid var(--border-sub)' }}
-      >
-        <div className="flex flex-col gap-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span
-              className="metric-value font-bold"
-              style={{
-                fontSize: '0.5625rem',
-                padding: '1px 6px',
-                background: 'var(--surface-2)',
-                border: '1px solid var(--border-base)',
-                borderRadius: 4,
-                color: 'var(--text-secondary)',
-              }}
-            >
-              GPU {gpu.index}
-            </span>
-            <span
-              className="badge"
-              style={{
-                fontSize: '0.5625rem',
-                background: `${accentColor.replace('var(', '').replace(')', '')}14`,
-                color: accentColor,
-                borderColor: `${accentColor}30`,
-              }}
-            >
-              {isLevel1 ? 'Tier 1 — Riset Dosen' : 'Tier 2 — Praktikum Mhs'}
-            </span>
+    <div className="rounded-2xl bg-[#181b25] border border-[#46455430] p-5 shadow-xl flex flex-col justify-between relative overflow-hidden group hover:shadow-2xl transition-all fade-in-up">
+      {/* Stitch ambient glow */}
+      <div className={`absolute -top-12 -right-12 w-40 h-40 ${isLevel1 ? 'bg-[#4cd7f6]/10' : 'bg-[#c0c1ff]/10'} rounded-full blur-3xl pointer-events-none`}></div>
+
+      <div className="flex flex-col gap-4 relative z-10">
+        {/* Header - Stitch Style */}
+        <div className="flex items-start justify-between">
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <span className={`font-mono text-[10px] font-bold uppercase tracking-wider ${isLevel1 ? 'text-[#4cd7f6]' : 'text-[#c0c1ff]'}`}>
+                GPU NODE {gpu.index}
+              </span>
+              <span className={`w-1.5 h-1.5 rounded-full ${isLevel1 ? 'bg-[#4cd7f6]' : 'bg-[#4edea3]'}`}></span>
+              <span className="font-mono text-[10px] text-[#908fa0]">PCIe 4.0 @ 16x</span>
+            </div>
+            <h3 className="font-bold text-base text-[#dfe2ef] mt-0.5 tracking-tight">{gpu.name}</h3>
           </div>
-          <h2
-            className="font-bold truncate"
-            style={{ fontSize: '0.875rem', color: 'var(--text-primary)', letterSpacing: '-0.01em' }}
-          >
-            {gpu.name}
-          </h2>
-          <p style={{ fontSize: '0.625rem', color: 'var(--text-muted)' }}>
-            {isLevel1 ? 'labriset — Dedicated 16 GB VRAM' : 'training1–10 — Shared Pool 16 GB VRAM'}
-          </p>
+          <span className={`px-2.5 py-1 rounded-lg text-xs font-mono font-medium flex items-center gap-1.5 shadow-sm border ${
+            isLevel1 
+              ? 'bg-[#4cd7f6]/15 text-[#4cd7f6] border-[#4cd7f6]/30' 
+              : 'bg-[#262a34] text-[#dfe2ef] border-[#46455440]'
+          }`}>
+            {isLevel1 ? (
+              <><Zap className="w-3.5 h-3.5" fill="currentColor"/> Dedicated Monster</>
+            ) : (
+              <><Users className="w-3.5 h-3.5"/> Shared Practicum Pool</>
+            )}
+          </span>
         </div>
 
-        {/* Big compute % + sparkline */}
-        <div className="flex flex-col items-end gap-1 shrink-0">
-          <span
-            className="metric-value font-black"
-            style={{
-              fontSize: '1.5rem',
-              color: computePct > 0 ? accentColor : 'var(--text-muted)',
-              letterSpacing: '-0.03em',
-              lineHeight: 1,
-            }}
-          >
-            {computePct}%
+        {/* Active Holder Highlight - Stitch Card Banner */}
+        <div className="p-3 rounded-xl bg-[#1c1f29] border border-[#46455425] flex items-center justify-between">
+          <div className="flex items-center gap-3 min-w-0">
+            {isLevel1 ? (
+              topProc ? (
+                <>
+                  <div className="w-8 h-8 rounded-lg bg-[#4cd7f6]/20 border border-[#4cd7f6]/40 flex items-center justify-center text-[#4cd7f6] font-mono text-xs font-bold shrink-0">
+                    {topProc.username.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-mono text-xs text-[#dfe2ef] font-semibold truncate">{topProc.username}</span>
+                    <span className="text-[10px] text-[#c7c4d7] truncate">{topProc.name} (PID {topProc.pid})</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="w-8 h-8 rounded-lg bg-[#262a34] flex items-center justify-center text-[#908fa0] font-mono text-xs shrink-0">--</div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-mono text-xs text-[#4edea3] font-semibold">Slot Tersedia (Idle)</span>
+                    <span className="text-[10px] text-[#908fa0]">Siap untuk Boost Prioritas</span>
+                  </div>
+                </>
+              )
+            ) : (
+              <>
+                <div className="flex -space-x-1.5">
+                  {uniqueUsers.slice(0, 3).map((u, i) => (
+                    <div key={u} className="w-6 h-6 rounded-full bg-[#8083ff] text-white font-mono text-[9px] font-bold flex items-center justify-center border border-[#1c1f29]">
+                      {u.slice(0, 2).toUpperCase()}
+                    </div>
+                  ))}
+                  {uniqueUsers.length > 3 && (
+                    <div className="w-6 h-6 rounded-full bg-[#353943] text-[#dfe2ef] font-mono text-[9px] font-bold flex items-center justify-center border border-[#1c1f29]">
+                      +{uniqueUsers.length - 3}
+                    </div>
+                  )}
+                  {uniqueUsers.length === 0 && (
+                    <div className="w-6 h-6 rounded-full bg-[#262a34] text-[#908fa0] font-mono text-[9px] flex items-center justify-center">0</div>
+                  )}
+                </div>
+                <span className="text-xs text-[#c7c4d7] font-medium">{uniqueUsers.length} Mahasiswa Terkoneksi</span>
+              </>
+            )}
+          </div>
+          <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-[#262a34] text-[#c0c1ff] border border-[#46455430] shrink-0">
+            {isLevel1 ? "20C / 70GB Monster" : "2C / 3GB QoS Cap"}
           </span>
-          <span className="section-label" style={{ letterSpacing: '0.04em' }}>Compute</span>
-          <Sparkline
-            data={sparkHistory.map(h => isLevel1 ? h?.gpu0_compute : h?.gpu1_compute)}
-            color={accentColor.includes('indigo') ? '#6366f1' : '#10b981'}
-            width={80}
-            height={24}
-          />
         </div>
       </div>
 

@@ -268,64 +268,87 @@ export default function UnifiedUserManagement({
       <div className="flex-1 overflow-y-auto p-6">
         {activeTab === 'users' && (
           <div className="space-y-6">
-            {/* Bento Grid Metrics */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-5 hover:bg-slate-800/60 transition-colors group">
+            {/* Bento Grid Metrics — Stitch Design */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-[#181b25] border border-[#46455430] rounded-2xl p-5 hover:border-[#c0c1ff]/40 transition-all shadow-lg group relative overflow-hidden">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 group-hover:bg-indigo-500/20 transition-colors">
-                    <Users className="w-5 h-5 text-indigo-400" />
+                  <div className="w-10 h-10 rounded-xl bg-[#c0c1ff]/15 flex items-center justify-center border border-[#c0c1ff]/30 text-[#c0c1ff] shadow-[0_0_12px_rgba(192,193,255,0.2)]">
+                    <Users className="w-5 h-5" />
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-white tracking-tight">{totalStudents}</div>
-                    <div className="text-xs text-slate-400 font-medium">Total Akun SIMTIK</div>
+                    <div className="text-2xl font-bold text-[#dfe2ef] font-mono tracking-tight">{totalStudents}</div>
+                    <div className="text-[11px] text-[#908fa0] font-mono uppercase tracking-wider">Total Akun SIMTIK</div>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <span className="text-xs px-2 py-1 bg-slate-900/50 rounded-md text-slate-300 font-mono border border-slate-700/50">
-                    <span className="text-emerald-400 font-bold">{activeStudents}</span> Active
+                <div className="flex gap-2 font-mono text-[11px]">
+                  <span className="px-2 py-0.5 bg-[#1c1f29] rounded-lg text-[#dfe2ef] border border-[#46455430] flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#4edea3]"></span>
+                    <strong className="text-[#4edea3]">{activeStudents}</strong> Active
                   </span>
-                  <span className="text-xs px-2 py-1 bg-slate-900/50 rounded-md text-slate-300 font-mono border border-slate-700/50">
-                    <span className="text-amber-400 font-bold">{adminStudents}</span> Admin
+                  <span className="px-2 py-0.5 bg-[#1c1f29] rounded-lg text-[#dfe2ef] border border-[#46455430] flex items-center gap-1">
+                    <strong className="text-[#c0c1ff]">{adminStudents}</strong> Admin
                   </span>
                 </div>
               </div>
-              <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-5 hover:bg-slate-800/60 transition-colors group">
+
+              <div className="bg-[#181b25] border border-[#46455430] rounded-2xl p-5 hover:border-[#4cd7f6]/40 transition-all shadow-lg group relative overflow-hidden">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center border border-amber-500/20 group-hover:bg-amber-500/20 transition-colors">
-                    <Zap className="w-5 h-5 text-amber-400" />
+                  <div className="w-10 h-10 rounded-xl bg-[#4cd7f6]/15 flex items-center justify-center border border-[#4cd7f6]/30 text-[#4cd7f6] shadow-[0_0_12px_rgba(76,215,246,0.2)]">
+                    <Zap className="w-5 h-5" fill="currentColor" />
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-white tracking-tight">{boostedStudents}</div>
-                    <div className="text-xs text-slate-400 font-medium">Priority / Boosted</div>
+                    <div className="text-2xl font-bold text-[#dfe2ef] font-mono tracking-tight">{boostedStudents} / 1</div>
+                    <div className="text-[11px] text-[#908fa0] font-mono uppercase tracking-wider">GPU 0 Monster Slot</div>
                   </div>
                 </div>
-                <p className="text-xs text-slate-500 leading-snug">Akun dengan akses vRAM tinggi & tanpa limit waktu aktif.</p>
+                <div className="w-full bg-[#262a34] h-1.5 rounded-full overflow-hidden mb-1.5">
+                  <div className="bg-[#4cd7f6] h-full rounded-full transition-all" style={{ width: `${Math.min(boostedStudents * 100, 100)}%` }}></div>
+                </div>
+                <p className="text-[10px] text-[#908fa0] font-mono">20 Core · 70GB RAM · GPU 0 Dedicated</p>
               </div>
-              <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-5 hover:bg-slate-800/60 transition-colors group">
+
+              <div className="bg-[#181b25] border border-[#46455430] rounded-2xl p-5 hover:border-[#4edea3]/40 transition-all shadow-lg group relative overflow-hidden">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 group-hover:bg-emerald-500/20 transition-colors">
-                    <Activity className="w-5 h-5 text-emerald-400" />
+                  <div className="w-10 h-10 rounded-xl bg-[#4edea3]/15 flex items-center justify-center border border-[#4edea3]/30 text-[#4edea3] shadow-[0_0_12px_rgba(78,222,163,0.2)]">
+                    <Activity className="w-5 h-5" />
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-white tracking-tight">{onlineSystem} / {systemUsers?.length || 0}</div>
-                    <div className="text-xs text-slate-400 font-medium">System Sessions</div>
+                    <div className="text-2xl font-bold text-[#dfe2ef] font-mono tracking-tight">{onlineSystem} / {systemUsers?.length || 0}</div>
+                    <div className="text-[11px] text-[#908fa0] font-mono uppercase tracking-wider">System Sessions</div>
                   </div>
                 </div>
-                <p className="text-xs text-slate-500 leading-snug">Sesi Linux aktif (training / riset).</p>
+                <div className="flex items-center gap-1.5 text-[10px] font-mono text-[#4edea3]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#4edea3] animate-pulse"></span> Sesi Linux Aktif (Riset/Training)
+                </div>
+              </div>
+
+              <div className="bg-[#181b25] border border-[#46455430] rounded-2xl p-5 transition-all shadow-lg relative overflow-hidden">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#8083ff]/15 flex items-center justify-center border border-[#8083ff]/30 text-[#c0c1ff]">
+                    <Database className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-[#dfe2ef] font-mono uppercase tracking-wider">SIMTIK SSO Policy</div>
+                    <div className="text-[10px] text-[#908fa0]">OAuth2 / Local DB Sync</div>
+                  </div>
+                </div>
+                <div className="text-[10px] font-mono text-[#c7c4d7] bg-[#1c1f29] p-2 rounded-xl border border-[#46455425]">
+                  Auto cgroups: <span className="text-[#4cd7f6]">user-slice.slice</span>
+                </div>
               </div>
             </div>
 
-            {/* Filter & Search Header */}
+            {/* Filter & Search Header — Stitch Style */}
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-              <div className="flex gap-2">
+              <div className="flex gap-2 p-1 bg-[#0a0e17] rounded-xl border border-[#46455430]">
                 {['All', 'System', 'Simtik'].map((f) => (
                   <button
                     key={f}
                     onClick={() => setFilterType(f)}
-                    className={`px-4 py-2 text-sm font-semibold rounded-lg border transition-all ${
+                    className={`px-3.5 py-1.5 text-xs font-mono font-medium rounded-lg transition-all ${
                       filterType === f 
-                        ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-500/20' 
-                        : 'bg-slate-800/50 border-slate-700/50 text-slate-300 hover:bg-slate-800'
+                        ? 'bg-[#1c1f29] text-[#c0c1ff] border border-[#c0c1ff]/30 shadow-sm' 
+                        : 'text-[#908fa0] hover:text-[#dfe2ef]'
                     }`}
                   >
                     {f === 'System' ? 'System / Research' : f === 'Simtik' ? 'SIMTIK Students' : 'All Accounts'}
@@ -351,16 +374,18 @@ export default function UnifiedUserManagement({
               </div>
             </div>
 
-            {/* Unified Table */}
-            <div className="bg-slate-900/50 rounded-xl border border-slate-700/50 overflow-hidden">
+            {/* Unified Table — Stitch Screen 2 Style */}
+            <div className="bg-[#181b25] rounded-2xl border border-[#46455430] overflow-hidden shadow-xl">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-slate-800/50">
-                      <th className="px-6 py-4 border-b border-slate-700/50 text-xs font-semibold text-slate-300 uppercase tracking-wider">User Info</th>
-                      <th className="px-6 py-4 border-b border-slate-700/50 text-xs font-semibold text-slate-300 uppercase tracking-wider">Type / Status</th>
-                      <th className="px-6 py-4 border-b border-slate-700/50 text-xs font-semibold text-slate-300 uppercase tracking-wider">Resource / Priority</th>
-                      <th className="px-6 py-4 border-b border-slate-700/50 text-xs font-semibold text-slate-300 uppercase tracking-wider text-right">Actions</th>
+                    <tr className="bg-[#0a0e17]/80 font-mono text-[10px] uppercase tracking-wider text-[#908fa0] border-b border-[#46455430]">
+                      <th className="px-5 py-3.5">Student / Researcher</th>
+                      <th className="px-5 py-3.5">NIM / Dept</th>
+                      <th className="px-5 py-3.5">Tier & cgroup</th>
+                      <th className="px-5 py-3.5">Active Hardware</th>
+                      <th className="px-5 py-3.5">RAM & Quota</th>
+                      <th className="px-5 py-3.5 text-right">Root Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-700/50">
@@ -374,77 +399,127 @@ export default function UnifiedUserManagement({
                       filteredData.map((item, idx) => {
                         if (item.type === 'student') {
                           return (
-                            <tr key={`student-${item.nim}`} className="hover:bg-slate-800/50 transition-colors group">
-                              <td className="px-6 py-4">
+                            <tr key={`student-${item.nim}`} className="hover:bg-[#1c1f29]/70 transition-colors border-b border-[#46455420] group">
+                              {/* 1. Student / Researcher */}
+                              <td className="px-5 py-3.5">
                                 <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-xs uppercase">
-                                    {item.nama ? item.nama.charAt(0) : item.nim.slice(-1)}
+                                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs uppercase font-mono border ${
+                                    item.is_boosted 
+                                      ? 'bg-[#4cd7f6]/20 text-[#4cd7f6] border-[#4cd7f6]/40 shadow-[0_0_8px_rgba(76,215,246,0.25)]' 
+                                      : 'bg-[#1c1f29] text-[#c0c1ff] border-[#46455430]'
+                                  }`}>
+                                    {item.nama ? item.nama.slice(0, 2).toUpperCase() : item.nim.slice(-2)}
                                   </div>
                                   <div>
-                                    <div className="font-semibold text-white text-sm">
-                                      {item.nama || 'No Name'}
-                                      {item.is_admin && <span className="ml-2 text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded border border-amber-500/30 font-bold tracking-wide uppercase">Admin</span>}
+                                    <div className="font-medium text-[#dfe2ef] text-sm flex items-center gap-2">
+                                      {item.nama || 'Mahasiswa SIMTIK'}
+                                      {item.is_admin && <span className="text-[9px] bg-[#fbbf24]/20 text-[#fbbf24] px-1.5 py-0.2 rounded border border-[#fbbf24]/30 font-mono font-bold uppercase">ADMIN</span>}
                                     </div>
-                                    <div className="text-xs text-slate-500 font-mono mt-0.5">{item.nim}</div>
+                                    <div className="text-[11px] text-[#908fa0] font-mono mt-0.5">mhs.{item.nim}@umpo.ac.id</div>
                                   </div>
                                 </div>
                               </td>
-                              <td className="px-6 py-4">
-                                <div className="flex flex-col gap-1.5">
-                                  <span className="text-xs bg-slate-800 text-slate-300 px-2 py-0.5 rounded w-fit border border-slate-700">SIMTIK</span>
+
+                              {/* 2. NIM & Status */}
+                              <td className="px-5 py-3.5">
+                                <div className="flex flex-col gap-0.5">
+                                  <span className="font-mono text-xs font-semibold text-[#4cd7f6]">{item.nim}</span>
                                   {item.is_active ? (
-                                    <span className="text-[10px] font-medium text-emerald-400 flex items-center gap-1.5">
-                                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]"></div> Active
+                                    <span className="text-[10px] font-mono text-[#4edea3] flex items-center gap-1.5">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-[#4edea3] animate-pulse"></span> Active
                                     </span>
                                   ) : (
-                                    <span className="text-[10px] font-medium text-rose-400 flex items-center gap-1.5">
-                                      <div className="w-1.5 h-1.5 rounded-full bg-rose-400"></div> Disabled
+                                    <span className="text-[10px] font-mono text-[#ffb4ab] flex items-center gap-1.5">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-[#ffb4ab]"></span> Blocked
                                     </span>
                                   )}
                                 </div>
                               </td>
-                              <td className="px-6 py-4">
+
+                              {/* 3. Tier & cgroup (Stitch Screen 2) */}
+                              <td className="px-5 py-3.5">
+                                <div className="flex flex-col gap-0.5">
+                                  {item.is_boosted ? (
+                                    <>
+                                      <span className="px-2 py-0.5 rounded bg-[#4cd7f6]/20 text-[#4cd7f6] border border-[#4cd7f6]/40 font-mono text-[9px] font-bold w-fit shadow-sm">
+                                        TIER 3 (MONSTER)
+                                      </span>
+                                      <span className="text-[10px] text-[#908fa0] font-mono">/slice/monster.slice</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span className="px-2 py-0.5 rounded bg-[#262a34] text-[#c7c4d7] border border-[#46455440] font-mono text-[9px] font-medium w-fit">
+                                        TIER 2 (STANDARD)
+                                      </span>
+                                      <span className="text-[10px] text-[#908fa0] font-mono">/slice/student.slice</span>
+                                    </>
+                                  )}
+                                </div>
+                              </td>
+
+                              {/* 4. Active Hardware */}
+                              <td className="px-5 py-3.5">
                                 {item.is_boosted ? (
-                                  <div className="flex flex-col gap-1">
-                                    <span className="text-xs font-bold text-amber-400 flex items-center gap-1">
-                                      <Zap className="w-3.5 h-3.5" fill="currentColor" /> Priority Mode
+                                  <div className="flex flex-col gap-0.5">
+                                    <span className="text-xs font-mono font-bold text-[#4cd7f6] flex items-center gap-1">
+                                      <Zap className="w-3.5 h-3.5" fill="currentColor"/> GPU 0 (Dedicated)
                                     </span>
-                                    <span className="text-[10px] text-amber-500/70 font-mono">20 Core | 70GB RAM | GPU 0</span>
-                                    <div className="text-[10px] text-slate-400 font-mono mt-1">
+                                    <span className="text-[10px] text-[#908fa0] font-mono">20 Cores | 70GB VRAM</span>
+                                    <div className="text-[10px] text-[#fbbf24] font-mono">
                                       Expires: <LiveCountdown expiresAt={item.boost_expires_at} />
                                     </div>
                                   </div>
                                 ) : (
-                                  <div className="flex flex-col gap-1">
-                                    <span className="text-xs text-slate-400 font-medium px-2 py-0.5 bg-slate-800/50 rounded border border-slate-700/50 w-fit">Standard Quota</span>
-                                    <span className="text-[10px] text-slate-500 font-mono mt-1">2 Core | 3GB RAM | GPU 1</span>
+                                  <div className="flex flex-col gap-0.5">
+                                    <span className="text-xs font-mono text-[#c7c4d7] font-medium">GPU 1 (Shared Pool)</span>
+                                    <span className="text-[10px] text-[#908fa0] font-mono">2 Cores | 3GB RAM</span>
                                   </div>
                                 )}
                               </td>
-                              <td className="px-6 py-4 text-right">
+
+                              {/* 5. RAM & Quota Progress (Stitch Screen 2) */}
+                              <td className="px-5 py-3.5">
+                                <div className="flex flex-col gap-1 w-32">
+                                  <div className="flex justify-between text-[10px] font-mono">
+                                    <span className="text-[#908fa0]">{item.is_boosted ? 'Alloc: 70GB' : 'Alloc: 3GB'}</span>
+                                    <span className={item.is_boosted ? 'text-[#4cd7f6] font-bold' : 'text-[#c7c4d7]'}>
+                                      {item.is_boosted ? 'Max Cap' : 'Norm'}
+                                    </span>
+                                  </div>
+                                  <div className="w-full bg-[#262a34] h-1.5 rounded-full overflow-hidden">
+                                    <div
+                                      className={`h-full rounded-full transition-all ${item.is_boosted ? 'bg-[#4cd7f6] shadow-[0_0_8px_rgba(76,215,246,0.6)]' : 'bg-[#c0c1ff]'}`}
+                                      style={{ width: item.is_boosted ? '100%' : '35%' }}
+                                    ></div>
+                                  </div>
+                                </div>
+                              </td>
+
+                              {/* 6. Root Actions */}
+                              <td className="px-5 py-3.5 text-right">
                                 {isAdmin ? (
-                                  <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <div className="flex items-center justify-end gap-1.5 opacity-90 group-hover:opacity-100 transition-opacity">
                                     {item.is_boosted ? (
-                                      <button onClick={() => handleUnboost(item.nim)} className="px-2.5 py-1.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 text-xs font-medium transition-colors flex items-center gap-1.5" title="Remove Boost">
-                                        <RotateCcw className="w-3.5 h-3.5" /> Normal
+                                      <button onClick={() => handleUnboost(item.nim)} className="px-2 py-1 rounded-lg bg-[#fbbf24]/15 text-[#fbbf24] border border-[#fbbf24]/30 hover:bg-[#fbbf24]/25 text-xs font-mono transition-colors flex items-center gap-1" title="Revert to Normal">
+                                        <RotateCcw className="w-3.5 h-3.5" /> Revert
                                       </button>
                                     ) : (
-                                      <button onClick={() => setBoostModal({ isOpen: true, nim: item.nim, nama: item.nama, hours: 4, reason: '' })} className="px-2.5 py-1.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 hover:bg-indigo-500/20 text-xs font-medium transition-colors flex items-center gap-1.5" title="Boost Resource">
+                                      <button onClick={() => setBoostModal({ isOpen: true, nim: item.nim, nama: item.nama, hours: 4, reason: '' })} className="px-2 py-1 rounded-lg bg-[#4cd7f6]/15 text-[#4cd7f6] border border-[#4cd7f6]/30 hover:bg-[#4cd7f6]/25 text-xs font-mono font-medium transition-colors flex items-center gap-1 shadow-sm" title="Boost Resource to Monster">
                                         <Zap className="w-3.5 h-3.5" /> Boost
                                       </button>
                                     )}
-                                    <button onClick={() => handleToggleActive(item.nim)} className={`px-2.5 py-1.5 rounded border text-xs font-medium transition-colors flex items-center gap-1.5 ${item.is_active ? 'bg-rose-500/10 text-rose-400 border-rose-500/20 hover:bg-rose-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20'}`}>
-                                      {item.is_active ? <><UserX className="w-3.5 h-3.5"/> Block</> : <><UserCheck className="w-3.5 h-3.5"/> Unblock</>}
+                                    <button onClick={() => handleToggleActive(item.nim)} className={`px-2 py-1 rounded-lg border text-xs font-mono transition-colors flex items-center gap-1 ${item.is_active ? 'bg-[#ffb4ab]/15 text-[#ffb4ab] border-[#ffb4ab]/30 hover:bg-[#ffb4ab]/25' : 'bg-[#4edea3]/15 text-[#4edea3] border-[#4edea3]/30 hover:bg-[#4edea3]/25'}`} title={item.is_active ? 'Block User & Kill Sessions' : 'Unblock User'}>
+                                      {item.is_active ? <UserX className="w-3.5 h-3.5"/> : <UserCheck className="w-3.5 h-3.5"/>}
                                     </button>
-                                    <button onClick={() => handleToggleAdmin(item.nim)} className={`px-2.5 py-1.5 rounded border text-xs font-medium transition-colors ${item.is_admin ? 'bg-amber-500/10 text-amber-400 border-amber-500/20 hover:bg-amber-500/20' : 'bg-slate-700/50 text-slate-400 border-slate-600 hover:bg-slate-700'}`} title="Toggle Admin">
+                                    <button onClick={() => handleToggleAdmin(item.nim)} className={`px-2 py-1 rounded-lg border text-xs font-mono transition-colors ${item.is_admin ? 'bg-[#c0c1ff]/20 text-[#c0c1ff] border-[#c0c1ff]/40' : 'bg-[#1c1f29] text-[#908fa0] border-[#46455430] hover:text-white'}`} title="Toggle Admin Privileges">
                                       <ShieldCheck className="w-3.5 h-3.5" />
                                     </button>
-                                    <button onClick={() => handleDeleteUser(item.nim)} className="px-2.5 py-1.5 rounded border border-rose-500/20 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-colors" title="Delete User">
+                                    <button onClick={() => handleDeleteUser(item.nim)} className="px-2 py-1 rounded-lg border border-rose-500/30 bg-rose-500/15 text-rose-300 hover:bg-rose-500/25 transition-colors" title="Delete User & Kill Sessions">
                                       <Trash2 className="w-3.5 h-3.5" />
                                     </button>
                                   </div>
                                 ) : (
-                                  <span className="text-xs text-slate-500">Read-only</span>
+                                  <span className="text-[11px] font-mono text-[#908fa0]">// READ_ONLY</span>
                                 )}
                               </td>
                             </tr>
@@ -454,63 +529,81 @@ export default function UnifiedUserManagement({
                           const isRiset = item.tier === 'Riset';
                           const isOverQuota = item.status_color === 'red';
                           return (
-                            <tr key={`system-${item.username}`} className="hover:bg-slate-800/50 transition-colors group">
-                              <td className="px-6 py-4">
+                            <tr key={`system-${item.username}`} className="hover:bg-[#1c1f29]/70 transition-colors border-b border-[#46455420] group">
+                              <td className="px-5 py-3.5">
                                 <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs uppercase border border-emerald-500/30">
+                                  <div className="w-8 h-8 rounded-lg bg-[#c0c1ff]/15 text-[#c0c1ff] border border-[#c0c1ff]/30 flex items-center justify-center font-bold text-xs uppercase font-mono">
                                     <Server className="w-4 h-4" />
                                   </div>
                                   <div>
-                                    <div className="font-semibold text-white text-sm flex items-center gap-2">
+                                    <div className="font-medium text-[#dfe2ef] text-sm flex items-center gap-2">
                                       {item.username}
-                                      {isRiset && <span className="text-[10px] bg-indigo-500/20 text-indigo-400 px-1.5 py-0.5 rounded border border-indigo-500/30 font-bold tracking-wide uppercase">Riset</span>}
+                                      {isRiset && <span className="text-[9px] bg-[#c0c1ff]/20 text-[#c0c1ff] px-1.5 py-0.2 rounded border border-[#c0c1ff]/30 font-mono font-bold uppercase">RISET</span>}
                                     </div>
-                                    <div className="text-xs text-slate-500 font-mono mt-0.5">System Session</div>
+                                    <div className="text-[11px] text-[#908fa0] font-mono mt-0.5">system@{item.username}</div>
                                   </div>
                                 </div>
                               </td>
-                              <td className="px-6 py-4">
-                                <div className="flex flex-col gap-1.5">
+
+                              <td className="px-5 py-3.5">
+                                <div className="flex flex-col gap-0.5">
+                                  <span className="font-mono text-xs font-semibold text-[#c0c1ff]">{item.username}</span>
                                   {isOverQuota ? (
-                                    <span className="text-[10px] font-medium text-rose-400 flex items-center gap-1.5 bg-rose-500/10 px-2 py-0.5 rounded w-fit border border-rose-500/20">
+                                    <span className="text-[10px] font-mono text-[#ffb4ab] flex items-center gap-1.5">
                                       <AlertTriangle className="w-3 h-3"/> Over Quota
                                     </span>
                                   ) : item.is_online ? (
-                                    <span className="text-[10px] font-medium text-emerald-400 flex items-center gap-1.5 bg-emerald-500/10 px-2 py-0.5 rounded w-fit border border-emerald-500/20">
-                                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]"></div> Online
+                                    <span className="text-[10px] font-mono text-[#4edea3] flex items-center gap-1.5">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-[#4edea3] animate-pulse"></span> Online
                                     </span>
                                   ) : (
-                                    <span className="text-[10px] font-medium text-slate-400 flex items-center gap-1.5 bg-slate-800 px-2 py-0.5 rounded w-fit border border-slate-700">
+                                    <span className="text-[10px] font-mono text-[#908fa0] flex items-center gap-1.5">
                                       <Clock className="w-3 h-3"/> Offline
                                     </span>
                                   )}
-                                  <div className="flex flex-wrap gap-1">
-                                    <span className="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded">{item.gpu_assigned}</span>
-                                    <span className="text-[10px] bg-slate-800 text-indigo-400 px-1.5 py-0.5 rounded">{item.cpu_cores_limit || (isRiset ? 20 : 2)} Core</span>
+                                </div>
+                              </td>
+
+                              <td className="px-5 py-3.5">
+                                <div className="flex flex-col gap-0.5">
+                                  <span className="px-2 py-0.5 rounded bg-[#c0c1ff]/20 text-[#c0c1ff] border border-[#c0c1ff]/40 font-mono text-[9px] font-bold w-fit">
+                                    {isRiset ? 'TIER 1 (RISET)' : 'TIER 2 (TRAINING)'}
+                                  </span>
+                                  <span className="text-[10px] text-[#908fa0] font-mono">/slice/{item.username}.slice</span>
+                                </div>
+                              </td>
+
+                              <td className="px-5 py-3.5">
+                                <div className="flex flex-col gap-0.5 font-mono text-xs">
+                                  <span className="text-[#c7c4d7]">{item.gpu_assigned}</span>
+                                  <span className="text-[10px] text-[#908fa0]">{item.cpu_cores_limit || (isRiset ? 20 : 2)} Cores Claimed</span>
+                                </div>
+                              </td>
+
+                              <td className="px-5 py-3.5">
+                                <div className="flex flex-col gap-1 w-32 font-mono">
+                                  <div className="flex justify-between text-[10px]">
+                                    <span className="text-[#908fa0]">RAM: {isRiset ? '70GB' : '3GB'}</span>
+                                    <span className={item.ram_percent > 80 ? 'text-[#fbbf24] font-bold' : 'text-[#c7c4d7]'}>{item.ram_percent}%</span>
+                                  </div>
+                                  <div className="w-full bg-[#262a34] h-1.5 rounded-full overflow-hidden">
+                                    <div
+                                      className={`h-full rounded-full transition-all ${item.ram_percent > 80 ? 'bg-[#fbbf24]' : 'bg-[#4edea3]'}`}
+                                      style={{ width: `${Math.min(item.ram_percent || 0, 100)}%` }}
+                                    ></div>
                                   </div>
                                 </div>
                               </td>
-                              <td className="px-6 py-4">
-                                <div className="flex flex-col gap-1 text-[10px] font-mono">
-                                  <div className="flex justify-between w-32">
-                                    <span className="text-slate-400">RAM:</span>
-                                    <span className={item.ram_percent > 80 ? 'text-amber-400 font-bold' : 'text-slate-300'}>{item.ram_percent}% / {isRiset ? '70GB' : '3GB'}</span>
-                                  </div>
-                                  <div className="flex justify-between w-32">
-                                    <span className="text-slate-400">CPU:</span>
-                                    <span className={item.cpu_quota_percent > 80 ? 'text-amber-400 font-bold' : 'text-slate-300'}>{item.cpu_quota_percent}%</span>
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 text-right">
+
+                              <td className="px-5 py-3.5 text-right">
                                 {isAdmin ? (
-                                  <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button onClick={() => onKillAllUser(item.username)} className="px-2.5 py-1.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 text-xs font-medium transition-colors flex items-center gap-1.5" title="Kill All Sessions">
-                                      <Ban className="w-3.5 h-3.5" /> Kill Sessions
+                                  <div className="flex items-center justify-end gap-1.5 opacity-90 group-hover:opacity-100 transition-opacity">
+                                    <button onClick={() => onKillAllUser(item.username)} className="px-2.5 py-1 rounded-lg bg-rose-500/15 text-rose-300 border border-rose-500/30 hover:bg-rose-500/25 text-xs font-mono transition-colors flex items-center gap-1.5" title="Kill All Sessions">
+                                      <Ban className="w-3.5 h-3.5" /> Terminate
                                     </button>
                                   </div>
                                 ) : (
-                                  <span className="text-xs text-slate-500">Read-only</span>
+                                  <span className="text-[11px] font-mono text-[#908fa0]">// READ_ONLY</span>
                                 )}
                               </td>
                             </tr>

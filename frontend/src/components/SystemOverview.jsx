@@ -3,62 +3,36 @@ import { HardDrive, Server, MemoryStick as Memory, Cpu, Zap } from 'lucide-react
 
 function MetricCard({ icon: Icon, iconColor, label, value, unit, sub, percent, barColor }) {
   const safePercent = Math.min(Math.max(percent || 0, 0), 100);
-  const barBg = barColor || getBarColor(percent);
-
-  function getBarColor(p) {
-    if (p >= 85) return 'var(--accent-rose)';
-    if (p >= 65) return 'var(--accent-amber)';
-    return 'var(--accent-indigo)';
-  }
+  const barBg = barColor || (safePercent >= 85 ? '#ffb4ab' : safePercent >= 65 ? '#fbbf24' : '#4cd7f6');
 
   return (
-    <div
-      className="panel-raised flex flex-col gap-3"
-      style={{ padding: '16px 18px' }}
-    >
+    <div className="rounded-xl bg-[#1c1f29] border border-[#46455430] p-4 flex flex-col justify-between shadow-md">
       {/* Row 1: label + value */}
-      <div className="flex items-start justify-between gap-2">
+      <div className="flex items-start justify-between gap-2 mb-3">
         <div className="flex items-center gap-2.5">
-          <div
-            className="flex items-center justify-center rounded-lg shrink-0"
-            style={{
-              width: 32,
-              height: 32,
-              background: `color-mix(in srgb, ${iconColor} 12%, transparent)`,
-              color: iconColor,
-            }}
-          >
+          <div className="w-8 h-8 rounded-lg bg-[#262a34] border border-[#46455440] flex items-center justify-center shrink-0" style={{ color: iconColor }}>
             <Icon className="w-4 h-4" />
           </div>
-          <span
-            className="font-semibold"
-            style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}
-          >
+          <span className="font-mono text-xs font-medium text-[#c7c4d7]">
             {label}
           </span>
         </div>
-        <span
-          className="metric-value font-bold shrink-0"
-          style={{ fontSize: '1rem', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}
-        >
-          {value}<span style={{ fontSize: '0.6875rem', fontWeight: 500, marginLeft: 2, color: 'var(--text-muted)' }}>{unit}</span>
+        <span className="font-mono font-bold text-base text-[#dfe2ef]">
+          {value}<span className="text-xs font-normal text-[#908fa0] ml-1">{unit}</span>
         </span>
       </div>
 
-      {/* Progress track */}
-      <div className="progress-track" style={{ height: 6 }}>
+      {/* Progress track - Stitch Glow */}
+      <div className="w-full bg-[#262a34] h-2 rounded-full overflow-hidden mb-2">
         <div
-          className="progress-fill"
-          style={{ width: `${safePercent}%`, height: 6, background: barBg }}
+          className="h-full rounded-full transition-all duration-500"
+          style={{ width: `${safePercent}%`, background: barBg, boxShadow: `0 0 8px ${barBg}80` }}
         />
       </div>
 
       {/* Sub row */}
       {sub && (
-        <p
-          className="metric-value"
-          style={{ fontSize: '0.625rem', color: 'var(--text-muted)', marginTop: -4 }}
-        >
+        <p className="text-[11px] text-[#908fa0] truncate">
           {sub}
         </p>
       )}
@@ -90,7 +64,7 @@ function SystemOverview({ system, gpus = [] }) {
     : 'var(--accent-blue)';
 
   return (
-    <div className="panel-raised fade-in-up" style={{ padding: '24px 28px 28px' }}>
+    <div className="rounded-2xl bg-[#181b25] border border-[#46455430] shadow-xl fade-in-up" style={{ padding: '24px 28px 28px' }}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
         <div className="flex items-center gap-2.5">

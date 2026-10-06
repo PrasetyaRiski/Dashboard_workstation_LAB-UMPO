@@ -309,33 +309,64 @@ export default function App() {
           transition: 'margin-left var(--transition-slow)',
         }}
       >
-        {/* Global Header / Top-bar */}
-        <header className="flex items-center justify-between px-6 py-3 border-b" style={{ borderColor: 'var(--border-base)', background: 'var(--surface-0)' }}>
-          <div className="flex items-center gap-3">
-            <Menu className="w-5 h-5 cursor-pointer lg:hidden" onClick={() => setIsSidebarOpen(!isSidebarOpen)} />
-            <h2 className="text-sm font-bold tracking-tight">
-              {isAdmin ? (
-                <span className="text-emerald-500 flex items-center gap-2"><ShieldCheck className="w-4 h-4"/> Protected Admin Mode</span>
-              ) : (
-                <span className="text-indigo-400 flex items-center gap-2"><Info className="w-4 h-4"/> Public Monitoring View</span>
-              )}
-            </h2>
+        {/* Global Header / Top-bar — Stitch Style */}
+        <header className="flex items-center justify-between px-6 py-3 bg-[#0a0e17]/90 backdrop-blur-md border-b border-[#46455430] z-30 select-none">
+          <div className="flex items-center gap-4">
+            <Menu className="w-5 h-5 text-[#c7c4d7] cursor-pointer lg:hidden" onClick={() => setIsSidebarOpen(!isSidebarOpen)} />
+            <div className="flex items-center gap-2">
+              <div className="relative flex items-center justify-center">
+                <div className="w-2.5 h-2.5 rounded-full bg-[#4edea3] animate-ping absolute opacity-75"></div>
+                <div className="w-2 h-2 rounded-full bg-[#4edea3] relative"></div>
+              </div>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-1.5 font-mono text-xs">
+                  <span className="text-[#dfe2ef] font-semibold">UMPO AI Workstation</span>
+                  <span className="text-[#464554]">//</span>
+                  <span className="text-[#4cd7f6]">node-dgx-umpo01</span>
+                </div>
+                <span className="text-[10px] text-[#908fa0] hidden sm:inline">AI Research Lab & Compute Cluster</span>
+              </div>
+            </div>
+
+            {/* Live Telemetry Pills */}
+            <div className="hidden xl:flex items-center gap-2 border-l border-[#46455430] pl-4 font-mono text-[10px]">
+              <div className="flex items-center gap-1.5 bg-[#181b25] px-2.5 py-1 rounded-lg border border-[#46455430] text-[#4edea3]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#4edea3] animate-pulse"></span>
+                <span>Live Telemetry</span>
+                <span className="text-[#464554]">·</span>
+                <span className="text-[#c7c4d7]">Cgroups v2 Active</span>
+              </div>
+              <div className="flex items-center gap-1.5 bg-[#181b25] px-2.5 py-1 rounded-lg border border-[#46455430] text-[#dfe2ef]">
+                <span className="text-[#4cd7f6]">⚡</span>
+                <span className="text-[#908fa0]">GPU 0 Slot:</span>
+                <span className="text-[#4cd7f6] font-semibold">{students.filter(s => s.is_boosted).length}/1 Occupied</span>
+              </div>
+            </div>
           </div>
+
           <div className="flex items-center gap-2.5">
-            <a
-              href="/stitch/index.html"
-              target="_blank"
-              rel="noreferrer"
-              className="px-3 py-1.5 text-xs font-semibold rounded bg-violet-600/15 text-violet-300 border border-violet-500/30 hover:bg-violet-600/25 transition flex items-center gap-1.5 shadow-sm"
-              title="Buka Template Desain Google Stitch di Tab Baru"
-            >
-              <span>🎨 Template Stitch</span>
-            </a>
-            {!isAdmin ? (
-              <button onClick={() => setLoginModalOpen(true)} className="px-4 py-1.5 text-xs font-semibold rounded bg-indigo-600 text-white hover:bg-indigo-700 transition shadow-lg shadow-indigo-500/20">Login Admin</button>
-            ) : (
-              <button onClick={handleLogout} className="px-4 py-1.5 text-xs font-semibold rounded bg-slate-700 text-white hover:bg-slate-600 transition">Logout</button>
-            )}
+            <div className="flex items-center p-0.5 rounded-xl bg-[#181b25] border border-[#46455430]">
+              <div className={`px-2.5 py-1 rounded-lg font-mono text-xs font-medium flex items-center gap-1.5 transition-all ${!isAdmin ? 'bg-[#262a34] text-[#c0c1ff] shadow-sm' : 'text-[#908fa0]'}`}>
+                <Info className="w-3.5 h-3.5" />
+                <span>Public View</span>
+              </div>
+              {!isAdmin ? (
+                <button
+                  onClick={() => setLoginModalOpen(true)}
+                  className="px-2.5 py-1 rounded-lg font-mono text-xs text-[#dfe2ef] hover:text-white transition-colors flex items-center gap-1.5"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>Login Admin</span>
+                </button>
+              ) : (
+                <button
+                  onClick={handleLogout}
+                  className="px-2.5 py-1 rounded-lg font-mono text-xs bg-rose-500/15 text-rose-300 border border-rose-500/30 font-semibold flex items-center gap-1.5 transition-colors"
+                >
+                  <span>Logout</span>
+                </button>
+              )}
+            </div>
           </div>
         </header>
         {/* Floating Disconnect Banner */}
@@ -358,9 +389,57 @@ export default function App() {
           </div>
         )}
 
-        {/* Scrollable Main Content */}
-        <main className="flex-1 overflow-y-auto">
-          <div className="w-full mx-auto p-6 lg:p-10" style={{ maxWidth: 1320 }}>
+        {/* Scrollable Main Content — Stitch Layout */}
+        <main className="flex-1 overflow-y-auto bg-[#0f131c]">
+          <div className="w-full mx-auto p-6 lg:p-8" style={{ maxWidth: 1440 }}>
+
+            {/* Mode Switcher Banner (Stitch Screen 1) */}
+            <div className="relative overflow-hidden rounded-2xl bg-[#181b25] border border-[#46455430] p-4 shadow-xl mb-6">
+              <div className="absolute -right-16 -top-16 w-56 h-56 bg-[#4cd7f6]/10 rounded-full blur-3xl pointer-events-none"></div>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#1c1f29] border border-[#4cd7f6]/30 flex items-center justify-center text-[#4cd7f6] shadow-sm shrink-0">
+                    <ShieldCheck className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap font-mono">
+                      <span className="text-sm font-semibold text-[#dfe2ef]">
+                        {isAdmin ? 'Protected Admin Console' : 'Public Monitoring Mode'}
+                      </span>
+                      <span className="text-[10px] text-[#908fa0]">// {isAdmin ? 'AUTHENTICATED' : 'READ_ONLY'}</span>
+                      <span className="px-2 py-0.5 rounded bg-[#262a34] text-[#c7c4d7] text-[10px] flex items-center gap-1.5 border border-[#46455440]">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#4cd7f6] animate-pulse"></span> Telemetry Unlocked
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#c7c4d7] mt-0.5">
+                      Real-time PCIe telemetry & Cgroups v2 dynamic QoS allocations for Lab AI UMPO.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  {!isAdmin ? (
+                    <button
+                      onClick={() => setLoginModalOpen(true)}
+                      className="px-4 py-2 rounded-xl font-mono text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-1.5"
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5" /> Unlock Admin Mode
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <span className="px-3 py-1 rounded-lg bg-[#4edea3]/15 text-[#4edea3] border border-[#4edea3]/30 font-mono text-xs font-semibold">
+                        Admin Session Active
+                      </span>
+                      <button
+                        onClick={handleLogout}
+                        className="px-3 py-1 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 font-mono text-xs transition"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
 
             {/* Page Header */}
             <div className="page-header">

@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
 @import "tailwindcss";
 
@@ -7,6 +9,25 @@
    DESIGN TOKENS — 2026 Precision Console
    ───────────────────────────────────────────────────────────────── */
 :root {
+  /* Google Stitch AI Lab Design System Tokens */
+  --stitch-bg: #0f131c;
+  --stitch-surface: #0f131c;
+  --stitch-container-lowest: #0a0e17;
+  --stitch-container-low: #181b25;
+  --stitch-container: #1c1f29;
+  --stitch-container-high: #262a34;
+  --stitch-container-highest: #31353f;
+  --stitch-outline: #908fa0;
+  --stitch-outline-variant: #464554;
+  --stitch-primary: #c0c1ff;
+  --stitch-primary-container: #8083ff;
+  --stitch-secondary: #4cd7f6;
+  --stitch-secondary-container: #03b5d3;
+  --stitch-tertiary: #4edea3;
+  --stitch-tertiary-container: #00885d;
+  --stitch-on-surface: #dfe2ef;
+  --stitch-on-surface-variant: #c7c4d7;
+
   /* Surfaces — Warm Light */
   --surface-0:   #fafaf9;
   --surface-1:   #f5f5f4;

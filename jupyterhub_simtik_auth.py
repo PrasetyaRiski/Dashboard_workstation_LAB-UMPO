@@ -93,26 +93,42 @@ class SimtikAuthenticator(Authenticator):
 def simtik_pre_spawn_hook(spawner):
     """
     Hook yang dijalankan sebelum server notebook mahasiswa dinyalakan.
-    Menginjeksi jatah CPU, RAM, dan GPU berdasarkan status database (Normal vs Prioritas).
+    Menginjeksi jatah CPU, RAM, GPU, dan Systemd Slice (Cgroups v2).
     """
-    nim = spawner.user.name
+    username = spawner.user.name
 
-    # Cek apakah mahasiswa ini sedang di-BOOST atau punya role prioritas
-    is_priority = is_user_priority(nim)
+    # Akun master labriset atau mahasiswa yang di-boost berhak atas Level 1
+    is_priority = (username == "labriset") or is_user_priority(username)
 
     if is_priority:
         # ==========================================
-        # JATAH PROFIL PRIORITAS (MONSTER / LABRISET)
+        # JATAH PROFIL PRIORITAS (LEVEL 1 / LABRISET)
         # ==========================================
-        logger.info(f"[DYNAMIC QoS] NIM {nim} dialokasikan ke MODE PRIORITAS (20 Core, 70G, GPU 0)")
+        logger.info(f"[DYNAMIC QoS] User {username} dialokasikan ke LEVEL 1 PRIORITAS (20 Core, 70G, GPU 0)")
+        spawner.unit_extra_properties = {
+            'Slice': 'level1.slice',
+            'MemorySwapMax': '0',
+        }
         spawner.cpu_limit = 20.0                          # 20 Core CPU
         spawner.mem_limit = "70G"                         # 70 GB RAM
-        spawner.environment["CUDA_VISIBLE_DEVICES"] = "0" # Akses Dedicated GPU 0 (16GB VRAM)
+        spawner.environment = {
+            'OMP_NUM_THREADS': '20',
+            'OPENBLAS_NUM_THREADS': '20',
+            'CUDA_VISIBLE_DEVICES': '0',                  # GPU 0 (Full 16GB VRAM)
+        }
     else:
         # ==========================================
-        # JATAH PROFIL NORMAL (PRAKTIKAN STANDAR)
+        # JATAH PROFIL NORMAL (LEVEL 2 / PRAKTIKAN)
         # ==========================================
-        logger.info(f"[DYNAMIC QoS] NIM {nim} dialokasikan ke MODE NORMAL (2 Core, 3G, GPU 1)")
+        logger.info(f"[DYNAMIC QoS] User {username} dialokasikan ke LEVEL 2 NORMAL (2 Core, 3G, GPU 1)")
+        spawner.unit_extra_properties = {
+            'Slice': 'level2.slice',
+            'MemorySwapMax': '0',
+        }
         spawner.cpu_limit = 2.0                           # 2 Core CPU
         spawner.mem_limit = "3G"                          # 3 GB RAM (3072 MB)
-        spawner.environment["CUDA_VISIBLE_DEVICES"] = "1" # Akses Shared GPU 1 (~4.8GB VRAM)
+        spawner.environment = {
+            'OMP_NUM_THREADS': '2',
+            'OPENBLAS_NUM_THREADS': '2',
+            'CUDA_VISIBLE_DEVICES': '1',                  # GPU 1 (Shared ~4.8GB VRAM)
+        }

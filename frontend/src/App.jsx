@@ -73,7 +73,11 @@ const [pendingAction, setPendingAction]   = useState(null);
     }
   }, [adminToken]);
 
-  useEffect(() => { fetchStudents(); }, [fetchStudents]);
+  useEffect(() => {
+    fetchStudents();
+    const interval = setInterval(fetchStudents, 5000);
+    return () => clearInterval(interval);
+  }, [fetchStudents]);
 
   const fetchStatus = useCallback(async () => {
     setIsRefreshing(true);

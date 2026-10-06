@@ -1,26 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  Users,
-  Zap,
-  RotateCcw,
-  Shield,
-  ShieldCheck,
-  Search,
-  CheckCircle2,
-  AlertCircle,
-  Clock,
-  UserCheck,
-  UserX,
-  Sparkles,
-  KeyRound,
-  RefreshCw,
-  Lock,
-  LogOut,
-  ChevronLeft,
-  ChevronRight,
-  Activity,
-  Cpu,
-  MoreVertical
+  Users, Zap, RotateCcw, Shield, ShieldCheck, Search, CheckCircle2,
+  AlertCircle, Clock, UserCheck, UserX, Sparkles, KeyRound, RefreshCw,
+  Lock, LogOut, ChevronLeft, ChevronRight, Activity, Cpu, MoreVertical,
+  Database, Server, Ban
 } from 'lucide-react';
 
 const LiveCountdown = ({ expiresAt }) => {
@@ -301,8 +284,8 @@ export default function SimtikUserManagement({ isAdmin, showToast }) {
   if (!adminToken) {
     return (
       <div className="fixed inset-0 bg-slate-950 flex flex-col items-center justify-center p-5 z-50">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950"></div>
-        <div className="relative p-10 max-w-sm w-full text-center bg-slate-950/50 backdrop-blur-md border border-slate-800 rounded-3xl shadow-2xl">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-800 via-slate-950 to-slate-950"></div>
+        <div className="relative p-10 max-w-sm w-full text-center bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-3xl shadow-2xl">
           <div className="w-16 h-16 mx-auto mb-6 bg-indigo-500/10 rounded-2xl flex items-center justify-center border border-indigo-500/20 shadow-[0_0_30px_-5px_rgba(99,102,241,0.3)]">
             <Lock className="w-8 h-8 text-indigo-400" />
           </div>
@@ -315,7 +298,7 @@ export default function SimtikUserManagement({ isAdmin, showToast }) {
                 value={pin}
                 onChange={(e) => setPin(e.target.value)}
                 placeholder="Enter PIN"
-                className="w-full px-5 py-3.5 rounded-2xl bg-slate-900 border border-slate-800 text-center text-white text-xl tracking-[0.5em] focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-mono placeholder:tracking-normal placeholder:text-slate-600"
+                className="w-full px-5 py-3.5 rounded-2xl bg-slate-950/50 border border-slate-700 text-center text-white text-xl tracking-[0.5em] focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-mono placeholder:tracking-normal placeholder:text-slate-600"
                 autoFocus
               />
             </div>
@@ -345,256 +328,326 @@ export default function SimtikUserManagement({ isAdmin, showToast }) {
   const capacityPercent = capacity.total_slots > 0 ? (capacity.used_slots / capacity.total_slots) * 100 : 0;
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-950 text-slate-200 font-sans">
-      {/* Header */}
-      <header className="sticky top-0 z-30 bg-slate-950/80 backdrop-blur-md border-b border-slate-800 px-6 py-4 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
-            <Cpu className="w-5 h-5 text-indigo-400" />
+    <div className="flex h-screen bg-slate-950 text-slate-300 font-sans">
+      {/* Left Sidebar */}
+      <aside className="w-64 flex flex-col justify-between border-r border-slate-800 bg-slate-950">
+        <div>
+          <div className="p-6 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+              <Database className="w-5 h-5 text-indigo-400" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-white tracking-tight leading-tight">AI Lab UMPO</h1>
+              <p className="text-xs text-slate-500 font-medium">Console</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-lg font-bold text-white tracking-tight leading-tight">SIMTIK UMPO</h1>
-            <p className="text-xs text-slate-400 font-medium">Admission Control & Resource Management</p>
-          </div>
+          
+          <nav className="px-4 space-y-2 mt-4">
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                activeTab === 'users' ? 'bg-indigo-500/10 text-indigo-400' : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200'
+              }`}
+            >
+              <Users className="w-4 h-4" /> User Management
+            </button>
+            <button
+              onClick={() => setActiveTab('audit')}
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                activeTab === 'audit' ? 'bg-indigo-500/10 text-indigo-400' : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200'
+              }`}
+            >
+              <Activity className="w-4 h-4" /> Audit Logs
+            </button>
+          </nav>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setTestLoginModal({ isOpen: true, nim: '', password: '', loading: false, result: null })}
-            className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-slate-900 border border-slate-800 hover:bg-slate-800 transition text-slate-400 hover:text-white"
-            title="Test Authentication"
-          >
-            <KeyRound className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => { fetchStudents(); fetchCapacity(); }}
-            disabled={loading}
-            className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-slate-900 border border-slate-800 hover:bg-slate-800 transition text-slate-400 hover:text-white"
-            title="Refresh Data"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          </button>
-          <div className="w-px h-6 bg-slate-800 mx-1"></div>
+        <div className="p-4 border-t border-slate-800">
           <button
             onClick={handleLogout}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900 border border-slate-800 hover:bg-slate-800 hover:border-rose-500/50 transition text-sm font-medium text-slate-300 hover:text-rose-400"
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:bg-rose-500/10 hover:text-rose-400 transition-all"
           >
             <LogOut className="w-4 h-4" />
             Logout
           </button>
         </div>
-      </header>
+      </aside>
 
-      <main className="flex-1 p-6 max-w-7xl mx-auto w-full space-y-8">
-        
-        {/* Metric Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-6 opacity-10">
-              <Users className="w-24 h-24" />
-            </div>
-            <h3 className="text-sm font-medium text-slate-400 mb-1">Total Users</h3>
-            <div className="text-4xl font-bold text-white mb-2">{students.length}</div>
-            <p className="text-xs text-slate-500 flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-              {students.length - priorityCount} Normal users
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col h-screen overflow-hidden bg-slate-900 rounded-l-3xl border-l border-slate-800 shadow-2xl relative">
+        <header className="px-8 py-6 flex items-center justify-between border-b border-slate-800/50">
+          <div>
+            <h2 className="text-2xl font-bold text-white tracking-tight">
+              {activeTab === 'users' ? 'User Management' : 'Audit Logs'}
+            </h2>
+            <p className="text-sm text-slate-400 mt-1">
+              {activeTab === 'users' ? 'Manage access and system resources.' : 'Monitor system activity and changes.'}
             </p>
           </div>
-
-          <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-6 opacity-10">
-              <Zap className="w-24 h-24" />
-            </div>
-            <h3 className="text-sm font-medium text-amber-400/80 mb-1">Boosted Users</h3>
-            <div className="text-4xl font-bold text-amber-400 mb-2">{priorityCount}</div>
-            <p className="text-xs text-slate-500">20 Cores / 70G RAM / GPU 0</p>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setTestLoginModal({ isOpen: true, nim: '', password: '', loading: false, result: null })}
+              className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-slate-800 border border-slate-700 hover:bg-slate-700 transition text-slate-300 hover:text-white"
+              title="Test Authentication"
+            >
+              <KeyRound className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => { fetchStudents(); fetchCapacity(); }}
+              disabled={loading}
+              className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-slate-800 border border-slate-700 hover:bg-slate-700 transition text-slate-300 hover:text-white"
+              title="Refresh Data"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            </button>
           </div>
+        </header>
 
-          <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 relative flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <h3 className="text-sm font-medium text-slate-400">GPU Slot Utilization</h3>
-                <span className="text-xs font-bold text-white">{capacity.used_slots} / {capacity.total_slots}</span>
-              </div>
-              <div className="text-4xl font-bold text-white mb-4">
-                {capacityPercent.toFixed(0)}%
-              </div>
-            </div>
-            <div className="w-full bg-slate-950 rounded-full h-2.5 border border-slate-800 overflow-hidden">
-              <div 
-                className={`h-2.5 rounded-full ${capacityPercent >= 100 ? 'bg-rose-500' : 'bg-indigo-500'}`} 
-                style={{ width: `${Math.min(100, capacityPercent)}%` }}
-              ></div>
-            </div>
-          </div>
-        </div>
-
-        {/* Content Area */}
-        <div className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
-          
-          {/* Controls Bar */}
-          <div className="p-4 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            
-            {/* Segmented Control */}
-            <div className="inline-flex bg-slate-950 border border-slate-800 rounded-full p-1">
-              <button
-                onClick={() => setActiveTab('users')}
-                className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
-                  activeTab === 'users' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                <Users className="w-4 h-4" /> Users
-              </button>
-              <button
-                onClick={() => setActiveTab('audit')}
-                className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
-                  activeTab === 'audit' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                <Activity className="w-4 h-4" /> Audit Logs
-              </button>
-            </div>
-
-            {/* Search (only for users tab) */}
-            {activeTab === 'users' && (
-              <div className="relative max-w-sm w-full sm:w-72">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-                  placeholder="Search by NIM or Name..."
-                  className="w-full pl-9 pr-4 py-2 rounded-full bg-slate-950 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Users Tab */}
+        <div className="flex-1 overflow-y-auto p-8 space-y-8">
           {activeTab === 'users' && (
-            <div className="flex flex-col">
-              <div className="overflow-x-auto min-h-[400px]">
+            <>
+              {/* Metrics Bar (Bento Grid) */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Card 1: GPU Capacity */}
+                <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-5 flex flex-col justify-between">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2 text-slate-400">
+                      <Cpu className="w-4 h-4" />
+                      <h3 className="text-sm font-medium">GPU 0 Capacity</h3>
+                    </div>
+                    <span className="text-xs font-bold text-white">{capacity.used_slots} / {capacity.total_slots} Slots</span>
+                  </div>
+                  <div className="w-full bg-slate-900 rounded-full h-2.5 mt-2 border border-slate-800 overflow-hidden">
+                    <div 
+                      className={`h-2.5 rounded-full ${capacityPercent >= 100 ? 'bg-rose-500' : 'bg-indigo-500'}`} 
+                      style={{ width: `${Math.min(100, capacityPercent)}%` }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Card 2: Total Users */}
+                <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-5 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-medium text-slate-400 mb-1">Total Users</h3>
+                    <div className="text-3xl font-bold text-white">{students.length}</div>
+                  </div>
+                  <div className="w-12 h-12 rounded-full bg-slate-900 flex items-center justify-center border border-slate-800">
+                    <Users className="w-6 h-6 text-slate-400" />
+                  </div>
+                </div>
+
+                {/* Card 3: Active Priority Users */}
+                <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-5 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-medium text-slate-400 mb-1">Priority Users</h3>
+                    <div className="text-3xl font-bold text-amber-400">{priorityCount}</div>
+                  </div>
+                  <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
+                    <Zap className="w-6 h-6 text-amber-400" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Table Area */}
+              <div className="bg-slate-800/30 border border-slate-700 rounded-2xl overflow-hidden">
+                <div className="p-4 border-b border-slate-700/50 flex items-center justify-between">
+                  <div className="relative max-w-sm w-full">
+                    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                      placeholder="Search users..."
+                      className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left whitespace-nowrap">
+                    <thead>
+                      <tr className="bg-slate-900/50 text-slate-400 text-xs uppercase tracking-wider font-medium">
+                        <th className="px-6 py-4 border-b border-slate-700/50">User Info</th>
+                        <th className="px-6 py-4 border-b border-slate-700/50">Badges</th>
+                        <th className="px-6 py-4 border-b border-slate-700/50">Boost Timer</th>
+                        <th className="px-6 py-4 border-b border-slate-700/50">Last Login</th>
+                        <th className="px-6 py-4 border-b border-slate-700/50 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-700/50">
+                      {paginatedStudents.length === 0 ? (
+                        <tr>
+                          <td colSpan="5" className="px-6 py-12 text-center text-slate-500 text-sm">
+                            No matching users found.
+                          </td>
+                        </tr>
+                      ) : (
+                        paginatedStudents.map((s) => (
+                          <tr key={s.nim} className="hover:bg-slate-800/50 transition-colors group">
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-xs uppercase">
+                                  {s.nama ? s.nama.charAt(0) : s.nim.slice(-1)}
+                                </div>
+                                <div>
+                                  <div className="font-semibold text-white text-sm">
+                                    {s.nama || 'No Name'}
+                                  </div>
+                                  <div className="text-xs text-slate-500">{s.nim}</div>
+                                </div>
+                              </div>
+                            </td>
+
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-2">
+                                {s.is_active ? (
+                                  <span className="rounded-full px-2.5 py-0.5 text-[10px] uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                    Active
+                                  </span>
+                                ) : (
+                                  <span className="rounded-full px-2.5 py-0.5 text-[10px] uppercase tracking-wider bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                                    Blocked
+                                  </span>
+                                )}
+                                {s.is_priority && (
+                                  <span className="rounded-full px-2.5 py-0.5 text-[10px] uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                    Priority
+                                  </span>
+                                )}
+                                {s.is_admin && (
+                                  <span className="rounded-full px-2.5 py-0.5 text-[10px] uppercase tracking-wider bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                                    Admin
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+
+                            <td className="px-6 py-4 text-xs font-mono">
+                              {s.is_priority && s.priority_expires_at ? (
+                                <LiveCountdown expiresAt={s.priority_expires_at} />
+                              ) : (
+                                <span className="text-slate-600">--</span>
+                              )}
+                            </td>
+
+                            <td className="px-6 py-4 text-xs text-slate-400 font-mono">
+                              {s.last_login ? s.last_login.slice(0, 16).replace('T', ' ') : 'Never'}
+                            </td>
+
+                            <td className="px-6 py-4 text-right">
+                              <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                {s.is_priority ? (
+                                  <button
+                                    onClick={() => handleUnboost(s.nim)}
+                                    className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
+                                    title="Revoke Priority"
+                                  >
+                                    <RotateCcw className="w-4 h-4" />
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => setBoostModal({ isOpen: true, nim: s.nim, nama: s.nama, hours: 4, reason: 'Kebutuhan Riset / Skripsi' })}
+                                    disabled={isCapacityFull}
+                                    className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+                                      isCapacityFull 
+                                        ? 'text-slate-600 cursor-not-allowed' 
+                                        : 'text-slate-400 hover:bg-slate-800 hover:text-amber-400'
+                                    }`}
+                                    title={isCapacityFull ? 'Capacity Full' : 'Boost User'}
+                                  >
+                                    <Zap className="w-4 h-4" />
+                                  </button>
+                                )}
+
+                                <button
+                                  onClick={() => handleToggleAdmin(s.nim)}
+                                  className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-800 hover:text-indigo-400 transition-colors"
+                                  title="Toggle Admin Status"
+                                >
+                                  <Shield className="w-4 h-4" />
+                                </button>
+
+                                <button
+                                  onClick={() => handleToggleActive(s.nim)}
+                                  className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-800 hover:text-rose-400 transition-colors"
+                                  title={s.is_active ? "Block User" : "Activate User"}
+                                >
+                                  {s.is_active ? <Ban className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                
+                {totalPages > 0 && (
+                  <div className="p-4 border-t border-slate-700/50 flex items-center justify-between bg-slate-900/20">
+                    <span className="text-xs text-slate-500">
+                      Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredStudents.length)} of {filteredStudents.length}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-800 text-slate-400 disabled:opacity-30 hover:bg-slate-700 transition"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <span className="text-xs text-white font-medium px-2">
+                        {currentPage} / {totalPages}
+                      </span>
+                      <button
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        className="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-800 text-slate-400 disabled:opacity-30 hover:bg-slate-700 transition"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          {activeTab === 'audit' && (
+            <div className="bg-slate-800/30 border border-slate-700 rounded-2xl overflow-hidden">
+              <div className="overflow-x-auto">
                 <table className="w-full text-left whitespace-nowrap">
                   <thead>
-                    <tr className="border-b border-slate-800/50 bg-slate-900/20 text-slate-400 text-xs uppercase tracking-wider font-medium">
-                      <th className="px-6 py-4">User</th>
-                      <th className="px-6 py-4">Status & QoS</th>
-                      <th className="px-6 py-4">Boost Timer</th>
-                      <th className="px-6 py-4">Last Login</th>
-                      <th className="px-6 py-4 text-right">Actions</th>
+                    <tr className="bg-slate-900/50 text-slate-400 text-xs uppercase tracking-wider font-medium">
+                      <th className="px-6 py-4 border-b border-slate-700/50">Timestamp</th>
+                      <th className="px-6 py-4 border-b border-slate-700/50">Admin</th>
+                      <th className="px-6 py-4 border-b border-slate-700/50">Action</th>
+                      <th className="px-6 py-4 border-b border-slate-700/50 w-full">Details</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/50">
-                    {paginatedStudents.length === 0 ? (
+                  <tbody className="divide-y divide-slate-700/50">
+                    {auditLogs.length === 0 ? (
                       <tr>
-                        <td colSpan="5" className="px-6 py-12 text-center text-slate-500 text-sm">
-                          No matching records found.
+                        <td colSpan="4" className="px-6 py-12 text-center text-slate-500 text-sm">
+                          No audit logs found.
                         </td>
                       </tr>
                     ) : (
-                      paginatedStudents.map((s) => (
-                        <tr key={s.nim} className="hover:bg-slate-900/50 transition-colors group">
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-xs text-slate-300">
-                                {s.nim.slice(-2)}
-                              </div>
-                              <div>
-                                <div className="font-semibold text-white flex items-center gap-2">
-                                  {s.nim}
-                                  {s.is_admin && <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />}
-                                </div>
-                                <div className="text-xs text-slate-500">{s.nama || 'No Name'}</div>
-                              </div>
-                            </div>
-                          </td>
-
-                          <td className="px-6 py-4">
-                            <div className="flex flex-col items-start gap-1.5">
-                              {s.is_active ? (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                  Active
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20">
-                                  Blocked
-                                </span>
-                              )}
-                              {s.is_priority ? (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                                  <Zap className="w-2.5 h-2.5 fill-current" /> Priority
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-800 text-slate-400 border border-slate-700">
-                                  Normal
-                                </span>
-                              )}
-                            </div>
-                          </td>
-
-                          <td className="px-6 py-4 text-xs font-mono">
-                            {s.is_priority && s.priority_expires_at ? (
-                              <LiveCountdown expiresAt={s.priority_expires_at} />
-                            ) : (
-                              <span className="text-slate-600">--</span>
-                            )}
-                          </td>
-
+                      auditLogs.map((log, i) => (
+                        <tr key={i} className="hover:bg-slate-800/50 transition-colors">
                           <td className="px-6 py-4 text-xs text-slate-400 font-mono">
-                            {s.last_login ? s.last_login.slice(0, 16).replace('T', ' ') : 'Never'}
+                            {log.created_at ? new Date(log.created_at).toLocaleString() : '--'}
                           </td>
-
-                          <td className="px-6 py-4 text-right">
-                            <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                              
-                              {s.is_priority ? (
-                                <button
-                                  onClick={() => handleUnboost(s.nim)}
-                                  className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-colors"
-                                  title="Revoke Priority"
-                                >
-                                  <RotateCcw className="w-4 h-4" />
-                                </button>
-                              ) : (
-                                <button
-                                  onClick={() => setBoostModal({ isOpen: true, nim: s.nim, nama: s.nama, hours: 4, reason: 'Kebutuhan Riset / Skripsi' })}
-                                  disabled={isCapacityFull}
-                                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                                    isCapacityFull 
-                                      ? 'bg-slate-800 text-slate-600 cursor-not-allowed' 
-                                      : 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20'
-                                  }`}
-                                  title={isCapacityFull ? 'Capacity Full' : 'Boost User'}
-                                >
-                                  <Zap className="w-4 h-4" />
-                                </button>
-                              )}
-
-                              <button
-                                onClick={() => handleToggleAdmin(s.nim)}
-                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                                  s.is_admin 
-                                    ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' 
-                                    : 'bg-slate-800 text-slate-400 hover:text-white'
-                                }`}
-                                title="Toggle Admin Status"
-                              >
-                                <Shield className="w-4 h-4" />
-                              </button>
-
-                              <button
-                                onClick={() => handleToggleActive(s.nim)}
-                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                                  s.is_active 
-                                    ? 'bg-slate-800 text-slate-400 hover:text-rose-400' 
-                                    : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
-                                }`}
-                                title="Toggle Account Status"
-                              >
-                                {s.is_active ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
-                              </button>
-
-                            </div>
+                          <td className="px-6 py-4 text-sm font-semibold text-white">
+                            {log.admin_username || log.admin_nim || '--'}
+                          </td>
+                          <td className="px-6 py-4 text-xs">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-600 tracking-wide">
+                              {log.action || '--'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-slate-400">
+                            {log.details || log.target || '--'}
                           </td>
                         </tr>
                       ))
@@ -602,81 +655,8 @@ export default function SimtikUserManagement({ isAdmin, showToast }) {
                   </tbody>
                 </table>
               </div>
-              
-              {/* Pagination Footer */}
-              {totalPages > 0 && (
-                <div className="p-4 border-t border-slate-800 flex items-center justify-between bg-slate-900/30">
-                  <span className="text-xs text-slate-500">
-                    Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredStudents.length)} of {filteredStudents.length} entries
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                      className="w-8 h-8 rounded-full flex items-center justify-center bg-slate-800 text-slate-400 disabled:opacity-30 hover:bg-slate-700 transition"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                    </button>
-                    <span className="text-xs text-white font-medium px-2">
-                      {currentPage} / {totalPages}
-                    </span>
-                    <button
-                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                      disabled={currentPage === totalPages}
-                      className="w-8 h-8 rounded-full flex items-center justify-center bg-slate-800 text-slate-400 disabled:opacity-30 hover:bg-slate-700 transition"
-                    >
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
           )}
-
-          {/* Audit Tab */}
-          {activeTab === 'audit' && (
-            <div className="overflow-x-auto min-h-[400px]">
-              <table className="w-full text-left whitespace-nowrap">
-                <thead>
-                  <tr className="border-b border-slate-800/50 bg-slate-900/20 text-slate-400 text-xs uppercase tracking-wider font-medium">
-                    <th className="px-6 py-4">Timestamp</th>
-                    <th className="px-6 py-4">Admin</th>
-                    <th className="px-6 py-4">Action</th>
-                    <th className="px-6 py-4 w-full">Details</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/50">
-                  {auditLogs.length === 0 ? (
-                    <tr>
-                      <td colSpan="4" className="px-6 py-12 text-center text-slate-500 text-sm">
-                        No audit logs found.
-                      </td>
-                    </tr>
-                  ) : (
-                    auditLogs.map((log, i) => (
-                      <tr key={i} className="hover:bg-slate-900/50 transition-colors">
-                        <td className="px-6 py-3 text-xs text-slate-400 font-mono">
-                          {log.created_at ? new Date(log.created_at).toLocaleString() : '--'}
-                        </td>
-                        <td className="px-6 py-3 text-xs font-semibold text-white">
-                          {log.admin_username || log.admin_nim || '--'}
-                        </td>
-                        <td className="px-6 py-3 text-xs">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
-                            {log.action || '--'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-3 text-xs text-slate-400">
-                          {log.details || log.target || '--'}
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
-
         </div>
       </main>
 
@@ -684,10 +664,10 @@ export default function SimtikUserManagement({ isAdmin, showToast }) {
       
       {/* Boost Modal */}
       {boostModal.isOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-950 border border-slate-800 rounded-3xl max-w-md w-full p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-8 shadow-2xl">
             <div className="flex items-center gap-4 mb-6">
-              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
+              <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
                 <Zap className="w-6 h-6 text-amber-400 fill-current" />
               </div>
               <div>
@@ -702,7 +682,7 @@ export default function SimtikUserManagement({ isAdmin, showToast }) {
                 <select
                   value={boostModal.hours}
                   onChange={(e) => setBoostModal((prev) => ({ ...prev, hours: Number(e.target.value) }))}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-white text-sm focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all appearance-none"
+                  className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm focus:outline-none focus:border-amber-500 transition-all appearance-none"
                 >
                   <option value={1}>1 Hour</option>
                   <option value={2}>2 Hours</option>
@@ -719,7 +699,7 @@ export default function SimtikUserManagement({ isAdmin, showToast }) {
                   type="text"
                   value={boostModal.reason}
                   onChange={(e) => setBoostModal((prev) => ({ ...prev, reason: e.target.value }))}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-white text-sm focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"
+                  className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm focus:outline-none focus:border-amber-500 transition-all"
                   placeholder="e.g. Model Training"
                 />
               </div>
@@ -728,7 +708,7 @@ export default function SimtikUserManagement({ isAdmin, showToast }) {
                 <button
                   type="button"
                   onClick={() => setBoostModal({ isOpen: false, nim: null, nama: '', hours: 4, reason: '' })}
-                  className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-sm font-medium transition-colors"
+                  className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium transition-colors"
                 >
                   Cancel
                 </button>
@@ -746,10 +726,10 @@ export default function SimtikUserManagement({ isAdmin, showToast }) {
 
       {/* Test SIMTIK Modal */}
       {testLoginModal.isOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-950 border border-slate-800 rounded-3xl max-w-md w-full p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-8 shadow-2xl">
             <div className="flex items-center gap-4 mb-6">
-              <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+              <div className="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
                 <KeyRound className="w-6 h-6 text-indigo-400" />
               </div>
               <div>
@@ -766,7 +746,7 @@ export default function SimtikUserManagement({ isAdmin, showToast }) {
                   required
                   value={testLoginModal.nim}
                   onChange={(e) => setTestLoginModal((prev) => ({ ...prev, nim: e.target.value }))}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-white text-sm font-mono focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                  className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm font-mono focus:outline-none focus:border-indigo-500 transition-all"
                   placeholder="Enter NIM"
                 />
               </div>
@@ -778,7 +758,7 @@ export default function SimtikUserManagement({ isAdmin, showToast }) {
                   required
                   value={testLoginModal.password}
                   onChange={(e) => setTestLoginModal((prev) => ({ ...prev, password: e.target.value }))}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-white text-sm font-mono focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                  className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm font-mono focus:outline-none focus:border-indigo-500 transition-all"
                   placeholder="Enter Password"
                 />
               </div>
@@ -798,7 +778,7 @@ export default function SimtikUserManagement({ isAdmin, showToast }) {
                 <button
                   type="button"
                   onClick={() => setTestLoginModal((prev) => ({ ...prev, isOpen: false }))}
-                  className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-sm font-medium transition-colors"
+                  className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium transition-colors"
                 >
                   Close
                 </button>

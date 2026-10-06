@@ -45,11 +45,10 @@ def ensure_linux_user(username: str):
         logger.info(f"Membuat user Linux lokal untuk mahasiswa NIM: {username}")
         try:
             # Buat user baru tanpa password, grup users
-            subprocess.run(
-                ["sudo", "useradd", "-m", "-s", "/bin/bash", "-g", "users", username],
-                check=True,
-                capture_output=True
-            )
+            cmd = ["useradd", "-m", "-s", "/bin/bash", "-g", "users", username]
+            if os.geteuid() != 0:
+                cmd = ["sudo"] + cmd
+            subprocess.run(cmd, check=True, capture_output=True)
             logger.info(f"User Linux {username} berhasil dibuat.")
         except Exception as e:
             logger.error(f"Gagal membuat user Linux untuk {username}: {e}")
@@ -118,7 +117,7 @@ def simtik_pre_spawn_hook(spawner):
         # ==========================================
         logger.info(f"[DYNAMIC QoS] User {username} dialokasikan ke LEVEL 1 PRIORITAS (20 Core, 70G, GPU 0)")
         spawner.unit_extra_properties = {
-            'Slice': 'level1.slice',
+            'Slice': 'compute-level1.slice',
             'MemorySwapMax': '0',
         }
         spawner.cpu_limit = 20.0                          # 20 Core CPU
@@ -134,7 +133,7 @@ def simtik_pre_spawn_hook(spawner):
         # ==========================================
         logger.info(f"[DYNAMIC QoS] User {username} dialokasikan ke LEVEL 2 NORMAL (2 Core, 3G, GPU 1)")
         spawner.unit_extra_properties = {
-            'Slice': 'level2.slice',
+            'Slice': 'compute-level2.slice',
             'MemorySwapMax': '0',
         }
         spawner.cpu_limit = 2.0                           # 2 Core CPU

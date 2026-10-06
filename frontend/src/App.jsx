@@ -7,7 +7,8 @@ import UserGpuMonitor from './components/UserGpuMonitor';
 import ProcessManager from './components/ProcessManager';
 import AuditLogView from './components/AuditLogView';
 import KillConfirmModal from './components/KillConfirmModal';
-import SimtikUserManagement from './components/SimtikUserManagement';
+import UnifiedUserManagement from './components/UnifiedUserManagement';
+import AdminPinModal from './components/AdminPinModal';
 
 
 import {
@@ -17,6 +18,10 @@ import {
 
 export default function App() {
   const [data, setData]               = useState(null);
+  const [adminToken, setAdminToken] = useState(() => localStorage.getItem('adminToken') || '');
+  const isAdmin = !!adminToken;
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [students, setStudents] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [toast, setToast]             = useState(null);
@@ -61,6 +66,33 @@ export default function App() {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
   }, []);
+
+  const handleLoginSuccess = (token) => {
+    localStorage.setItem('adminToken', token);
+    setAdminToken(token);
+    showToast('Login berhasil', 'success');
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('adminToken');
+    setAdminToken('');
+    showToast('Logout berhasil', 'info');
+  };
+
+  const fetchStudents = useCallback(async () => {
+    try {
+      const headers = adminToken ? { 'Authorization': `Bearer ${adminToken}` } : {};
+      const res = await fetch('/api/users/students', { headers });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success) setStudents(json.users || []);
+      }
+    } catch (e) {
+      console.error('Fetch students error:', e);
+    }
+  }, [adminToken]);
+
+  useEffect(() => { fetchStudents(); }, [fetchStudents]);
 
   const fetchStatus = useCallback(async () => {
     setIsRefreshing(true);
@@ -235,7 +267,6 @@ export default function App() {
   };
 
 
-  const isAdmin = true;
   const activeProcesses = data?.all_processes || [];
 
   // Page header metadata per tab
@@ -278,6 +309,26 @@ export default function App() {
           transition: 'margin-left var(--transition-slow)',
         }}
       >
+        {/* Global Header / Top-bar */}
+        <header className="flex items-center justify-between px-6 py-3 border-b" style={{ borderColor: 'var(--border-base)', background: 'var(--surface-0)' }}>
+          <div className="flex items-center gap-3">
+            <Menu className="w-5 h-5 cursor-pointer lg:hidden" onClick={() => setIsSidebarOpen(!isSidebarOpen)} />
+            <h2 className="text-sm font-bold tracking-tight">
+              {isAdmin ? (
+                <span className="text-emerald-500 flex items-center gap-2"><ShieldCheck className="w-4 h-4"/> Protected Admin Mode</span>
+              ) : (
+                <span className="text-indigo-400 flex items-center gap-2"><Info className="w-4 h-4"/> Public Monitoring View</span>
+              )}
+            </h2>
+          </div>
+          <div>
+            {!isAdmin ? (
+              <button onClick={() => setLoginModalOpen(true)} className="px-4 py-1.5 text-xs font-semibold rounded bg-indigo-600 text-white hover:bg-indigo-700 transition shadow-lg shadow-indigo-500/20">Login Admin</button>
+            ) : (
+              <button onClick={handleLogout} className="px-4 py-1.5 text-xs font-semibold rounded bg-slate-700 text-white hover:bg-slate-600 transition">Logout</button>
+            )}
+          </div>
+        </header>
         {/* Floating Disconnect Banner */}
         {!isConnected && (
           <div className="px-6 pt-3">
@@ -330,6 +381,7 @@ export default function App() {
                   onRunSimulation={handleRunSimulation}
                   onStopSimulation={handleStopSimulation}
                   isSimulating={isSimulating}
+                  onOpenPinModal={() => setLoginModalOpen(true)}
                 />
               </div>
             )}
@@ -342,30 +394,23 @@ export default function App() {
                   onRunSimulation={handleRunSimulation}
                   onStopSimulation={handleStopSimulation}
                   isSimulating={isSimulating}
+                  onOpenPinModal={() => setLoginModalOpen(true)}
                 />
               </div>
             )}
 
             {activeTab === 'students' && (
-              <div className="flex flex-col gap-8 fade-in-up">
-                <SimtikUserManagement isAdmin={isAdmin} showToast={showToast} />
-                <div className="pt-2 border-t border-slate-800/80">
-                  <div className="mb-3">
-                    <h3 className="text-xs font-bold font-mono text-slate-300 uppercase tracking-wider">
-                      Monitoring Sesi Linux & Resource Slices (training1-10 & labriset)
-                    </h3>
-                    <p className="text-[11px] text-slate-500 font-mono mt-0.5">
-                      Status proses kernel Cgroups v2 & alokasi GPU per sesi Linux.
-                    </p>
-                  </div>
-                  <UserGpuMonitor
-                    users={data?.users}
-                    isAdmin={isAdmin}
-                    onOpenKillModal={handleOpenKillModal}
-                    onResetPassword={handleResetPassword}
-                    onKillAllUser={handleKillAllUser}
-                  />
-                </div>
+              <div className="fade-in-up">
+                <UnifiedUserManagement
+                  isAdmin={isAdmin}
+                  students={students}
+                  systemUsers={data?.users || []}
+                  onOpenKillModal={handleOpenKillModal}
+                  onResetPassword={handleResetPassword}
+                  onKillAllUser={handleKillAllUser}
+                  fetchStudents={fetchStudents}
+                  showToast={showToast}
+                />
               </div>
             )}
 
@@ -479,6 +524,11 @@ export default function App() {
       )}
 
       {/* Modals */}
+      <AdminPinModal
+        isOpen={loginModalOpen}
+        onSuccess={handleLoginSuccess}
+        onClose={() => setLoginModalOpen(false)}
+      />
       <KillConfirmModal
         isOpen={killModal.isOpen}
         processInfo={killModal.processInfo}

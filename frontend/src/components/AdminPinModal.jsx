@@ -14,13 +14,13 @@ export default function AdminPinModal({ isOpen, onSuccess, onClose }) {
     setIsLoading(true);
     setErrorMsg('');
     try {
-      const res  = await fetch('/api/verify-pin', {
+      const res  = await fetch('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pin }),
       });
       const data = await res.json();
-      if (res.ok && data.success) { onSuccess(pin); setPin(''); onClose(); }
+      if (res.ok && data.success) { onSuccess(data.token); setPin(''); onClose(); }
       else setErrorMsg(data.detail || 'PIN Admin salah. Akses ditolak.');
     } catch { setErrorMsg('Gagal terhubung ke server verifikasi.'); }
     finally  { setIsLoading(false); }

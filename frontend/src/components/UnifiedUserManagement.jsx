@@ -233,6 +233,7 @@ export default function UnifiedUserManagement({
   // Metrics (Preserving Bento Grid)
   const totalStudents = students?.length || 0;
   const activeStudents = students?.filter(s => s.is_active)?.length || 0;
+  const onlineStudents = students?.filter(s => s.is_active && systemUsers?.some(su => su.username === `m${s.nim}`))?.length || 0;
   const boostedStudents = students?.filter(s => s.is_boosted)?.length || 0;
   const adminStudents = students?.filter(s => s.is_admin)?.length || 0;
 
@@ -285,8 +286,8 @@ export default function UnifiedUserManagement({
                 </div>
                 <div className="flex gap-2 font-mono text-[11px]">
                   <span className="px-2 py-0.5 bg-[#1c1f29] rounded-lg text-[#dfe2ef] border border-[#46455430] flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#4edea3]"></span>
-                    <strong className="text-[#4edea3]">{activeStudents}</strong> Active
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#4edea3] animate-pulse"></span>
+                    <strong className="text-[#4edea3]">{onlineStudents}</strong> Online
                   </span>
                   <span className="px-2 py-0.5 bg-[#1c1f29] rounded-lg text-[#dfe2ef] border border-[#46455430] flex items-center gap-1">
                     <strong className="text-[#c0c1ff]">{adminStudents}</strong> Admin
@@ -428,11 +429,17 @@ export default function UnifiedUserManagement({
                                 <div className="flex flex-col gap-0.5">
                                   <span className="font-mono text-xs font-semibold text-[#4cd7f6]">{item.nim}</span>
                                   {item.is_active ? (
-                                    <span className="text-[10px] font-mono text-[#4edea3] flex items-center gap-1.5">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-[#4edea3] animate-pulse"></span> Active
-                                    </span>
+                                    systemUsers?.some(su => su.username === `m${item.nim}`) ? (
+                                      <span className="text-[10px] font-mono text-[#4edea3] flex items-center gap-1.5" title="User sedang online (sesi aktif)">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-[#4edea3] animate-pulse"></span> Online
+                                      </span>
+                                    ) : (
+                                      <span className="text-[10px] font-mono text-[#908fa0] flex items-center gap-1.5" title="Akun valid (sedang offline)">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-[#908fa0]"></span> Offline
+                                      </span>
+                                    )
                                   ) : (
-                                    <span className="text-[10px] font-mono text-[#ffb4ab] flex items-center gap-1.5">
+                                    <span className="text-[10px] font-mono text-[#ffb4ab] flex items-center gap-1.5" title="Akun diblokir">
                                       <span className="w-1.5 h-1.5 rounded-full bg-[#ffb4ab]"></span> Blocked
                                     </span>
                                   )}

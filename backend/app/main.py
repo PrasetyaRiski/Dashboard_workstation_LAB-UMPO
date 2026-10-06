@@ -13,6 +13,13 @@ from pydantic import BaseModel
 from typing import List, Optional
 
 from app.telemetry import get_snapshot, TRAINING_UIDS, PROTECTED_PROCESS_NAMES
+from app.simtik_auth import verify_simtik_credentials
+from app.db import (
+    init_db, get_or_create_user, list_users,
+    set_user_priority, unset_user_priority,
+    toggle_user_admin, toggle_user_active,
+    is_user_priority, auto_expire_priorities
+)
 
 app = FastAPI(title="AI Lab Compute Dashboard", version="2.1.0")
 
@@ -56,6 +63,18 @@ class ResetPasswordRequest(BaseModel):
 
 class SimulationRequest(BaseModel):
     pass
+
+class SimtikLoginRequest(BaseModel):
+    nim: str
+    password: str
+
+class BoostUserRequest(BaseModel):
+    nim: str
+    hours: int = 4
+    reason: Optional[str] = "Admin Boost"
+
+class UserActionRequest(BaseModel):
+    nim: str
 
 def get_full_snapshot():
     s = get_snapshot()
@@ -277,6 +296,78 @@ def stop_simulation(req: SimulationRequest, request: Request):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# ==========================================
+# SIMTIK AUTHENTICATION & USER MANAGEMENT API
+# ==========================================
+
+@app.post("/api/auth/simtik")
+async def auth_simtik(req: SimtikLoginRequest):
+    """Verifikasi NIM & Password langsung ke SIMTIK UMPO"""
+    is_valid, msg, user_data = verify_simtik_credentials(req.nim, req.password)
+    if not is_valid:
+        return JSONResponse(status_code=401, content={"success": False, "message": msg})
+    
+    # Daftarkan/update user ke database lokal
+    nama = user_data.get("nama", f"Mahasiswa {req.nim}")
+    user = get_or_create_user(req.nim, nama)
+    return {
+        "success": True,
+        "message": "Login SIMTIK Berhasil",
+        "user": user
+    }
+
+@app.get("/api/users/students")
+def get_students():
+    """Mengambil daftar seluruh mahasiswa terdaftar beserta status mode prioritas"""
+    users = list_users()
+    return {"success": True, "users": users}
+
+@app.post("/api/users/boost")
+def boost_student(req: BoostUserRequest):
+    """Menaikkan NIM ke Mode Prioritas (Monster: 20 Core, 70G, GPU 0)"""
+    success = set_user_priority(req.nim, req.hours, req.reason or "Admin Boost")
+    if success:
+        audit_logs.appendleft({
+            "time": time.strftime("%H:%M:%S"),
+            "action": "BOOST_PRIORITY",
+            "target": f"NIM {req.nim}",
+            "detail": f"Dinaikkan ke Mode Prioritas (20 Core, 70G, GPU 0) selama {req.hours} jam.",
+            "type": "success"
+        })
+        return {"success": True, "message": f"NIM {req.nim} berhasil di-boost ke Mode Prioritas selama {req.hours} jam."}
+    raise HTTPException(status_code=400, detail="Gagal mengaktifkan mode prioritas.")
+
+@app.post("/api/users/unboost")
+def unboost_student(req: UserActionRequest):
+    """Mengembalikan NIM ke Mode Normal (Praktikan: 2 Core, 3G, GPU 1)"""
+    success = unset_user_priority(req.nim)
+    if success:
+        audit_logs.appendleft({
+            "time": time.strftime("%H:%M:%S"),
+            "action": "UNBOOST_PRIORITY",
+            "target": f"NIM {req.nim}",
+            "detail": "Dikembalikan ke Mode Normal (2 Core, 3G, GPU 1).",
+            "type": "info"
+        })
+        return {"success": True, "message": f"NIM {req.nim} dikembalikan ke Mode Normal."}
+    raise HTTPException(status_code=400, detail="Gagal menonaktifkan mode prioritas.")
+
+@app.post("/api/users/toggle-admin")
+def toggle_admin(req: UserActionRequest):
+    """Toggle hak akses admin dashboard untuk NIM tertentu"""
+    success = toggle_user_admin(req.nim)
+    if success:
+        return {"success": True, "message": f"Status Admin untuk NIM {req.nim} berhasil diperbarui."}
+    raise HTTPException(status_code=404, detail="User tidak ditemukan.")
+
+@app.post("/api/users/toggle-active")
+def toggle_active(req: UserActionRequest):
+    """Toggle status aktif/blokir akses untuk NIM tertentu"""
+    success = toggle_user_active(req.nim)
+    if success:
+        return {"success": True, "message": f"Status Akses untuk NIM {req.nim} berhasil diperbarui."}
+    raise HTTPException(status_code=404, detail="User tidak ditemukan.")
+
 # WebSocket Manager for real-time live telemetry
 class ConnectionManager:
     def __init__(self):
@@ -314,6 +405,9 @@ async def websocket_endpoint(websocket: WebSocket):
 
 @app.on_event("startup")
 async def startup_event():
+    # Inisialisasi tabel database
+    init_db()
+
     async def telemetry_broadcaster():
         while True:
             try:
@@ -324,7 +418,24 @@ async def startup_event():
                 print("Broadcast error:", e)
             await asyncio.sleep(1.0)
 
+    async def auto_expire_worker():
+        while True:
+            try:
+                expired_nims = auto_expire_priorities()
+                for nim in expired_nims:
+                    audit_logs.appendleft({
+                        "time": time.strftime("%H:%M:%S"),
+                        "action": "AUTO_EXPIRE_BOOST",
+                        "target": f"NIM {nim}",
+                        "detail": "Durasi Prioritas habis. Otomatis kembali ke Mode Normal.",
+                        "type": "info"
+                    })
+            except Exception as e:
+                print("Auto expire worker error:", e)
+            await asyncio.sleep(60.0)
+
     asyncio.create_task(telemetry_broadcaster())
+    asyncio.create_task(auto_expire_worker())
 
 # Serve static frontend dist if it exists
 FRONTEND_DIST = os.getenv("FRONTEND_DIST", os.path.join(PROJECT_ROOT, "frontend", "dist"))

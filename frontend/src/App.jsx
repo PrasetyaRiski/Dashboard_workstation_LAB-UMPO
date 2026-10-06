@@ -7,6 +7,7 @@ import UserGpuMonitor from './components/UserGpuMonitor';
 import ProcessManager from './components/ProcessManager';
 import AuditLogView from './components/AuditLogView';
 import KillConfirmModal from './components/KillConfirmModal';
+import SimtikUserManagement from './components/SimtikUserManagement';
 
 
 import {
@@ -346,14 +347,25 @@ export default function App() {
             )}
 
             {activeTab === 'students' && (
-              <div className="fade-in-up">
-                <UserGpuMonitor
-                  users={data?.users}
-                  isAdmin={isAdmin}
-                  onOpenKillModal={handleOpenKillModal}
-                  onResetPassword={handleResetPassword}
-                  onKillAllUser={handleKillAllUser}
-                />
+              <div className="flex flex-col gap-8 fade-in-up">
+                <SimtikUserManagement isAdmin={isAdmin} showToast={showToast} />
+                <div className="pt-2 border-t border-slate-800/80">
+                  <div className="mb-3">
+                    <h3 className="text-xs font-bold font-mono text-slate-300 uppercase tracking-wider">
+                      Monitoring Sesi Linux & Resource Slices (training1-10 & labriset)
+                    </h3>
+                    <p className="text-[11px] text-slate-500 font-mono mt-0.5">
+                      Status proses kernel Cgroups v2 & alokasi GPU per sesi Linux.
+                    </p>
+                  </div>
+                  <UserGpuMonitor
+                    users={data?.users}
+                    isAdmin={isAdmin}
+                    onOpenKillModal={handleOpenKillModal}
+                    onResetPassword={handleResetPassword}
+                    onKillAllUser={handleKillAllUser}
+                  />
+                </div>
               </div>
             )}
 

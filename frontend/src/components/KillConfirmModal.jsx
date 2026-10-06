@@ -6,52 +6,22 @@ export default function KillConfirmModal({ isOpen, processInfo, onConfirm, onClo
   const { pid, username, procName, cmdline, vramMb, is_system } = processInfo;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(6px)' }}
-    >
-      <div
-        className="palette-enter w-full max-w-md overflow-hidden"
-        style={{
-          background: 'var(--surface-0)',
-          border: `1px solid ${is_system ? 'rgba(245,158,11,0.25)' : 'rgba(244,63,94,0.25)'}`,
-          borderRadius: 14,
-          boxShadow: '0 24px 80px rgba(0,0,0,0.5)',
-        }}
-      >
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+      <div className={`w-full max-w-md overflow-hidden bg-[#181b25] border ${is_system ? 'border-amber-500/30' : 'border-rose-500/30'} rounded-2xl shadow-2xl animate-in fade-in zoom-in-95 duration-200`}>
         {/* Header */}
-        <div
-          className="flex items-center justify-between p-5"
-          style={{ borderBottom: '1px solid var(--border-base)' }}
-        >
+        <div className="flex items-center justify-between p-5 border-b border-slate-700/50">
           <div className="flex items-center gap-3">
-            <div
-              className="flex items-center justify-center rounded-lg shrink-0"
-              style={{
-                width: 36, height: 36,
-                background: is_system ? 'rgba(245,158,11,0.1)' : 'rgba(244,63,94,0.1)',
-                border: `1px solid ${is_system ? 'rgba(245,158,11,0.25)' : 'rgba(244,63,94,0.25)'}`,
-              }}
-            >
+            <div className={`w-10 h-10 flex items-center justify-center rounded-xl shrink-0 ${is_system ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' : 'bg-rose-500/10 border-rose-500/20 text-rose-500'}`}>
               {is_system
-                ? <Shield className="w-4 h-4" style={{ color: 'var(--accent-amber)' }} />
-                : <ShieldAlert className="w-4 h-4" style={{ color: 'var(--accent-rose)' }} />
+                ? <Shield className="w-5 h-5" />
+                : <ShieldAlert className="w-5 h-5" />
               }
             </div>
             <div>
-              <h3
-                className="font-bold"
-                style={{ fontSize: '0.875rem', color: 'var(--text-primary)', letterSpacing: '-0.01em' }}
-              >
+              <h3 className="font-bold text-sm text-[#dfe2ef] tracking-tight">
                 {is_system ? 'Proses Sistem Terproteksi' : 'Konfirmasi Hentikan Proses'}
               </h3>
-              <p
-                style={{
-                  fontSize: '0.625rem',
-                  color: is_system ? 'var(--accent-amber)' : 'var(--accent-rose)',
-                  marginTop: 1,
-                }}
-              >
+              <p className={`text-[11px] mt-0.5 ${is_system ? 'text-amber-500' : 'text-rose-500'}`}>
                 {is_system
                   ? 'Proteksi Keamanan Inti Server'
                   : 'SIGTERM / SIGKILL — Tindakan Administratif'
@@ -61,83 +31,46 @@ export default function KillConfirmModal({ isOpen, processInfo, onConfirm, onClo
           </div>
           <button
             onClick={onClose}
-            className="flex items-center justify-center rounded-lg cursor-pointer transition"
-            style={{
-              width: 28, height: 28,
-              background: 'var(--surface-2)',
-              border: '1px solid var(--border-base)',
-              color: 'var(--text-muted)',
-            }}
+            className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#1c1f29] border border-[#46455430] text-[#908fa0] hover:text-[#dfe2ef] hover:border-slate-600 transition-colors"
           >
-            <X className="w-3.5 h-3.5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Body */}
-        <div className="p-5 flex flex-col gap-4">
+        <div className="p-5 flex flex-col gap-5">
           {is_system ? (
-            <div
-              className="flex items-start gap-2.5 p-3 rounded-lg"
-              style={{
-                background: 'rgba(245,158,11,0.07)',
-                border: '1px solid rgba(245,158,11,0.18)',
-              }}
-            >
-              <Shield className="w-4 h-4 shrink-0 mt-0.5" style={{ color: 'var(--accent-amber)' }} />
-              <p style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                <strong>Dilarang:</strong> Proses ini adalah layanan/proses sistem yang penting bagi stabilitas klaster server. Tindakan mematikan proses ini diblokir demi keamanan.
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
+              <Shield className="w-5 h-5 shrink-0 mt-0.5 text-amber-500" />
+              <p className="text-xs text-[#c7c4d7] leading-relaxed">
+                <strong className="text-amber-500 font-bold">Dilarang:</strong> Proses ini adalah layanan/proses sistem yang penting bagi stabilitas klaster server. Tindakan mematikan proses ini diblokir demi keamanan.
               </p>
             </div>
           ) : (
-            <p style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+            <p className="text-xs text-[#908fa0] leading-relaxed">
               Apakah Anda yakin ingin mematikan paksa proses komputasi ini? Pekerjaan pelatihan model AI yang sedang berjalan akan terhenti seketika dan tidak dapat dikembalikan.
             </p>
           )}
 
           {/* Process info panel */}
-          <div
-            className="panel-inset overflow-hidden"
-            style={{ padding: 0 }}
-          >
+          <div className="bg-[#0a0e17] rounded-xl border border-[#46455430] overflow-hidden">
             {[
-              { label: 'Pemilik Proses', value: username, color: 'var(--accent-indigo)' },
-              { label: 'PID',            value: pid,      color: 'var(--text-primary)' },
-              { label: 'Nama Eksekusi',  value: procName, color: 'var(--accent-emerald)' },
+              { label: 'Pemilik Proses', value: username, valueClass: 'text-indigo-400' },
+              { label: 'PID',            value: pid,      valueClass: 'text-[#dfe2ef]' },
+              { label: 'Nama Eksekusi',  value: procName, valueClass: 'text-[#4edea3]' },
               ...(vramMb !== undefined
-                ? [{ label: 'Konsumsi VRAM', value: `${vramMb} MB`, color: 'var(--accent-amber)' }]
+                ? [{ label: 'Konsumsi VRAM', value: `${vramMb} MB`, valueClass: 'text-amber-400' }]
                 : []),
-            ].map(({ label, value, color }) => (
-              <div
-                key={label}
-                className="flex justify-between items-center"
-                style={{ padding: '7px 12px', borderBottom: '1px solid var(--border-sub)' }}
-              >
-                <span
-                  className="metric-value"
-                  style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}
-                >
-                  {label}
-                </span>
-                <span
-                  className="metric-value font-bold"
-                  style={{ fontSize: '0.6875rem', color }}
-                >
-                  {value}
-                </span>
+            ].map(({ label, value, valueClass }) => (
+              <div key={label} className="flex justify-between items-center p-3 border-b border-[#46455430] last:border-b-0">
+                <span className="text-xs text-[#908fa0] font-mono uppercase tracking-wider">{label}</span>
+                <span className={`text-xs font-bold font-mono ${valueClass}`}>{value}</span>
               </div>
             ))}
             {cmdline && (
-              <div style={{ padding: '8px 12px' }}>
-                <p className="section-label mb-1" style={{ fontSize: '0.5rem' }}>Command Line</p>
-                <code
-                  className="metric-value"
-                  style={{
-                    fontSize: '0.5625rem',
-                    color: 'var(--text-muted)',
-                    wordBreak: 'break-all',
-                    display: 'block',
-                  }}
-                >
+              <div className="p-3 bg-[#1c1f29]/50 border-t border-[#46455430]">
+                <p className="text-[10px] text-[#908fa0] font-mono uppercase tracking-wider mb-1.5">Command Line</p>
+                <code className="block text-[11px] text-[#c7c4d7] font-mono break-all p-2 bg-[#0a0e17] rounded-lg border border-[#46455420]">
                   {cmdline}
                 </code>
               </div>
@@ -146,23 +79,12 @@ export default function KillConfirmModal({ isOpen, processInfo, onConfirm, onClo
         </div>
 
         {/* Footer */}
-        <div
-          className="flex items-center justify-end gap-2 px-5 py-4"
-          style={{ borderTop: '1px solid var(--border-base)' }}
-        >
+        <div className="flex items-center justify-end gap-3 px-5 py-4 border-t border-slate-700/50 bg-[#181b25]/80">
           <button
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="cursor-pointer rounded-lg transition disabled:opacity-50"
-            style={{
-              padding: '7px 14px',
-              background: 'var(--surface-2)',
-              border: '1px solid var(--border-base)',
-              color: 'var(--text-secondary)',
-              fontSize: '0.75rem',
-              fontWeight: 600,
-            }}
+            className="px-4 py-2 rounded-xl bg-[#1c1f29] border border-[#46455430] text-xs font-semibold text-[#908fa0] hover:text-[#dfe2ef] hover:border-slate-600 transition-colors disabled:opacity-50"
           >
             {is_system ? 'Tutup' : 'Batal'}
           </button>
@@ -171,22 +93,13 @@ export default function KillConfirmModal({ isOpen, processInfo, onConfirm, onClo
               type="button"
               onClick={onConfirm}
               disabled={isSubmitting}
-              className="btn-kill cursor-pointer rounded-lg disabled:opacity-50 flex items-center gap-1.5"
-              style={{
-                padding: '7px 16px',
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                background: 'var(--accent-rose)',
-                color: '#fff',
-                border: 'none',
-                boxShadow: '0 2px 8px rgba(244,63,94,0.35)',
-              }}
+              className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 disabled:bg-rose-800 disabled:text-rose-400 border border-transparent text-white text-xs font-bold shadow-lg shadow-rose-600/20 transition-colors flex items-center gap-2"
             >
               {isSubmitting ? (
                 'Memproses…'
               ) : (
                 <>
-                  <AlertTriangle className="w-3.5 h-3.5" />
+                  <AlertTriangle className="w-4 h-4" />
                   Hentikan Proses
                 </>
               )}

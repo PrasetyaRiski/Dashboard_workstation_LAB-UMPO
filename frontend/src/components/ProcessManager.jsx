@@ -1,4 +1,4 @@
-import React, { useState, useMemo, memo, useRef } from 'react';
+import React, { useState, useMemo, memo } from 'react';
 import {
   Cpu,
   XCircle,
@@ -14,7 +14,9 @@ import {
   X,
   Clock,
   Copy,
-  ChevronRight
+  ChevronRight,
+  Server,
+  AlertTriangle
 } from 'lucide-react';
 
 /* ── Process Inspector Drawer ── */
@@ -32,114 +34,72 @@ function ProcessDrawer({ proc, onClose, onKill, isAdmin }) {
       onClick={onClose}
     >
       {/* Backdrop */}
-      <div
-        className="flex-1"
-        style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(2px)' }}
-      />
+      <div className="flex-1 bg-black/60 backdrop-blur-md transition-opacity" />
       {/* Drawer panel */}
       <div
-        className="drawer-enter flex flex-col"
-        style={{
-          width: '100%',
-          maxWidth: 400,
-          background: 'var(--surface-0)',
-          borderLeft: '1px solid var(--border-emph)',
-          height: '100dvh',
-          overflowY: 'auto',
-        }}
+        className="w-full max-w-md bg-[#181b25] border-l border-slate-700/50 h-[100dvh] overflow-y-auto flex flex-col animate-in slide-in-from-right duration-300 shadow-2xl"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div
-          className="flex items-center justify-between p-5"
-          style={{ borderBottom: '1px solid var(--border-base)' }}
-        >
+        <div className="flex items-center justify-between p-6 border-b border-slate-700/50 bg-[#0a0e17]/50">
           <div>
-            <h3
-              className="font-bold"
-              style={{ fontSize: '0.875rem', color: 'var(--text-primary)', letterSpacing: '-0.01em' }}
-            >
+            <h3 className="font-bold text-sm text-[#dfe2ef] tracking-tight">
               Process Inspector
             </h3>
-            <p
-              className="metric-value"
-              style={{ fontSize: '0.625rem', color: 'var(--text-muted)', marginTop: 2 }}
-            >
+            <p className="text-xs font-mono text-[#908fa0] mt-1">
               PID {proc.pid} · {proc.gpu_name}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="flex items-center justify-center rounded-lg cursor-pointer transition"
-            style={{
-              width: 32, height: 32,
-              background: 'var(--surface-2)',
-              border: '1px solid var(--border-base)',
-              color: 'var(--text-secondary)',
-            }}
+            className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#1c1f29] border border-[#46455430] text-[#908fa0] hover:text-[#dfe2ef] hover:border-slate-600 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Body */}
-        <div className="flex flex-col gap-4 p-5">
+        <div className="flex flex-col gap-6 p-6">
           {/* Status chip */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {isProtected ? (
-              <span className="badge badge-neutral">
-                <Shield className="w-3 h-3" style={{ color: 'var(--accent-emerald)' }} />
+              <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold flex items-center gap-1.5 shadow-sm">
+                <Shield className="w-3.5 h-3.5" />
                 Proses Sistem (Terproteksi)
               </span>
             ) : (
-              <span className="badge badge-indigo">
-                <Zap className="w-3 h-3" />
+              <span className="px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold flex items-center gap-1.5 shadow-sm">
+                <Zap className="w-3.5 h-3.5" />
                 Job User
               </span>
             )}
             {proc.username === 'labriset' && (
-              <span className="badge badge-indigo">Riset Dosen</span>
+              <span className="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold shadow-sm">
+                Riset Dosen
+              </span>
             )}
           </div>
 
           {/* Metadata table */}
-          <div
-            className="panel-inset"
-            style={{ padding: 0, overflow: 'hidden' }}
-          >
+          <div className="bg-[#0a0e17] rounded-xl border border-[#46455430] overflow-hidden">
             {[
-              { label: 'Pemilik',   value: proc.username,         mono: true },
-              { label: 'PID',       value: proc.pid,               mono: true },
-              { label: 'Nama Proses', value: proc.name,            mono: true },
-              { label: 'GPU',       value: proc.gpu_name,          mono: true },
-              { label: 'CPU%',      value: `${proc.cpu_percent}%`, mono: true, color: 'var(--accent-violet)' },
-              { label: 'RAM Host',  value: `${proc.ram_mb || 0} MB`, mono: true, color: 'var(--accent-blue)' },
-              { label: 'VRAM',      value: `${proc.vram_mb} MB`,  mono: true, color: 'var(--accent-amber)' },
-              { label: 'Uptime',    value: proc.uptime || '—',     mono: true },
-            ].map(({ label, value, mono, color }) => (
+              { label: 'Pemilik',   value: proc.username,         mono: true, color: 'text-indigo-400' },
+              { label: 'PID',       value: proc.pid,               mono: true, color: 'text-[#dfe2ef]' },
+              { label: 'Nama Proses', value: proc.name,            mono: true, color: 'text-[#4edea3]' },
+              { label: 'GPU',       value: proc.gpu_name,          mono: true, color: 'text-amber-400' },
+              { label: 'CPU%',      value: `${proc.cpu_percent}%`, mono: true, color: 'text-rose-400' },
+              { label: 'RAM Host',  value: `${proc.ram_mb || 0} MB`, mono: true, color: 'text-blue-400' },
+              { label: 'VRAM',      value: `${proc.vram_mb} MB`,  mono: true, color: 'text-amber-400' },
+              { label: 'Uptime',    value: proc.uptime || '—',     mono: true, color: 'text-[#c7c4d7]' },
+            ].map(({ label, value, color }) => (
               <div
                 key={label}
-                className="flex justify-between items-center"
-                style={{
-                  padding: '8px 12px',
-                  borderBottom: '1px solid var(--border-sub)',
-                }}
+                className="flex justify-between items-center p-3 border-b border-[#46455430] last:border-b-0"
               >
-                <span
-                  style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', flex: 1 }}
-                >
+                <span className="text-xs font-mono text-[#908fa0] uppercase tracking-wider">
                   {label}
                 </span>
-                <span
-                  className={mono ? 'metric-value' : ''}
-                  style={{
-                    fontSize: '0.6875rem',
-                    fontWeight: 600,
-                    color: color || 'var(--text-primary)',
-                    flex: 1,
-                    textAlign: 'right',
-                  }}
-                >
+                <span className={`text-xs font-bold font-mono ${color}`}>
                   {value}
                 </span>
               </div>
@@ -149,39 +109,19 @@ function ProcessDrawer({ proc, onClose, onKill, isAdmin }) {
           {/* Cmdline */}
           {proc.cmdline && (
             <div>
-              <p
-                className="section-label mb-1.5"
-              >
+              <p className="text-xs font-mono text-[#908fa0] uppercase tracking-wider mb-2">
                 Command Line
               </p>
-              <div
-                className="panel-inset relative group"
-                style={{ padding: '10px 12px' }}
-              >
-                <code
-                  className="metric-value"
-                  style={{
-                    fontSize: '0.6875rem',
-                    color: 'var(--text-secondary)',
-                    wordBreak: 'break-all',
-                    display: 'block',
-                    paddingRight: 28,
-                  }}
-                >
+              <div className="relative group bg-[#0a0e17] rounded-xl border border-[#46455430] p-3">
+                <code className="block text-xs font-mono text-[#c7c4d7] break-all pr-8">
                   {proc.cmdline}
                 </code>
                 <button
                   onClick={() => copy(proc.cmdline)}
-                  className="absolute top-2 right-2 cursor-pointer rounded"
-                  style={{
-                    background: 'var(--surface-3)',
-                    border: '1px solid var(--border-base)',
-                    padding: '2px 4px',
-                    color: 'var(--text-muted)',
-                  }}
+                  className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-lg bg-[#1c1f29] border border-[#46455430] text-[#908fa0] hover:text-[#dfe2ef] transition-colors"
                   title="Copy command"
                 >
-                  <Copy className="w-3 h-3" />
+                  <Copy className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
@@ -189,25 +129,14 @@ function ProcessDrawer({ proc, onClose, onKill, isAdmin }) {
 
           {/* Idle VRAM warning */}
           {(proc.vram_mb > 500 && (proc.cpu_percent === 0 || proc.cpu_percent < 1)) && (
-            <div
-              className="flex items-start gap-2 p-3 rounded-lg"
-              style={{
-                background: 'rgba(245, 158, 11, 0.08)',
-                border: '1px solid rgba(245, 158, 11, 0.2)',
-              }}
-            >
-              <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" style={{ color: 'var(--accent-amber)' }} />
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
+              <ShieldAlert className="w-5 h-5 shrink-0 mt-0.5 text-amber-500" />
               <div>
-                <p
-                  className="font-semibold"
-                  style={{ fontSize: '0.6875rem', color: 'var(--accent-amber)' }}
-                >
+                <p className="font-bold text-xs text-amber-500 mb-1">
                   Idle VRAM Detected
                 </p>
-                <p
-                  style={{ fontSize: '0.625rem', color: 'var(--text-muted)', marginTop: 2 }}
-                >
-                  Proses mengalokasikan {proc.vram_mb} MB VRAM namun CPU idle. Kemungkinan zombie process atau training selesai namun memory belum dibebaskan.
+                <p className="text-xs text-[#908fa0] leading-relaxed">
+                  Proses mengalokasikan <strong className="text-amber-400">{proc.vram_mb} MB</strong> VRAM namun CPU idle. Kemungkinan zombie process atau training selesai namun memory belum dibebaskan.
                 </p>
               </div>
             </div>
@@ -215,19 +144,13 @@ function ProcessDrawer({ proc, onClose, onKill, isAdmin }) {
         </div>
 
         {/* Footer actions */}
-        <div
-          className="mt-auto p-5"
-          style={{ borderTop: '1px solid var(--border-base)' }}
-        >
-          <div
-            className="text-center metric-value"
-            style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}
-          >
+        <div className="mt-auto p-6 border-t border-slate-700/50 bg-[#0a0e17]/50 text-center">
+          <p className="text-xs text-[#908fa0] font-mono leading-relaxed">
             {isProtected
-              ? 'Proses sistem terproteksi tidak dapat dihentikan.'
-              : 'Kontrol dan penghentian proses user dikelola melalui menu User.'
+              ? '// Proses sistem terproteksi tidak dapat dihentikan.'
+              : '// Kontrol dan penghentian proses user dikelola melalui menu User.'
             }
-          </div>
+          </p>
         </div>
       </div>
     </div>
@@ -282,322 +205,287 @@ function ProcessManager({
 
   return (
     <>
-      <div className="panel-raised fade-in-up" style={{ overflow: 'hidden' }}>
-        {/* Header */}
-        <div
-          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 pb-4"
-          style={{ borderBottom: '1px solid var(--border-base)' }}
-        >
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Cpu className="w-4 h-4" style={{ color: 'var(--accent-indigo)' }} />
-              <h2
-                className="font-bold"
-                style={{ fontSize: '0.8125rem', color: 'var(--text-primary)', letterSpacing: '-0.01em' }}
-              >
-                Manajemen Job & Proses Komputasi
-              </h2>
-              <span
-                className="metric-value badge badge-neutral"
-                style={{ fontSize: '0.5625rem' }}
-              >
-                {processes.length} Job
-              </span>
-              {stats.idleVram > 0 && (
-                <span
-                  className="badge badge-amber"
-                  style={{ fontSize: '0.5625rem', gap: 3 }}
+      <div className="flex flex-col h-full bg-slate-900 rounded-xl border border-slate-800 shadow-2xl overflow-hidden animate-in fade-in duration-300">
+        
+        {/* Header Content */}
+        <div className="p-6 overflow-y-auto">
+          {/* Header Description & Buttons */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+                  <Cpu className="w-4 h-4 text-indigo-400" />
+                </div>
+                <h2 className="font-bold text-lg text-[#dfe2ef] tracking-tight">
+                  Manajemen Job & Proses
+                </h2>
+              </div>
+              <p className="text-xs text-[#908fa0]">
+                Monitor utilisasi CPU, RAM, dan VRAM. Proses sistem dilindungi dari penghentian.
+              </p>
+            </div>
+            <div className="flex items-center gap-3 flex-wrap">
+              {isAdmin ? (
+                <>
+                  <button
+                    onClick={onRunSimulation}
+                    disabled={isSimulating}
+                    className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-bold shadow-lg shadow-indigo-600/20 transition-colors flex items-center gap-2"
+                  >
+                    <Play className="w-4 h-4 fill-current" />
+                    Uji Beban (11 User)
+                  </button>
+                  <button
+                    onClick={onStopSimulation}
+                    className="px-4 py-2 rounded-xl bg-[#1c1f29] border border-[#46455430] text-xs font-semibold text-[#908fa0] hover:text-rose-400 hover:border-rose-500/30 transition-colors flex items-center gap-2"
+                  >
+                    <Square className="w-4 h-4" />
+                    Stop Semua
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={onOpenPinModal}
+                  className="px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs font-semibold text-amber-500 hover:bg-amber-500/20 transition-colors flex items-center gap-2 shadow-sm"
                 >
-                  <ShieldAlert className="w-2.5 h-2.5" />
-                  {stats.idleVram} Idle VRAM
-                </span>
+                  <Lock className="w-4 h-4" />
+                  Buka Admin untuk Kill
+                </button>
               )}
             </div>
-            <p style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>
-              Monitor utilisasi CPU, RAM, dan VRAM. Proses sistem dilindungi dari penghentian.
-            </p>
           </div>
 
-          {/* Action buttons */}
-          <div className="flex items-center gap-2 flex-wrap shrink-0">
-            {isAdmin ? (
-              <>
+          {/* Bento Grid Metrics */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <div className="bg-[#181b25] border border-[#46455430] rounded-2xl p-5 hover:border-[#c0c1ff]/40 transition-all shadow-lg group relative overflow-hidden">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-xl bg-[#c0c1ff]/15 flex items-center justify-center border border-[#c0c1ff]/30 text-[#c0c1ff] shadow-[0_0_12px_rgba(192,193,255,0.2)]">
+                  <Activity className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-[#dfe2ef] font-mono tracking-tight">{processes.length}</div>
+                  <div className="text-[11px] text-[#908fa0] font-mono uppercase tracking-wider">Total Proses</div>
+                </div>
+              </div>
+              <div className="flex gap-2 font-mono text-[11px]">
+                <span className="px-2 py-0.5 bg-[#1c1f29] rounded-lg text-[#dfe2ef] border border-[#46455430] flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
+                  <strong className="text-indigo-400">{stats.userJobs}</strong> User
+                </span>
+                <span className="px-2 py-0.5 bg-[#1c1f29] rounded-lg text-[#dfe2ef] border border-[#46455430] flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                  <strong className="text-emerald-400">{stats.sysJobs}</strong> System
+                </span>
+              </div>
+            </div>
+
+            <div className="bg-[#181b25] border border-[#46455430] rounded-2xl p-5 hover:border-[#4cd7f6]/40 transition-all shadow-lg group relative overflow-hidden">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-xl bg-[#4cd7f6]/15 flex items-center justify-center border border-[#4cd7f6]/30 text-[#4cd7f6] shadow-[0_0_12px_rgba(76,215,246,0.2)]">
+                  <Server className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-[#dfe2ef] font-mono tracking-tight">System</div>
+                  <div className="text-[11px] text-[#908fa0] font-mono uppercase tracking-wider">Load Balance</div>
+                </div>
+              </div>
+              <div className="w-full bg-[#262a34] h-1.5 rounded-full overflow-hidden mb-2">
+                <div className="bg-[#4cd7f6] h-full rounded-full transition-all" style={{ width: `${Math.min((stats.userJobs / (processes.length || 1)) * 100, 100)}%` }}></div>
+              </div>
+              <p className="text-[10px] text-[#908fa0] font-mono">User Jobs Dominance: {Math.round((stats.userJobs / (processes.length || 1)) * 100)}%</p>
+            </div>
+
+            <div className={`bg-[#181b25] border ${stats.idleVram > 0 ? 'border-amber-500/30' : 'border-[#46455430] hover:border-emerald-500/40'} rounded-2xl p-5 transition-all shadow-lg group relative overflow-hidden`}>
+              <div className="flex items-center gap-3 mb-3">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${stats.idleVram > 0 ? 'bg-amber-500/15 border-amber-500/30 text-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.2)]' : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.2)]'}`}>
+                  {stats.idleVram > 0 ? <ShieldAlert className="w-5 h-5" /> : <ShieldCheck className="w-5 h-5" />}
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-[#dfe2ef] font-mono tracking-tight">{stats.idleVram}</div>
+                  <div className="text-[11px] text-[#908fa0] font-mono uppercase tracking-wider">Idle VRAM Warnings</div>
+                </div>
+              </div>
+              {stats.idleVram > 0 ? (
+                <div className="flex items-center gap-1.5 text-[10px] font-mono text-amber-500">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                  Proses menahan memori GPU tanpa CPU Load
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 text-[10px] font-mono text-emerald-400">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                  Semua alokasi GPU berjalan optimal
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Filter & Search Header */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4">
+            <div className="flex gap-2 p-1 bg-[#0a0e17] rounded-xl border border-[#46455430] overflow-x-auto w-full sm:w-auto">
+              {filterChips.map(chip => (
                 <button
-                  onClick={onRunSimulation}
-                  disabled={isSimulating}
-                  className="flex items-center gap-1.5 rounded-lg cursor-pointer disabled:opacity-50 transition"
-                  style={{
-                    padding: '7px 14px',
-                    background: 'var(--accent-indigo)',
-                    color: '#fff',
-                    fontSize: '0.6875rem',
-                    fontWeight: 600,
-                    border: 'none',
-                    boxShadow: '0 2px 8px rgba(99,102,241,0.35)',
-                  }}
+                  key={chip.id}
+                  onClick={() => setFilterType(chip.id)}
+                  className={`px-3.5 py-1.5 text-xs font-mono font-medium rounded-lg transition-all whitespace-nowrap ${
+                    filterType === chip.id 
+                      ? 'bg-[#1c1f29] text-[#c0c1ff] border border-[#c0c1ff]/30 shadow-sm' 
+                      : 'text-[#908fa0] border border-transparent hover:text-[#dfe2ef]'
+                  }`}
                 >
-                  <Play className="w-3.5 h-3.5" style={{ fill: 'currentColor' }} />
-                  Uji Beban (11 User)
+                  {chip.label}
                 </button>
-                <button
-                  onClick={onStopSimulation}
-                  className="flex items-center gap-1.5 rounded-lg cursor-pointer transition"
-                  style={{
-                    padding: '7px 12px',
-                    background: 'var(--surface-2)',
-                    border: '1px solid var(--border-base)',
-                    color: 'var(--text-secondary)',
-                    fontSize: '0.6875rem',
-                    fontWeight: 600,
-                  }}
-                >
-                  <Square className="w-3.5 h-3.5" />
-                  Stop Semua
-                </button>
-              </>
+              ))}
+            </div>
+            <div className="relative w-full sm:w-72">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Cari PID / User / Skrip…"
+                className="w-full bg-[#0a0e17] border border-[#46455430] rounded-xl py-2 pl-9 pr-4 text-xs font-mono text-[#dfe2ef] placeholder:text-[#908fa0] focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+              />
+            </div>
+          </div>
+
+          {/* Unified Table */}
+          <div className="bg-[#181b25] rounded-2xl border border-[#46455430] overflow-hidden shadow-xl">
+            {filteredProcesses.length === 0 ? (
+              <div className="text-center py-16">
+                <div className="w-12 h-12 rounded-xl bg-[#1c1f29] border border-[#46455430] flex items-center justify-center mx-auto mb-4">
+                  <Activity className="w-6 h-6 text-[#464554]" />
+                </div>
+                <h3 className="text-sm font-bold text-[#dfe2ef] mb-1">Belum ada proses aktif</h3>
+                <p className="text-xs text-[#908fa0] mb-6">Job user akan muncul di sini ketika skrip Python/PyTorch berjalan.</p>
+                {isAdmin && (
+                  <button
+                    onClick={onRunSimulation}
+                    className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/20 transition-colors inline-flex items-center gap-2"
+                  >
+                    <Play className="w-4 h-4 fill-current" />
+                    Jalankan Uji Beban Sekarang
+                  </button>
+                )}
+              </div>
             ) : (
-              <button
-                onClick={onOpenPinModal}
-                className="flex items-center gap-1.5 rounded-lg cursor-pointer transition"
-                style={{
-                  padding: '7px 12px',
-                  background: 'rgba(245,158,11,0.08)',
-                  border: '1px solid rgba(245,158,11,0.2)',
-                  color: 'var(--accent-amber)',
-                  fontSize: '0.6875rem',
-                  fontWeight: 600,
-                }}
-              >
-                <Lock className="w-3.5 h-3.5" />
-                Buka Admin untuk Kill
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Filter + Search */}
-        <div
-          className="flex flex-col sm:flex-row items-center justify-between gap-3 px-5 py-3"
-          style={{ borderBottom: '1px solid var(--border-sub)' }}
-        >
-          <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto">
-            {filterChips.map(chip => (
-              <button
-                key={chip.id}
-                onClick={() => setFilterType(chip.id)}
-                className="cursor-pointer transition rounded-md"
-                style={{
-                  padding: '4px 10px',
-                  fontSize: '0.6875rem',
-                  fontWeight: 600,
-                  fontFamily: "'Inter', sans-serif",
-                  background: filterType === chip.id ? 'var(--accent-indigo)' : 'var(--surface-2)',
-                  color: filterType === chip.id ? '#fff' : 'var(--text-muted)',
-                  border: `1px solid ${filterType === chip.id ? 'transparent' : 'var(--border-base)'}`,
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {chip.label}
-              </button>
-            ))}
-          </div>
-          <div className="relative w-full sm:w-52">
-            <Search
-              className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5"
-              style={{ color: 'var(--text-muted)' }}
-            />
-            <input
-              type="text"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Cari PID / User / Skrip…"
-              className="field-input"
-              style={{ paddingLeft: 32, paddingTop: 6, paddingBottom: 6, fontSize: '0.75rem' }}
-            />
-          </div>
-        </div>
-
-        {/* Table */}
-        {filteredProcesses.length === 0 ? (
-          <div
-            className="text-center py-12 flex flex-col items-center gap-3"
-            style={{ borderTop: '1px solid var(--border-sub)' }}
-          >
-            <div
-              className="flex items-center justify-center rounded-xl"
-              style={{ width: 48, height: 48, background: 'var(--surface-2)', border: '1px solid var(--border-base)' }}
-            >
-              <Activity className="w-6 h-6" style={{ color: 'var(--text-muted)' }} />
-            </div>
-            <div>
-              <p
-                className="font-semibold"
-                style={{ fontSize: '0.875rem', color: 'var(--text-primary)' }}
-              >
-                Belum ada proses aktif
-              </p>
-              <p
-                style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', marginTop: 4 }}
-              >
-                Job user akan muncul di sini ketika skrip Python/PyTorch berjalan.
-              </p>
-            </div>
-            {isAdmin && (
-              <button
-                onClick={onRunSimulation}
-                className="flex items-center gap-2 rounded-lg cursor-pointer transition"
-                style={{
-                  padding: '8px 16px',
-                  background: 'var(--accent-indigo)',
-                  color: '#fff',
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  border: 'none',
-                  boxShadow: '0 2px 8px rgba(99,102,241,0.35)',
-                }}
-              >
-                <Play className="w-3.5 h-3.5" style={{ fill: 'currentColor' }} />
-                Jalankan Uji Beban Sekarang
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>User</th>
-                  <th>PID</th>
-                  <th>GPU</th>
-                  <th>Task / Skrip</th>
-                  <th>Tipe</th>
-                  <th style={{ color: 'var(--accent-violet)' }}>CPU%</th>
-                  <th style={{ color: 'var(--accent-blue)' }}>RAM</th>
-                  <th style={{ color: 'var(--accent-amber)' }}>VRAM</th>
-                  <th style={{ textAlign: 'right' }}>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredProcesses.map((proc) => {
-                  const isRiset     = proc.username === 'labriset';
-                  const isProtected = proc.is_system || !proc.is_killable;
-                  const isIdleVram  = !isProtected && proc.vram_mb > 500 && (proc.cpu_percent === 0 || proc.cpu_percent < 1);
-
-                  return (
-                    <tr
-                      key={proc.pid}
-                      onClick={() => setInspectedProc(proc)}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      <td>
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-bold" style={{ color: 'var(--text-primary)', fontSize: '0.75rem' }}>
-                            {proc.username}
-                          </span>
-                          {isRiset && (
-                            <span className="badge badge-indigo" style={{ fontSize: '0.5rem' }}>Riset</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="metric-value" style={{ color: 'var(--text-muted)' }}>{proc.pid}</td>
-                      <td>
-                        <span
-                          className="badge badge-neutral"
-                          style={{ fontSize: '0.5rem' }}
-                        >
-                          {proc.gpu_name}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="max-w-[160px]">
-                          <div
-                            className="truncate font-semibold"
-                            title={proc.cmdline || proc.name}
-                            style={{ fontSize: '0.6875rem', color: 'var(--text-primary)' }}
-                          >
-                            {proc.name}
-                          </div>
-                          {proc.cmdline && (
-                            <div
-                              className="truncate metric-value"
-                              title={proc.cmdline}
-                              style={{ fontSize: '0.5625rem', color: 'var(--text-muted)', marginTop: 1 }}
-                            >
-                              {proc.cmdline}
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                      <td>
-                        {isProtected ? (
-                          <span className="badge badge-neutral" style={{ fontSize: '0.5rem' }}>
-                            <ShieldCheck className="w-2.5 h-2.5" style={{ color: 'var(--accent-emerald)' }} />
-                            Sistem
-                          </span>
-                        ) : (
-                          <span className="badge badge-indigo" style={{ fontSize: '0.5rem' }}>
-                            <Zap className="w-2.5 h-2.5" />
-                            User
-                          </span>
-                        )}
-                      </td>
-                      <td className="metric-value font-bold" style={{ color: 'var(--accent-violet)' }}>
-                        {proc.cpu_percent}%
-                      </td>
-                      <td className="metric-value" style={{ color: 'var(--accent-blue)' }}>
-                        {proc.ram_mb || 0}MB
-                      </td>
-                      <td>
-                        <div className="flex items-center gap-1.5">
-                          <span className="metric-value font-bold" style={{ color: isIdleVram ? 'var(--accent-amber)' : 'var(--accent-amber)' }}>
-                            {proc.vram_mb}MB
-                          </span>
-                          {isIdleVram && (
-                            <span
-                              className="badge badge-amber"
-                              style={{ fontSize: '0.4375rem', padding: '1px 4px', gap: 2 }}
-                              title="VRAM dialokasikan namun proses idle"
-                            >
-                              <ShieldAlert className="w-2 h-2" />
-                              Idle
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td style={{ textAlign: 'right' }} onClick={e => e.stopPropagation()}>
-                        {isProtected ? (
-                          <span className="badge badge-neutral" style={{ fontSize: '0.5rem' }}>
-                            <Shield className="w-2.5 h-2.5" style={{ color: 'var(--accent-emerald)' }} />
-                            Terlindungi
-                          </span>
-                        ) : (
-                          <span className="badge badge-emerald" style={{ fontSize: '0.5rem' }}>
-                            Aktif
-                          </span>
-                        )}
-                      </td>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-[#0a0e17]/80 font-mono text-[10px] uppercase tracking-wider text-[#908fa0] border-b border-[#46455430]">
+                      <th className="px-5 py-3.5">User</th>
+                      <th className="px-5 py-3.5">PID</th>
+                      <th className="px-5 py-3.5">GPU</th>
+                      <th className="px-5 py-3.5">Task / Skrip</th>
+                      <th className="px-5 py-3.5">Tipe</th>
+                      <th className="px-5 py-3.5 text-rose-400">CPU%</th>
+                      <th className="px-5 py-3.5 text-blue-400">RAM</th>
+                      <th className="px-5 py-3.5 text-amber-400">VRAM</th>
+                      <th className="px-5 py-3.5 text-right">Status</th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+                  </thead>
+                  <tbody className="divide-y divide-slate-700/50">
+                    {filteredProcesses.map((proc) => {
+                      const isRiset     = proc.username === 'labriset';
+                      const isProtected = proc.is_system || !proc.is_killable;
+                      const isIdleVram  = !isProtected && proc.vram_mb > 500 && (proc.cpu_percent === 0 || proc.cpu_percent < 1);
 
-        {/* Row count */}
-        {filteredProcesses.length > 0 && (
-          <div
-            className="p-4 flex items-center justify-between"
-            style={{ borderTop: '1px solid var(--border-sub)' }}
-          >
-            <span className="metric-value" style={{ fontSize: '0.625rem', color: 'var(--text-muted)' }}>
-              Menampilkan {filteredProcesses.length} proses dari {processes.length} total
-            </span>
-            <span className="metric-value" style={{ fontSize: '0.625rem', color: 'var(--text-muted)' }}>
-              Klik baris untuk melihat inspeksi detail
-            </span>
+                      return (
+                        <tr
+                          key={proc.pid}
+                          onClick={() => setInspectedProc(proc)}
+                          className="hover:bg-[#1c1f29]/70 transition-colors group cursor-pointer"
+                        >
+                          <td className="px-5 py-3.5">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-sm text-[#dfe2ef]">
+                                {proc.username}
+                              </span>
+                              {isRiset && (
+                                <span className="px-1.5 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[9px] font-bold font-mono uppercase">
+                                  Riset
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-5 py-3.5 text-xs font-mono text-[#908fa0]">
+                            {proc.pid}
+                          </td>
+                          <td className="px-5 py-3.5">
+                            <span className="px-2 py-0.5 rounded-full bg-[#1c1f29] border border-[#46455430] text-[#c7c4d7] text-[10px] font-mono">
+                              {proc.gpu_name}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3.5 max-w-[160px]">
+                            <div className="truncate text-xs font-semibold text-[#4edea3]" title={proc.name}>
+                              {proc.name}
+                            </div>
+                            {proc.cmdline && (
+                              <div className="truncate text-[10px] font-mono text-[#908fa0] mt-0.5" title={proc.cmdline}>
+                                {proc.cmdline}
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-5 py-3.5">
+                            {isProtected ? (
+                              <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-mono flex items-center gap-1 w-fit">
+                                <ShieldCheck className="w-3 h-3" /> Sistem
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-mono flex items-center gap-1 w-fit">
+                                <Zap className="w-3 h-3" /> User
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-5 py-3.5 text-xs font-mono font-bold text-rose-400">
+                            {proc.cpu_percent}%
+                          </td>
+                          <td className="px-5 py-3.5 text-xs font-mono text-blue-400">
+                            {proc.ram_mb || 0}MB
+                          </td>
+                          <td className="px-5 py-3.5">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-mono font-bold text-amber-400">
+                                {proc.vram_mb}MB
+                              </span>
+                              {isIdleVram && (
+                                <span className="px-1.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-500 text-[9px] font-mono uppercase flex items-center gap-1" title="VRAM dialokasikan namun proses idle">
+                                  <ShieldAlert className="w-2.5 h-2.5" /> Idle
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-5 py-3.5 text-right">
+                            {isProtected ? (
+                              <span className="px-2 py-1 rounded-lg bg-[#1c1f29] border border-[#46455430] text-[#908fa0] text-[10px] font-mono flex items-center gap-1 w-fit ml-auto">
+                                <Shield className="w-3 h-3 text-[#908fa0]" /> Terlindungi
+                              </span>
+                            ) : (
+                              <span className="px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-mono font-bold w-fit ml-auto shadow-sm">
+                                Aktif
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
-        )}
+
+          {/* Row count footer */}
+          {filteredProcesses.length > 0 && (
+            <div className="flex items-center justify-between pt-4 mt-2">
+              <span className="text-[11px] font-mono text-[#908fa0]">
+                Menampilkan {filteredProcesses.length} proses dari {processes.length} total
+              </span>
+              <span className="text-[11px] font-mono text-[#908fa0]">
+                Klik baris untuk melihat inspeksi detail
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Process Inspector Drawer */}

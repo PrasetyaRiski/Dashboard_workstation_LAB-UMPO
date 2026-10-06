@@ -33,7 +33,6 @@ export default function Sidebar({
     { id: 'students',  label: 'User',            icon: Users },
     { id: 'system',    label: 'Infrastruktur',   icon: Server },
     { id: 'audit',     label: 'Audit Log',       icon: FileText, badge: auditCount },
-    { id: 'stitch',    label: 'Desain Stitch',   icon: Palette },
   ];
 
   return (

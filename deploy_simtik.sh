@@ -10,8 +10,12 @@ echo "=========================================================="
 echo "🚀 MEMULAI PENERAPAN SISTEM SIMTIK & DYNAMIC QoS LAB AI..."
 echo "=========================================================="
 
-# 1. Masuk ke direktori web
-cd /home/public/web
+# 1. Masuk ke direktori web/panel-lab
+# Memastikan repositori terisolasi di dalam folder panel-lab agar rapi
+if [ ! -d "/home/public/web/panel-lab" ]; then
+    mkdir -p /home/public/web/panel-lab
+fi
+cd /home/public/web/panel-lab
 
 # 2. Sinkronkan dengan GitHub
 echo "🔄 Mengambil pembaruan dari GitHub..."
@@ -23,18 +27,23 @@ git fetch origin main
 git reset --hard origin/main
 
 # 3. Update dependencies venv
-echo "📦 Menginstall modul requests ke venv..."
+echo "📦 Menginstall modul backend ke venv..."
 if [ -d "venv" ]; then
     source venv/bin/activate
-    pip install --quiet requests
+    pip install --quiet -r backend/requirements.txt
 elif [ -d "../venv" ]; then
     source ../venv/bin/activate
-    pip install --quiet requests
+    pip install --quiet -r backend/requirements.txt
+else
+    python3 -m venv venv
+    source venv/bin/activate
+    pip install --quiet -r backend/requirements.txt
 fi
 
 # 4. Restart Dashboard di Port 8888
 echo "🔄 Merestart Dashboard Monitoring..."
 if systemctl is-active --quiet panel-lab.service 2>/dev/null; then
+    # Jika menggunakan systemctl, pastikan WorkingDirectory di service menunjuk ke /home/public/web/panel-lab
     sudo systemctl restart panel-lab.service
     echo "✅ Service panel-lab.service berhasil direstart."
 else
@@ -52,6 +61,9 @@ fi
 
 if [ -f "$JH_CONFIG" ]; then
     echo "⚙️ Memeriksa konfigurasi JupyterHub di $JH_CONFIG..."
+    # Hapus konfigurasi lama jika ada untuk mengganti path
+    sudo sed -i '/INTEGRASI OTENTIKASI SIMTIK UMPO/,+7d' "$JH_CONFIG" 2>/dev/null || true
+    
     if ! grep -q "jupyterhub_simtik_auth" "$JH_CONFIG"; then
         echo "📝 Menambahkan hook SIMTIK ke $JH_CONFIG..."
         sudo tee -a "$JH_CONFIG" > /dev/null << 'EOF'
@@ -60,7 +72,7 @@ if [ -f "$JH_CONFIG" ]; then
 # INTEGRASI OTENTIKASI SIMTIK UMPO & DYNAMIC QoS LAB AI
 # ========================================================
 import sys
-sys.path.append("/home/public/web")
+sys.path.append("/home/public/web/panel-lab")
 from jupyterhub_simtik_auth import SimtikAuthenticator, simtik_pre_spawn_hook
 
 c.JupyterHub.authenticator_class = SimtikAuthenticator

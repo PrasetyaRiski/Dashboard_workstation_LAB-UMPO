@@ -63,7 +63,10 @@ const [pendingAction, setPendingAction]   = useState(null);
   const fetchStudents = useCallback(async () => {
     try {
       const headers = adminToken ? { 'Authorization': `Bearer ${adminToken}` } : {};
-      const res = await fetch('/api/users/students', { headers });
+      const res = await fetch(`/api/users/students?_t=${Date.now()}`, { 
+        headers,
+        cache: 'no-store'
+      });
       if (res.ok) {
         const json = await res.json();
         if (json.success) setStudents(json.users || []);
@@ -82,7 +85,7 @@ const [pendingAction, setPendingAction]   = useState(null);
   const fetchStatus = useCallback(async () => {
     setIsRefreshing(true);
     try {
-      const res = await fetch('/api/status');
+      const res = await fetch(`/api/status?_t=${Date.now()}`, { cache: 'no-store' });
       if (res.ok) {
         const json = await res.json();
         setData(json);

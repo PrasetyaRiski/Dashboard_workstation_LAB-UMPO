@@ -185,7 +185,10 @@ export default function UnifiedUserManagement({
   const fetchAuditLogs = useCallback(async () => {
     if (!isAdmin) return;
     try {
-      const res = await fetch('/api/audit-logs', { headers: getAuthHeaders() });
+      const res = await fetch(`/api/audit-logs?_t=${Date.now()}`, { 
+        headers: getAuthHeaders(),
+        cache: 'no-store'
+      });
       if (res.ok) {
         const data = await res.json();
         setAuditLogs(data.logs || data || []);

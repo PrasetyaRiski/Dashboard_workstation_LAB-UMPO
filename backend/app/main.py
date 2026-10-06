@@ -20,7 +20,7 @@ from app.db import (
     init_db, get_or_create_user, list_users,
     set_user_priority, unset_user_priority,
     toggle_user_admin, toggle_user_active,
-    is_user_priority, auto_expire_priorities
+    is_user_priority, auto_expire_priorities, get_connection
 )
 
 app = FastAPI(title="AI Lab Compute Dashboard", version="2.1.0")
@@ -450,9 +450,11 @@ def toggle_active(req: UserActionRequest, request: Request, _=Depends(verify_adm
                     subprocess.run(["loginctl", "terminate-user", os_username], check=False, timeout=2)
                 except:
                     pass
-                log_audit(request, "BLOCK_USER_AND_KILL", req.nim, "User diblokir dan sesinya dihentikan.")
+                cur.execute(f"INSERT INTO audit_logs (nim, action, detail) VALUES ({placeholder}, {placeholder}, {placeholder})", (req.nim, "BLOCK_USER", "User diblokir dan sesinya dihentikan."))
+                conn.commit()
             else:
-                log_audit(request, "UNBLOCK_USER", req.nim, "User diaktifkan kembali.")
+                cur.execute(f"INSERT INTO audit_logs (nim, action, detail) VALUES ({placeholder}, {placeholder}, {placeholder})", (req.nim, "UNBLOCK_USER", "User diaktifkan kembali."))
+                conn.commit()
         return {"success": True, "message": f"Status Akses untuk NIM {req.nim} berhasil diperbarui."}
     raise HTTPException(status_code=404, detail="User tidak ditemukan.")
 
@@ -475,7 +477,8 @@ def add_user(req: AddUserRequest, request: Request, _=Depends(verify_admin)):
         (req.nim, req.nama, 1 if req.is_admin else 0)
     )
     conn.commit()
-    log_audit(request, "ADD_USER", req.nim, f"Menambahkan user manual: {req.nama}")
+    cur.execute(f"INSERT INTO audit_logs (nim, action, detail) VALUES ({placeholder}, {placeholder}, {placeholder})", (req.nim, "ADD_USER", f"Menambahkan user manual: {req.nama}"))
+    conn.commit()
     return {"success": True, "message": "User berhasil ditambahkan."}
 
 @app.delete("/api/users/{nim}")
@@ -492,7 +495,8 @@ def delete_user(nim: str, request: Request, _=Depends(verify_admin)):
         subprocess.run(["loginctl", "terminate-user", os_username], check=False, timeout=2)
     except:
         pass
-    log_audit(request, "DELETE_USER", nim, "User dihapus dari sistem beserta sesinya.")
+    cur.execute(f"INSERT INTO audit_logs (nim, action, detail) VALUES ({placeholder}, {placeholder}, {placeholder})", (nim, "DELETE_USER", "User dihapus dari sistem beserta sesinya."))
+    conn.commit()
     return {"success": True, "message": "User berhasil dihapus."}
 
 

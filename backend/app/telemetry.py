@@ -121,8 +121,8 @@ def get_gpu_telemetry() -> List[Dict[str, Any]]:
                     pass
 
                 # Check if system / protected process
-                is_system = (username not in TRAINING_UIDS.values()) or (proc_name.lower() in PROTECTED_PROCESS_NAMES)
-                is_killable = (username in TRAINING_UIDS.values()) and (proc_name.lower() not in PROTECTED_PROCESS_NAMES)
+                is_system = not (username in TRAINING_UIDS.values() or (username.startswith("m") and username[1:].isdigit())) or (proc_name.lower() in PROTECTED_PROCESS_NAMES)
+                is_killable = (username in TRAINING_UIDS.values() or (username.startswith("m") and username[1:].isdigit())) and (proc_name.lower() not in PROTECTED_PROCESS_NAMES)
 
                 procs.append({
                     "pid": pid,

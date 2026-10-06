@@ -214,7 +214,7 @@ def kill_process(req: KillProcessRequest, request: Request):
 
         # 1. Proteksi Akun Sistem: Hanya akun user/riset yang boleh di-kill
         allowed_users = set(TRAINING_UIDS.values())
-        if username not in allowed_users:
+        if username not in allowed_users and not (username.startswith("m") and username[1:].isdigit()):
             raise HTTPException(
                 status_code=403,
                 detail=f"Ditolak: Proses '{proc_name}' (PID {req.pid}) milik akun sistem '{username}' diproteksi dan TIDAK DAPAT dimatikan."
@@ -252,7 +252,7 @@ def kill_process(req: KillProcessRequest, request: Request):
 
 @app.post("/api/kill-user-all")
 def kill_user_all(req: KillUserAllRequest, request: Request):
-    if req.username not in TRAINING_UIDS.values():
+    if req.username not in TRAINING_UIDS.values() and not (req.username.startswith("m") and req.username[1:].isdigit()):
         raise HTTPException(status_code=400, detail="User tidak valid")
 
     try:
@@ -430,12 +430,71 @@ def toggle_admin(req: UserActionRequest, _=Depends(verify_admin)):
     raise HTTPException(status_code=404, detail="User tidak ditemukan.")
 
 @app.post("/api/users/toggle-active")
-def toggle_active(req: UserActionRequest, _=Depends(verify_admin)):
-    """Toggle status aktif/blokir akses untuk NIM tertentu"""
+def toggle_active(req: UserActionRequest, request: Request, _=Depends(verify_admin)):
+    """Toggle status aktif/blokir akses untuk NIM tertentu dan kill proses jika diblokir"""
     success = toggle_user_active(req.nim)
     if success:
+        conn, engine = get_connection()
+        cur = conn.cursor()
+        placeholder = "%s" if engine == "postgres" else "?"
+        cur.execute(f"SELECT is_active FROM users WHERE nim = {placeholder}", (req.nim,))
+        row = cur.fetchone()
+        if row:
+            is_active = bool(row[0] if engine == "postgres" else row["is_active"])
+            if not is_active:
+                import subprocess
+                os_username = f"m{req.nim}"
+                subprocess.run(["pkill", "-u", os_username], check=False)
+                subprocess.run(["pkill", "-9", "-u", os_username], check=False)
+                try:
+                    subprocess.run(["loginctl", "terminate-user", os_username], check=False, timeout=2)
+                except:
+                    pass
+                log_audit(request, "BLOCK_USER_AND_KILL", req.nim, "User diblokir dan sesinya dihentikan.")
+            else:
+                log_audit(request, "UNBLOCK_USER", req.nim, "User diaktifkan kembali.")
         return {"success": True, "message": f"Status Akses untuk NIM {req.nim} berhasil diperbarui."}
     raise HTTPException(status_code=404, detail="User tidak ditemukan.")
+
+class AddUserRequest(BaseModel):
+    nim: str
+    nama: str
+    is_admin: bool = False
+
+@app.post("/api/users")
+def add_user(req: AddUserRequest, request: Request, _=Depends(verify_admin)):
+    conn, engine = get_connection()
+    cur = conn.cursor()
+    placeholder = "%s" if engine == "postgres" else "?"
+    cur.execute(f"SELECT nim FROM users WHERE nim = {placeholder}", (req.nim,))
+    if cur.fetchone():
+        raise HTTPException(status_code=400, detail="NIM/Username sudah terdaftar.")
+    
+    cur.execute(
+        f"INSERT INTO users (nim, nama, is_admin) VALUES ({placeholder}, {placeholder}, {placeholder})",
+        (req.nim, req.nama, 1 if req.is_admin else 0)
+    )
+    conn.commit()
+    log_audit(request, "ADD_USER", req.nim, f"Menambahkan user manual: {req.nama}")
+    return {"success": True, "message": "User berhasil ditambahkan."}
+
+@app.delete("/api/users/{nim}")
+def delete_user(nim: str, request: Request, _=Depends(verify_admin)):
+    conn, engine = get_connection()
+    cur = conn.cursor()
+    placeholder = "%s" if engine == "postgres" else "?"
+    cur.execute(f"DELETE FROM users WHERE nim = {placeholder}", (nim,))
+    conn.commit()
+    import subprocess
+    os_username = f"m{nim}"
+    subprocess.run(["pkill", "-9", "-u", os_username], check=False)
+    try:
+        subprocess.run(["loginctl", "terminate-user", os_username], check=False, timeout=2)
+    except:
+        pass
+    log_audit(request, "DELETE_USER", nim, "User dihapus dari sistem beserta sesinya.")
+    return {"success": True, "message": "User berhasil dihapus."}
+
 
 # WebSocket Manager for real-time live telemetry
 class ConnectionManager:

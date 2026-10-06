@@ -147,7 +147,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, sparkHistory = [] }) {
   return (
     <div className="rounded-2xl bg-[#181b25] border border-[#46455430] p-5 shadow-xl flex flex-col justify-between relative overflow-hidden group hover:shadow-2xl transition-all fade-in-up">
       {/* Stitch ambient glow */}
-      <div className={`absolute -top-12 -right-12 w-40 h-40 ${isLevel1 ? 'bg-[#4cd7f6]/10' : 'bg-[#c0c1ff]/10'} rounded-full blur-3xl pointer-events-none`}></div>
+      <div className={`absolute -top-12 -right-12 w-40 h-40 ${isLevel1 ? 'bg-[#4cd7f6]/10' : 'bg-[#c0c1ff]/10'} rounded-full pointer-events-none`}></div>
 
       <div className="flex flex-col gap-4 relative z-10">
         {/* Header - Stitch Style */}

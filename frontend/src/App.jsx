@@ -379,53 +379,6 @@ const [pendingAction, setPendingAction]   = useState(null);
         <main className="flex-1 overflow-y-auto bg-[#0f131c]">
           <div className="w-full mx-auto p-6 lg:p-8" style={{ maxWidth: 1440 }}>
 
-            {/* Mode Switcher Banner (Stitch Screen 1) */}
-            <div className="relative overflow-hidden rounded-2xl bg-[#181b25] border border-[#46455430] p-4 shadow-xl mb-6">
-              <div className="absolute -right-16 -top-16 w-56 h-56 bg-[#4cd7f6]/10 rounded-full blur-3xl pointer-events-none"></div>
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#1c1f29] border border-[#4cd7f6]/30 flex items-center justify-center text-[#4cd7f6] shadow-sm shrink-0">
-                    <ShieldCheck className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 flex-wrap font-mono">
-                      <span className="text-sm font-semibold text-[#dfe2ef]">
-                        {isAdmin ? 'Protected Admin Console' : 'Public Monitoring Mode'}
-                      </span>
-                      <span className="text-[10px] text-[#908fa0]">// {isAdmin ? 'AUTHENTICATED' : 'READ_ONLY'}</span>
-                      <span className="px-2 py-0.5 rounded bg-[#262a34] text-[#c7c4d7] text-[10px] flex items-center gap-1.5 border border-[#46455440]">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#4cd7f6] animate-pulse"></span> Telemetry Unlocked
-                      </span>
-                    </div>
-                    <p className="text-xs text-[#c7c4d7] mt-0.5">
-                      Real-time PCIe telemetry & Cgroups v2 dynamic QoS allocations for Lab AI UMPO.
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  {!isAdmin ? (
-                    <button
-                      onClick={() => setLoginModalOpen(true)}
-                      className="px-4 py-2 rounded-xl font-mono text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-1.5"
-                    >
-                      <ShieldCheck className="w-3.5 h-3.5" /> Unlock Admin Mode
-                    </button>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <span className="px-3 py-1 rounded-lg bg-[#4edea3]/15 text-[#4edea3] border border-[#4edea3]/30 font-mono text-xs font-semibold">
-                        Admin Session Active
-                      </span>
-                      <button
-                        onClick={handleLogout}
-                        className="px-3 py-1 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 font-mono text-xs transition"
-                      >
-                        Logout
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
 
             {/* Page Header */}
             <div className="page-header">
@@ -449,14 +402,6 @@ const [pendingAction, setPendingAction]   = useState(null);
                     sparkHistory={data?.history || []}
                   />
                 </div>
-                <ProcessManager
-                  processes={activeProcesses}
-                  isAdmin={isAdmin}
-                  onRunSimulation={handleRunSimulation}
-                  onStopSimulation={handleStopSimulation}
-                  isSimulating={isSimulating}
-                  onOpenPinModal={() => setLoginModalOpen(true)}
-                />
               </div>
             )}
 
@@ -490,7 +435,6 @@ const [pendingAction, setPendingAction]   = useState(null);
 
             {activeTab === 'system' && (
               <div className="flex flex-col gap-5 fade-in-up">
-                <SystemOverview system={data?.system} gpus={data?.gpus} />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   {/* Cgroups v2 info */}

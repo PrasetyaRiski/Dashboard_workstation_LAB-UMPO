@@ -32,7 +32,7 @@ export default function AdminPinModal({ isOpen, onSuccess, onClose }) {
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-slate-700/50">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 shadow-[0_0_12px_rgba(99,102,241,0.2)]">
+            <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
               <Lock className="w-5 h-5" />
             </div>
             <div>
@@ -93,7 +93,7 @@ export default function AdminPinModal({ isOpen, onSuccess, onClose }) {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 disabled:text-indigo-400 border border-transparent text-white text-xs font-bold shadow-lg shadow-indigo-600/20 transition-colors flex items-center gap-2"
+                className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 disabled:text-indigo-400 border border-transparent text-white text-xs font-bold transition-colors flex items-center gap-2"
               >
                 {isLoading ? (
                   'Memverifikasi…'

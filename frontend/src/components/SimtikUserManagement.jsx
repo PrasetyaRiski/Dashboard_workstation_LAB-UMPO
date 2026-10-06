@@ -286,7 +286,7 @@ export default function SimtikUserManagement({ isAdmin, showToast }) {
       <div className="fixed inset-0 bg-slate-950 flex flex-col items-center justify-center p-5 z-50">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-800 via-slate-950 to-slate-950"></div>
         <div className="relative p-10 max-w-sm w-full text-center bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-3xl shadow-2xl">
-          <div className="w-16 h-16 mx-auto mb-6 bg-indigo-500/10 rounded-2xl flex items-center justify-center border border-indigo-500/20 shadow-[0_0_30px_-5px_rgba(99,102,241,0.3)]">
+          <div className="w-16 h-16 mx-auto mb-6 bg-indigo-500/10 rounded-2xl flex items-center justify-center border border-indigo-500/20">
             <Lock className="w-8 h-8 text-indigo-400" />
           </div>
           <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">Admin Portal</h2>
@@ -305,7 +305,7 @@ export default function SimtikUserManagement({ isAdmin, showToast }) {
             {loginError && <div className="text-rose-400 text-sm font-medium bg-rose-500/10 py-2 rounded-lg">{loginError}</div>}
             <button
               type="submit"
-              className="w-full py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition-all shadow-lg shadow-indigo-600/20 active:scale-[0.98] cursor-pointer"
+              className="w-full py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition-all active:scale-[0.98] cursor-pointer"
             >
               Authenticate
             </button>
@@ -714,7 +714,7 @@ export default function SimtikUserManagement({ isAdmin, showToast }) {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-sm font-bold shadow-lg shadow-amber-500/20 transition-colors"
+                  className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-sm font-bold transition-colors"
                 >
                   Confirm Boost
                 </button>
@@ -785,7 +785,7 @@ export default function SimtikUserManagement({ isAdmin, showToast }) {
                 <button
                   type="submit"
                   disabled={testLoginModal.loading}
-                  className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium shadow-lg shadow-indigo-600/20 transition-colors disabled:opacity-50 disabled:shadow-none"
+                  className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-colors disabled:opacity-50 disabled:shadow-none"
                 >
                   {testLoginModal.loading ? 'Authenticating...' : 'Test Login'}
                 </button>

@@ -276,7 +276,7 @@ export default function UnifiedUserManagement({
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="bg-[#181b25] border border-[#46455430] rounded-2xl p-5 hover:border-[#c0c1ff]/40 transition-all shadow-lg group relative overflow-hidden">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#c0c1ff]/15 flex items-center justify-center border border-[#c0c1ff]/30 text-[#c0c1ff] shadow-[0_0_12px_rgba(192,193,255,0.2)]">
+                  <div className="w-10 h-10 rounded-xl bg-[#c0c1ff]/15 flex items-center justify-center border border-[#c0c1ff]/30 text-[#c0c1ff]">
                     <Users className="w-5 h-5" />
                   </div>
                   <div>
@@ -297,7 +297,7 @@ export default function UnifiedUserManagement({
 
               <div className="bg-[#181b25] border border-[#46455430] rounded-2xl p-5 hover:border-[#4cd7f6]/40 transition-all shadow-lg group relative overflow-hidden">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#4cd7f6]/15 flex items-center justify-center border border-[#4cd7f6]/30 text-[#4cd7f6] shadow-[0_0_12px_rgba(76,215,246,0.2)]">
+                  <div className="w-10 h-10 rounded-xl bg-[#4cd7f6]/15 flex items-center justify-center border border-[#4cd7f6]/30 text-[#4cd7f6]">
                     <Zap className="w-5 h-5" fill="currentColor" />
                   </div>
                   <div>
@@ -313,7 +313,7 @@ export default function UnifiedUserManagement({
 
               <div className="bg-[#181b25] border border-[#46455430] rounded-2xl p-5 hover:border-[#4edea3]/40 transition-all shadow-lg group relative overflow-hidden">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#4edea3]/15 flex items-center justify-center border border-[#4edea3]/30 text-[#4edea3] shadow-[0_0_12px_rgba(78,222,163,0.2)]">
+                  <div className="w-10 h-10 rounded-xl bg-[#4edea3]/15 flex items-center justify-center border border-[#4edea3]/30 text-[#4edea3]">
                     <Activity className="w-5 h-5" />
                   </div>
                   <div>
@@ -361,7 +361,7 @@ export default function UnifiedUserManagement({
               </div>
               <div className="relative w-full sm:w-72 flex gap-3">
                 {isAdmin && (
-                  <button onClick={() => setAddUserModal({ ...addUserModal, isOpen: true })} className="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg flex items-center gap-2 text-sm font-semibold transition-colors shadow-lg shadow-indigo-600/20 whitespace-nowrap">
+                  <button onClick={() => setAddUserModal({ ...addUserModal, isOpen: true })} className="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg flex items-center gap-2 text-sm font-semibold transition-colors whitespace-nowrap">
                     <UserPlus className="w-4 h-4" /> Add
                   </button>
                 )}
@@ -409,7 +409,7 @@ export default function UnifiedUserManagement({
                                 <div className="flex items-center gap-3">
                                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs uppercase font-mono border ${
                                     item.is_boosted 
-                                      ? 'bg-[#4cd7f6]/20 text-[#4cd7f6] border-[#4cd7f6]/40 shadow-[0_0_8px_rgba(76,215,246,0.25)]' 
+                                      ? 'bg-[#4cd7f6]/20 text-[#4cd7f6] border-[#4cd7f6]/40' 
                                       : 'bg-[#1c1f29] text-[#c0c1ff] border-[#46455430]'
                                   }`}>
                                     {item.nama ? item.nama.slice(0, 2).toUpperCase() : item.nim.slice(-2)}
@@ -498,7 +498,7 @@ export default function UnifiedUserManagement({
                                   </div>
                                   <div className="w-full bg-[#262a34] h-1.5 rounded-full overflow-hidden">
                                     <div
-                                      className={`h-full rounded-full transition-all ${item.is_boosted ? 'bg-[#4cd7f6] shadow-[0_0_8px_rgba(76,215,246,0.6)]' : 'bg-[#c0c1ff]'}`}
+                                      className={`h-full rounded-full transition-all ${item.is_boosted ? 'bg-[#4cd7f6]' : 'bg-[#c0c1ff]'}`}
                                       style={{ width: item.is_boosted ? '100%' : '35%' }}
                                     ></div>
                                   </div>
@@ -663,7 +663,7 @@ export default function UnifiedUserManagement({
               </div>
               <div className="flex items-center justify-end gap-3 pt-4">
                 <button type="button" onClick={() => setAddUserModal({ isOpen: false, nim: '', nama: '', is_admin: false })} className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-sm font-medium transition-colors">Batal</button>
-                <button type="submit" className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold shadow-lg shadow-indigo-600/20 transition-colors">Simpan User</button>
+                <button type="submit" className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold transition-colors">Simpan User</button>
               </div>
             </form>
           </div>
@@ -693,7 +693,7 @@ export default function UnifiedUserManagement({
               </div>
               <div className="flex justify-end gap-3 pt-2">
                 <button type="button" onClick={() => setBoostModal({ isOpen: false, nim: null, nama: '', hours: 4, reason: '' })} className="px-4 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 border border-transparent">Batal</button>
-                <button type="submit" className="px-4 py-2 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 flex items-center gap-2 shadow-lg shadow-indigo-500/20">
+                <button type="submit" className="px-4 py-2 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 flex items-center gap-2">
                   <Zap className="w-4 h-4"/> Apply Boost
                 </button>
               </div>

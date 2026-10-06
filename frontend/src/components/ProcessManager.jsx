@@ -230,7 +230,7 @@ function ProcessManager({
                   <button
                     onClick={onRunSimulation}
                     disabled={isSimulating}
-                    className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-bold shadow-lg shadow-indigo-600/20 transition-colors flex items-center gap-2"
+                    className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-bold transition-colors flex items-center gap-2"
                   >
                     <Play className="w-4 h-4 fill-current" />
                     Uji Beban (11 User)
@@ -259,7 +259,7 @@ function ProcessManager({
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
             <div className="bg-[#181b25] border border-[#46455430] rounded-2xl p-5 hover:border-[#c0c1ff]/40 transition-all shadow-lg group relative overflow-hidden">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-[#c0c1ff]/15 flex items-center justify-center border border-[#c0c1ff]/30 text-[#c0c1ff] shadow-[0_0_12px_rgba(192,193,255,0.2)]">
+                <div className="w-10 h-10 rounded-xl bg-[#c0c1ff]/15 flex items-center justify-center border border-[#c0c1ff]/30 text-[#c0c1ff]">
                   <Activity className="w-5 h-5" />
                 </div>
                 <div>
@@ -281,7 +281,7 @@ function ProcessManager({
 
             <div className="bg-[#181b25] border border-[#46455430] rounded-2xl p-5 hover:border-[#4cd7f6]/40 transition-all shadow-lg group relative overflow-hidden">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-[#4cd7f6]/15 flex items-center justify-center border border-[#4cd7f6]/30 text-[#4cd7f6] shadow-[0_0_12px_rgba(76,215,246,0.2)]">
+                <div className="w-10 h-10 rounded-xl bg-[#4cd7f6]/15 flex items-center justify-center border border-[#4cd7f6]/30 text-[#4cd7f6]">
                   <Server className="w-5 h-5" />
                 </div>
                 <div>
@@ -297,7 +297,7 @@ function ProcessManager({
 
             <div className={`bg-[#181b25] border ${stats.idleVram > 0 ? 'border-amber-500/30' : 'border-[#46455430] hover:border-emerald-500/40'} rounded-2xl p-5 transition-all shadow-lg group relative overflow-hidden`}>
               <div className="flex items-center gap-3 mb-3">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${stats.idleVram > 0 ? 'bg-amber-500/15 border-amber-500/30 text-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.2)]' : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.2)]'}`}>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${stats.idleVram > 0 ? 'bg-amber-500/15 border-amber-500/30 text-amber-500' : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'}`}>
                   {stats.idleVram > 0 ? <ShieldAlert className="w-5 h-5" /> : <ShieldCheck className="w-5 h-5" />}
                 </div>
                 <div>
@@ -360,7 +360,7 @@ function ProcessManager({
                 {isAdmin && (
                   <button
                     onClick={onRunSimulation}
-                    className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/20 transition-colors inline-flex items-center gap-2"
+                    className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-colors inline-flex items-center gap-2"
                   >
                     <Play className="w-4 h-4 fill-current" />
                     Jalankan Uji Beban Sekarang

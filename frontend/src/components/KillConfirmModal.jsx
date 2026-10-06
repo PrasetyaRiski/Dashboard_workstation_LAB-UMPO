@@ -93,7 +93,7 @@ export default function KillConfirmModal({ isOpen, processInfo, onConfirm, onClo
               type="button"
               onClick={onConfirm}
               disabled={isSubmitting}
-              className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 disabled:bg-rose-800 disabled:text-rose-400 border border-transparent text-white text-xs font-bold shadow-lg shadow-rose-600/20 transition-colors flex items-center gap-2"
+              className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 disabled:bg-rose-800 disabled:text-rose-400 border border-transparent text-white text-xs font-bold transition-colors flex items-center gap-2"
             >
               {isSubmitting ? (
                 'Memproses…'

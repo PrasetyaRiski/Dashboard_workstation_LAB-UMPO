@@ -91,27 +91,32 @@
 }
 
 .dark {
-  /* Surfaces — Neutral Dark (not navy) */
-  --surface-0:   #0c0c0e;
-  --surface-1:   #141417;
-  --surface-2:   #1c1c21;
-  --surface-3:   #27272c;
-  --surface-4:   #333338;
+  /* Surfaces — Stitch palette */
+  --surface-0:   #0f131c;
+  --surface-1:   #181b25;
+  --surface-2:   #1c1f29;
+  --surface-3:   #262a34;
+  --surface-4:   #31353f;
 
-  /* Borders */
-  --border-sub:  rgba(255, 255, 255, 0.04);
-  --border-base: rgba(255, 255, 255, 0.07);
-  --border-emph: rgba(255, 255, 255, 0.12);
+  --border-sub:  rgba(70, 69, 84, 0.19);
+  --border-base: rgba(70, 69, 84, 0.35);
+  --border-emph: rgba(192, 193, 255, 0.35);
 
-  /* Text */
-  --text-primary:   #f0eeec;
-  --text-secondary:  #9c9a97;
-  --text-muted:     #5c5a57;
-  --text-faint:     #333330;
+  --text-primary:   #dfe2ef;
+  --text-secondary: #c7c4d7;
+  --text-muted:     #908fa0;
+  --text-faint:     #464554;
 
-  /* Glassmorphism */
-  --glass-bg:     rgba(20, 20, 23, 0.75);
-  --glass-border: rgba(255, 255, 255, 0.06);
+  --accent-emerald: #4edea3;
+  --accent-amber:   #fbbf24;
+  --accent-rose:    #ffb4ab;
+  --accent-indigo:  #c0c1ff;
+  --accent-violet:  #a78bfa;
+  --accent-blue:    #4cd7f6;
+  --accent-cyan:    #4cd7f6;
+
+  --glass-bg:     rgba(24, 27, 37, 0.75);
+  --glass-border: rgba(192, 193, 255, 0.08);
 
   /* Shadows — deeper in dark mode */
   --shadow-sm:  0 1px 3px rgba(0,0,0,0.20), 0 1px 2px rgba(0,0,0,0.14);
@@ -648,3 +653,21 @@
   animation: toggle-glow 2s ease-in-out infinite;
   border-color: rgba(99, 102, 241, 0.3) !important;
 }
+
+/* ── Interactive polish ── */
+button, a, tr, input { transition: all 0.2s cubic-bezier(0.16,1,0.3,1); }
+button:not(:disabled):active { transform: scale(0.97); }
+.rounded-2xl:hover { box-shadow: 0 8px 28px rgba(128,131,255,0.08); }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: #31353f; border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: #464554; }
+@keyframes fadeSlide { from { opacity:0; transform: translateY(8px);} to {opacity:1; transform:none;} }
+main > * { animation: fadeSlide 0.35s ease both; }
+
+/* Clean, calm look: sans-serif everywhere, mono only for numbers */
+.font-mono { font-family: 'Inter', system-ui, sans-serif !important; font-variant-numeric: tabular-nums; }
+body { font-family: 'Inter', system-ui, sans-serif; }
+.uppercase { letter-spacing: 0.04em !important; }
+.shadow-xl, .shadow-2xl, .shadow-lg { box-shadow: none !important; }
+.rounded-2xl:hover { box-shadow: none; }
+.animate-pulse { animation: none !important; }

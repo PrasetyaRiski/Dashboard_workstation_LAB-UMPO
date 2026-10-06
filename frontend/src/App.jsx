@@ -321,7 +321,16 @@ export default function App() {
               )}
             </h2>
           </div>
-          <div>
+          <div className="flex items-center gap-2.5">
+            <a
+              href="/stitch/index.html"
+              target="_blank"
+              rel="noreferrer"
+              className="px-3 py-1.5 text-xs font-semibold rounded bg-violet-600/15 text-violet-300 border border-violet-500/30 hover:bg-violet-600/25 transition flex items-center gap-1.5 shadow-sm"
+              title="Buka Template Desain Google Stitch di Tab Baru"
+            >
+              <span>🎨 Template Stitch</span>
+            </a>
             {!isAdmin ? (
               <button onClick={() => setLoginModalOpen(true)} className="px-4 py-1.5 text-xs font-semibold rounded bg-indigo-600 text-white hover:bg-indigo-700 transition shadow-lg shadow-indigo-500/20">Login Admin</button>
             ) : (
@@ -479,6 +488,47 @@ export default function App() {
             {activeTab === 'audit' && (
               <div className="fade-in-up">
                 <AuditLogView logs={data?.audit_logs || []} />
+              </div>
+            )}
+
+            {activeTab === 'stitch' && (
+              <div className="fade-in-up flex flex-col gap-3.5 h-[calc(100vh-140px)]">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900/90 border border-slate-800 p-3.5 rounded-2xl shadow-lg">
+                  <div className="flex items-center gap-3">
+                    <span className="w-2.5 h-2.5 rounded-full bg-violet-400 animate-pulse"></span>
+                    <div>
+                      <div className="text-xs font-bold text-white tracking-wide uppercase">Google Stitch Design Prototype</div>
+                      <div className="text-[11px] text-slate-400">Template UI/UX Lab AI UMPO (Generated with Gemini 3 Pro)</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <a
+                      href="/stitch/screen1.html"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-xl border border-slate-700/60 transition flex items-center gap-1.5"
+                    >
+                      <span>Screen 1: Hardware Telemetry</span>
+                      <span className="text-[10px] text-slate-400">↗</span>
+                    </a>
+                    <a
+                      href="/stitch/screen2.html"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-indigo-600/20 transition flex items-center gap-1.5"
+                    >
+                      <span>Screen 2: Admission & QoS</span>
+                      <span className="text-[10px] text-indigo-200">↗</span>
+                    </a>
+                  </div>
+                </div>
+                <div className="flex-1 rounded-2xl overflow-hidden border border-slate-800 bg-slate-950 shadow-2xl relative">
+                  <iframe
+                    src="/stitch/index.html"
+                    title="Google Stitch UI Template"
+                    className="w-full h-full border-0"
+                  />
+                </div>
               </div>
             )}
 

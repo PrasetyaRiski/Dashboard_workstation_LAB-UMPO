@@ -1,0 +1,981 @@
+<!DOCTYPE html><html class="dark" lang="en" style=""><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><meta content="web_dashboard" name="shell-type"><link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={"darkMode":"class","theme":{"extend":{"colors":{"secondary":"#4cd7f6","surface-tint":"#c0c1ff","inverse-primary":"#494bd6","on-surface":"#dfe2ef","error-container":"#93000a","on-secondary":"#003640","on-primary-container":"#0d0096","inverse-surface":"#dfe2ef","surface-dim":"#0f131c","surface-variant":"#31353f","on-tertiary-fixed-variant":"#005236","primary-fixed-dim":"#c0c1ff","primary-container":"#8083ff","surface-container":"#1c1f29","tertiary-fixed-dim":"#4edea3","outline":"#908fa0","surface-container-high":"#262a34","on-error-container":"#ffdad6","on-tertiary":"#003824","secondary-fixed-dim":"#4cd7f6","primary":"#c0c1ff","on-secondary-container":"#00424e","surface-container-highest":"#31353f","background":"#0f131c","tertiary-fixed":"#6ffbbe","on-primary-fixed":"#07006c","tertiary-container":"#00885d","on-secondary-fixed-variant":"#004e5c","error":"#ffb4ab","secondary-container":"#03b5d3","secondary-fixed":"#acedff","on-surface-variant":"#c7c4d7","inverse-on-surface":"#2c303a","on-primary-fixed-variant":"#2f2ebe","surface-bright":"#353943","on-secondary-fixed":"#001f26","primary-fixed":"#e1e0ff","outline-variant":"#464554","on-tertiary-container":"#000703","tertiary":"#4edea3","on-tertiary-fixed":"#002113","surface-container-low":"#181b25","surface":"#0f131c","on-background":"#dfe2ef","surface-container-lowest":"#0a0e17","on-error":"#690005","on-primary":"#1000a9"},"borderRadius":{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},"spacing":{"margin-lg":"1.5rem","gutter-lg":"1.25rem","space-sm":"0.5rem","space-lg":"1rem","margin":"1rem","space-md":"0.75rem","space-xs":"0.25rem","space-xl":"1.5rem","gutter":"0.75rem"},"fontFamily":{"headline-md":["Geist"],"headline-lg-mobile":["Geist"],"code-md":["JetBrains Mono"],"body-sm":["Geist"],"headline-lg":["Geist"],"code-sm":["JetBrains Mono"],"display-lg":["Geist"],"body-md":["Geist"],"code-lg":["JetBrains Mono"],"label-caps":["JetBrains Mono"],"body-lg":["Geist"]},"fontSize":{"headline-md":["20px",{"lineHeight":"28px","letterSpacing":"-0.015em","fontWeight":"500"}],"headline-lg-mobile":["22px",{"lineHeight":"28px","letterSpacing":"-0.01em","fontWeight":"600"}],"code-md":["12px",{"lineHeight":"16px","fontWeight":"400"}],"body-sm":["11px",{"lineHeight":"16px","fontWeight":"400"}],"headline-lg":["28px",{"lineHeight":"36px","letterSpacing":"-0.02em","fontWeight":"600"}],"code-sm":["10px",{"lineHeight":"14px","fontWeight":"400"}],"display-lg":["40px",{"lineHeight":"48px","letterSpacing":"-0.03em","fontWeight":"600"}],"body-md":["13px",{"lineHeight":"18px","fontWeight":"400"}],"code-lg":["14px",{"lineHeight":"20px","letterSpacing":"-0.01em","fontWeight":"500"}],"label-caps":["10px",{"lineHeight":"12px","letterSpacing":"0.08em","fontWeight":"600"}],"body-lg":["15px",{"lineHeight":"22px","fontWeight":"400"}]}}}};</script></head><body class="bg-background font-body-md text-on-surface antialiased selection:bg-primary/20 selection:text-primary"><aside class="fixed left-0 top-0 bottom-0 w-64 bg-surface-container-lowest border-r border-outline-variant/30 z-50 flex flex-col justify-between select-none"><div class="flex flex-col"><div class="h-16 px-space-lg flex items-center gap-space-sm border-b border-outline-variant/20 bg-surface-container-low/40"><div class="w-8 h-8 rounded-lg bg-surface-container-high border border-primary/40 flex items-center justify-center text-primary shadow-[0_0_12px_rgba(192,193,255,0.2)]"><span class="material-symbols-outlined text-[18px]">memory</span></div><div class="flex flex-col"><span class="font-code-lg text-code-lg text-on-surface font-semibold tracking-tight">UMPO·CORE</span><span class="font-code-sm text-code-sm text-on-surface-variant">v4.2.1-prod</span></div></div><div class="px-space-md py-space-sm"><div class="px-space-sm py-space-xs font-label-caps text-label-caps uppercase text-on-surface-variant tracking-wider">Navigation Engine</div><nav class="flex flex-col gap-space-xs mt-space-xs" data-active-classes="bg-surface-container-high text-primary border-l-2 border-primary font-medium"><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="gpu-cluster-telemetry" href="#"><span class="material-symbols-outlined text-[18px]">grid_view</span>Telemetry &amp; Nodes</a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="workload-orchestration" href="#"><span class="material-symbols-outlined text-[18px]">terminal</span>Workload Queue</a><a aria-current="page" class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg transition-colors bg-surface-container-high text-primary border-l-2 border-primary font-medium" data-path="admission-control" href="#"><span class="material-symbols-outlined text-[18px]">lock_clock</span>Admission &amp; Slices</a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="cgroups-resource-quotas" href="#"><span class="material-symbols-outlined text-[18px]">tune</span>Cgroups v2 Policy</a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="cluster-audit-logs" href="#"><span class="material-symbols-outlined text-[18px]">receipt_long</span>Kernel &amp; Syslogs</a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="admin-infrastructure-settings" href="#"><span class="material-symbols-outlined text-[18px]">settings_input_component</span>Host Fabric</a></nav></div></div><div class="p-space-md border-t border-outline-variant/20 bg-surface-container-low/60 flex flex-col gap-space-sm"><div class="flex items-center justify-between text-on-surface-variant font-code-sm text-code-sm"><span class="">FABRIC MESH</span><span class="text-tertiary flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>SYNCED</span></div><div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden"><div class="bg-secondary h-full w-[84%]"></div></div><div class="flex justify-between font-code-sm text-code-sm text-on-surface-variant"><span class="">PCIe 5.0 (x16)</span><span class="">64.0 GT/s</span></div></div></aside><div class="pl-64 flex flex-col min-h-screen"><header class="fixed top-0 left-64 right-0 h-16 bg-surface-container-lowest/85 backdrop-blur-md border-b border-outline-variant/30 z-40 flex items-center justify-between px-space-lg select-none"><div class="flex items-center gap-space-lg"><div class="flex items-center gap-space-sm"><div class="relative flex items-center justify-center"><div class="w-2.5 h-2.5 rounded-full bg-tertiary animate-ping absolute opacity-75"></div><div class="w-2 h-2 rounded-full bg-tertiary relative"></div></div><div class="flex flex-col"><div class="flex items-center gap-space-xs"><span class="font-code-md text-code-md text-on-surface font-medium">UMPO AI Workstation</span><span class="font-label-caps text-label-caps text-outline-variant">//</span><span class="font-code-sm text-code-sm text-secondary">node-dgx-umpo01</span></div><span class="font-body-sm text-body-sm text-on-surface-variant">AI Research Lab &amp; Compute Cluster</span></div></div><div class="hidden xl:flex items-center gap-space-md border-l border-outline-variant/30 pl-space-lg"><div class="flex items-center gap-space-xs bg-surface-container px-space-sm py-space-xs rounded border border-outline-variant/30"><span class="material-symbols-outlined text-tertiary text-[14px]">sensors</span><span class="font-code-sm text-code-sm text-tertiary font-medium">Live Telemetry</span><span class="text-outline-variant text-[10px]">·</span><span class="font-code-sm text-code-sm text-on-surface-variant">Cgroups v2 Active</span><span class="text-outline-variant text-[10px]">·</span><span class="font-code-sm text-code-sm text-on-surface-variant">Up: 42d 18h 12m</span></div><div class="flex items-center gap-space-xs bg-surface-container px-space-sm py-space-xs rounded border border-outline-variant/30"><span class="text-secondary font-code-sm text-code-sm">⚡</span><span class="font-code-sm text-code-sm text-on-surface">GPU 0 Priority:</span><span class="font-code-sm text-code-sm text-secondary font-medium">1/1 Occupied</span><span class="text-outline-variant text-[10px]">·</span><span class="font-code-sm text-code-sm text-on-surface-variant">JupyterHub Active</span><div class="w-12 h-1 bg-surface-container-high rounded-full overflow-hidden ml-1"><div class="w-full h-full bg-secondary shadow-[0_0_8px_rgba(76,215,246,0.6)]"></div></div></div></div></div><div class="flex items-center gap-space-md"><div class="flex items-center p-0.5 rounded-lg bg-surface-container border border-outline-variant/30"><button class="px-space-sm py-1 rounded font-code-sm text-code-sm text-on-surface-variant hover:text-on-surface transition-colors flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">visibility</span>Public View (Read-Only)</button><button class="px-space-sm py-1 rounded font-code-sm text-code-sm bg-primary/20 text-primary border border-primary/40 font-medium flex items-center gap-1 shadow-[0_0_8px_rgba(192,193,255,0.2)]"><span class="material-symbols-outlined text-[14px]">lock</span>Protected Admin Console</button></div><div class="h-4 w-px bg-outline-variant/30"></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="relative pt-16 flex-1 bg-background text-on-surface"><div class="flex flex-col w-full">
+<!-- Subtle decorative ambient back-glow -->
+<div class="relative w-full overflow-hidden p-space-lg lg:p-space-xl flex flex-col gap-space-xl">
+<div class="absolute -top-40 right-20 w-96 h-96 bg-primary/10 rounded-full blur-[120px] pointer-events-none"></div>
+<div class="absolute top-96 -left-32 w-80 h-80 bg-secondary/10 rounded-full blur-[100px] pointer-events-none"></div>
+<!-- 1. ADMIN CONTROL HEADER BANNER -->
+<div class="w-full bg-surface-container-low/90 backdrop-blur-md rounded-xl p-space-md lg:p-space-lg shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div class="flex items-start md:items-center gap-space-md">
+<div class="w-10 h-10 rounded-lg bg-primary/20 text-primary flex items-center justify-center shadow-[0_0_16px_rgba(192,193,255,0.35)] shrink-0">
+<span class="material-symbols-outlined text-[24px]">verified_user</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="font-headline-md text-headline-md text-on-surface">Admin Console Mode Active</span>
+<span class="px-space-xs py-0.5 rounded bg-tertiary-container/30 text-tertiary font-label-caps text-label-caps uppercase tracking-wider flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>AUTHENTICATED
+            </span>
+</div>
+<div class="flex items-center gap-space-sm font-code-sm text-code-sm text-on-surface-variant mt-0.5">
+<span class="">Operator: <span class="text-primary font-medium">dr_sarah.root</span></span>
+<span class="">•</span>
+<span class="flex items-center gap-1 text-secondary">
+<span class="material-symbols-outlined text-[14px]">timer</span>
+              Session expires in: <span class="font-semibold text-secondary" id="sessionTimer">45m 52s</span>
+</span>
+<span class="">•</span>
+<span class="text-on-surface-variant/80">SecOps Policy #UMPO-SEC-89</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-space-sm self-end md:self-auto shrink-0">
+<button class="px-space-md py-1.5 rounded bg-surface-container-high hover:bg-surface-variant text-on-surface font-body-md text-body-md transition-all flex items-center gap-space-xs shadow-sm" onclick="openSyncModal()">
+<span class="material-symbols-outlined text-[16px] text-secondary">sync</span>
+<span class="">SIMTIK SSO Sync</span>
+</button>
+<button class="px-space-md py-1.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-body-md text-body-md transition-all flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[16px]">visibility</span>
+<span class="">Switch to Public View</span>
+</button>
+<button class="px-space-md py-1.5 rounded bg-error-container/40 hover:bg-error-container text-error font-body-md text-body-md transition-all flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[16px]">logout</span>
+<span class="">Revoke Session</span>
+</button>
+</div>
+</div>
+<!-- 2. ADMISSION CONTROL & PRIORITY QUEUE ORCHESTRATOR -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg">
+<!-- GPU 0 Monster Slot Allocation Panel -->
+<div class="xl:col-span-5 bg-surface-container-low/80 backdrop-blur-md rounded-xl p-space-lg flex flex-col justify-between shadow-xl relative overflow-hidden">
+<div class="absolute -right-8 -bottom-8 w-44 h-44 bg-secondary/5 rounded-full blur-2xl pointer-events-none"></div>
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary shadow-[0_0_8px_rgba(76,215,246,0.8)]"></span>
+<span class="font-code-lg text-code-lg text-on-surface font-semibold tracking-tight">GPU 0 // Monster Slot</span>
+</div>
+<span class="px-space-xs py-0.5 rounded bg-secondary-container/20 text-secondary font-label-caps text-label-caps">
+              EXCLUSIVE (80GB VRAM)
+            </span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            NVIDIA A100-SXM4-80GB high-bandwidth interconnect reserved for heavy thesis pipelines and distributed tensor jobs.
+          </p>
+<!-- Current Holder Snapshot Card -->
+<div class="mt-space-sm p-space-md rounded-xl bg-surface-container-lowest/80 flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-md">
+<div class="w-12 h-12 rounded-xl bg-primary/20 text-primary flex items-center justify-center font-display-lg text-[22px] font-bold">
+                  AR
+                </div>
+<div class="flex flex-col">
+<span class="font-body-lg text-body-lg text-on-surface font-medium leading-tight">Ahmad Rifai</span>
+<div class="flex items-center gap-space-xs font-code-sm text-code-sm text-on-surface-variant">
+<span class="text-secondary font-medium">NIM: m23533019</span>
+<span class="">•</span>
+<span class="">TI S1 Thesis Track</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Time Left</span>
+<span class="font-code-lg text-code-lg text-secondary font-bold tracking-tight" id="slotCountdown">02h 42m 06s</span>
+</div>
+</div>
+<!-- Pipeline Progress Metric -->
+<div class="flex flex-col gap-1.5 pt-space-xs">
+<div class="flex justify-between font-code-sm text-code-sm">
+<span class="text-on-surface-variant">Job: <span class="text-on-surface">Bio-LLM Gen-7 Multimodal</span></span>
+<span class="text-secondary font-medium">84.2% VRAM | 412W Peak</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-gradient-to-r from-secondary to-primary h-full rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(76,215,246,0.5)]" style="width: 78%;"></div>
+</div>
+<div class="flex justify-between font-code-sm text-code-sm text-on-surface-variant/70">
+<span class="">Lease Started: Today, 08:30 WIB</span>
+<span class="">cgroup: /slice/monster/m23533019</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Slot Admin Actions -->
+<div class="flex items-center gap-space-xs pt-space-md mt-space-sm">
+<button class="flex-1 px-space-sm py-2 rounded bg-surface-container hover:bg-surface-variant text-secondary font-body-md text-body-md transition-colors flex items-center justify-center gap-1 shadow-sm" onclick="triggerFeedback('Lease extended by 2 hours for m23533019')">
+<span class="material-symbols-outlined text-[16px]">bolt</span>
+<span class="">Extend 2h</span>
+</button>
+<button class="flex-1 px-space-sm py-2 rounded bg-surface-container hover:bg-surface-variant text-on-surface font-body-md text-body-md transition-colors flex items-center justify-center gap-1 shadow-sm" onclick="openTransferModal()">
+<span class="material-symbols-outlined text-[16px]">swap_horiz</span>
+<span class="">Transfer Slot</span>
+</button>
+<button class="px-space-md py-2 rounded bg-error-container/30 hover:bg-error-container text-error font-body-md text-body-md transition-colors flex items-center gap-1 shadow-sm" onclick="triggerPreemption()">
+<span class="material-symbols-outlined text-[16px]">restart_alt</span>
+<span class="">Force Preempt</span>
+</button>
+</div>
+</div>
+<!-- Pending Priority Requests Queue -->
+<div class="xl:col-span-7 bg-surface-container-low/80 backdrop-blur-md rounded-xl p-space-lg flex flex-col justify-between shadow-xl">
+<div class="flex items-center justify-between pb-space-sm">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">queue</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-headline-md text-headline-md text-on-surface">Priority Admission Queue</span>
+<span class="px-2 py-0.5 rounded-full bg-primary/20 text-primary font-code-sm text-code-sm font-semibold">3 Enqueued</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Scheduled FIFO execution with supervisor-signed thesis verification</span>
+</div>
+</div>
+<button class="px-space-sm py-1 rounded bg-surface-container-high text-on-surface-variant hover:text-on-surface font-code-sm text-code-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">tune</span>
+<span class="">Auto-Arbitrate: ON</span>
+</button>
+</div>
+<div class="flex flex-col gap-space-sm mt-space-xs">
+<!-- Requester 1 -->
+<div class="p-space-md rounded-xl bg-surface-container-lowest/80 transition-all hover:bg-surface-container-lowest flex flex-col lg:flex-row lg:items-center justify-between gap-space-md shadow-sm" id="queue-item-1">
+<div class="flex items-start gap-space-md">
+<div class="w-9 h-9 rounded bg-secondary/15 text-secondary flex items-center justify-center font-code-lg text-code-lg font-bold shrink-0 mt-0.5">
+                #1
+              </div>
+<div class="flex flex-col gap-0.5">
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="font-body-lg text-body-lg text-on-surface font-medium">Rian Hidayat</span>
+<span class="font-code-sm text-code-sm text-secondary bg-secondary/10 px-1.5 py-0.5 rounded">m23533055</span>
+<span class="text-outline-variant text-[10px]">•</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">LLM LoRA Fine-Tuning</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">
+                  “Indonesian Medical Knowledge LLaMA-3-8B adapter weights for final thesis evaluation.”
+                </p>
+<div class="flex items-center gap-space-md font-code-sm text-code-sm text-on-surface-variant/80 pt-0.5">
+<span class="text-tertiary flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">check_circle</span> Advisor: Dr. Ir. Wahyudi</span>
+<span class="">Duration: <strong class="text-on-surface">4.0 hrs</strong></span>
+<span class="">Submitted: 14 mins ago</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-space-xs shrink-0 self-end lg:self-center">
+<button class="px-space-md py-1.5 rounded bg-primary text-on-primary font-body-md text-body-md hover:bg-primary-container transition-all flex items-center gap-1 shadow-[0_0_12px_rgba(192,193,255,0.3)]" onclick="approveQueue('queue-item-1', 'Rian Hidayat')">
+<span class="material-symbols-outlined text-[16px]">check</span>
+<span class="">Approve &amp; Schedule</span>
+</button>
+<button class="px-space-sm py-1.5 rounded bg-surface-container hover:bg-surface-variant text-on-surface-variant hover:text-error transition-colors flex items-center justify-center" onclick="declineQueue('queue-item-1')">
+<span class="material-symbols-outlined text-[16px]">close</span>
+</button>
+</div>
+</div>
+<!-- Requester 2 -->
+<div class="p-space-md rounded-xl bg-surface-container-lowest/80 transition-all hover:bg-surface-container-lowest flex flex-col lg:flex-row lg:items-center justify-between gap-space-md shadow-sm" id="queue-item-2">
+<div class="flex items-start gap-space-md">
+<div class="w-9 h-9 rounded bg-primary/15 text-primary flex items-center justify-center font-code-lg text-code-lg font-bold shrink-0 mt-0.5">
+                #2
+              </div>
+<div class="flex flex-col gap-0.5">
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="font-body-lg text-body-lg text-on-surface font-medium">Dewi Lestari</span>
+<span class="font-code-sm text-code-sm text-secondary bg-secondary/10 px-1.5 py-0.5 rounded">m23533071</span>
+<span class="text-outline-variant text-[10px]">•</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Vision Transformer Training</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">
+                  “Satellite Crop Deforestation Segmentation ViT-Base with multi-spectral band embeddings.”
+                </p>
+<div class="flex items-center gap-space-md font-code-sm text-code-sm text-on-surface-variant/80 pt-0.5">
+<span class="text-tertiary flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">check_circle</span> Advisor: Prof. Hendra</span>
+<span class="">Duration: <strong class="text-on-surface">2.0 hrs</strong></span>
+<span class="">Submitted: 32 mins ago</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-space-xs shrink-0 self-end lg:self-center">
+<button class="px-space-md py-1.5 rounded bg-primary text-on-primary font-body-md text-body-md hover:bg-primary-container transition-all flex items-center gap-1 shadow-[0_0_12px_rgba(192,193,255,0.3)]" onclick="approveQueue('queue-item-2', 'Dewi Lestari')">
+<span class="material-symbols-outlined text-[16px]">check</span>
+<span class="">Approve &amp; Schedule</span>
+</button>
+<button class="px-space-sm py-1.5 rounded bg-surface-container hover:bg-surface-variant text-on-surface-variant hover:text-error transition-colors flex items-center justify-center" onclick="declineQueue('queue-item-2')">
+<span class="material-symbols-outlined text-[16px]">close</span>
+</button>
+</div>
+</div>
+<!-- Requester 3 -->
+<div class="p-space-md rounded-xl bg-surface-container-lowest/80 transition-all hover:bg-surface-container-lowest flex flex-col lg:flex-row lg:items-center justify-between gap-space-md shadow-sm" id="queue-item-3">
+<div class="flex items-start gap-space-md">
+<div class="w-9 h-9 rounded bg-surface-container text-on-surface-variant flex items-center justify-center font-code-lg text-code-lg font-bold shrink-0 mt-0.5">
+                #3
+              </div>
+<div class="flex flex-col gap-0.5">
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="font-body-lg text-body-lg text-on-surface font-medium">Bagus Sasongko</span>
+<span class="font-code-sm text-code-sm text-secondary bg-secondary/10 px-1.5 py-0.5 rounded">m23533044</span>
+<span class="text-outline-variant text-[10px]">•</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Reinforcement Learning Sim</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">
+                  “Drone swarm autonomous navigation via PPO in Isaac Gym multi-agent environment.”
+                </p>
+<div class="flex items-center gap-space-md font-code-sm text-code-sm text-on-surface-variant/80 pt-0.5">
+<span class="text-tertiary flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">check_circle</span> Advisor: Dr. Siti Nur</span>
+<span class="">Duration: <strong class="text-on-surface">3.5 hrs</strong></span>
+<span class="">Submitted: 58 mins ago</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-space-xs shrink-0 self-end lg:self-center">
+<button class="px-space-md py-1.5 rounded bg-primary text-on-primary font-body-md text-body-md hover:bg-primary-container transition-all flex items-center gap-1 shadow-[0_0_12px_rgba(192,193,255,0.3)]" onclick="approveQueue('queue-item-3', 'Bagus Sasongko')">
+<span class="material-symbols-outlined text-[16px]">check</span>
+<span class="">Approve &amp; Schedule</span>
+</button>
+<button class="px-space-sm py-1.5 rounded bg-surface-container hover:bg-surface-variant text-on-surface-variant hover:text-error transition-colors flex items-center justify-center" onclick="declineQueue('queue-item-3')">
+<span class="material-symbols-outlined text-[16px]">close</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- 3. COMPREHENSIVE CGROUPS V2 RESOURCE QUOTA MATRIX -->
+<div class="w-full bg-surface-container-low/80 backdrop-blur-md rounded-xl p-space-lg flex flex-col gap-space-md shadow-xl">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[18px]">tune</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md text-on-surface">Cgroups v2 Resource Quota Enforcement Matrix</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Real-time kernel limits mapped to student tiers via systemd-machined and eBPF dispatchers</span>
+</div>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="font-code-sm text-code-sm text-tertiary bg-tertiary/10 px-space-sm py-1 rounded flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span> eBPF BPF_CGROUP_INET Active
+          </span>
+<button class="px-space-md py-1.5 rounded bg-secondary text-on-secondary font-body-md text-body-md hover:bg-secondary-fixed transition-colors flex items-center gap-1 shadow-sm font-medium" onclick="saveCgroupsConfig()">
+<span class="material-symbols-outlined text-[16px]">save</span>
+<span class="">Apply Quota Schema</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md mt-space-xs">
+<!-- Tier 1 -->
+<div class="bg-surface-container-lowest/90 rounded-xl p-space-md flex flex-col gap-space-md relative overflow-hidden group hover:shadow-lg transition-all">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="font-code-lg text-code-lg font-bold text-on-surface">Tier 1</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">// Standard SIMTIK</span>
+</div>
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface-variant font-label-caps text-label-caps">BASE CLASS</span>
+</div>
+<div class="space-y-space-sm font-code-sm text-code-sm">
+<div class="flex justify-between items-center p-2 rounded bg-surface-container/60">
+<span class="text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">memory</span> CPU Quota:</span>
+<span class="text-on-surface font-semibold">200% (2 Cores max)</span>
+</div>
+<div class="flex justify-between items-center p-2 rounded bg-surface-container/60">
+<span class="text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">storage</span> RAM Quota:</span>
+<span class="text-on-surface font-semibold">3.2 GB max (0 swap)</span>
+</div>
+<div class="flex justify-between items-center p-2 rounded bg-surface-container/60">
+<span class="text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">developer_board</span> GPU Allocation:</span>
+<span class="text-secondary font-semibold">Shared GPU 1 (MIG 2g.10gb)</span>
+</div>
+<div class="flex justify-between items-center p-2 rounded bg-surface-container/60">
+<span class="text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">speed</span> I/O Weight:</span>
+<span class="text-on-surface font-semibold">io.weight = 100</span>
+</div>
+</div>
+<div class="pt-space-xs flex items-center justify-between text-on-surface-variant font-code-sm text-code-sm">
+<span class="">Enrolled Students: <strong class="text-on-surface">42</strong></span>
+<span class="text-tertiary">OOM Score Adj: 500</span>
+</div>
+</div>
+<!-- Tier 2 -->
+<div class="bg-surface-container-lowest/90 rounded-xl p-space-md flex flex-col gap-space-md relative overflow-hidden group hover:shadow-lg transition-all shadow-[0_0_20px_rgba(192,193,255,0.06)]">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="font-code-lg text-code-lg font-bold text-primary">Tier 2</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">// Research Fellow</span>
+</div>
+<span class="px-2 py-0.5 rounded bg-primary/20 text-primary font-label-caps text-label-caps">BOOSTED</span>
+</div>
+<div class="space-y-space-sm font-code-sm text-code-sm">
+<div class="flex justify-between items-center p-2 rounded bg-surface-container/60">
+<span class="text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">memory</span> CPU Quota:</span>
+<span class="text-on-surface font-semibold">800% (8 Cores max)</span>
+</div>
+<div class="flex justify-between items-center p-2 rounded bg-surface-container/60">
+<span class="text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">storage</span> RAM Quota:</span>
+<span class="text-on-surface font-semibold">24.0 GB max (8G swap)</span>
+</div>
+<div class="flex justify-between items-center p-2 rounded bg-surface-container/60">
+<span class="text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">developer_board</span> GPU Allocation:</span>
+<span class="text-primary font-semibold">GPU 1 or 0 (Dynamic slice)</span>
+</div>
+<div class="flex justify-between items-center p-2 rounded bg-surface-container/60">
+<span class="text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">speed</span> I/O Weight:</span>
+<span class="text-on-surface font-semibold">io.weight = 400</span>
+</div>
+</div>
+<div class="pt-space-xs flex items-center justify-between text-on-surface-variant font-code-sm text-code-sm">
+<span class="">Enrolled Students: <strong class="text-on-surface">8</strong></span>
+<span class="text-primary">OOM Score Adj: 100</span>
+</div>
+</div>
+<!-- Tier 3 -->
+<div class="bg-surface-container-lowest/90 rounded-xl p-space-md flex flex-col gap-space-md relative overflow-hidden group hover:shadow-lg transition-all shadow-[0_0_24px_rgba(76,215,246,0.1)]">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="font-code-lg text-code-lg font-bold text-secondary">Tier 3</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">// Priority Monster</span>
+</div>
+<span class="px-2 py-0.5 rounded bg-secondary/20 text-secondary font-label-caps text-label-caps animate-pulse">RESERVED VIP</span>
+</div>
+<div class="space-y-space-sm font-code-sm text-code-sm">
+<div class="flex justify-between items-center p-2 rounded bg-surface-container/60">
+<span class="text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">memory</span> CPU Quota:</span>
+<span class="text-on-surface font-semibold">2000% (20 Cores max)</span>
+</div>
+<div class="flex justify-between items-center p-2 rounded bg-surface-container/60">
+<span class="text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">storage</span> RAM Quota:</span>
+<span class="text-on-surface font-semibold">70.0 GB max (32G swap)</span>
+</div>
+<div class="flex justify-between items-center p-2 rounded bg-surface-container/60">
+<span class="text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">developer_board</span> GPU Allocation:</span>
+<span class="text-secondary font-semibold">GPU 0 (Exclusive 80GB SXM)</span>
+</div>
+<div class="flex justify-between items-center p-2 rounded bg-surface-container/60">
+<span class="text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">speed</span> I/O Weight:</span>
+<span class="text-on-surface font-semibold">io.weight = 1000</span>
+</div>
+</div>
+<div class="pt-space-xs flex items-center justify-between text-on-surface-variant font-code-sm text-code-sm">
+<span class="">Enrolled Students: <strong class="text-on-surface">1 Active</strong></span>
+<span class="text-secondary">OOM Score Adj: -1000 (Immune)</span>
+</div>
+</div>
+</div>
+</div>
+<!-- 4. ACTIVE USER TABLE WITH FULL DESTRUCTIVE CONTROLS -->
+<div class="w-full bg-surface-container-low/80 backdrop-blur-md rounded-xl p-space-lg flex flex-col gap-space-md shadow-xl">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">group</span>
+</div>
+<div>
+<div class="flex items-center gap-space-xs">
+<span class="font-headline-md text-headline-md text-on-surface">Active Compute Sessions &amp; Node Users</span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface-variant font-code-sm text-code-sm">4 Active Kernels</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Live cgroup sandboxes running under systemd-nspawn on host node-dgx-umpo01</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm flex-wrap">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[16px] text-on-surface-variant">search</span>
+<input class="pl-8 pr-3 py-1.5 rounded-lg bg-surface-container-lowest text-on-surface font-code-sm text-code-sm border-none focus:outline-none focus:ring-1 focus:ring-primary w-56 placeholder:text-outline-variant" placeholder="Filter by NIM, user, or PID..." type="text">
+</div>
+<button class="px-space-md py-1.5 rounded bg-primary text-on-primary font-body-md text-body-md hover:bg-primary-container transition-all flex items-center gap-1 shadow-sm" onclick="openSyncModal()">
+<span class="material-symbols-outlined text-[16px]">person_add</span>
+<span class="">Enroll / Sync User</span>
+</button>
+</div>
+</div>
+<!-- Users Table -->
+<div class="w-full overflow-x-auto">
+<table class="w-full text-left font-body-md text-body-md">
+<thead>
+<tr class="font-label-caps text-label-caps uppercase text-on-surface-variant border-b border-outline-variant/20 bg-surface-container-lowest/50">
+<th class="py-space-sm px-space-md">Student / Researcher</th>
+<th class="py-space-sm px-space-md">NIM / Dept</th>
+<th class="py-space-sm px-space-md">Tier &amp; cgroup</th>
+<th class="py-space-sm px-space-md">Active Hardware</th>
+<th class="py-space-sm px-space-md">Kernel PID</th>
+<th class="py-space-sm px-space-md">RAM / VRAM Usage</th>
+<th class="py-space-sm px-space-md text-right">Destructive Root Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10 font-code-sm text-code-sm">
+<!-- Row 1: Ahmad Rifai -->
+<tr class="hover:bg-surface-container-high/40 transition-colors">
+<td class="py-space-sm px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-7 h-7 rounded bg-secondary/20 text-secondary font-bold flex items-center justify-center font-code-sm">AR</div>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-surface font-medium">Ahmad Rifai</span>
+<span class="text-on-surface-variant font-code-sm text-[10px]">ahmad.rifai@mhs.umpo.ac.id</span>
+</div>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-code-md text-secondary font-medium">m23533019</span>
+<span class="block text-on-surface-variant text-[10px]">Informatika S1</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="px-2 py-0.5 rounded bg-secondary/20 text-secondary font-label-caps text-[9px] font-bold">TIER 3 (MONSTER)</span>
+<span class="block text-outline-variant text-[10px] mt-0.5">/slice/monster.slice</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="text-secondary font-semibold">GPU 0 (A100)</span>
+<span class="block text-on-surface-variant text-[10px]">20 Cores | 80G VRAM</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="text-on-surface font-mono">18294</span>
+<span class="block text-tertiary text-[10px]">Jupyter PyTorch 2.3</span>
+</td>
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col gap-1 w-28">
+<div class="flex justify-between text-[10px]">
+<span class="text-on-surface-variant">54.2GB / 70GB</span>
+<span class="text-secondary font-semibold">77%</span>
+</div>
+<div class="w-full bg-surface-container h-1 rounded-full overflow-hidden">
+<div class="bg-secondary h-full rounded-full" style="width: 77%;"></div>
+</div>
+</div>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1 rounded bg-surface-container hover:bg-surface-variant text-secondary hover:text-secondary-fixed transition-colors" onclick="triggerFeedback('Boost applied to m23533019')" title="Boost Priority">
+<span class="material-symbols-outlined text-[16px]">bolt</span>
+</button>
+<button class="p-1 rounded bg-surface-container hover:bg-surface-variant text-primary hover:text-primary-fixed transition-colors" onclick="triggerFeedback('m23533019 granted Temporary Lab Assistant rights')" title="Grant Lab Admin Role">
+<span class="material-symbols-outlined text-[16px]">shield_person</span>
+</button>
+<button class="p-1 rounded bg-error-container/30 hover:bg-error-container text-error transition-colors" onclick="killProcess('18294', 'm23533019')" title="Force Kill Jupyter Kernel">
+<span class="material-symbols-outlined text-[16px]">stop_circle</span>
+</button>
+<button class="p-1 rounded bg-error-container/40 hover:bg-error-container text-error transition-colors" onclick="blockUser('m23533019')" title="Block Account &amp; Kill Processes">
+<span class="material-symbols-outlined text-[16px]">block</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2: Nur Halimah -->
+<tr class="hover:bg-surface-container-high/40 transition-colors">
+<td class="py-space-sm px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-7 h-7 rounded bg-primary/20 text-primary font-bold flex items-center justify-center font-code-sm">NH</div>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-surface font-medium">Nur Halimah</span>
+<span class="text-on-surface-variant font-code-sm text-[10px]">nur.h@mhs.umpo.ac.id</span>
+</div>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-code-md text-primary font-medium">m22533011</span>
+<span class="block text-on-surface-variant text-[10px]">Informatika S1</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="px-2 py-0.5 rounded bg-primary/20 text-primary font-label-caps text-[9px] font-bold">TIER 2 (FELLOW)</span>
+<span class="block text-outline-variant text-[10px] mt-0.5">/slice/research.slice</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="text-on-surface font-semibold">GPU 1 (Dynamic)</span>
+<span class="block text-on-surface-variant text-[10px]">8 Cores | 24G VRAM</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="text-on-surface font-mono">20411</span>
+<span class="block text-tertiary text-[10px]">TensorFlow 2.15</span>
+</td>
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col gap-1 w-28">
+<div class="flex justify-between text-[10px]">
+<span class="text-on-surface-variant">18.4GB / 24GB</span>
+<span class="text-primary font-semibold">76%</span>
+</div>
+<div class="w-full bg-surface-container h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 76%;"></div>
+</div>
+</div>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1 rounded bg-surface-container hover:bg-surface-variant text-secondary hover:text-secondary-fixed transition-colors" onclick="triggerFeedback('Boost applied to m22533011')" title="Boost Priority">
+<span class="material-symbols-outlined text-[16px]">bolt</span>
+</button>
+<button class="p-1 rounded bg-surface-container hover:bg-surface-variant text-primary hover:text-primary-fixed transition-colors" onclick="triggerFeedback('m22533011 granted Temporary Lab Assistant rights')" title="Grant Lab Admin Role">
+<span class="material-symbols-outlined text-[16px]">shield_person</span>
+</button>
+<button class="p-1 rounded bg-error-container/30 hover:bg-error-container text-error transition-colors" onclick="killProcess('20411', 'm22533011')" title="Force Kill Jupyter Kernel">
+<span class="material-symbols-outlined text-[16px]">stop_circle</span>
+</button>
+<button class="p-1 rounded bg-error-container/40 hover:bg-error-container text-error transition-colors" onclick="blockUser('m22533011')" title="Block Account &amp; Kill Processes">
+<span class="material-symbols-outlined text-[16px]">block</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3: Fajar Sidiq -->
+<tr class="hover:bg-surface-container-high/40 transition-colors">
+<td class="py-space-sm px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-7 h-7 rounded bg-surface-container text-on-surface font-bold flex items-center justify-center font-code-sm">FS</div>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-surface font-medium">Fajar Sidiq</span>
+<span class="text-on-surface-variant font-code-sm text-[10px]">fajar.s@mhs.umpo.ac.id</span>
+</div>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-code-md text-on-surface font-medium">m24533088</span>
+<span class="block text-on-surface-variant text-[10px]">Teknik Elektro S1</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface-variant font-label-caps text-[9px] font-bold">TIER 1 (STANDARD)</span>
+<span class="block text-outline-variant text-[10px] mt-0.5">/slice/default.slice</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="text-on-surface">Shared GPU 1 (MIG)</span>
+<span class="block text-on-surface-variant text-[10px]">2 Cores | 10G VRAM</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="text-on-surface font-mono">22904</span>
+<span class="block text-on-surface-variant text-[10px]">Scikit-Learn Job</span>
+</td>
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col gap-1 w-28">
+<div class="flex justify-between text-[10px]">
+<span class="text-on-surface-variant">2.1GB / 3.2GB</span>
+<span class="text-tertiary font-semibold">65%</span>
+</div>
+<div class="w-full bg-surface-container h-1 rounded-full overflow-hidden">
+<div class="bg-tertiary h-full rounded-full" style="width: 65%;"></div>
+</div>
+</div>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1 rounded bg-surface-container hover:bg-surface-variant text-secondary hover:text-secondary-fixed transition-colors" onclick="triggerFeedback('Boost applied to m24533088')" title="Boost Priority">
+<span class="material-symbols-outlined text-[16px]">bolt</span>
+</button>
+<button class="p-1 rounded bg-surface-container hover:bg-surface-variant text-primary hover:text-primary-fixed transition-colors" onclick="triggerFeedback('m24533088 granted Temporary Lab Assistant rights')" title="Grant Lab Admin Role">
+<span class="material-symbols-outlined text-[16px]">shield_person</span>
+</button>
+<button class="p-1 rounded bg-error-container/30 hover:bg-error-container text-error transition-colors" onclick="killProcess('22904', 'm24533088')" title="Force Kill Jupyter Kernel">
+<span class="material-symbols-outlined text-[16px]">stop_circle</span>
+</button>
+<button class="p-1 rounded bg-error-container/40 hover:bg-error-container text-error transition-colors" onclick="blockUser('m24533088')" title="Block Account &amp; Kill Processes">
+<span class="material-symbols-outlined text-[16px]">block</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4: Dimas Pratama (Throttled state) -->
+<tr class="hover:bg-surface-container-high/40 transition-colors bg-error-container/5">
+<td class="py-space-sm px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-7 h-7 rounded bg-error/20 text-error font-bold flex items-center justify-center font-code-sm">DP</div>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-surface font-medium">Dimas Pratama</span>
+<span class="text-error font-code-sm text-[10px]">CPU Memory Throttled</span>
+</div>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="font-code-md text-on-surface font-medium">m24533092</span>
+<span class="block text-on-surface-variant text-[10px]">Informatika S1</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface-variant font-label-caps text-[9px] font-bold">TIER 1 (STANDARD)</span>
+<span class="block text-error text-[10px] mt-0.5">cgroup.events: oom=1</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="text-on-surface">Shared GPU 1 (MIG)</span>
+<span class="block text-on-surface-variant text-[10px]">2 Cores | 10G VRAM</span>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="text-error font-mono">31002</span>
+<span class="block text-error text-[10px]">SIGSTOP Pending</span>
+</td>
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col gap-1 w-28">
+<div class="flex justify-between text-[10px]">
+<span class="text-error font-semibold">3.2GB / 3.2GB</span>
+<span class="text-error font-bold">100%</span>
+</div>
+<div class="w-full bg-surface-container h-1 rounded-full overflow-hidden">
+<div class="bg-error h-full rounded-full" style="width: 100%;"></div>
+</div>
+</div>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1 rounded bg-secondary/20 hover:bg-secondary/30 text-secondary transition-colors" onclick="triggerFeedback('Quota unthrottled &amp; boosted for m24533092')" title="Boost Priority Quota">
+<span class="material-symbols-outlined text-[16px]">bolt</span>
+</button>
+<button class="p-1 rounded bg-surface-container hover:bg-surface-variant text-primary hover:text-primary-fixed transition-colors" onclick="triggerFeedback('m24533092 granted Temporary Lab Assistant rights')" title="Grant Lab Admin Role">
+<span class="material-symbols-outlined text-[16px]">shield_person</span>
+</button>
+<button class="p-1 rounded bg-error hover:bg-error-container text-on-error transition-colors" onclick="killProcess('31002', 'm24533092')" title="Force Kill Jupyter Kernel (SIGKILL)">
+<span class="material-symbols-outlined text-[16px]">cancel</span>
+</button>
+<button class="p-1 rounded bg-error-container/40 hover:bg-error-container text-error transition-colors" onclick="blockUser('m24533092')" title="Block Account &amp; Kill Processes">
+<span class="material-symbols-outlined text-[16px]">block</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- 5. LIVE ADMIN AUDIT TRAIL TABLE -->
+<div class="w-full bg-surface-container-low/80 backdrop-blur-md rounded-xl p-space-lg flex flex-col gap-space-md shadow-xl">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span>
+</div>
+<div>
+<div class="flex items-center gap-space-xs">
+<span class="font-headline-md text-headline-md text-on-surface">Kernel &amp; Admission Audit Trail</span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-tertiary font-code-sm text-code-sm flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>Live Syslog Stream
+              </span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Immutable administrative records captured by systemd-journald and auditd daemon</span>
+</div>
+</div>
+<div class="flex items-center gap-space-xs font-code-sm text-code-sm">
+<button class="px-space-md py-1.5 rounded bg-surface-container hover:bg-surface-variant text-on-surface font-body-md text-body-md transition-colors flex items-center gap-1 shadow-sm" onclick="downloadLogs()">
+<span class="material-symbols-outlined text-[16px]">download</span>
+<span class="">Export audit.log</span>
+</button>
+</div>
+</div>
+<div class="w-full overflow-x-auto">
+<table class="w-full text-left font-code-sm text-code-sm">
+<thead>
+<tr class="font-label-caps text-label-caps uppercase text-on-surface-variant border-b border-outline-variant/20 bg-surface-container-lowest/50">
+<th class="py-space-sm px-space-md">Timestamp (WIB)</th>
+<th class="py-space-sm px-space-md">Operator</th>
+<th class="py-space-sm px-space-md">Action Event</th>
+<th class="py-space-sm px-space-md">Target NIM</th>
+<th class="py-space-sm px-space-md">Audit Context &amp; Justification</th>
+<th class="py-space-sm px-space-md text-right">Result Code</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10" id="auditTableBody">
+<tr class="hover:bg-surface-container-high/30 transition-colors">
+<td class="py-space-sm px-space-md text-on-surface-variant">14:12:08.412</td>
+<td class="py-space-sm px-space-md font-medium text-primary">dr_sarah</td>
+<td class="py-space-sm px-space-md">
+<span class="px-2 py-0.5 rounded bg-secondary/15 text-secondary font-semibold">BOOST_PRIORITY_GRANTED</span>
+</td>
+<td class="py-space-sm px-space-md font-medium text-on-surface">m23533019</td>
+<td class="py-space-sm px-space-md text-on-surface-variant">Granted +2h GPU 0 lease for Bio-LLM epoch 4 finalization</td>
+<td class="py-space-sm px-space-md text-right font-medium text-tertiary">200 OK</td>
+</tr>
+<tr class="hover:bg-surface-container-high/30 transition-colors">
+<td class="py-space-sm px-space-md text-on-surface-variant">14:02:45.109</td>
+<td class="py-space-sm px-space-md font-medium text-secondary">admin_root</td>
+<td class="py-space-sm px-space-md">
+<span class="px-2 py-0.5 rounded bg-error/15 text-error font-semibold">CGROUP_MEMORY_THROTTLED</span>
+</td>
+<td class="py-space-sm px-space-md font-medium text-on-surface">m24533092</td>
+<td class="py-space-sm px-space-md text-on-surface-variant">Memory ceiling exceeded 3.2GB in /slice/default.slice (cgroup.events oom_kill=0)</td>
+<td class="py-space-sm px-space-md text-right font-medium text-error">429 THROTTLED</td>
+</tr>
+<tr class="hover:bg-surface-container-high/30 transition-colors">
+<td class="py-space-sm px-space-md text-on-surface-variant">13:48:19.882</td>
+<td class="py-space-sm px-space-md font-medium text-secondary">admin_root</td>
+<td class="py-space-sm px-space-md">
+<span class="px-2 py-0.5 rounded bg-error-container/30 text-error font-semibold">PROCESS_KILLED_SIGKILL</span>
+</td>
+<td class="py-space-sm px-space-md font-medium text-on-surface">m24533004</td>
+<td class="py-space-sm px-space-md text-on-surface-variant">Orphaned fork bomb detected (PID 14201, 80 threads spawned)</td>
+<td class="py-space-sm px-space-md text-right font-medium text-error">137 SIGKILL</td>
+</tr>
+<tr class="hover:bg-surface-container-high/30 transition-colors">
+<td class="py-space-sm px-space-md text-on-surface-variant">13:15:33.220</td>
+<td class="py-space-sm px-space-md font-medium text-primary">dr_sarah</td>
+<td class="py-space-sm px-space-md">
+<span class="px-2 py-0.5 rounded bg-tertiary/15 text-tertiary font-semibold">ADMISSION_OVERRIDE</span>
+</td>
+<td class="py-space-sm px-space-md font-medium text-on-surface">m23533071</td>
+<td class="py-space-sm px-space-md text-on-surface-variant">Promoted queue position #4 -&gt; #2 upon faculty advisor signed request</td>
+<td class="py-space-sm px-space-md text-right font-medium text-tertiary">200 OK</td>
+</tr>
+<tr class="hover:bg-surface-container-high/30 transition-colors">
+<td class="py-space-sm px-space-md text-on-surface-variant">12:30:10.014</td>
+<td class="py-space-sm px-space-md font-medium text-secondary">admin_root</td>
+<td class="py-space-sm px-space-md">
+<span class="px-2 py-0.5 rounded bg-primary/15 text-primary font-semibold">SIMTIK_SSO_BATCH_SYNC</span>
+</td>
+<td class="py-space-sm px-space-md font-medium text-on-surface">ALL (42 USERS)</td>
+<td class="py-space-sm px-space-md text-on-surface-variant">Automated SIMTIK LDAP sync refreshed KRS quota assignments for Semester Gasal</td>
+<td class="py-space-sm px-space-md text-right font-medium text-tertiary">200 OK</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- 6. EMBEDDED MODAL: ADD NEW USER / SIMTIK SYNC DIALOG -->
+<div class="fixed inset-0 bg-background/80 backdrop-blur-md z-50 flex items-center justify-center p-space-md overflow-y-auto" id="syncModal"><div class="w-full max-w-2xl bg-surface-container-low/95 border border-primary/40 rounded-xl p-space-lg lg:p-space-xl flex flex-col gap-space-md shadow-2xl relative my-auto"><div class="flex items-start justify-between pb-space-sm border-b border-outline-variant/20"><div class="flex items-center gap-space-sm"><div class="w-10 h-10 rounded-lg bg-primary/20 text-primary flex items-center justify-center shadow-[0_0_16px_rgba(192,193,255,0.35)] shrink-0"><span class="material-symbols-outlined text-[24px]">person_add</span></div><div class="flex flex-col"><div class="flex items-center gap-space-xs"><span class="font-headline-md text-headline-md text-on-surface">Register User / Enroll Student NIM</span><span class="px-2 py-0.5 rounded bg-tertiary/15 text-tertiary font-label-caps text-label-caps font-bold flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>LDAP READY</span></div><span class="font-body-sm text-body-sm text-on-surface-variant">Create systemd-nspawn container identity &amp; bind University SIMTIK LDAP credentials</span></div></div><button class="w-8 h-8 rounded-lg bg-surface-container hover:bg-surface-variant text-on-surface-variant hover:text-on-surface flex items-center justify-center transition-colors shrink-0" onclick="document.getElementById('syncModal').classList.add('hidden')"><span class="material-symbols-outlined text-[18px]">close</span></button></div><div class="flex flex-col gap-space-md"><div class="grid grid-cols-1 md:grid-cols-2 gap-space-md"><div class="flex flex-col gap-1.5"><label class="font-code-sm text-code-sm text-on-surface-variant flex items-center justify-between"><span class="">University NIM (Student ID):</span><span class="text-tertiary flex items-center gap-1 text-[10px]"><span class="material-symbols-outlined text-[12px]">verified</span> SIMTIK Synced</span></label><div class="relative"><span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[16px] text-primary">badge</span><input class="w-full pl-8 pr-3 py-2 rounded-lg bg-surface-container-lowest text-on-surface font-code-md text-code-md border border-outline-variant/30 focus:outline-none focus:ring-1 focus:ring-primary placeholder:text-outline-variant" id="modalNimInput" placeholder="m24533099" type="text" value="m24533099"></div></div><div class="flex flex-col gap-1.5"><label class="font-code-sm text-code-sm text-on-surface-variant">Full Registered Name:</label><div class="relative"><span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[16px] text-on-surface-variant">person</span><input class="w-full pl-8 pr-3 py-2 rounded-lg bg-surface-container-lowest text-on-surface font-body-md text-body-md border border-outline-variant/30 focus:outline-none focus:ring-1 focus:ring-primary placeholder:text-outline-variant" placeholder="e.g. Arya Dewantara" type="text" value="Arya Dewantara"></div></div></div><div class="grid grid-cols-1 md:grid-cols-2 gap-space-md"><div class="flex flex-col gap-1.5"><label class="font-code-sm text-code-sm text-on-surface-variant">Department / Academic Program:</label><select class="w-full px-space-md py-2 rounded-lg bg-surface-container-lowest text-on-surface font-body-md text-body-md border border-outline-variant/30 focus:outline-none focus:ring-1 focus:ring-primary"><option selected="">Informatika S1</option><option>Teknik Elektro S1</option><option>Sistem Informasi S1</option><option>Master AI Research (S2)</option></select></div><div class="flex flex-col gap-1.5"><label class="font-code-sm text-code-sm text-on-surface-variant flex items-center justify-between"><span class="">Academic Campus Email:</span><span class="text-outline-variant text-[10px]">Auto-generated</span></label><div class="relative"><span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[16px] text-on-surface-variant">mail</span><input class="w-full pl-8 pr-3 py-2 rounded-lg bg-surface-container-lowest text-on-surface font-code-sm text-code-sm border border-outline-variant/30 focus:outline-none focus:ring-1 focus:ring-primary" placeholder="arya.d@mhs.umpo.ac.id" type="email" value="arya.d@mhs.umpo.ac.id"></div></div></div><div class="flex flex-col gap-1.5"><label class="font-code-sm text-code-sm text-on-surface-variant flex items-center justify-between"><span class="">Academic Supervisor / Thesis Advisor:</span><span class="text-secondary font-code-sm text-[10px]">Required for compute allocation</span></label><select class="w-full px-space-md py-2 rounded-lg bg-surface-container-lowest text-on-surface font-body-md text-body-md border border-outline-variant/30 focus:outline-none focus:ring-1 focus:ring-primary"><option selected="">Dr. Ir. Wahyudi, M.T. (Machine Learning &amp; Vision Lab)</option><option>Prof. Hendra Suwandi (Deep Learning Architectures)</option><option>Dr. Siti Nur Jannah (Autonomous &amp; Swarm Robotics)</option></select></div><div class="flex flex-col gap-1.5"><label class="font-code-sm text-code-sm text-on-surface flex items-center justify-between"><span class="">Initial Cgroups v2 Resource Quota Tier:</span><span class="text-outline-variant text-[10px]">eBPF Hard Limit Applied</span></label><div class="grid grid-cols-1 md:grid-cols-3 gap-space-xs"><label class="p-space-sm rounded-xl bg-surface-container-lowest border border-primary/40 cursor-pointer flex flex-col gap-1 transition-all hover:bg-surface-container-high/40"><div class="flex items-center justify-between"><span class="font-code-sm text-code-sm text-on-surface font-bold">Tier 1</span><input checked="" class="accent-primary" name="quotaTier" type="radio" value="tier1"></div><span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Standard SIMTIK</span><div class="mt-1 font-code-sm text-[10px] text-on-surface-variant space-y-0.5"><div class="flex justify-between"><span class="">CPU:</span><span class="text-on-surface">2 Cores (200%)</span></div><div class="flex justify-between"><span class="">RAM:</span><span class="text-on-surface">3.2 GB max</span></div><div class="flex justify-between"><span class="">GPU:</span><span class="text-secondary">Shared MIG</span></div></div></label><label class="p-space-sm rounded-xl bg-surface-container-lowest border border-outline-variant/20 cursor-pointer flex flex-col gap-1 transition-all hover:bg-surface-container-high/40"><div class="flex items-center justify-between"><span class="font-code-sm text-code-sm text-primary font-bold">Tier 2</span><input class="accent-primary" name="quotaTier" type="radio" value="tier2"></div><span class="font-label-caps text-label-caps text-primary uppercase">Research Fellow</span><div class="mt-1 font-code-sm text-[10px] text-on-surface-variant space-y-0.5"><div class="flex justify-between"><span class="">CPU:</span><span class="text-on-surface">8 Cores (800%)</span></div><div class="flex justify-between"><span class="">RAM:</span><span class="text-on-surface">24 GB max</span></div><div class="flex justify-between"><span class="">GPU:</span><span class="text-primary">Dynamic Slice</span></div></div></label><label class="p-space-sm rounded-xl bg-surface-container-lowest border border-outline-variant/20 cursor-pointer flex flex-col gap-1 transition-all hover:bg-surface-container-high/40"><div class="flex items-center justify-between"><span class="font-code-sm text-code-sm text-secondary font-bold">Tier 3</span><input class="accent-primary" name="quotaTier" type="radio" value="tier3"></div><span class="font-label-caps text-label-caps text-secondary uppercase">Priority Monster</span><div class="mt-1 font-code-sm text-[10px] text-on-surface-variant space-y-0.5"><div class="flex justify-between"><span class="">CPU:</span><span class="text-on-surface">20 Cores (2000%)</span></div><div class="flex justify-between"><span class="">RAM:</span><span class="text-on-surface">70 GB max</span></div><div class="flex justify-between"><span class="">GPU:</span><span class="text-secondary">GPU 0 (80GB SXM)</span></div></div></label></div></div><div class="p-space-sm rounded-xl bg-surface-container-lowest/80 border border-outline-variant/20 flex flex-col gap-space-xs"><div class="font-code-sm text-code-sm text-on-surface-variant uppercase tracking-wider">Sandbox Environment &amp; Access Controls</div><div class="grid grid-cols-1 md:grid-cols-2 gap-space-sm"><label class="flex items-center gap-space-xs cursor-pointer select-none"><input checked="" class="rounded accent-primary" type="checkbox"><span class="font-body-sm text-[11px] text-on-surface">Auto-provision JupyterLab &amp; PyTorch 2.3 Kernel</span></label><label class="flex items-center gap-space-xs cursor-pointer select-none"><input checked="" class="rounded accent-primary" type="checkbox"><span class="font-body-sm text-[11px] text-on-surface">Grant SSH Keypair Access (pty/0 via WireGuard)</span></label></div></div></div><div class="flex items-center justify-end gap-space-sm pt-space-sm border-t border-outline-variant/20"><button class="px-space-md py-2 rounded-lg bg-surface-container hover:bg-surface-variant text-on-surface-variant hover:text-on-surface font-body-md text-body-md transition-colors" onclick="document.getElementById('syncModal').classList.add('hidden')">Cancel</button><button class="px-space-lg py-2 rounded-lg bg-primary text-on-primary font-body-md text-body-md hover:bg-primary-container transition-all flex items-center gap-1.5 shadow-[0_0_16px_rgba(192,193,255,0.4)] font-medium" onclick="document.getElementById('syncModal').classList.add('hidden'); triggerFeedback('User Arya Dewantara (m24533099) successfully provisioned in Tier 1 sandbox'); addAuditRow('dr_sarah', 'USER_ENROLLED_PROVISIONED', 'm24533099', 'SIMTIK LDAP verified, systemd-nspawn container created with Tier 1 quota');"><span class="material-symbols-outlined text-[18px]">person_add</span><span class="">+ Enroll &amp; Provision Cgroup Sandbox</span></button></div></div></div>
+<!-- 7. EMBEDDED MODAL: TRANSFER SLOT MODAL -->
+<div class="fixed inset-0 bg-background/80 backdrop-blur-md z-50 flex items-center justify-center p-space-md opacity-0 pointer-events-none transition-opacity duration-200" id="transferModal">
+<div class="w-full max-w-lg bg-surface-container-low rounded-xl p-space-lg flex flex-col gap-space-lg shadow-2xl relative">
+<div class="flex items-center justify-between pb-space-sm border-b border-outline-variant/20">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-lg bg-secondary/20 text-secondary flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">swap_horiz</span>
+</div>
+<div>
+<span class="font-headline-md text-headline-md text-on-surface">Transfer GPU 0 Monster Slot</span>
+<span class="block font-body-sm text-body-sm text-on-surface-variant">Reassign current lease immediately to an enqueued thesis candidate</span>
+</div>
+</div>
+<button class="w-8 h-8 rounded-lg bg-surface-container hover:bg-surface-variant text-on-surface-variant hover:text-on-surface flex items-center justify-center transition-colors" onclick="closeTransferModal()">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<div class="flex flex-col gap-space-md">
+<p class="font-body-md text-body-md text-on-surface-variant">
+          Transferring the exclusive slot will safely trigger a <code class="text-secondary font-mono">SIGUSR1</code> checkpoint signal to Ahmad Rifai's PyTorch process prior to context eviction.
+        </p>
+<div class="flex flex-col gap-1.5">
+<label class="font-code-sm text-code-sm text-on-surface">Select Eligible Candidate:</label>
+<div class="space-y-space-xs">
+<label class="p-space-sm rounded-lg bg-surface-container hover:bg-surface-variant cursor-pointer flex items-center justify-between transition-colors">
+<div class="flex items-center gap-space-sm">
+<input checked="" name="transferTarget" type="radio">
+<div>
+<span class="font-body-md text-body-md font-medium text-on-surface">Rian Hidayat</span>
+<span class="block font-code-sm text-code-sm text-secondary">m23533055 • Queue #1</span>
+</div>
+</div>
+<span class="text-tertiary font-code-sm text-code-sm">Advisor Approved</span>
+</label>
+<label class="p-space-sm rounded-lg bg-surface-container hover:bg-surface-variant cursor-pointer flex items-center justify-between transition-colors">
+<div class="flex items-center gap-space-sm">
+<input name="transferTarget" type="radio">
+<div>
+<span class="font-body-md text-body-md font-medium text-on-surface">Dewi Lestari</span>
+<span class="block font-code-sm text-code-sm text-secondary">m23533071 • Queue #2</span>
+</div>
+</div>
+<span class="text-tertiary font-code-sm text-code-sm">Advisor Approved</span>
+</label>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-end gap-space-sm pt-space-sm border-t border-outline-variant/20">
+<button class="px-space-md py-2 rounded-lg bg-surface-container hover:bg-surface-variant text-on-surface-variant font-body-md text-body-md transition-colors" onclick="closeTransferModal()">
+          Cancel
+        </button>
+<button class="px-space-lg py-2 rounded-lg bg-secondary text-on-secondary font-body-md text-body-md hover:bg-secondary-fixed transition-all flex items-center gap-1 shadow-sm font-medium" onclick="confirmTransfer()">
+<span class="material-symbols-outlined text-[16px]">swap_horiz</span>
+<span class="">Initiate Checkpointed Transfer</span>
+</button>
+</div>
+</div>
+</div>
+<!-- TOAST FEEDBACK NOTIFICATION CONTAINER -->
+<div class="fixed inset-0 bg-background/80 backdrop-blur-md z-50 flex items-center justify-center p-space-md overflow-y-auto hidden" id="boostMonsterModal"><div class="w-full max-w-2xl bg-surface-container-low/95 border border-primary/40 rounded-xl p-space-lg lg:p-space-xl flex flex-col gap-space-md shadow-2xl relative my-auto"><div class="flex items-start justify-between pb-space-sm border-b border-outline-variant/20"><div class="flex items-center gap-space-sm"><div class="w-10 h-10 rounded-lg bg-primary/20 text-primary flex items-center justify-center shadow-[0_0_16px_rgba(192,193,255,0.35)] shrink-0"><span class="material-symbols-outlined text-[24px]">bolt</span></div><div class="flex flex-col"><div class="flex items-center gap-space-xs"><span class="font-headline-md text-headline-md text-on-surface">⚡ Boost User &amp; Allocate Monster Slot</span><span class="px-2 py-0.5 rounded bg-secondary/20 text-secondary font-label-caps text-label-caps font-bold">RESERVED VIP</span></div><span class="font-body-sm text-body-sm text-on-surface-variant">Grant temporary high-priority Cgroups v2 quota and dedicated GPU access for thesis research pipelines.</span></div></div><button class="w-8 h-8 rounded-lg bg-surface-container hover:bg-surface-variant text-on-surface-variant hover:text-on-surface flex items-center justify-center transition-colors shrink-0" onclick="document.getElementById('boostMonsterModal').classList.add('hidden')"><span class="material-symbols-outlined text-[18px]">close</span></button></div><div class="flex flex-col gap-space-md"><div class="flex flex-col gap-1.5"><label class="font-code-sm text-code-sm text-on-surface flex items-center justify-between"><span class="">Candidate &amp; Workload Target:</span><span class="text-tertiary flex items-center gap-1 font-body-sm"><span class="material-symbols-outlined text-[14px]">verified</span> Thesis Track Verified</span></label><div class="p-space-sm rounded-xl bg-surface-container-lowest border border-outline-variant/30 flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-sm"><div class="w-9 h-9 rounded bg-secondary/15 text-secondary flex items-center justify-center font-code-lg text-code-lg font-bold shrink-0">RH</div><div class="flex flex-col"><div class="flex items-center gap-space-xs"><span class="font-body-md text-body-md font-semibold text-on-surface">Rian Hidayat</span><span class="font-code-sm text-code-sm text-secondary bg-secondary/10 px-1.5 py-0.2 rounded">NIM: m23533055</span></div><span class="font-body-sm text-body-sm text-on-surface-variant">Bio-LLM Gen-7 Multimodal (LLaMA-3-8B adapter fine-tuning)</span></div></div><span class="px-2 py-0.5 rounded bg-primary/20 text-primary font-code-sm text-code-sm font-semibold shrink-0">Queue #1</span></div></div><div class="p-space-md rounded-xl bg-surface-container-lowest/80 border border-outline-variant/20 flex flex-col gap-space-sm"><div class="flex items-center justify-between"><span class="font-code-sm text-code-sm text-on-surface flex items-center gap-1"><span class="material-symbols-outlined text-[15px] text-secondary">schedule</span> Allocation Duration Slider (1h – 8h)</span><span class="px-2 py-0.5 rounded bg-secondary/15 text-secondary font-code-sm text-code-sm font-medium" id="sliderDurationBadge">Lease Duration: 4 Hours (Extended Peak Quota)</span></div><div class="px-2 pt-1"><input class="w-full accent-secondary cursor-pointer" id="boostRangeSlider" max="8" min="1" oninput="document.getElementById('sliderDurationBadge').innerText = 'Lease Duration: ' + this.value + ' Hours (' + (this.value &gt;= 4 ? 'Extended Peak Quota' : 'Standard Burst') + ')'; const endH = 14 + parseInt(this.value); document.getElementById('leaseExpiryTime').innerText = (endH &lt; 24 ? (endH &lt; 10 ? '0' + endH : endH) : '0' + (endH - 24)) + ':35 WIB';" step="1" type="range" value="4"><div class="flex justify-between font-code-sm text-[10px] text-on-surface-variant px-1 mt-1"><span class="">1h (Burst)</span><span class="">2h</span><span class="text-secondary font-semibold">4h (Standard)</span><span class="">6h</span><span class="">8h (Max Day)</span></div></div><div class="flex items-center justify-between pt-1 border-t border-outline-variant/10 font-code-sm text-code-sm text-on-surface-variant"><span class="">Lease Start: <strong class="text-on-surface">Today, 14:35 WIB (Now)</strong></span><span class="">Lease Expiry: <strong class="text-secondary font-semibold" id="leaseExpiryTime">18:35 WIB</strong></span></div></div><div class="flex flex-col gap-1.5"><div class="font-code-sm text-code-sm text-on-surface-variant uppercase tracking-wider flex items-center justify-between"><span class="">Cgroups v2 Quota Enforcement Differential</span><span class="text-secondary font-code-sm text-[10px]">eBPF Hard Enforced</span></div><div class="grid grid-cols-1 md:grid-cols-2 gap-space-sm"><div class="p-space-sm rounded-lg bg-surface-container/60 border border-outline-variant/20 flex flex-col gap-1.5"><div class="flex items-center justify-between pb-1 border-b border-outline-variant/10"><span class="font-code-sm text-code-sm text-on-surface-variant font-medium">BEFORE: Standard Tier 1</span><span class="px-1.5 py-0.2 rounded bg-surface-container text-on-surface-variant text-[10px]">BASE</span></div><div class="space-y-1 font-code-sm text-[11px] text-on-surface-variant"><div class="flex justify-between"><span class="">CPU Quota:</span><span class="text-on-surface">200% (2 Cores)</span></div><div class="flex justify-between"><span class="">RAM Quota:</span><span class="text-on-surface">3.2 GB max (0 swap)</span></div><div class="flex justify-between"><span class="">GPU Device:</span><span class="text-on-surface">Shared GPU 1 (MIG 2g)</span></div><div class="flex justify-between"><span class="">io.weight / OOM:</span><span class="text-on-surface">100 / Score Adj: 500</span></div></div></div><div class="p-space-sm rounded-lg bg-secondary/5 border border-secondary/30 flex flex-col gap-1.5 shadow-[0_0_12px_rgba(76,215,246,0.1)]"><div class="flex items-center justify-between pb-1 border-b border-secondary/20"><span class="font-code-sm text-code-sm text-secondary font-semibold flex items-center gap-1">⚡ AFTER: Boosted Monster Slot</span><span class="px-1.5 py-0.2 rounded bg-secondary/20 text-secondary text-[10px] font-bold">TIER 3</span></div><div class="space-y-1 font-code-sm text-[11px]"><div class="flex justify-between"><span class="text-on-surface-variant">CPU Quota:</span><span class="text-secondary font-semibold">2000% (20 Cores max)</span></div><div class="flex justify-between"><span class="text-on-surface-variant">RAM Quota:</span><span class="text-on-surface font-semibold">70.0 GB (32G swap)</span></div><div class="flex justify-between"><span class="text-on-surface-variant">GPU Device:</span><span class="text-secondary font-bold">GPU 0 (Dedicated 80GB SXM)</span></div><div class="flex justify-between"><span class="text-on-surface-variant">io.weight / OOM:</span><span class="text-tertiary font-semibold">1000 / Immune (-1000)</span></div></div></div></div></div><div class="p-space-sm rounded-xl bg-surface-container-lowest/90 border border-outline-variant/20 flex flex-col gap-space-xs"><div class="flex items-center justify-between"><span class="font-code-sm text-code-sm text-on-surface font-medium flex items-center gap-1"><span class="material-symbols-outlined text-[14px] text-tertiary">history_edu</span> Advisor Approval &amp; Thesis Defense Verification</span><span class="px-2 py-0.5 rounded bg-tertiary/15 text-tertiary font-code-sm text-[10px] font-semibold flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span> Verified by Supervisor</span></div><div class="flex flex-col gap-1 text-[11px] font-code-sm text-on-surface-variant bg-surface-container/40 p-2 rounded"><div class="flex justify-between items-center"><span class="text-on-surface font-medium">Advisor: Dr. Ir. Wahyudi, M.T.</span><span class="text-secondary">SIMTIK-SIG-89241B</span></div><span class="italic text-on-surface-variant/80">“Final checkpoint validation for S1 Thesis Defense on Indonesian Medical LLaMA-3-8B fine-tuning.”</span></div><label class="flex items-center gap-space-xs pt-0.5 cursor-pointer select-none"><input checked="" class="rounded accent-primary" type="checkbox"><span class="font-body-sm text-[11px] text-on-surface-variant">Supervisor electronic authorization attached and logged to kernel audit trail</span></label></div></div><div class="flex items-center justify-end gap-space-sm pt-space-sm border-t border-outline-variant/20"><button class="px-space-md py-2 rounded-lg bg-surface-container hover:bg-surface-variant text-on-surface-variant hover:text-on-surface font-body-md text-body-md transition-colors" onclick="document.getElementById('boostMonsterModal').classList.add('hidden')">Cancel / Dismiss</button><button class="px-space-lg py-2 rounded-lg bg-primary text-on-primary font-body-md text-body-md hover:bg-primary-container transition-all flex items-center gap-1.5 shadow-[0_0_16px_rgba(192,193,255,0.4)] font-medium" onclick="document.getElementById('boostMonsterModal').classList.add('hidden'); triggerFeedback('⚡ Boost applied: GPU 0 Monster Slot allocated to Rian Hidayat (m23533055) for 4h'); addAuditRow('dr_sarah', 'BOOST_MONSTER_ALLOCATED', 'm23533055', 'Cgroups v2 boosted to Tier 3 VIP + GPU 0 SXM assigned');"><span class="material-symbols-outlined text-[18px]">bolt</span><span class="">⚡ Approve &amp; Enforce Cgroups Boost</span></button></div></div></div><div class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none" id="toastNotification">
+<div class="px-space-lg py-space-md rounded-xl bg-surface-container-high/95 backdrop-blur-md text-on-surface shadow-2xl flex items-center gap-space-md">
+<span class="material-symbols-outlined text-tertiary text-[20px]" id="toastIcon">check_circle</span>
+<span class="font-body-md text-body-md font-medium" id="toastMessage">Operation executed successfully</span>
+</div>
+</div>
+</div>
+<!-- CLIENT INTERACTIVITY SCRIPT -->
+<script>
+  // Simple countdown timer for GPU 0 Monster Slot
+  let secondsRemaining = 2 * 3600 + 44 * 60 + 12;
+  const countdownEl = document.getElementById('slotCountdown');
+  
+  setInterval(() => {
+    if (secondsRemaining > 0) {
+      secondsRemaining--;
+      const h = Math.floor(secondsRemaining / 3600);
+      const m = Math.floor((secondsRemaining % 3600) / 60);
+      const s = secondsRemaining % 60;
+      if (countdownEl) {
+        countdownEl.innerText = 
+          String(h).padStart(2, '0') + 'h ' + 
+          String(m).padStart(2, '0') + 'm ' + 
+          String(s).padStart(2, '0') + 's';
+      }
+    }
+  }, 1000);
+
+  // Admin Session Expiry simulation
+  let sessionSec = 47 * 60 + 58;
+  const sessionEl = document.getElementById('sessionTimer');
+  setInterval(() => {
+    if (sessionSec > 0) {
+      sessionSec--;
+      const m = Math.floor(sessionSec / 60);
+      const s = sessionSec % 60;
+      if (sessionEl) {
+        sessionEl.innerText = `${m}m ${String(s).padStart(2, '0')}s`;
+      }
+    }
+  }, 1000);
+
+  // UI Toast helper
+  function triggerFeedback(msg, isError = false) {
+    const toast = document.getElementById('toastNotification');
+    const toastMsg = document.getElementById('toastMessage');
+    const toastIcon = document.getElementById('toastIcon');
+    if (!toast) return;
+
+    toastMsg.innerText = msg;
+    if (isError) {
+      toastIcon.innerText = 'error';
+      toastIcon.className = 'material-symbols-outlined text-error text-[20px]';
+    } else {
+      toastIcon.innerText = 'check_circle';
+      toastIcon.className = 'material-symbols-outlined text-tertiary text-[20px]';
+    }
+
+    toast.classList.remove('translate-y-20', 'opacity-0');
+    toast.classList.add('translate-y-0', 'opacity-100');
+
+    setTimeout(() => {
+      toast.classList.remove('translate-y-0', 'opacity-100');
+      toast.classList.add('translate-y-20', 'opacity-0');
+    }, 3500);
+  }
+
+  // Admission Queue Actions
+  function approveQueue(elementId, studentName) {
+    const el = document.getElementById(elementId);
+    if (el) {
+      el.style.opacity = '0.4';
+      el.style.pointerEvents = 'none';
+      triggerFeedback(`Approved priority admission for ${studentName}. Scheduled next.`);
+      addAuditRow('dr_sarah', 'ADMISSION_APPROVED', elementId.replace('queue-item-', 'm235330'), `Manual approval for compute slice by Dr. Sarah`);
+    }
+  }
+
+  function declineQueue(elementId) {
+    const el = document.getElementById(elementId);
+    if (el) {
+      el.style.display = 'none';
+      triggerFeedback(`Compute request declined.`);
+      addAuditRow('dr_sarah', 'ADMISSION_DECLINED', elementId.replace('queue-item-', 'm235330'), `Insufficient thesis verification / timeline conflict`);
+    }
+  }
+
+  // Preemption trigger
+  function triggerPreemption() {
+    if (confirm('Force immediate preemption of GPU 0 from Ahmad Rifai (m23533019)?')) {
+      triggerFeedback('Preemption signal SIGUSR1 sent. Reverting allocation.', true);
+      addAuditRow('dr_sarah', 'SLOT_FORCE_PREEMPTION', 'm23533019', 'Administrative slot reclamation for emergency faculty run');
+    }
+  }
+
+  // Kill Process
+  function killProcess(pid, nim) {
+    if (confirm(`Send SIGKILL to PID ${pid} (Student: ${nim})?`)) {
+      triggerFeedback(`Kernel PID ${pid} terminated via SIGKILL`, true);
+      addAuditRow('dr_sarah', 'PROCESS_KILLED_SIGKILL', nim, `SIGKILL forced on unresponding Jupyter Python kernel (PID: ${pid})`);
+    }
+  }
+
+  // Block User
+  function blockUser(nim) {
+    if (confirm(`Block account ${nim} and terminate all active host processes?`)) {
+      triggerFeedback(`User ${nim} blocked from PAM admission`, true);
+      addAuditRow('dr_sarah', 'USER_ACCOUNT_BLOCKED', nim, `PAM login revoked; all active sandbox slices frozen`);
+    }
+  }
+
+  // Modal open / close handlers
+  function openSyncModal() {
+    const modal = document.getElementById('syncModal');
+    if (modal) {
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+      modal.classList.add('opacity-100', 'pointer-events-auto');
+    }
+  }
+
+  function closeSyncModal() {
+    const modal = document.getElementById('syncModal');
+    if (modal) {
+      modal.classList.remove('opacity-100', 'pointer-events-auto');
+      modal.classList.add('opacity-0', 'pointer-events-none');
+    }
+  }
+
+  function openTransferModal() {
+    const modal = document.getElementById('transferModal');
+    if (modal) {
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+      modal.classList.add('opacity-100', 'pointer-events-auto');
+    }
+  }
+
+  function closeTransferModal() {
+    const modal = document.getElementById('transferModal');
+    if (modal) {
+      modal.classList.remove('opacity-100', 'pointer-events-auto');
+      modal.classList.add('opacity-0', 'pointer-events-none');
+    }
+  }
+
+  function confirmTransfer() {
+    closeTransferModal();
+    triggerFeedback('GPU 0 Slot transferred to Rian Hidayat (m23533055)');
+    addAuditRow('dr_sarah', 'SLOT_TRANSFER_EXECUTED', 'm23533055', 'Checkpoint saved. GPU 0 assigned to Rian Hidayat');
+  }
+
+  function simulateNimLookup() {
+    const input = document.getElementById('modalNimInput');
+    const card = document.getElementById('simtikStudentCard');
+    if (input && input.value.trim() !== '') {
+      if (card) card.classList.remove('hidden');
+      triggerFeedback('SIMTIK SSO Record located for ' + input.value);
+    } else {
+      triggerFeedback('Please enter a valid student NIM', true);
+    }
+  }
+
+  function confirmUserEnrollment() {
+    closeSyncModal();
+    triggerFeedback('User provisioned with cgroups v2 sandbox');
+    addAuditRow('dr_sarah', 'USER_ENROLLED_PROVISIONED', 'm23533099', 'SIMTIK synced, cgroups v2 slice initial limits activated');
+  }
+
+  function saveCgroupsConfig() {
+    triggerFeedback('Cgroups v2 resource hierarchy updated across all slices');
+    addAuditRow('dr_sarah', 'CGROUP_SCHEMA_RELOADED', 'SYSTEM_KERNEL', 'systemctl daemon-reload & eBPF dispatcher updated');
+  }
+
+  function downloadLogs() {
+    triggerFeedback('Audit log bundle exported (umpo-audit-trail.log)');
+  }
+
+  function addAuditRow(operator, action, targetNim, reason) {
+    const tbody = document.getElementById('auditTableBody');
+    if (!tbody) return;
+    const now = new Date();
+    const timeStr = String(now.getHours()).padStart(2, '0') + ':' + 
+                    String(now.getMinutes()).padStart(2, '0') + ':' + 
+                    String(now.getSeconds()).padStart(2, '0') + '.' + 
+                    String(now.getMilliseconds()).padStart(3, '0');
+
+    const tr = document.createElement('tr');
+    tr.className = 'hover:bg-surface-container-high/30 transition-colors animate-fade-in';
+    tr.innerHTML = `
+      <td class="py-space-sm px-space-md text-on-surface-variant">${timeStr}</td>
+      <td class="py-space-sm px-space-md font-medium text-primary">${operator}</td>
+      <td class="py-space-sm px-space-md">
+        <span class="px-2 py-0.5 rounded bg-primary/20 text-primary font-semibold">${action}</span>
+      </td>
+      <td class="py-space-sm px-space-md font-medium text-on-surface">${targetNim}</td>
+      <td class="py-space-sm px-space-md text-on-surface-variant">${reason}</td>
+      <td class="py-space-sm px-space-md text-right font-medium text-tertiary">200 OK</td>
+    `;
+    tbody.insertBefore(tr, tbody.firstChild);
+  }
+</script></main></div>
+
+</body></html>

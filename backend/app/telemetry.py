@@ -271,7 +271,7 @@ def get_per_user_gpu_metrics(gpus: List[Dict[str, Any]]) -> List[Dict[str, Any]]
         for p in psutil.process_iter(["pid", "username", "name", "cmdline", "create_time", "cpu_times", "cpu_num", "memory_info"]):
             try:
                 u = p.info.get("username")
-                if u in valid_usernames:
+                if u and (u in valid_usernames or (u.startswith("m") and u[1:].isdigit())):
                     pid = p.info["pid"]
                     user_all_proc_count[u] += 1
                     t = p.info.get("cpu_times")
@@ -317,13 +317,27 @@ def get_per_user_gpu_metrics(gpus: List[Dict[str, Any]]) -> List[Dict[str, Any]]
         pass
 
     results = []
-    for uid, uname in sorted(TRAINING_UIDS.items()):
-        is_riset = (uid == 1021)
+    
+    all_tracked = set(TRAINING_UIDS.values())
+    all_tracked.update(user_all_proc_count.keys())
+    all_tracked.update(user_gpu_map.keys())
+    valid_tracked = sorted([u for u in all_tracked if u in TRAINING_UIDS.values() or (u.startswith("m") and u[1:].isdigit())])
+    rev_training = {v: k for k, v in TRAINING_UIDS.items()}
+    
+    for uname in valid_tracked:
+        if uname in rev_training:
+            uid = rev_training[uname]
+            is_riset = (uid == 1021)
+            tier = "Riset" if is_riset else "Praktikum"
+        else:
+            uid = int(uname[1:]) if uname[1:].isdigit() else 0
+            is_riset = False
+            tier = "SIMTIK"
+            
         assigned_gpu_idx = 0 if is_riset else 1
         assigned_gpu_name = f"GPU {assigned_gpu_idx}"
-        tier = "Riset" if is_riset else "Praktikum"
 
-        # VRAM limit recommendation: 100% (16311 MB) for labriset, 30% (~4893 MB) for practical
+        # VRAM limit recommendation: 100% (16311 MB) for labriset, 30% (~4893 MB) for practical/SIMTIK
         vram_recommended_limit_mb = 16311.0 if is_riset else 4893.0
 
         gpu_procs = user_gpu_map.get(uname, [])

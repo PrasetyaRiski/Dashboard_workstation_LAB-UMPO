@@ -168,9 +168,9 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, sparkHistory = [] }) {
               : 'bg-[#262a34] text-[#dfe2ef] border-[#46455440]'
           }`}>
             {isLevel1 ? (
-              <><Zap className="w-3.5 h-3.5" fill="currentColor"/> Dedicated Monster</>
+              <><Zap className="w-3.5 h-3.5" fill="currentColor"/> Level 1 Dedicated (Priority)</>
             ) : (
-              <><Users className="w-3.5 h-3.5"/> Shared Practicum Pool</>
+              <><Users className="w-3.5 h-3.5"/> Level 2 Shared (Standard)</>
             )}
           </span>
         </div>
@@ -220,7 +220,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, sparkHistory = [] }) {
             )}
           </div>
           <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-[#262a34] text-[#c0c1ff] border border-[#46455430] shrink-0">
-            {isLevel1 ? "20C / 70GB Monster" : "2C / 3GB QoS Cap"}
+            {isLevel1 ? "20C / 70GB (Priority)" : "2C / 3GB (Standard)"}
           </span>
         </div>
       </div>

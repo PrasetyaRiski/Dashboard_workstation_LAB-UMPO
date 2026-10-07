@@ -145,12 +145,35 @@ function ProcessDrawer({ proc, onClose, onKill, isAdmin }) {
 
         {/* Footer actions */}
         <div className="mt-auto p-6 border-t border-slate-700/50 bg-[#0a0e17]/50 text-center">
-          <p className="text-xs text-[#908fa0] font-mono leading-relaxed">
-            {isProtected
-              ? '// Proses sistem terproteksi tidak dapat dihentikan.'
-              : '// Kontrol dan penghentian proses user dikelola melalui menu User.'
-            }
-          </p>
+          {!isProtected && isAdmin ? (
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                if (onKill) {
+                  onKill({
+                    pid: proc.pid,
+                    username: proc.username,
+                    procName: proc.name,
+                    cmdline: proc.cmdline,
+                    vramMb: proc.vram_mb,
+                    is_system: proc.is_system
+                  });
+                }
+              }}
+              className="w-full py-2.5 px-4 rounded-xl bg-rose-500/15 border border-rose-500/30 hover:bg-rose-500/25 text-rose-300 font-mono text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-sm"
+            >
+              <XCircle className="w-4 h-4" />
+              Hentikan Proses (PID {proc.pid})
+            </button>
+          ) : (
+            <p className="text-xs text-[#908fa0] font-mono leading-relaxed">
+              {isProtected
+                ? '// Proses sistem terproteksi tidak dapat dihentikan.'
+                : '// Login sebagai Admin untuk menghentikan proses ini.'
+              }
+            </p>
+          )}
         </div>
       </div>
     </div>
@@ -493,6 +516,7 @@ function ProcessManager({
         <ProcessDrawer
           proc={inspectedProc}
           onClose={() => setInspectedProc(null)}
+          onKill={onOpenKillModal}
           isAdmin={isAdmin}
         />
       )}

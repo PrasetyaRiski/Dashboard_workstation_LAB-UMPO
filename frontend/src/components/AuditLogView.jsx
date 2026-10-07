@@ -1,13 +1,55 @@
 import React, { useState } from 'react';
-import { ShieldAlert, KeyRound, AlertTriangle, Info, Search, Clock, XCircle } from 'lucide-react';
+import { ShieldAlert, KeyRound, AlertTriangle, Info, Search, Clock, XCircle, Zap, RotateCcw, UserX, UserCheck } from 'lucide-react';
 
 const ACTION_META = {
+  BOOST_PRIORITY: {
+    icon: Zap,
+    color: 'text-amber-400',
+    bg: 'bg-amber-500/10',
+    border: 'border-amber-500/20',
+    label: 'Boost Priority',
+  },
+  UNBOOST_PRIORITY: {
+    icon: RotateCcw,
+    color: 'text-blue-400',
+    bg: 'bg-blue-500/10',
+    border: 'border-blue-500/20',
+    label: 'Revert Standard',
+  },
+  AUTO_EXPIRE_BOOST: {
+    icon: Clock,
+    color: 'text-amber-400',
+    bg: 'bg-amber-500/10',
+    border: 'border-amber-500/20',
+    label: 'Auto Expire',
+  },
   KILL_PROCESS: {
     icon: XCircle,
     color: 'text-rose-400',
     bg: 'bg-rose-500/10',
     border: 'border-rose-500/20',
     label: 'Kill Process',
+  },
+  KILL_USER_ALL: {
+    icon: ShieldAlert,
+    color: 'text-rose-400',
+    bg: 'bg-rose-500/10',
+    border: 'border-rose-500/20',
+    label: 'Kill All',
+  },
+  BLOCK_USER: {
+    icon: UserX,
+    color: 'text-rose-400',
+    bg: 'bg-rose-500/10',
+    border: 'border-rose-500/20',
+    label: 'Block User',
+  },
+  UNBLOCK_USER: {
+    icon: UserCheck,
+    color: 'text-emerald-400',
+    bg: 'bg-emerald-500/10',
+    border: 'border-emerald-500/20',
+    label: 'Unblock User',
   },
   RESET_PASSWORD: {
     icon: KeyRound,
@@ -23,13 +65,6 @@ const ACTION_META = {
     border: 'border-rose-500/20',
     label: 'Over Quota',
     pulse: true,
-  },
-  KILL_USER_ALL: {
-    icon: ShieldAlert,
-    color: 'text-rose-400',
-    bg: 'bg-rose-500/10',
-    border: 'border-rose-500/20',
-    label: 'Kill All',
   },
   SIMULATION_START: {
     icon: Info,
@@ -67,10 +102,11 @@ export default function AuditLogView({ logs = [] }) {
   });
 
   const filterChips = [
-    { id: 'ALL',           label: `Semua (${logs.length})` },
-    { id: 'KILL_PROCESS',  label: 'Kill Process' },
-    { id: 'RESET_PASSWORD',label: 'Reset PW' },
-    { id: 'OVER_QUOTA',   label: 'Over Quota' },
+    { id: 'ALL',            label: `Semua (${logs.length})` },
+    { id: 'BOOST_PRIORITY', label: 'Boost Priority' },
+    { id: 'KILL_PROCESS',   label: 'Kill Process' },
+    { id: 'RESET_PASSWORD', label: 'Reset PW' },
+    { id: 'OVER_QUOTA',     label: 'Over Quota' },
   ];
 
   return (

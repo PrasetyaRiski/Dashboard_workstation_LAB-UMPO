@@ -11,13 +11,17 @@ const LiveCountdown = ({ expiresAt }) => {
   const [timeLeft, setTimeLeft] = useState('');
   useEffect(() => {
     if (!expiresAt) return;
-    const interval = setInterval(() => {
+    const updateCountdown = () => {
       const now = new Date().getTime();
-      const target = new Date(expiresAt).getTime();
+      const cleanDate = typeof expiresAt === 'string' ? expiresAt.replace(' ', 'T') : expiresAt;
+      const target = new Date(cleanDate).getTime();
+      if (isNaN(target)) {
+        setTimeLeft('—');
+        return;
+      }
       const diff = target - now;
       if (diff <= 0) {
         setTimeLeft('Expired');
-        clearInterval(interval);
       } else {
         const h = Math.floor(diff / (1000 * 60 * 60));
         const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
@@ -28,7 +32,9 @@ const LiveCountdown = ({ expiresAt }) => {
         timeString += `${s}s`;
         setTimeLeft(timeString);
       }
-    }, 1000);
+    };
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
     return () => clearInterval(interval);
   }, [expiresAt]);
   return <span className="text-amber-400 font-semibold">{timeLeft || '...'}</span>;

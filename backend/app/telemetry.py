@@ -218,6 +218,13 @@ def get_system_telemetry() -> Dict[str, Any]:
         }
     }
 
+def check_is_priority(nim: str) -> bool:
+    try:
+        from app.db import is_user_priority
+        return is_user_priority(nim)
+    except Exception:
+        return False
+
 def get_per_user_gpu_metrics(gpus: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     global _prev_user_cpu_times, _prev_cpu_timestamp
     now = time.time()
@@ -323,7 +330,6 @@ def get_per_user_gpu_metrics(gpus: List[Dict[str, Any]]) -> List[Dict[str, Any]]
     all_tracked.update(user_gpu_map.keys())
     valid_tracked = sorted([u for u in all_tracked if u in TRAINING_UIDS.values() or (u.startswith("m") and u[1:].isdigit())])
     rev_training = {v: k for k, v in TRAINING_UIDS.items()}
-    
     import pwd
     for uname in valid_tracked:
         real_uid = None
@@ -332,20 +338,24 @@ def get_per_user_gpu_metrics(gpus: List[Dict[str, Any]]) -> List[Dict[str, Any]]
         except Exception:
             pass
 
+        is_priority_user = False
         if uname in rev_training:
             uid = rev_training[uname]
             is_riset = (uid == 1021)
-            tier = "Riset" if is_riset else "Praktikum"
+            tier = "Level 1 (Riset)" if is_riset else "Level 2 (Praktikum)"
+            is_priority_user = is_riset
         else:
             uid = real_uid if real_uid is not None else (int(uname[1:]) if uname[1:].isdigit() else 0)
+            nim = uname[1:] if (uname.startswith("m") and uname[1:].isdigit()) else uname
+            is_priority_user = check_is_priority(nim)
+            tier = "Level 1 (Priority)" if is_priority_user else "Level 2 (Standard)"
             is_riset = False
-            tier = "SIMTIK"
             
-        assigned_gpu_idx = 0 if is_riset else 1
+        assigned_gpu_idx = 0 if is_priority_user else 1
         assigned_gpu_name = f"GPU {assigned_gpu_idx}"
 
-        # VRAM limit recommendation: 100% (16311 MB) for labriset, 30% (~4893 MB) for practical/SIMTIK
-        vram_recommended_limit_mb = 16311.0 if is_riset else 4893.0
+        # VRAM limit recommendation: 100% (16311 MB) for priority (GPU 0), 30% (~4893 MB) for standard practical/SIMTIK (GPU 1)
+        vram_recommended_limit_mb = 16311.0 if is_priority_user else 4893.0
 
         gpu_procs = user_gpu_map.get(uname, [])
         total_vram_mb = round(sum(p["vram_mb"] for p in gpu_procs), 1)
@@ -362,11 +372,11 @@ def get_per_user_gpu_metrics(gpus: List[Dict[str, Any]]) -> List[Dict[str, Any]]
         mem_max_bytes = read_cgroup_file(f"{slice_dir}/memory.max")
         ram_used_bytes = max(mem_curr_bytes, user_rss_bytes.get(uname, 0))
         ram_used_mb = round(ram_used_bytes / (1024 ** 2), 1)
-        ram_max_mb = round(mem_max_bytes / (1024 ** 2), 1) if mem_max_bytes > 0 else (71680.0 if is_riset else 3072.0)
+        ram_max_mb = round(mem_max_bytes / (1024 ** 2), 1) if mem_max_bytes > 0 else (71680.0 if is_priority_user else 3072.0)
 
         # CPU Metrics & Core Allocations
-        # Core limits: 20 Cores for labriset (Tier 1), 2 Cores for training1-10 (Tier 2)
-        cores_limit = 20 if is_riset else 2
+        # Core limits: 20 Cores for Level 1 Priority / Riset, 2 Cores for Level 2 Standard
+        cores_limit = 20 if is_priority_user else 2
         prev_time = _prev_user_cpu_times.get(uname, current_user_times.get(uname, 0.0))
         delta_time = max(0.0, current_user_times.get(uname, 0.0) - prev_time)
         cpu_percent = round((delta_time / dt) * 100.0, 1)
@@ -378,7 +388,7 @@ def get_per_user_gpu_metrics(gpus: List[Dict[str, Any]]) -> List[Dict[str, Any]]
 
         # Determine compute state
         if total_vram_mb > 0:
-            if not is_riset and total_vram_mb > vram_recommended_limit_mb:
+            if not is_priority_user and total_vram_mb > vram_recommended_limit_mb:
                 status = "VRAM Exceeded (>30%)"
                 status_color = "red"
             else:
@@ -398,6 +408,7 @@ def get_per_user_gpu_metrics(gpus: List[Dict[str, Any]]) -> List[Dict[str, Any]]
             "uid": uid,
             "username": uname,
             "tier": tier,
+            "is_priority": is_priority_user,
             "gpu_assigned": assigned_gpu_name,
             "gpu_index": assigned_gpu_idx,
             "vram_used_mb": total_vram_mb,

@@ -137,6 +137,11 @@ const [pendingAction, setPendingAction]   = useState(null);
 
   useEffect(() => { fetchStatus(); }, [fetchStatus]);
 
+  const getAuthHeaders = () => ({
+    'Content-Type': 'application/json',
+    ...(adminToken ? { 'Authorization': `Bearer ${adminToken}` } : {})
+  });
+
   const handleOpenKillModal = (proc) => {
     setKillModal({ isOpen: true, processInfo: proc, isSubmitting: false });
   };
@@ -147,7 +152,7 @@ const [pendingAction, setPendingAction]   = useState(null);
     try {
       const res = await fetch('/api/kill-process', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ pid: killModal.processInfo.pid }),
       });
       const result = await res.json();
@@ -173,7 +178,7 @@ const [pendingAction, setPendingAction]   = useState(null);
     try {
       const res = await fetch('/api/reset-password', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ username, new_password: newPassword }),
       });
       const result = await res.json();
@@ -202,7 +207,7 @@ const [pendingAction, setPendingAction]   = useState(null);
     try {
       const res = await fetch('/api/kill-user-all', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ username }),
       });
       const result = await res.json();
@@ -224,7 +229,7 @@ const [pendingAction, setPendingAction]   = useState(null);
     try {
       const res = await fetch('/api/run-simulation', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({}),
       });
       const result = await res.json();
@@ -243,7 +248,7 @@ const [pendingAction, setPendingAction]   = useState(null);
     try {
       const res = await fetch('/api/stop-simulation', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({}),
       });
       const result = await res.json();
@@ -394,11 +399,13 @@ const [pendingAction, setPendingAction]   = useState(null);
                   <GpuCard
                     gpu={data?.gpus?.[0]}
                     isAdmin={isAdmin}
+                    onOpenKillModal={handleOpenKillModal}
                     sparkHistory={data?.history || []}
                   />
                   <GpuCard
                     gpu={data?.gpus?.[1]}
                     isAdmin={isAdmin}
+                    onOpenKillModal={handleOpenKillModal}
                     sparkHistory={data?.history || []}
                   />
                 </div>
@@ -410,6 +417,7 @@ const [pendingAction, setPendingAction]   = useState(null);
                 <ProcessManager
                   processes={activeProcesses}
                   isAdmin={isAdmin}
+                  onOpenKillModal={handleOpenKillModal}
                   onRunSimulation={handleRunSimulation}
                   onStopSimulation={handleStopSimulation}
                   isSimulating={isSimulating}

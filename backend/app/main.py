@@ -4,6 +4,7 @@ import secrets
 import signal
 import subprocess
 import time
+from datetime import datetime
 from collections import deque
 import psutil
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Request, Depends
@@ -57,9 +58,16 @@ def get_capacity():
     now = datetime.now()
     for u in users:
         if u.get("is_priority") and u.get("priority_expires_at"):
-            exp_dt = datetime.strptime(u.get("priority_expires_at"), "%Y-%m-%d %H:%M:%S")
-            if exp_dt > now:
-                active_boosts += 1
+            exp_str = u.get("priority_expires_at")
+            try:
+                if isinstance(exp_str, str):
+                    exp_dt = datetime.strptime(exp_str, "%Y-%m-%d %H:%M:%S")
+                else:
+                    exp_dt = exp_str
+                if exp_dt > now:
+                    active_boosts += 1
+            except Exception:
+                pass
     return {"success": True, "total_slots": 1, "used_slots": active_boosts}
 
 @app.get("/api/audit-logs")
@@ -387,8 +395,6 @@ def get_students():
     users = list_users()
     return {"success": True, "users": users}
 
-from datetime import datetime
-
 @app.post("/api/users/boost")
 def boost_student(req: BoostUserRequest, _=Depends(verify_admin)):
     """Menaikkan NIM ke Mode Prioritas Level 1 (20 Core, 70G, GPU 0)"""
@@ -402,9 +408,12 @@ def boost_student(req: BoostUserRequest, _=Depends(verify_admin)):
         if u.get("is_priority"):
             exp_str = u.get("priority_expires_at")
             if exp_str:
-                exp_dt = datetime.strptime(exp_str, "%Y-%m-%d %H:%M:%S")
-                if exp_dt > now:
-                    active_boosts += 1
+                try:
+                    exp_dt = datetime.strptime(exp_str, "%Y-%m-%d %H:%M:%S") if isinstance(exp_str, str) else exp_str
+                    if exp_dt > now:
+                        active_boosts += 1
+                except Exception:
+                    pass
                     
     # Maksimal 1 user boost karena hanya ada 1 slot GPU 0 (dedicated)
     if active_boosts >= 1:
@@ -416,6 +425,9 @@ def boost_student(req: BoostUserRequest, _=Depends(verify_admin)):
 
     success = set_user_priority(req.nim, req.hours, req.reason or "Admin Boost")
     if success:
+        # Hentikan sesi lama (jika sedang aktif di Level 2) agar spawn berikutnya otomatis masuk ke Level 1 (GPU 0)
+        os_username = f"m{req.nim}"
+        subprocess.run(["pkill", "-u", os_username], check=False)
         record_audit(
             target=f"NIM {req.nim}",
             action="BOOST_PRIORITY",
@@ -430,10 +442,13 @@ def unboost_student(req: UserActionRequest, _=Depends(verify_admin)):
     """Mengembalikan NIM ke Mode Standard Level 2 (2 Core, 3G, GPU 1)"""
     success = unset_user_priority(req.nim)
     if success:
+        # Hentikan sesi Level 1 yang sedang aktif agar GPU 0 dibebaskan dan sesi baru masuk ke Level 2
+        os_username = f"m{req.nim}"
+        subprocess.run(["pkill", "-u", os_username], check=False)
         record_audit(
             target=f"NIM {req.nim}",
             action="UNBOOST_PRIORITY",
-            detail="Dikembalikan ke Mode Standard Level 2 (2 Core, 3G, GPU 1).",
+            detail="Dikembalikan ke Mode Standard Level 2 (2 Core, 3G, GPU 1). Sesi notebook aktif dihentikan agar GPU 0 dibebaskan.",
             log_type="info"
         )
         return {"success": True, "message": f"NIM {req.nim} dikembalikan ke Mode Standard Level 2."}
@@ -573,10 +588,16 @@ async def startup_event():
             try:
                 expired_nims = auto_expire_priorities()
                 for nim in expired_nims:
+                    os_username = f"m{nim}"
+                    subprocess.run(["pkill", "-u", os_username], check=False)
+                    try:
+                        subprocess.run(["loginctl", "terminate-user", os_username], check=False, timeout=2)
+                    except Exception:
+                        pass
                     record_audit(
                         target=f"NIM {nim}",
                         action="AUTO_EXPIRE_BOOST",
-                        detail="Durasi Prioritas habis. Otomatis kembali ke Mode Standard Level 2.",
+                        detail="Durasi Prioritas habis. Sesi notebook dihentikan dan user kembali ke Mode Standard Level 2.",
                         log_type="info"
                     )
             except Exception as e:

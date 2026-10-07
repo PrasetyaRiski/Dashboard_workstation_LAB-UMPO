@@ -24,6 +24,17 @@ from app.db import (
     is_user_priority, auto_expire_priorities, get_connection
 )
 
+# Load .env file automatically jika tersedia di root direktori atau backend
+try:
+    from dotenv import load_dotenv
+    _CURR_DIR = os.path.dirname(os.path.abspath(__file__))
+    _PROJ_ROOT = os.path.dirname(os.path.dirname(_CURR_DIR))
+    load_dotenv(os.path.join(_PROJ_ROOT, ".env"))
+    load_dotenv(os.path.join(os.path.dirname(_CURR_DIR), ".env"))
+    load_dotenv()
+except Exception:
+    pass
+
 app = FastAPI(title="AI Lab Compute Dashboard", version="2.1.0")
 
 security = HTTPBearer(auto_error=False)

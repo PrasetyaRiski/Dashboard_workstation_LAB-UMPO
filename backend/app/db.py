@@ -9,6 +9,12 @@ import logging
 from datetime import datetime, timedelta
 from typing import Optional, List, Dict, Any
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except Exception:
+    pass
+
 logger = logging.getLogger("db_manager")
 
 PG_HOST = os.getenv("POSTGRES_HOST", "127.0.0.1")

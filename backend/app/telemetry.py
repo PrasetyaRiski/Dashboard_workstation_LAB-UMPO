@@ -3,7 +3,7 @@ import os
 import psutil
 import subprocess
 from collections import deque, defaultdict
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 
 # Try importing pynvml
 try:

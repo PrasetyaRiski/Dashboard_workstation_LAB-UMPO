@@ -483,11 +483,19 @@ def toggle_active(req: UserActionRequest, request: Request, _=Depends(verify_adm
                     subprocess.run(["loginctl", "terminate-user", os_username], check=False, timeout=2)
                 except:
                     pass
-                cur.execute(f"INSERT INTO audit_logs (nim, action, detail) VALUES ({placeholder}, {placeholder}, {placeholder})", (req.nim, "BLOCK_USER", "User diblokir dan sesinya dihentikan."))
-                conn.commit()
+                record_audit(
+                    target=f"NIM {req.nim}",
+                    action="BLOCK_USER",
+                    detail=f"Akun NIM {req.nim} dinonaktifkan/diblokir oleh Admin dan seluruh sesi dihentikan.",
+                    log_type="danger"
+                )
             else:
-                cur.execute(f"INSERT INTO audit_logs (nim, action, detail) VALUES ({placeholder}, {placeholder}, {placeholder})", (req.nim, "UNBLOCK_USER", "User diaktifkan kembali."))
-                conn.commit()
+                record_audit(
+                    target=f"NIM {req.nim}",
+                    action="UNBLOCK_USER",
+                    detail=f"Akun NIM {req.nim} diaktifkan kembali oleh Admin.",
+                    log_type="success"
+                )
         return {"success": True, "message": f"Status Akses untuk NIM {req.nim} berhasil diperbarui."}
     raise HTTPException(status_code=404, detail="User tidak ditemukan.")
 
@@ -528,8 +536,12 @@ def delete_user(nim: str, request: Request, _=Depends(verify_admin)):
         subprocess.run(["loginctl", "terminate-user", os_username], check=False, timeout=2)
     except:
         pass
-    cur.execute(f"INSERT INTO audit_logs (nim, action, detail) VALUES ({placeholder}, {placeholder}, {placeholder})", (nim, "DELETE_USER", "User dihapus dari sistem beserta sesinya."))
-    conn.commit()
+    record_audit(
+        target=f"NIM {nim}",
+        action="DELETE_USER",
+        detail="User dihapus dari sistem beserta sesinya.",
+        log_type="danger"
+    )
     return {"success": True, "message": "User berhasil dihapus."}
 
 

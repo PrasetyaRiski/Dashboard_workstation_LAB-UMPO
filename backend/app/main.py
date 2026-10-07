@@ -29,6 +29,8 @@ app = FastAPI(title="AI Lab Compute Dashboard", version="2.1.0")
 security = HTTPBearer(auto_error=False)
 ADMIN_PIN = os.getenv("ADMIN_PIN", "123456")
 ACTIVE_SESSIONS: Dict[str, Dict[str, Any]] = {}
+FAILED_LOGIN_ATTEMPTS: Dict[str, List[float]] = defaultdict(list)
+SESSION_MAX_AGE_SECONDS = 12 * 3600  # Maksimal 12 jam
 
 def get_current_session(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)) -> Dict[str, Any]:
     if not credentials or not credentials.credentials:
@@ -37,6 +39,9 @@ def get_current_session(credentials: Optional[HTTPAuthorizationCredentials] = De
     session = ACTIVE_SESSIONS.get(token)
     if not session:
         raise HTTPException(status_code=401, detail="Sesi login kedaluwarsa atau tidak valid. Silakan login kembali.")
+    if session.get("expires_at") and time.time() > session["expires_at"]:
+        ACTIVE_SESSIONS.pop(token, None)
+        raise HTTPException(status_code=401, detail="Sesi login telah kedaluwarsa (maksimal 12 jam). Silakan login kembali.")
     return session
 
 def verify_operator_or_admin(session: Dict[str, Any] = Depends(get_current_session)) -> Dict[str, Any]:
@@ -66,16 +71,30 @@ class SetRoleRequest(BaseModel):
     role: str
 
 @app.post("/api/admin/login")
-def admin_login(req: LoginRequest):
+def admin_login(req: LoginRequest, request: Request):
+    client_ip = request.client.host if request.client else "unknown"
+    now_ts = time.time()
+
+    # Rate limiting: Maksimal 5 kali kegagalan per IP dalam jendela 5 menit
+    recent_fails = [t for t in FAILED_LOGIN_ATTEMPTS[client_ip] if now_ts - t < 300]
+    FAILED_LOGIN_ATTEMPTS[client_ip] = recent_fails
+    if len(recent_fails) >= 5:
+        raise HTTPException(
+            status_code=429,
+            detail="Terlalu banyak percobaan login yang gagal. Akses dibatasi sementara selama 5 menit demi keamanan."
+        )
+
     # 1. Login via Master PIN (Super Admin)
     if req.pin:
         valid_pins = {ADMIN_PIN, os.getenv("LAB_ADMIN_PIN", "umpo2026"), "123456", "umpo2026"}
         if req.pin in valid_pins:
+            FAILED_LOGIN_ATTEMPTS.pop(client_ip, None)
             token = secrets.token_hex(32)
             ACTIVE_SESSIONS[token] = {
                 "role": "admin",
                 "nim": None,
-                "nama": "Super Admin"
+                "nama": "Super Admin",
+                "expires_at": now_ts + SESSION_MAX_AGE_SECONDS
             }
             return {
                 "success": True,
@@ -83,31 +102,37 @@ def admin_login(req: LoginRequest):
                 "role": "admin",
                 "user": {"nim": None, "nama": "Super Admin", "role": "admin"}
             }
+        FAILED_LOGIN_ATTEMPTS[client_ip].append(now_ts)
         raise HTTPException(status_code=401, detail="PIN Master Admin salah")
 
     # 2. Login via Akun SIMTIK (Aslab / Admin)
     if req.nim and req.password:
         is_valid, msg, user_data = verify_simtik_credentials(req.nim, req.password)
         if not is_valid:
+            FAILED_LOGIN_ATTEMPTS[client_ip].append(now_ts)
             raise HTTPException(status_code=401, detail=msg or "Kredensial SIMTIK salah atau layanan tidak dapat dihubungi.")
 
         user = get_or_create_user(req.nim, user_data.get("nama"))
         if not user.get("is_active", True):
+            FAILED_LOGIN_ATTEMPTS[client_ip].append(now_ts)
             raise HTTPException(status_code=403, detail="Akses ditolak: Akun Anda dinonaktifkan oleh Admin Lab.")
 
         user_role = user.get("role") or ("admin" if user.get("is_admin") else "mahasiswa")
         if user_role not in ["aslab", "admin"]:
+            FAILED_LOGIN_ATTEMPTS[client_ip].append(now_ts)
             raise HTTPException(
                 status_code=403,
                 detail=f"Akses Ditolak: Akun NIM {req.nim} terdaftar sebagai Mahasiswa dan tidak memiliki izin akses administratif lab."
             )
 
+        FAILED_LOGIN_ATTEMPTS.pop(client_ip, None)
         token = secrets.token_hex(32)
         nama_user = user.get("nama") or f"Mahasiswa {req.nim}"
         ACTIVE_SESSIONS[token] = {
             "role": user_role,
             "nim": req.nim,
-            "nama": nama_user
+            "nama": nama_user,
+            "expires_at": now_ts + SESSION_MAX_AGE_SECONDS
         }
         record_audit(
             target=f"NIM {req.nim}",
@@ -412,6 +437,8 @@ def reset_password(req: ResetPasswordRequest, request: Request, session: Dict[st
         raise HTTPException(status_code=400, detail="User target tidak valid (Hanya akun lab/training yang dapat direset)")
     if len(req.new_password) < 4:
         raise HTTPException(status_code=400, detail="Password minimal 4 karakter")
+    if "\n" in req.new_password or "\r" in req.new_password or ":" in req.new_password:
+        raise HTTPException(status_code=400, detail="Password tidak boleh mengandung karakter newline atau titik dua.")
 
     try:
         proc = subprocess.run(
@@ -731,7 +758,14 @@ if os.path.exists(FRONTEND_DIST):
     async def serve_frontend(full_path: str):
         if full_path.startswith("api/") or full_path.startswith("ws/"):
             raise HTTPException(status_code=404)
-        file_path = os.path.join(FRONTEND_DIST, full_path)
-        if os.path.isfile(file_path):
-            return FileResponse(file_path)
-        return FileResponse(os.path.join(FRONTEND_DIST, "index.html"))
+        base_dir = os.path.abspath(FRONTEND_DIST)
+        target_path = os.path.abspath(os.path.join(base_dir, full_path))
+        # Cegah Arbitrary File Read / Path Traversal di luar FRONTEND_DIST
+        if not target_path.startswith(base_dir):
+            raise HTTPException(status_code=403, detail="Akses ditolak: Percobaan path traversal terdeteksi.")
+        if os.path.isfile(target_path):
+            return FileResponse(target_path)
+        index_file = os.path.join(base_dir, "index.html")
+        if os.path.isfile(index_file):
+            return FileResponse(index_file)
+        raise HTTPException(status_code=404, detail="File frontend tidak ditemukan.")

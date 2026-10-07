@@ -70,12 +70,21 @@ def get_connection():
         conn.execute("""CREATE TABLE IF NOT EXISTS users (
             nim TEXT PRIMARY KEY, nama TEXT, is_admin INTEGER DEFAULT 0,
             is_priority INTEGER DEFAULT 0, priority_expires_at TIMESTAMP NULL,
-            is_active INTEGER DEFAULT 1, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            is_active INTEGER DEFAULT 1, role TEXT DEFAULT 'mahasiswa',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             last_login TIMESTAMP NULL)""")
         conn.execute("""CREATE TABLE IF NOT EXISTS audit_logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT, nim TEXT, action TEXT, detail TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)""")
         conn.commit()
+
+        # Migrasi kolom 'role' jika tabel lama belum memilikinya
+        try:
+            conn.execute("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'mahasiswa'")
+            conn.commit()
+        except Exception:
+            pass
+
         _TABLES_READY = True
     return conn, "sqlite"
 
@@ -94,6 +103,7 @@ def init_db():
                     is_priority BOOLEAN DEFAULT FALSE,
                     priority_expires_at TIMESTAMP NULL,
                     is_active BOOLEAN DEFAULT TRUE,
+                    role VARCHAR(30) DEFAULT 'mahasiswa',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     last_login TIMESTAMP NULL
                 );
@@ -114,6 +124,7 @@ def init_db():
                     is_priority INTEGER DEFAULT 0,
                     priority_expires_at TIMESTAMP NULL,
                     is_active INTEGER DEFAULT 1,
+                    role TEXT DEFAULT 'mahasiswa',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     last_login TIMESTAMP NULL
                 );
@@ -164,13 +175,15 @@ def get_or_create_user(nim: str, nama: Optional[str] = None) -> Dict[str, Any]:
             res = dict(row) if hasattr(row, "keys") else {
                 "nim": row[0], "nama": row[1], "is_admin": bool(row[2]),
                 "is_priority": bool(row[3]), "priority_expires_at": row[4],
-                "is_active": bool(row[5]), "created_at": row[6], "last_login": row[7]
+                "is_active": bool(row[5]), "created_at": row[6], "last_login": row[7],
+                "role": row[8] if len(row) > 8 else "mahasiswa"
             }
         else:
             res = dict(row)
             res["is_admin"] = bool(res.get("is_admin"))
             res["is_priority"] = bool(res.get("is_priority"))
             res["is_active"] = bool(res.get("is_active"))
+            res["role"] = res.get("role") or ("admin" if res.get("is_admin") else "mahasiswa")
         return res
     finally:
         cur.close()
@@ -189,13 +202,15 @@ def list_users() -> List[Dict[str, Any]]:
                 item = dict(r) if hasattr(r, "keys") else {
                     "nim": r[0], "nama": r[1], "is_admin": bool(r[2]),
                     "is_priority": bool(r[3]), "priority_expires_at": r[4],
-                    "is_active": bool(r[5]), "created_at": r[6], "last_login": r[7]
+                    "is_active": bool(r[5]), "created_at": r[6], "last_login": r[7],
+                    "role": r[8] if len(r) > 8 else "mahasiswa"
                 }
             else:
                 item = dict(r)
                 item["is_admin"] = bool(item.get("is_admin"))
                 item["is_priority"] = bool(item.get("is_priority"))
                 item["is_active"] = bool(item.get("is_active"))
+                item["role"] = item.get("role") or ("admin" if item.get("is_admin") else "mahasiswa")
             
             # Format expires_at string jika ada
             if item.get("priority_expires_at"):
@@ -207,6 +222,32 @@ def list_users() -> List[Dict[str, Any]]:
                 
             results.append(item)
         return results
+    finally:
+        cur.close()
+        conn.close()
+
+
+def set_user_role(nim: str, role: str) -> bool:
+    """Mengubah role pengguna: 'mahasiswa', 'aslab', atau 'admin'"""
+    role = role.lower().strip()
+    valid_roles = {"mahasiswa", "aslab", "admin"}
+    if role not in valid_roles:
+        return False
+    conn, engine = get_connection()
+    cur = conn.cursor()
+    try:
+        placeholder = "%s" if engine == "postgres" else "?"
+        is_admin_flag = 1 if role == "admin" else 0
+        cur.execute(
+            f"UPDATE users SET role = {placeholder}, is_admin = {placeholder} WHERE nim = {placeholder}",
+            (role, is_admin_flag, nim)
+        )
+        cur.execute(
+            f"INSERT INTO audit_logs (nim, action, detail) VALUES ({placeholder}, {placeholder}, {placeholder})",
+            (nim, "SET_ROLE", f"Role pengguna diubah menjadi: {role.upper()}")
+        )
+        conn.commit()
+        return True
     finally:
         cur.close()
         conn.close()
@@ -266,9 +307,10 @@ def toggle_user_admin(nim: str) -> bool:
             return False
         curr_admin = bool(row[0]) if engine == "postgres" else bool(row["is_admin"])
         new_val = not curr_admin
+        new_role = "admin" if new_val else "mahasiswa"
         cur.execute(
-            f"UPDATE users SET is_admin = {placeholder} WHERE nim = {placeholder}",
-            (new_val if engine == "postgres" else (1 if new_val else 0), nim)
+            f"UPDATE users SET is_admin = {placeholder}, role = {placeholder} WHERE nim = {placeholder}",
+            (new_val if engine == "postgres" else (1 if new_val else 0), new_role, nim)
         )
         conn.commit()
         return True

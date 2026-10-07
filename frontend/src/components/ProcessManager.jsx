@@ -184,6 +184,8 @@ function ProcessDrawer({ proc, onClose, onKill, isAdmin }) {
 function ProcessManager({
   processes = [],
   isAdmin,
+  isSuperAdmin,
+  adminRole,
   onOpenKillModal,
   onRunSimulation,
   onStopSimulation,
@@ -250,21 +252,31 @@ function ProcessManager({
             <div className="flex items-center gap-3 flex-wrap">
               {isAdmin ? (
                 <>
-                  <button
-                    onClick={onRunSimulation}
-                    disabled={isSimulating}
-                    className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-bold transition-colors flex items-center gap-2"
-                  >
-                    <Play className="w-4 h-4 fill-current" />
-                    Uji Beban (11 User)
-                  </button>
-                  <button
-                    onClick={onStopSimulation}
-                    className="px-4 py-2 rounded-xl bg-[#1c1f29] border border-[#46455430] text-xs font-semibold text-[#908fa0] hover:text-rose-400 hover:border-rose-500/30 transition-colors flex items-center gap-2"
-                  >
-                    <Square className="w-4 h-4" />
-                    Stop Semua
-                  </button>
+                  {isSuperAdmin && (
+                    <>
+                      <button
+                        onClick={onRunSimulation}
+                        disabled={isSimulating}
+                        className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-bold transition-colors flex items-center gap-2 shadow-sm"
+                      >
+                        <Play className="w-4 h-4 fill-current" />
+                        Uji Beban (11 User)
+                      </button>
+                      <button
+                        onClick={onStopSimulation}
+                        className="px-4 py-2 rounded-xl bg-[#1c1f29] border border-[#46455430] text-xs font-semibold text-[#908fa0] hover:text-rose-400 hover:border-rose-500/30 transition-colors flex items-center gap-2"
+                      >
+                        <Square className="w-4 h-4" />
+                        Stop Semua
+                      </button>
+                    </>
+                  )}
+                  {adminRole === 'aslab' && (
+                    <div className="px-3.5 py-2 rounded-xl bg-[#4cd7f6]/10 border border-[#4cd7f6]/20 text-[#4cd7f6] text-xs font-mono font-medium flex items-center gap-2">
+                      <ShieldCheck className="w-4 h-4" />
+                      <span>Mode Operator: Kill Process Aktif</span>
+                    </div>
+                  )}
                 </>
               ) : (
                 <button

@@ -58,6 +58,20 @@ const ACTION_META = {
     border: 'border-amber-500/20',
     label: 'Reset Password',
   },
+  SET_ROLE: {
+    icon: ShieldCheck,
+    color: 'text-[#c0c1ff]',
+    bg: 'bg-[#c0c1ff]/10',
+    border: 'border-[#c0c1ff]/20',
+    label: 'Ubah Role',
+  },
+  LOGIN_DASHBOARD: {
+    icon: UserCheck,
+    color: 'text-[#4cd7f6]',
+    bg: 'bg-[#4cd7f6]/10',
+    border: 'border-[#4cd7f6]/20',
+    label: 'Login Admin',
+  },
   OVER_QUOTA: {
     icon: AlertTriangle,
     color: 'text-rose-400',

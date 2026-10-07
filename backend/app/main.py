@@ -13,43 +13,136 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 
 from app.telemetry import get_snapshot, TRAINING_UIDS, PROTECTED_PROCESS_NAMES
 from app.simtik_auth import verify_simtik_credentials
 from app.db import (
     init_db, get_or_create_user, list_users,
     set_user_priority, unset_user_priority,
-    toggle_user_admin, toggle_user_active,
+    toggle_user_admin, toggle_user_active, set_user_role,
     is_user_priority, auto_expire_priorities, get_connection
 )
 
 app = FastAPI(title="AI Lab Compute Dashboard", version="2.1.0")
 
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 ADMIN_PIN = os.getenv("ADMIN_PIN", "123456")
-ACTIVE_TOKENS = set()
+ACTIVE_SESSIONS: Dict[str, Dict[str, Any]] = {}
 
-def verify_admin(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    if credentials.credentials not in ACTIVE_TOKENS:
-        raise HTTPException(status_code=401, detail="Token admin tidak valid atau sudah kedaluwarsa")
-    return True
+def get_current_session(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)) -> Dict[str, Any]:
+    if not credentials or not credentials.credentials:
+        raise HTTPException(status_code=401, detail="Autentikasi diperlukan. Silakan login terlebih dahulu.")
+    token = credentials.credentials
+    session = ACTIVE_SESSIONS.get(token)
+    if not session:
+        raise HTTPException(status_code=401, detail="Sesi login kedaluwarsa atau tidak valid. Silakan login kembali.")
+    return session
+
+def verify_operator_or_admin(session: Dict[str, Any] = Depends(get_current_session)) -> Dict[str, Any]:
+    """Mengizinkan Asisten Lab (Operator) dan Super Admin"""
+    role = session.get("role")
+    if role not in ["aslab", "admin"]:
+        raise HTTPException(status_code=403, detail="Akses ditolak: Memerlukan hak akses Operator (Aslab) atau Admin.")
+    return session
+
+def verify_super_admin(session: Dict[str, Any] = Depends(get_current_session)) -> Dict[str, Any]:
+    """Hanya mengizinkan Super Admin"""
+    role = session.get("role")
+    if role != "admin":
+        raise HTTPException(status_code=403, detail="Akses ditolak: Aksi ini memerlukan hak akses Super Admin.")
+    return session
+
+# Kompatibilitas untuk handler umum
+verify_admin = verify_operator_or_admin
 
 class LoginRequest(BaseModel):
-    pin: str
+    pin: Optional[str] = None
+    nim: Optional[str] = None
+    password: Optional[str] = None
+
+class SetRoleRequest(BaseModel):
+    nim: str
+    role: str
 
 @app.post("/api/admin/login")
 def admin_login(req: LoginRequest):
-    if req.pin == ADMIN_PIN:
+    # 1. Login via Master PIN (Super Admin)
+    if req.pin:
+        if req.pin == ADMIN_PIN:
+            token = secrets.token_hex(32)
+            ACTIVE_SESSIONS[token] = {
+                "role": "admin",
+                "nim": None,
+                "nama": "Super Admin"
+            }
+            return {
+                "success": True,
+                "token": token,
+                "role": "admin",
+                "user": {"nim": None, "nama": "Super Admin", "role": "admin"}
+            }
+        raise HTTPException(status_code=401, detail="PIN Master Admin salah")
+
+    # 2. Login via Akun SIMTIK (Aslab / Admin)
+    if req.nim and req.password:
+        is_valid, msg, user_data = verify_simtik_credentials(req.nim, req.password)
+        if not is_valid:
+            raise HTTPException(status_code=401, detail=msg or "Kredensial SIMTIK salah atau layanan tidak dapat dihubungi.")
+
+        user = get_or_create_user(req.nim, user_data.get("nama"))
+        if not user.get("is_active", True):
+            raise HTTPException(status_code=403, detail="Akses ditolak: Akun Anda dinonaktifkan oleh Admin Lab.")
+
+        user_role = user.get("role") or ("admin" if user.get("is_admin") else "mahasiswa")
+        if user_role not in ["aslab", "admin"]:
+            raise HTTPException(
+                status_code=403,
+                detail=f"Akses Ditolak: Akun NIM {req.nim} terdaftar sebagai Mahasiswa dan tidak memiliki izin akses administratif lab."
+            )
+
         token = secrets.token_hex(32)
-        ACTIVE_TOKENS.add(token)
-        return {"success": True, "token": token}
-    raise HTTPException(status_code=401, detail="PIN Admin salah")
+        nama_user = user.get("nama") or f"Mahasiswa {req.nim}"
+        ACTIVE_SESSIONS[token] = {
+            "role": user_role,
+            "nim": req.nim,
+            "nama": nama_user
+        }
+        record_audit(
+            target=f"NIM {req.nim}",
+            action="LOGIN_DASHBOARD",
+            detail=f"{nama_user} login ke dashboard sebagai {user_role.upper()}.",
+            log_type="info"
+        )
+        return {
+            "success": True,
+            "token": token,
+            "role": user_role,
+            "user": {"nim": req.nim, "nama": nama_user, "role": user_role}
+        }
+
+    raise HTTPException(status_code=400, detail="Harap masukkan PIN Master atau NIM & Password SIMTIK.")
 
 @app.post("/api/admin/logout")
-def admin_logout(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    ACTIVE_TOKENS.discard(credentials.credentials)
+def admin_logout(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)):
+    if credentials and credentials.credentials:
+        ACTIVE_SESSIONS.pop(credentials.credentials, None)
     return {"success": True}
+
+@app.post("/api/users/set-role")
+def set_role_api(req: SetRoleRequest, session: Dict[str, Any] = Depends(verify_super_admin)):
+    """Mengubah role pengguna: 'mahasiswa', 'aslab', atau 'admin' (Hanya Super Admin)"""
+    success = set_user_role(req.nim, req.role)
+    if success:
+        admin_nama = session.get("nama") or "Super Admin"
+        record_audit(
+            target=f"NIM {req.nim}",
+            action="SET_ROLE",
+            detail=f"Role NIM {req.nim} diubah menjadi {req.role.upper()} oleh {admin_nama}.",
+            log_type="info"
+        )
+        return {"success": True, "message": f"Role NIM {req.nim} berhasil diubah menjadi {req.role.upper()}."}
+    raise HTTPException(status_code=400, detail="Gagal mengubah role atau role tidak valid.")
 
 @app.get("/api/stats/capacity")
 def get_capacity():
@@ -235,7 +328,7 @@ def export_telemetry():
     return get_full_snapshot()
 
 @app.post("/api/kill-process")
-def kill_process(req: KillProcessRequest, request: Request, _=Depends(verify_admin)):
+def kill_process(req: KillProcessRequest, request: Request, session: Dict[str, Any] = Depends(verify_operator_or_admin)):
     try:
         p = psutil.Process(req.pid)
         username = p.username()
@@ -267,10 +360,11 @@ def kill_process(req: KillProcessRequest, request: Request, _=Depends(verify_adm
         except psutil.TimeoutExpired:
             p.kill()
 
+        actor_name = session.get("nama") or "Operator"
         record_audit(
             target=f"{username} (PID {req.pid})",
             action="KILL_PROCESS",
-            detail=f"Proses komputasi '{proc_name}' ({req.pid}) milik user {username} dihentikan oleh Admin.",
+            detail=f"Proses komputasi '{proc_name}' ({req.pid}) milik user {username} dihentikan oleh {actor_name}.",
             log_type="danger"
         )
 
@@ -283,7 +377,7 @@ def kill_process(req: KillProcessRequest, request: Request, _=Depends(verify_adm
         raise HTTPException(status_code=500, detail=f"Gagal menghentikan proses: {str(e)}")
 
 @app.post("/api/kill-user-all")
-def kill_user_all(req: KillUserAllRequest, request: Request, _=Depends(verify_admin)):
+def kill_user_all(req: KillUserAllRequest, request: Request, session: Dict[str, Any] = Depends(verify_operator_or_admin)):
     if req.username not in TRAINING_UIDS.values() and not (req.username.startswith("m") and req.username[1:].isdigit()):
         raise HTTPException(status_code=400, detail="User tidak valid")
 
@@ -300,10 +394,11 @@ def kill_user_all(req: KillUserAllRequest, request: Request, _=Depends(verify_ad
         except Exception:
             pass
 
+        actor_name = session.get("nama") or "Operator"
         record_audit(
             target=req.username,
             action="KILL_USER_ALL",
-            detail=f"Seluruh sesi dan proses milik user '{req.username}' berhasil dihentikan paksa oleh Admin.",
+            detail=f"Seluruh sesi dan proses milik user '{req.username}' berhasil dihentikan paksa oleh {actor_name}.",
             log_type="danger"
         )
         return {"success": True, "message": f"Seluruh sesi dan proses komputasi milik user '{req.username}' berhasil dihentikan."}
@@ -311,7 +406,7 @@ def kill_user_all(req: KillUserAllRequest, request: Request, _=Depends(verify_ad
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/reset-password")
-def reset_password(req: ResetPasswordRequest, request: Request, _=Depends(verify_admin)):
+def reset_password(req: ResetPasswordRequest, request: Request, session: Dict[str, Any] = Depends(verify_super_admin)):
     if req.username not in TRAINING_UIDS.values():
         raise HTTPException(status_code=400, detail="User target tidak valid (Hanya akun lab/training yang dapat direset)")
     if len(req.new_password) < 4:
@@ -326,10 +421,11 @@ def reset_password(req: ResetPasswordRequest, request: Request, _=Depends(verify
             check=True
         )
 
+        actor_name = session.get("nama") or "Super Admin"
         record_audit(
             target=req.username,
             action="RESET_PASSWORD",
-            detail=f"Password user '{req.username}' berhasil diperbarui oleh Admin.",
+            detail=f"Password user '{req.username}' berhasil diperbarui oleh {actor_name}.",
             log_type="warning"
         )
 
@@ -338,16 +434,17 @@ def reset_password(req: ResetPasswordRequest, request: Request, _=Depends(verify
         raise HTTPException(status_code=500, detail=f"Gagal mengubah password: {e.stderr}")
 
 @app.post("/api/run-simulation")
-def run_simulation(req: SimulationRequest, request: Request, _=Depends(verify_admin)):
+def run_simulation(req: SimulationRequest, request: Request, session: Dict[str, Any] = Depends(verify_super_admin)):
     try:
         # Run test_simulation.py via subprocess
         script_path = os.path.join(PROJECT_ROOT, "test_simulation.py")
         subprocess.Popen(["sudo", "python3", script_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
+        actor_name = session.get("nama") or "Super Admin"
         record_audit(
             target="11 Akun User & Riset",
             action="SIMULATION_START",
-            detail="Simulasi komputasi serentak 11 akun diluncurkan oleh Admin untuk pengujian beban & Kill Process.",
+            detail=f"Simulasi komputasi serentak 11 akun diluncurkan oleh {actor_name} untuk pengujian beban & Kill Process.",
             log_type="info"
         )
         return {"success": True, "message": "Simulasi komputasi serentak 11 user berhasil dijalankan! Beban CPU, RAM & GPU akan termonitor dalam 2-3 detik."}
@@ -355,14 +452,15 @@ def run_simulation(req: SimulationRequest, request: Request, _=Depends(verify_ad
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/stop-simulation")
-def stop_simulation(req: SimulationRequest, request: Request, _=Depends(verify_admin)):
+def stop_simulation(req: SimulationRequest, request: Request, session: Dict[str, Any] = Depends(verify_super_admin)):
     try:
         stop_script = os.path.join(PROJECT_ROOT, "stop_simulation.sh")
         subprocess.run(["sudo", "bash", stop_script], check=False)
+        actor_name = session.get("nama") or "Super Admin"
         record_audit(
             target="11 Akun User & Riset",
             action="SIMULATION_STOP",
-            detail="Semua proses simulasi uji coba berhasil dibersihkan oleh Admin.",
+            detail=f"Semua proses simulasi uji coba berhasil dibersihkan oleh {actor_name}.",
             log_type="warning"
         )
         return {"success": True, "message": "Seluruh proses komputasi uji coba telah dihentikan dan dibersihkan."}
@@ -396,7 +494,7 @@ def get_students():
     return {"success": True, "users": users}
 
 @app.post("/api/users/boost")
-def boost_student(req: BoostUserRequest, _=Depends(verify_admin)):
+def boost_student(req: BoostUserRequest, session: Dict[str, Any] = Depends(verify_super_admin)):
     """Menaikkan NIM ke Mode Prioritas Level 1 (20 Core, 70G, GPU 0)"""
     
     # --- Admission Control ---
@@ -431,14 +529,14 @@ def boost_student(req: BoostUserRequest, _=Depends(verify_admin)):
         record_audit(
             target=f"NIM {req.nim}",
             action="BOOST_PRIORITY",
-            detail=f"Dinaikkan ke Mode Prioritas Level 1 (20 Core, 70G, GPU 0) selama {req.hours} jam.",
+            detail=f"Dinaikkan ke Mode Prioritas Level 1 (20 Core, 70G, GPU 0) selama {req.hours} jam oleh {session.get('nama')}.",
             log_type="success"
         )
         return {"success": True, "message": f"NIM {req.nim} berhasil di-boost ke Mode Prioritas Level 1 selama {req.hours} jam."}
     raise HTTPException(status_code=400, detail="Gagal mengaktifkan mode prioritas.")
 
 @app.post("/api/users/unboost")
-def unboost_student(req: UserActionRequest, _=Depends(verify_admin)):
+def unboost_student(req: UserActionRequest, session: Dict[str, Any] = Depends(verify_super_admin)):
     """Mengembalikan NIM ke Mode Standard Level 2 (2 Core, 3G, GPU 1)"""
     success = unset_user_priority(req.nim)
     if success:
@@ -448,14 +546,14 @@ def unboost_student(req: UserActionRequest, _=Depends(verify_admin)):
         record_audit(
             target=f"NIM {req.nim}",
             action="UNBOOST_PRIORITY",
-            detail="Dikembalikan ke Mode Standard Level 2 (2 Core, 3G, GPU 1). Sesi notebook aktif dihentikan agar GPU 0 dibebaskan.",
+            detail=f"Dikembalikan ke Mode Standard Level 2 (2 Core, 3G, GPU 1) oleh {session.get('nama')}.",
             log_type="info"
         )
         return {"success": True, "message": f"NIM {req.nim} dikembalikan ke Mode Standard Level 2."}
     raise HTTPException(status_code=400, detail="Gagal menonaktifkan mode prioritas.")
 
 @app.post("/api/users/toggle-admin")
-def toggle_admin(req: UserActionRequest, _=Depends(verify_admin)):
+def toggle_admin(req: UserActionRequest, session: Dict[str, Any] = Depends(verify_super_admin)):
     """Toggle hak akses admin dashboard untuk NIM tertentu"""
     success = toggle_user_admin(req.nim)
     if success:
@@ -463,7 +561,7 @@ def toggle_admin(req: UserActionRequest, _=Depends(verify_admin)):
     raise HTTPException(status_code=404, detail="User tidak ditemukan.")
 
 @app.post("/api/users/toggle-active")
-def toggle_active(req: UserActionRequest, request: Request, _=Depends(verify_admin)):
+def toggle_active(req: UserActionRequest, request: Request, session: Dict[str, Any] = Depends(verify_super_admin)):
     """Toggle status aktif/blokir akses untuk NIM tertentu dan kill proses jika diblokir"""
     success = toggle_user_active(req.nim)
     if success:
@@ -486,14 +584,14 @@ def toggle_active(req: UserActionRequest, request: Request, _=Depends(verify_adm
                 record_audit(
                     target=f"NIM {req.nim}",
                     action="BLOCK_USER",
-                    detail=f"Akun NIM {req.nim} dinonaktifkan/diblokir oleh Admin dan seluruh sesi dihentikan.",
+                    detail=f"Akun NIM {req.nim} dinonaktifkan/diblokir oleh {session.get('nama')} dan seluruh sesi dihentikan.",
                     log_type="danger"
                 )
             else:
                 record_audit(
                     target=f"NIM {req.nim}",
                     action="UNBLOCK_USER",
-                    detail=f"Akun NIM {req.nim} diaktifkan kembali oleh Admin.",
+                    detail=f"Akun NIM {req.nim} diaktifkan kembali oleh {session.get('nama')}.",
                     log_type="success"
                 )
         return {"success": True, "message": f"Status Akses untuk NIM {req.nim} berhasil diperbarui."}
@@ -505,7 +603,7 @@ class AddUserRequest(BaseModel):
     is_admin: bool = False
 
 @app.post("/api/users")
-def add_user(req: AddUserRequest, request: Request, _=Depends(verify_admin)):
+def add_user(req: AddUserRequest, request: Request, session: Dict[str, Any] = Depends(verify_super_admin)):
     conn, engine = get_connection()
     cur = conn.cursor()
     placeholder = "%s" if engine == "postgres" else "?"
@@ -518,12 +616,16 @@ def add_user(req: AddUserRequest, request: Request, _=Depends(verify_admin)):
         (req.nim, req.nama, 1 if req.is_admin else 0)
     )
     conn.commit()
-    cur.execute(f"INSERT INTO audit_logs (nim, action, detail) VALUES ({placeholder}, {placeholder}, {placeholder})", (req.nim, "ADD_USER", f"Menambahkan user manual: {req.nama}"))
-    conn.commit()
+    record_audit(
+        target=f"NIM {req.nim}",
+        action="ADD_USER",
+        detail=f"Menambahkan user: {req.nama} oleh {session.get('nama')}.",
+        log_type="info"
+    )
     return {"success": True, "message": "User berhasil ditambahkan."}
 
 @app.delete("/api/users/{nim}")
-def delete_user(nim: str, request: Request, _=Depends(verify_admin)):
+def delete_user(nim: str, request: Request, session: Dict[str, Any] = Depends(verify_super_admin)):
     conn, engine = get_connection()
     cur = conn.cursor()
     placeholder = "%s" if engine == "postgres" else "?"

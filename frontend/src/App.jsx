@@ -19,7 +19,20 @@ import {
 export default function App() {
   const [data, setData]               = useState(null);
   const [adminToken, setAdminToken] = useState(() => localStorage.getItem('adminToken') || '');
-  const isAdmin = !!adminToken;
+  const [adminRole, setAdminRole]   = useState(() => localStorage.getItem('adminRole') || '');
+  const [adminUser, setAdminUser]   = useState(() => {
+    try {
+      const stored = localStorage.getItem('adminUser');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const isAdmin = Boolean(adminToken && (adminRole === 'admin' || adminRole === 'aslab'));
+  const isSuperAdmin = Boolean(adminToken && adminRole === 'admin');
+  const isOperator = Boolean(adminToken && adminRole === 'aslab');
+
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [students, setStudents] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -27,10 +40,8 @@ export default function App() {
   const [toast, setToast]             = useState(null);
   const [activeTab, setActiveTab]     = useState('overview');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-const [pendingAction, setPendingAction]   = useState(null);
+  const [pendingAction, setPendingAction]   = useState(null);
   const [isSimulating, setIsSimulating]     = useState(false);
-
-
 
   // Kill Modal
   const [killModal, setKillModal] = useState({
@@ -41,22 +52,44 @@ const [pendingAction, setPendingAction]   = useState(null);
 
   const wsRef = useRef(null);
 
-
-
   const showToast = useCallback((message, type = 'info') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
   }, []);
 
-  const handleLoginSuccess = (token) => {
+  const handleLoginSuccess = (token, role = 'admin', user = null) => {
     localStorage.setItem('adminToken', token);
+    localStorage.setItem('adminRole', role);
+    if (user) {
+      localStorage.setItem('adminUser', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('adminUser');
+    }
     setAdminToken(token);
-    showToast('Login berhasil', 'success');
+    setAdminRole(role);
+    setAdminUser(user);
+    const roleTitle = role === 'admin' ? 'Super Admin' : 'Asisten Lab (Operator)';
+    const nameStr = user?.nama ? ` (${user.nama})` : '';
+    showToast(`Login berhasil sebagai ${roleTitle}${nameStr}`, 'success');
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    if (adminToken) {
+      try {
+        await fetch('/api/admin/logout', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+      } catch (e) {
+        console.error('Logout error:', e);
+      }
+    }
     localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminRole');
+    localStorage.removeItem('adminUser');
     setAdminToken('');
+    setAdminRole('');
+    setAdminUser(null);
     showToast('Logout berhasil', 'info');
   };
 
@@ -337,25 +370,40 @@ const [pendingAction, setPendingAction]   = useState(null);
 
           <div className="flex items-center gap-2.5">
             <div className="flex items-center p-0.5 rounded-xl bg-[#181b25] border border-[#46455430]">
-              <div className={`px-2.5 py-1 rounded-lg font-mono text-xs font-medium flex items-center gap-1.5 transition-all ${!isAdmin ? 'bg-[#262a34] text-[#c0c1ff] shadow-sm' : 'text-[#908fa0]'}`}>
-                <Info className="w-3.5 h-3.5" />
-                <span>Public View</span>
-              </div>
               {!isAdmin ? (
-                <button
-                  onClick={() => setLoginModalOpen(true)}
-                  className="px-2.5 py-1 rounded-lg font-mono text-xs text-[#dfe2ef] hover:text-white transition-colors flex items-center gap-1.5"
-                >
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>Login Admin</span>
-                </button>
+                <>
+                  <div className="px-2.5 py-1 rounded-lg font-mono text-xs font-medium flex items-center gap-1.5 bg-[#262a34] text-[#c0c1ff] shadow-sm">
+                    <Info className="w-3.5 h-3.5" />
+                    <span>Public View</span>
+                  </div>
+                  <button
+                    onClick={() => setLoginModalOpen(true)}
+                    className="px-2.5 py-1 rounded-lg font-mono text-xs text-[#dfe2ef] hover:text-white transition-colors flex items-center gap-1.5"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>Login (Aslab / Admin)</span>
+                  </button>
+                </>
               ) : (
-                <button
-                  onClick={handleLogout}
-                  className="px-2.5 py-1 rounded-lg font-mono text-xs bg-rose-500/15 text-rose-300 border border-rose-500/30 font-semibold flex items-center gap-1.5 transition-colors"
-                >
-                  <span>Logout</span>
-                </button>
+                <>
+                  {isOperator ? (
+                    <div className="px-2.5 py-1 rounded-lg font-mono text-xs font-medium flex items-center gap-1.5 bg-[#4cd7f6]/15 text-[#4cd7f6] border border-[#4cd7f6]/30">
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>Operator: {adminUser?.nama ? adminUser.nama.split(' ')[0] : 'Aslab'}</span>
+                    </div>
+                  ) : (
+                    <div className="px-2.5 py-1 rounded-lg font-mono text-xs font-medium flex items-center gap-1.5 bg-[#4edea3]/15 text-[#4edea3] border border-[#4edea3]/30">
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>Super Admin</span>
+                    </div>
+                  )}
+                  <button
+                    onClick={handleLogout}
+                    className="px-2.5 py-1 rounded-lg font-mono text-xs bg-rose-500/15 text-rose-300 hover:bg-rose-500/25 border border-rose-500/30 font-semibold flex items-center gap-1.5 transition-colors"
+                  >
+                    <span>Logout</span>
+                  </button>
+                </>
               )}
             </div>
           </div>
@@ -417,6 +465,8 @@ const [pendingAction, setPendingAction]   = useState(null);
                 <ProcessManager
                   processes={activeProcesses}
                   isAdmin={isAdmin}
+                  isSuperAdmin={isSuperAdmin}
+                  adminRole={adminRole}
                   onOpenKillModal={handleOpenKillModal}
                   onRunSimulation={handleRunSimulation}
                   onStopSimulation={handleStopSimulation}
@@ -430,6 +480,8 @@ const [pendingAction, setPendingAction]   = useState(null);
               <div className="fade-in-up">
                 <UnifiedUserManagement
                   isAdmin={isAdmin}
+                  adminRole={adminRole}
+                  adminUser={adminUser}
                   students={students}
                   systemUsers={data?.users || []}
                   onOpenKillModal={handleOpenKillModal}

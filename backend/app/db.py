@@ -299,6 +299,22 @@ def toggle_user_active(nim: str) -> bool:
         conn.close()
 
 
+def is_user_active(nim: str) -> bool:
+    """Cek apakah NIM aktif (tidak diblokir)"""
+    conn, engine = get_connection()
+    cur = conn.cursor()
+    try:
+        placeholder = "%s" if engine == "postgres" else "?"
+        cur.execute(f"SELECT is_active FROM users WHERE nim = {placeholder}", (nim,))
+        row = cur.fetchone()
+        if not row:
+            return True
+        return bool(row[0] if engine == "postgres" else row["is_active"])
+    finally:
+        cur.close()
+        conn.close()
+
+
 def is_user_priority(nim: str) -> bool:
     """Cek apakah NIM berhak atas kuota Prioritas (20 Core, 70GB, GPU 0)"""
     conn, engine = get_connection()

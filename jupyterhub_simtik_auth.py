@@ -133,9 +133,23 @@ def simtik_pre_spawn_hook(spawner):
     username = spawner.user.name
     priority = username in LEVEL1_SYSTEM
     if not priority and not is_system_account(username):
+        nim = username_to_nim(username)
+        # 1. Cek apakah akun aktif atau dinonaktifkan oleh Admin
+        try:
+            from app.db import is_user_active
+            if not is_user_active(nim):
+                from tornado import web
+                logger.warning(f"Spawn server ditolak: NIM {nim} diblokir oleh admin.")
+                raise web.HTTPError(403, f"Akses Ditolak: Akun NIM {nim} sedang dinonaktifkan oleh Admin Lab. Silakan hubungi pengelola.")
+        except Exception as e:
+            if hasattr(e, "status_code"):
+                raise e
+            logger.warning(f"Cek status aktif gagal untuk {username}: {e}")
+
+        # 2. Cek status alokasi prioritas
         try:
             from app.db import is_user_priority
-            priority = is_user_priority(username_to_nim(username))
+            priority = is_user_priority(nim)
         except Exception as e:
             logger.warning(f"Cek prioritas gagal untuk {username}: {e}")
 

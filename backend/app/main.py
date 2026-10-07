@@ -708,7 +708,7 @@ def delete_user(nim: str, request: Request, session: Dict[str, Any] = Depends(ve
     return {"success": True, "message": "User berhasil dihapus."}
 
 @app.post("/api/admin/backup")
-def trigger_backup(request: Request, session: Dict[str, Any] = Depends(verify_admin_session)):
+def trigger_backup(request: Request, session: Dict[str, Any] = Depends(verify_operator_or_admin)):
     """Membuat snapshot backup database instan (Admin / Aslab)"""
     res = perform_database_backup()
     if not res:
@@ -722,7 +722,7 @@ def trigger_backup(request: Request, session: Dict[str, Any] = Depends(verify_ad
     return {"success": True, "message": "Backup database berhasil dibuat.", "backup_file": res}
 
 @app.get("/api/admin/backups")
-def get_backups(session: Dict[str, Any] = Depends(verify_admin_session)):
+def get_backups(session: Dict[str, Any] = Depends(verify_operator_or_admin)):
     """Mendaftar seluruh file snapshot backup database yang tersedia"""
     return {"success": True, "backups": list_database_backups()}
 

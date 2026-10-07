@@ -15,6 +15,7 @@ import subprocess
 import logging
 import asyncio
 import re
+import tornado.web
 from jupyterhub.auth import Authenticator
 
 for _p in ("/home/public/web/backend", "/home/public/web/panel-lab/backend",
@@ -56,28 +57,88 @@ def extract_client_ip(handler) -> str:
     return "unknown"
 
 
-def is_user_process_running(linux_user: str) -> bool:
-    """Memeriksa apakah notebook server atau kernel Jupyter pengguna sedang aktif berjalan."""
+def is_user_process_running(handler, linux_user: str) -> bool:
+    """
+    Memeriksa secara komprehensif apakah server notebook atau proses pengguna sedang aktif:
+    1. Cek state spawner di internal JupyterHub via handler
+    2. Cek unit systemd transient SystemdSpawner (jupyter-{user}-singleuser.service)
+    3. Cek proses OS via psutil
+    4. Cek proses OS via pgrep
+    5. Cek cgroup procs Linux (/sys/fs/cgroup/user.slice/user-{uid}.slice/cgroup.procs)
+    """
+    # 1. Cek internal JupyterHub Spawner state
     try:
-        # 1. Cek transient systemd service untuk SystemdSpawner
-        res_sys = subprocess.run(
-            ["systemctl", "is-active", "--quiet", f"jupyter-{linux_user}.service"],
-            capture_output=True
+        jh_user = None
+        if handler and hasattr(handler, "find_user"):
+            jh_user = handler.find_user(linux_user)
+        if jh_user:
+            spawner = getattr(jh_user, "spawner", None)
+            if spawner and (getattr(spawner, "active", False) or getattr(spawner, "ready", False)):
+                logger.info(f"[SessionCheck] {linux_user} terdeteksi aktif via JupyterHub spawner state.")
+                return True
+            if getattr(jh_user, "active", False):
+                logger.info(f"[SessionCheck] {linux_user} terdeteksi aktif via JupyterHub user.active.")
+                return True
+    except Exception as e:
+        logger.warning(f"Error checking JupyterHub user state for {linux_user}: {e}")
+
+    # 2. Cek transient service systemd untuk SystemdSpawner
+    try:
+        units_to_check = [
+            f"jupyter-{linux_user}-singleuser.service",
+            f"jupyter-{linux_user}.service",
+            f"jupyter-{linux_user}-singleuser",
+            f"jupyter-{linux_user}"
+        ]
+        for unit in units_to_check:
+            res = subprocess.run(
+                ["systemctl", "is-active", "--quiet", unit],
+                capture_output=True,
+                timeout=2
+            )
+            if res.returncode == 0:
+                logger.info(f"[SessionCheck] {linux_user} terdeteksi aktif via systemd unit {unit}.")
+                return True
+    except Exception:
+        pass
+
+    # 3. Cek proses via psutil
+    try:
+        import psutil
+        for p in psutil.process_iter(["username"]):
+            try:
+                if p.info.get("username") == linux_user:
+                    logger.info(f"[SessionCheck] {linux_user} terdeteksi aktif via psutil.")
+                    return True
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                continue
+    except Exception:
+        pass
+
+    # 4. Cek proses via pgrep
+    try:
+        res_pgrep = subprocess.run(
+            ["pgrep", "-u", linux_user],
+            capture_output=True,
+            text=True,
+            timeout=2
         )
-        if res_sys.returncode == 0:
+        if res_pgrep.returncode == 0 and res_pgrep.stdout.strip():
+            logger.info(f"[SessionCheck] {linux_user} terdeteksi aktif via pgrep.")
             return True
     except Exception:
         pass
 
+    # 5. Cek cgroup directory
     try:
-        # 2. Cek proses Linux yang sedang berjalan atas nama user tersebut
-        res_pgrep = subprocess.run(
-            ["pgrep", "-u", linux_user, "-f", "jupyter"],
-            capture_output=True,
-            text=True
-        )
-        if res_pgrep.returncode == 0 and res_pgrep.stdout.strip():
-            return True
+        import pwd
+        uid = pwd.getpwnam(linux_user).pw_uid
+        cgroup_procs = f"/sys/fs/cgroup/user.slice/user-{uid}.slice/cgroup.procs"
+        if os.path.exists(cgroup_procs):
+            with open(cgroup_procs, "r") as f:
+                if f.read().strip():
+                    logger.info(f"[SessionCheck] {linux_user} terdeteksi aktif via cgroup.procs.")
+                    return True
     except Exception:
         pass
 
@@ -183,29 +244,31 @@ class SimtikAuthenticator(Authenticator):
                 from app.db import get_user_active_session, set_user_active_session
                 session_info = get_user_active_session(nim)
                 active_ip = session_info.get("active_ip") if session_info else None
-                is_running = is_user_process_running(linux_user)
+                is_running = is_user_process_running(handler, linux_user)
 
-                # Jika proses notebook sedang aktif dan login dari perangkat/IP berbeda -> REJECT (403)
-                if is_running and active_ip and active_ip != client_ip:
+                # Jika ada sesi notebook yang sedang aktif -> TOLAK LOGIN PERANGKAT KEDUA (403)
+                if is_running:
                     logger.warning(
-                        f"[SingleSession] Penolakan login ganda: NIM {nim} aktif di IP {active_ip}, "
-                        f"percobaan masuk dari IP {client_ip}."
+                        f"[SingleSession] Penolakan login baru (Opsi 2): NIM {nim} ({linux_user}) "
+                        f"sudah memiliki sesi notebook aktif (IP sebelumnya: {active_ip}). "
+                        f"Akses login baru dari IP {client_ip} ditolak."
                     )
-                    from tornado import web
-                    raise web.HTTPError(
+                    raise tornado.web.HTTPError(
                         403,
-                        f"Akses Ditolak: Akun NIM {nim} sedang aktif digunakan di perangkat lain ({active_ip}). "
-                        f"Silakan logout dari perangkat sebelumnya atau hubungi Asisten Lab untuk mereset sesi Anda.",
-                        reason=f"Akun NIM {nim} sedang aktif di perangkat lain ({active_ip})"
+                        f"Akses Ditolak: Akun NIM {nim} sedang aktif digunakan di perangkat lain ({active_ip or 'sesi aktif'}). "
+                        f"Selesaikan sesi di perangkat tersebut terlebih dahulu, atau hubungi Asisten Lab untuk mereset sesi Anda.",
+                        reason=f"Akun NIM {nim} sedang aktif di perangkat lain"
                     )
 
-                # Catat sesi aktif perangkat saat ini
+                # Jika tidak ada sesi yang berjalan: catat sesi aktif perangkat baru
                 set_user_active_session(nim, client_ip)
                 logger.info(f"[SingleSession] Sesi aktif tercatat untuk NIM {nim} (IP: {client_ip})")
+            except tornado.web.HTTPError:
+                raise
             except Exception as e:
                 if hasattr(e, "status_code"):
                     raise e
-                logger.warning(f"Error verifikasi single-session (diabaikan agar login tetap jalan): {e}")
+                logger.warning(f"Error verifikasi single-session: {e}")
 
             # 5) Akun Linux untuk SystemdSpawner
             if not ensure_linux_user(linux_user):
@@ -213,6 +276,8 @@ class SimtikAuthenticator(Authenticator):
 
             logger.info(f"Login SIMTIK sukses: NIM {nim} -> {linux_user} (IP: {client_ip})")
             return linux_user
+        except tornado.web.HTTPError:
+            raise
         except Exception as e:
             if hasattr(e, "status_code"):
                 raise e

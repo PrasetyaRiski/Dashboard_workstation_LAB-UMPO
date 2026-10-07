@@ -418,13 +418,20 @@ def kill_user_all(req: KillUserAllRequest, request: Request, session: Dict[str, 
         raise HTTPException(status_code=400, detail="User tidak valid")
 
     try:
-        # 1. Hentikan seluruh proses komputasi dan script user
+        # 1. Hentikan service systemd SystemdSpawner jika ada
+        try:
+            subprocess.run(["systemctl", "stop", f"jupyter-{req.username}-singleuser.service"], check=False, timeout=3)
+            subprocess.run(["systemctl", "stop", f"jupyter-{req.username}.service"], check=False, timeout=3)
+        except Exception:
+            pass
+
+        # 2. Hentikan seluruh proses komputasi dan script user
         subprocess.run(["pkill", "-u", req.username], check=False)
         time.sleep(0.3)
-        # 2. Paksa hentikan proses yang masih bertahan (SIGKILL)
+        # 3. Paksa hentikan proses yang masih bertahan (SIGKILL)
         subprocess.run(["pkill", "-9", "-u", req.username], check=False)
 
-        # 3. Putus sesi login/terminal user jika ada
+        # 4. Putus sesi login/terminal user jika ada
         try:
             subprocess.run(["loginctl", "terminate-user", req.username], check=False, timeout=2)
         except Exception:

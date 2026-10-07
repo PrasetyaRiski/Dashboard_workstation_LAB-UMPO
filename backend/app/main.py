@@ -38,7 +38,7 @@ except Exception:
 app = FastAPI(title="AI Lab Compute Dashboard", version="2.1.0")
 
 security = HTTPBearer(auto_error=False)
-ADMIN_PIN = os.getenv("ADMIN_PIN", "123456")
+ADMIN_PIN = os.getenv("ADMIN_PIN", "labrisetai26")
 ACTIVE_SESSIONS: Dict[str, Dict[str, Any]] = {}
 FAILED_LOGIN_ATTEMPTS: Dict[str, List[float]] = defaultdict(list)
 SESSION_MAX_AGE_SECONDS = 12 * 3600  # Maksimal 12 jam
@@ -97,8 +97,7 @@ def admin_login(req: LoginRequest, request: Request):
 
     # 1. Login via Master PIN (Super Admin)
     if req.pin:
-        valid_pins = {ADMIN_PIN, os.getenv("LAB_ADMIN_PIN", "umpo2026"), "123456", "umpo2026"}
-        if req.pin in valid_pins:
+        if req.pin.strip() == ADMIN_PIN.strip():
             FAILED_LOGIN_ATTEMPTS.pop(client_ip, None)
             token = secrets.token_hex(32)
             ACTIVE_SESSIONS[token] = {
@@ -207,7 +206,7 @@ def get_audit_logs_api(limit: int = 100):
 
 
 # Default Admin PIN (dapat diubah via Environment Variable LAB_ADMIN_PIN)
-LAB_ADMIN_PIN = os.getenv("LAB_ADMIN_PIN", "umpo2026")
+LAB_ADMIN_PIN = os.getenv("LAB_ADMIN_PIN", ADMIN_PIN)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROJECT_ROOT = os.path.dirname(BASE_DIR)

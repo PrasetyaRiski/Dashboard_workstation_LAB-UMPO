@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldAlert, KeyRound, AlertTriangle, Info, Search, Clock, XCircle, Zap, RotateCcw, UserX, UserCheck } from 'lucide-react';
+import { ShieldAlert, KeyRound, AlertTriangle, Info, Search, Clock, XCircle, Zap, RotateCcw, UserX, UserCheck, ShieldCheck } from 'lucide-react';
 
 const ACTION_META = {
   BOOST_PRIORITY: {

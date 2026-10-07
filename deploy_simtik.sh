@@ -61,27 +61,30 @@ fi
 
 if [ -f "$JH_CONFIG" ]; then
     echo "⚙️ Memeriksa konfigurasi JupyterHub di $JH_CONFIG..."
-    # Hapus konfigurasi lama jika ada untuk mengganti path
-    sudo sed -i '/INTEGRASI OTENTIKASI SIMTIK UMPO/,+7d' "$JH_CONFIG" 2>/dev/null || true
+    # Hapus konfigurasi hook SIMTIK versi lama agar selalu bersih dan terupdate
+    sudo sed -i '/# =* INTEGRASI OTENTIKASI SIMTIK UMPO/,+12d' "$JH_CONFIG" 2>/dev/null || true
+    sudo sed -i '/jupyterhub_simtik_auth/d' "$JH_CONFIG" 2>/dev/null || true
+    sudo sed -i '/c.JupyterHub.authenticator_class = SimtikAuthenticator/d' "$JH_CONFIG" 2>/dev/null || true
+    sudo sed -i '/c.Spawner.pre_spawn_hook = simtik_pre_spawn_hook/d' "$JH_CONFIG" 2>/dev/null || true
+    sudo sed -i '/c.Spawner.post_stop_hook = simtik_post_stop_hook/d' "$JH_CONFIG" 2>/dev/null || true
+    sudo sed -i '/c.JupyterHub.shutdown_on_logout = True/d' "$JH_CONFIG" 2>/dev/null || true
     
-    if ! grep -q "jupyterhub_simtik_auth" "$JH_CONFIG"; then
-        echo "📝 Menambahkan hook SIMTIK ke $JH_CONFIG..."
-        sudo tee -a "$JH_CONFIG" > /dev/null << 'EOF'
+    echo "📝 Menambahkan hook SIMTIK & Single-Device Policy ke $JH_CONFIG..."
+    sudo tee -a "$JH_CONFIG" > /dev/null << 'EOF'
 
 # ========================================================
 # INTEGRASI OTENTIKASI SIMTIK UMPO & DYNAMIC QoS LAB AI
 # ========================================================
 import sys
 sys.path.append("/home/public/web/panel-lab")
-from jupyterhub_simtik_auth import SimtikAuthenticator, simtik_pre_spawn_hook
+from jupyterhub_simtik_auth import SimtikAuthenticator, simtik_pre_spawn_hook, simtik_post_stop_hook
 
 c.JupyterHub.authenticator_class = SimtikAuthenticator
 c.Spawner.pre_spawn_hook = simtik_pre_spawn_hook
+c.Spawner.post_stop_hook = simtik_post_stop_hook
+c.JupyterHub.shutdown_on_logout = True
 EOF
-        echo "✅ Konfigurasi JupyterHub berhasil ditambahkan."
-    else
-        echo "ℹ️ Konfigurasi JupyterHub sudah terpasang sebelumnya."
-    fi
+    echo "✅ Konfigurasi JupyterHub berhasil diperbarui."
 
     # 6. Restart JupyterHub Service
     echo "🔄 Merestart service JupyterHub..."

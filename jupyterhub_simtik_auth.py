@@ -33,6 +33,57 @@ LEVEL1_SYSTEM = {"labriset"}
 NIM_REGEX = re.compile(r"^\d{8,15}$")
 
 
+def extract_client_ip(handler) -> str:
+    """Ekstrak IP client dari request handler Tornado secara aman (mendukung reverse proxy)."""
+    try:
+        if not handler or not getattr(handler, "request", None):
+            return "127.0.0.1"
+        req = handler.request
+        headers = getattr(req, "headers", {})
+        cf_ip = headers.get("CF-Connecting-IP")
+        if cf_ip:
+            return cf_ip.strip()
+        x_real_ip = headers.get("X-Real-IP")
+        if x_real_ip:
+            return x_real_ip.strip()
+        x_forwarded_for = headers.get("X-Forwarded-For")
+        if x_forwarded_for:
+            return x_forwarded_for.split(",")[0].strip()
+        if getattr(req, "remote_ip", None):
+            return req.remote_ip
+    except Exception as e:
+        logger.warning(f"Gagal mengekstrak client IP: {e}")
+    return "unknown"
+
+
+def is_user_process_running(linux_user: str) -> bool:
+    """Memeriksa apakah notebook server atau kernel Jupyter pengguna sedang aktif berjalan."""
+    try:
+        # 1. Cek transient systemd service untuk SystemdSpawner
+        res_sys = subprocess.run(
+            ["systemctl", "is-active", "--quiet", f"jupyter-{linux_user}.service"],
+            capture_output=True
+        )
+        if res_sys.returncode == 0:
+            return True
+    except Exception:
+        pass
+
+    try:
+        # 2. Cek proses Linux yang sedang berjalan atas nama user tersebut
+        res_pgrep = subprocess.run(
+            ["pgrep", "-u", linux_user, "-f", "jupyter"],
+            capture_output=True,
+            text=True
+        )
+        if res_pgrep.returncode == 0 and res_pgrep.stdout.strip():
+            return True
+    except Exception:
+        pass
+
+    return False
+
+
 def is_system_account(name: str) -> bool:
     return name in SYSTEM_ACCOUNTS or (name.startswith("training") and name[8:].isdigit())
 
@@ -107,24 +158,64 @@ class SimtikAuthenticator(Authenticator):
                 logger.warning(f"SIMTIK menolak NIM {nim}: {msg}")
                 return None
 
-            # 3) Sinkron ke DB dashboard (tidak boleh menggagalkan login)
+            # 3) Sinkron ke DB dashboard & Cek apakah user diblokir admin
             try:
                 from app.db import get_or_create_user
                 rec = get_or_create_user(nim, user_data.get("nama"))
                 if rec and not rec.get("is_active", True):
                     logger.warning(f"NIM {nim} diblokir admin.")
-                    return None
+                    from tornado import web
+                    raise web.HTTPError(
+                        403,
+                        f"Akses Ditolak: Akun NIM {nim} sedang dinonaktifkan oleh Admin Lab. Silakan hubungi pengelola.",
+                        reason=f"Akun NIM {nim} dinonaktifkan oleh Admin Lab"
+                    )
             except Exception as e:
+                if hasattr(e, "status_code"):
+                    raise e
                 logger.warning(f"Sinkron DB gagal (diabaikan): {e}")
 
-            # 4) Akun Linux untuk SystemdSpawner
+            # 4) Enforce Single-Device / Single Active Session (Option 2)
             linux_user = nim_to_username(nim)
+            client_ip = extract_client_ip(handler)
+
+            try:
+                from app.db import get_user_active_session, set_user_active_session
+                session_info = get_user_active_session(nim)
+                active_ip = session_info.get("active_ip") if session_info else None
+                is_running = is_user_process_running(linux_user)
+
+                # Jika proses notebook sedang aktif dan login dari perangkat/IP berbeda -> REJECT (403)
+                if is_running and active_ip and active_ip != client_ip:
+                    logger.warning(
+                        f"[SingleSession] Penolakan login ganda: NIM {nim} aktif di IP {active_ip}, "
+                        f"percobaan masuk dari IP {client_ip}."
+                    )
+                    from tornado import web
+                    raise web.HTTPError(
+                        403,
+                        f"Akses Ditolak: Akun NIM {nim} sedang aktif digunakan di perangkat lain ({active_ip}). "
+                        f"Silakan logout dari perangkat sebelumnya atau hubungi Asisten Lab untuk mereset sesi Anda.",
+                        reason=f"Akun NIM {nim} sedang aktif di perangkat lain ({active_ip})"
+                    )
+
+                # Catat sesi aktif perangkat saat ini
+                set_user_active_session(nim, client_ip)
+                logger.info(f"[SingleSession] Sesi aktif tercatat untuk NIM {nim} (IP: {client_ip})")
+            except Exception as e:
+                if hasattr(e, "status_code"):
+                    raise e
+                logger.warning(f"Error verifikasi single-session (diabaikan agar login tetap jalan): {e}")
+
+            # 5) Akun Linux untuk SystemdSpawner
             if not ensure_linux_user(linux_user):
                 return None
 
-            logger.info(f"Login SIMTIK sukses: NIM {nim} -> {linux_user}")
+            logger.info(f"Login SIMTIK sukses: NIM {nim} -> {linux_user} (IP: {client_ip})")
             return linux_user
-        except Exception:
+        except Exception as e:
+            if hasattr(e, "status_code"):
+                raise e
             logger.exception("Error tak terduga di SimtikAuthenticator.authenticate")
             return None
 
@@ -167,3 +258,20 @@ def simtik_pre_spawn_hook(spawner):
         spawner.mem_limit = "3G"
         spawner.environment = {"OMP_NUM_THREADS": "2", "OPENBLAS_NUM_THREADS": "2",
                                "CUDA_VISIBLE_DEVICES": "1"}
+
+
+def simtik_post_stop_hook(spawner):
+    """
+    Hook yang dijalankan secara otomatis saat server single-user berhenti
+    (melalui logout, tombol stop server di control panel, maupun idle culler).
+    Membersihkan active_ip di database sehingga pengguna dapat login di perangkat lain.
+    """
+    try:
+        username = spawner.user.name
+        if not is_system_account(username):
+            nim = username_to_nim(username)
+            from app.db import clear_user_active_session
+            clear_user_active_session(nim)
+            logger.info(f"[SingleSession] Server {username} dihentikan. Sesi aktif NIM {nim} berhasil dibebaskan.")
+    except Exception as e:
+        logger.warning(f"Error pada simtik_post_stop_hook untuk {spawner.user.name}: {e}")

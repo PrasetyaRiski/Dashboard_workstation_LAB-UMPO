@@ -408,9 +408,16 @@ export default function UnifiedUserManagement({
                                   <span className="font-mono text-xs font-semibold text-[#4cd7f6]">{item.nim}</span>
                                   {item.is_active ? (
                                     item.is_online ? (
-                                      <span className="text-[10px] font-mono text-[#4edea3] flex items-center gap-1.5" title="Notebook sedang aktif">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-[#4edea3] animate-pulse"></span> Online
-                                      </span>
+                                      <div className="flex flex-col gap-0.5">
+                                        <span className="text-[10px] font-mono text-[#4edea3] flex items-center gap-1.5" title="Notebook sedang aktif">
+                                          <span className="w-1.5 h-1.5 rounded-full bg-[#4edea3] animate-pulse"></span> Online
+                                        </span>
+                                        {item.active_ip && (
+                                          <span className="text-[9px] font-mono text-[#908fa0]" title="IP Perangkat Aktif">
+                                            {item.active_ip}
+                                          </span>
+                                        )}
+                                      </div>
                                     ) : (
                                       <span className="text-[10px] font-mono text-[#908fa0] flex items-center gap-1.5" title="Akun terdaftar (offline)">
                                         <span className="w-1.5 h-1.5 rounded-full bg-[#908fa0]"></span> Offline

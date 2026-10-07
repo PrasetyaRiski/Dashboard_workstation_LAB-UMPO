@@ -91,6 +91,18 @@ def get_connection():
         except Exception:
             pass
 
+        # Migrasi kolom 'active_ip' dan 'last_activity_at' untuk Single-Session Policy
+        try:
+            conn.execute("ALTER TABLE users ADD COLUMN active_ip TEXT NULL")
+            conn.commit()
+        except Exception:
+            pass
+        try:
+            conn.execute("ALTER TABLE users ADD COLUMN last_activity_at TIMESTAMP NULL")
+            conn.commit()
+        except Exception:
+            pass
+
         _TABLES_READY = True
     return conn, "sqlite"
 
@@ -110,6 +122,8 @@ def init_db():
                     priority_expires_at TIMESTAMP NULL,
                     is_active BOOLEAN DEFAULT TRUE,
                     role VARCHAR(30) DEFAULT 'mahasiswa',
+                    active_ip VARCHAR(50) NULL,
+                    last_activity_at TIMESTAMP NULL,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     last_login TIMESTAMP NULL
                 );
@@ -131,6 +145,8 @@ def init_db():
                     priority_expires_at TIMESTAMP NULL,
                     is_active INTEGER DEFAULT 1,
                     role TEXT DEFAULT 'mahasiswa',
+                    active_ip TEXT NULL,
+                    last_activity_at TIMESTAMP NULL,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     last_login TIMESTAMP NULL
                 );
@@ -182,7 +198,9 @@ def get_or_create_user(nim: str, nama: Optional[str] = None) -> Dict[str, Any]:
                 "nim": row[0], "nama": row[1], "is_admin": bool(row[2]),
                 "is_priority": bool(row[3]), "priority_expires_at": row[4],
                 "is_active": bool(row[5]), "created_at": row[6], "last_login": row[7],
-                "role": row[8] if len(row) > 8 else "mahasiswa"
+                "role": row[8] if len(row) > 8 else "mahasiswa",
+                "active_ip": row[9] if len(row) > 9 else None,
+                "last_activity_at": str(row[10]) if len(row) > 10 and row[10] else None
             }
         else:
             res = dict(row)
@@ -209,7 +227,9 @@ def list_users() -> List[Dict[str, Any]]:
                     "nim": r[0], "nama": r[1], "is_admin": bool(r[2]),
                     "is_priority": bool(r[3]), "priority_expires_at": r[4],
                     "is_active": bool(r[5]), "created_at": r[6], "last_login": r[7],
-                    "role": r[8] if len(r) > 8 else "mahasiswa"
+                    "role": r[8] if len(r) > 8 else "mahasiswa",
+                    "active_ip": r[9] if len(r) > 9 else None,
+                    "last_activity_at": str(r[10]) if len(r) > 10 and r[10] else None
                 }
             else:
                 item = dict(r)
@@ -225,6 +245,10 @@ def list_users() -> List[Dict[str, Any]]:
                 item["created_at"] = str(item["created_at"])
             if item.get("last_login"):
                 item["last_login"] = str(item["last_login"])
+            if item.get("active_ip"):
+                item["active_ip"] = str(item["active_ip"])
+            if item.get("last_activity_at"):
+                item["last_activity_at"] = str(item["last_activity_at"])
                 
             results.append(item)
         return results
@@ -465,6 +489,79 @@ def get_audit_logs(limit: int = 100) -> List[Dict[str, Any]]:
                 "type": log_type
             })
         return results
+    finally:
+        cur.close()
+        conn.close()
+
+
+def set_user_active_session(nim: str, client_ip: str) -> bool:
+    """Mencatat IP perangkat aktif pengguna untuk single-session policy"""
+    conn, engine = get_connection()
+    cur = conn.cursor()
+    try:
+        placeholder = "%s" if engine == "postgres" else "?"
+        now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        cur.execute(
+            f"UPDATE users SET active_ip = {placeholder}, last_activity_at = {placeholder} WHERE nim = {placeholder}",
+            (client_ip, now_str, nim)
+        )
+        conn.commit()
+        return True
+    except Exception as e:
+        logger.warning(f"Error set_user_active_session: {e}")
+        return False
+    finally:
+        cur.close()
+        conn.close()
+
+
+def clear_user_active_session(nim: str) -> bool:
+    """Mengosongkan sesi aktif pengguna (logout atau sesi di-kill)"""
+    conn, engine = get_connection()
+    cur = conn.cursor()
+    try:
+        placeholder = "%s" if engine == "postgres" else "?"
+        cur.execute(
+            f"UPDATE users SET active_ip = NULL WHERE nim = {placeholder}",
+            (nim,)
+        )
+        conn.commit()
+        return True
+    except Exception as e:
+        logger.warning(f"Error clear_user_active_session: {e}")
+        return False
+    finally:
+        cur.close()
+        conn.close()
+
+
+def get_user_active_session(nim: str) -> Optional[Dict[str, Any]]:
+    """Membaca data sesi aktif pengguna"""
+    conn, engine = get_connection()
+    cur = conn.cursor()
+    try:
+        placeholder = "%s" if engine == "postgres" else "?"
+        cur.execute(
+            f"SELECT nim, nama, is_active, active_ip, last_activity_at, is_priority, role FROM users WHERE nim = {placeholder}",
+            (nim,)
+        )
+        row = cur.fetchone()
+        if not row:
+            return None
+        if hasattr(row, "keys"):
+            return dict(row)
+        return {
+            "nim": row[0],
+            "nama": row[1],
+            "is_active": bool(row[2]),
+            "active_ip": row[3],
+            "last_activity_at": str(row[4]) if row[4] else None,
+            "is_priority": bool(row[5]),
+            "role": row[6] if len(row) > 6 else "mahasiswa"
+        }
+    except Exception as e:
+        logger.warning(f"Error get_user_active_session: {e}")
+        return None
     finally:
         cur.close()
         conn.close()

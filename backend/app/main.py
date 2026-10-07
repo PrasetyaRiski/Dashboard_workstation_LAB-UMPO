@@ -430,6 +430,14 @@ def kill_user_all(req: KillUserAllRequest, request: Request, session: Dict[str, 
         except Exception:
             pass
 
+        # 4. Bebaskan sesi perangkat aktif di database
+        try:
+            from app.db import clear_user_active_session
+            nim = req.username[1:] if (req.username.startswith("m") and req.username[1:].isdigit()) else req.username
+            clear_user_active_session(nim)
+        except Exception:
+            pass
+
         actor_name = session.get("nama") or "Operator"
         record_audit(
             target=req.username,

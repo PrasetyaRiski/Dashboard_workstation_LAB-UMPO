@@ -47,7 +47,7 @@ _TABLES_READY = False
 
 def get_connection():
     """Mengembalikan koneksi database PostgreSQL atau SQLite fallback"""
-    global _TABLES_READY
+    global _TABLES_READY, SQLITE_PATH
     if USE_POSTGRES:
         try:
             conn = psycopg2.connect(
@@ -63,8 +63,16 @@ def get_connection():
             logger.warning(f"Gagal koneksi ke PostgreSQL ({e}), beralih ke SQLite lokal.")
     
     # SQLite Fallback
-    os.makedirs(os.path.dirname(SQLITE_PATH), exist_ok=True)
-    conn = sqlite3.connect(SQLITE_PATH, timeout=10)
+    try:
+        os.makedirs(os.path.dirname(SQLITE_PATH), exist_ok=True)
+        conn = sqlite3.connect(SQLITE_PATH, timeout=10)
+    except (PermissionError, OSError) as e:
+        logger.warning(f"Gagal mengakses {SQLITE_PATH} ({e}), beralih ke database lokal...")
+        local_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
+        os.makedirs(local_dir, exist_ok=True)
+        fallback_path = os.path.join(local_dir, "lab_users.db")
+        SQLITE_PATH = fallback_path
+        conn = sqlite3.connect(fallback_path, timeout=10)
     
     # Aktifkan WAL mode untuk konkurensi (JupyterHub + FastAPI)
     conn.execute("PRAGMA journal_mode=WAL;")

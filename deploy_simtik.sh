@@ -12,9 +12,9 @@ echo "=========================================================="
 
 # 1. Masuk ke direktori web/panel-lab
 # Memastikan repositori terisolasi di dalam folder panel-lab agar rapi
-if [ ! -d "/home/public/web/panel-lab" ]; then
-    mkdir -p /home/public/web/panel-lab
-fi
+sudo mkdir -p /home/public/web/panel-lab
+sudo mkdir -p /home/public/web/data
+sudo chmod 777 /home/public/web/data 2>/dev/null || true
 cd /home/public/web/panel-lab
 
 # 2. Sinkronkan dengan GitHub
@@ -42,15 +42,38 @@ fi
 
 # 4. Restart Dashboard di Port 8888
 echo "🔄 Merestart Dashboard Monitoring..."
-if systemctl is-active --quiet panel-lab.service 2>/dev/null; then
-    # Jika menggunakan systemctl, pastikan WorkingDirectory di service menunjuk ke /home/public/web/panel-lab
+chmod +x backend/run.sh 2>/dev/null || true
+
+if systemctl list-unit-files panel-lab.service 2>/dev/null | grep -q panel-lab.service; then
+    sudo systemctl daemon-reload
     sudo systemctl restart panel-lab.service
     echo "✅ Service panel-lab.service berhasil direstart."
+elif systemctl list-unit-files workstation-monitor.service 2>/dev/null | grep -q workstation-monitor.service; then
+    sudo systemctl daemon-reload
+    sudo systemctl restart workstation-monitor.service
+    echo "✅ Service workstation-monitor.service berhasil direstart."
 else
     sudo fuser -k 8888/tcp 2>/dev/null || true
     sleep 1
     nohup ./backend/run.sh > dashboard.log 2>&1 &
-    echo "✅ Dashboard backend aktif di latar belakang (port 8888)."
+    echo "✅ Dashboard backend dijalankan di latar belakang (port 8888)."
+fi
+
+sleep 2
+if ss -tuln 2>/dev/null | grep -q ":8888 " || netstat -tuln 2>/dev/null | grep -q ":8888 "; then
+    echo "✅ Port 8888 AKTIF dan siap menerima koneksi."
+else
+    echo "⚠️ Port 8888 belum merespons. Mencoba menyalakan manual lewat nohup..."
+    sudo fuser -k 8888/tcp 2>/dev/null || true
+    sleep 1
+    nohup ./backend/run.sh > dashboard.log 2>&1 &
+    sleep 2
+    if ss -tuln 2>/dev/null | grep -q ":8888 " || netstat -tuln 2>/dev/null | grep -q ":8888 "; then
+        echo "✅ Port 8888 AKTIF!"
+    else
+        echo "❌ Port 8888 masih belum aktif. Isi log terakhir (dashboard.log):"
+        tail -n 20 dashboard.log 2>/dev/null || true
+    fi
 fi
 
 # 5. Konfigurasi JupyterHub

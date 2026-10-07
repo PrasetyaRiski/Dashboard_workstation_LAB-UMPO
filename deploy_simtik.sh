@@ -122,8 +122,21 @@ else
     echo "⚠️ File jupyterhub_config.py tidak ditemukan di path default. Silakan cek lokasinya."
 fi
 
+# 7. Penjadwalan Crontab Auto-Backup Database (Setiap jam 02:00 pagi)
+echo "⏰ Memeriksa jadwal Crontab Auto-Backup database..."
+chmod +x /home/public/web/panel-lab/backup_db.py 2>/dev/null || true
+BACKUP_CRON="0 2 * * * /home/public/web/panel-lab/venv/bin/python /home/public/web/panel-lab/backup_db.py >> /home/public/web/panel-lab/backup.log 2>&1"
+if ! crontab -l 2>/dev/null | grep -q "backup_db.py"; then
+    (crontab -l 2>/dev/null; echo "$BACKUP_CRON") | crontab - 2>/dev/null || true
+    echo "✅ Crontab Auto-Backup berhasil dipasang (Berjalan tiap pukul 02:00 WIB)."
+else
+    echo "✅ Crontab Auto-Backup sudah aktif."
+fi
+
 echo "=========================================================="
 echo "🎉 PENERAPAN SELESAI!"
 echo "Dashboard Admin : http://76.76.76.188:8888 (Tab User)"
 echo "JupyterHub      : http://76.76.76.188:8090 (Login pakai SIMTIK)"
+echo "Auto-Backup DB  : Tiap 02:00 WIB (/home/public/web/data/backups)"
 echo "=========================================================="
+

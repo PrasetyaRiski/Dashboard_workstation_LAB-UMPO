@@ -24,7 +24,8 @@ from app.db import (
     init_db, get_or_create_user, list_users,
     set_user_priority, unset_user_priority,
     toggle_user_admin, toggle_user_active, set_user_role,
-    is_user_priority, auto_expire_priorities, get_connection
+    is_user_priority, auto_expire_priorities, get_connection,
+    perform_database_backup, list_database_backups
 )
 
 # Load .env file automatically jika tersedia di root direktori atau backend
@@ -706,6 +707,25 @@ def delete_user(nim: str, request: Request, session: Dict[str, Any] = Depends(ve
     )
     return {"success": True, "message": "User berhasil dihapus."}
 
+@app.post("/api/admin/backup")
+def trigger_backup(request: Request, session: Dict[str, Any] = Depends(verify_admin_session)):
+    """Membuat snapshot backup database instan (Admin / Aslab)"""
+    res = perform_database_backup()
+    if not res:
+        raise HTTPException(status_code=500, detail="Gagal membuat backup database.")
+    record_audit(
+        target="SYSTEM_DATABASE",
+        action="BACKUP_DATABASE",
+        detail=f"Backup database dibuat manual: {os.path.basename(res)} oleh {session.get('nama')}",
+        log_type="info"
+    )
+    return {"success": True, "message": "Backup database berhasil dibuat.", "backup_file": res}
+
+@app.get("/api/admin/backups")
+def get_backups(session: Dict[str, Any] = Depends(verify_admin_session)):
+    """Mendaftar seluruh file snapshot backup database yang tersedia"""
+    return {"success": True, "backups": list_database_backups()}
+
 
 # WebSocket Manager for real-time live telemetry
 class ConnectionManager:
@@ -791,9 +811,28 @@ async def startup_event():
                 print("Disk usage worker error:", e)
             await asyncio.sleep(60.0)
 
+    async def daily_backup_worker():
+        # Backup sekali saat startup jika belum ada backup hari ini
+        try:
+            today_prefix = f"lab_users_backup_{datetime.now().strftime('%Y%m%d')}"
+            existing = list_database_backups()
+            if not any(b["filename"].startswith(today_prefix) for b in existing):
+                await asyncio.to_thread(perform_database_backup)
+        except Exception as e:
+            print("Startup auto-backup error:", e)
+
+        while True:
+            # Otomatis backup berkala setiap 24 jam (86400 detik)
+            await asyncio.sleep(86400)
+            try:
+                await asyncio.to_thread(perform_database_backup)
+            except Exception as e:
+                print("Daily auto-backup worker error:", e)
+
     asyncio.create_task(telemetry_broadcaster())
     asyncio.create_task(auto_expire_worker())
     asyncio.create_task(disk_usage_worker())
+    asyncio.create_task(daily_backup_worker())
 
 # Serve static frontend dist if it exists
 FRONTEND_DIST = os.getenv("FRONTEND_DIST", os.path.join(PROJECT_ROOT, "frontend", "dist"))

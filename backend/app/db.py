@@ -4,6 +4,7 @@ Mendukung PostgreSQL (Port 5432) dengan fallback otomatis ke SQLite lokal
 """
 
 import os
+import time
 import sqlite3
 import logging
 from datetime import datetime, timedelta
@@ -573,4 +574,122 @@ def get_user_active_session(nim: str) -> Optional[Dict[str, Any]]:
     finally:
         cur.close()
         conn.close()
+
+
+def perform_database_backup(retention_days: int = 14) -> Optional[str]:
+    """
+    Melakukan online hot-backup SQLite lab_users.db secara aman menggunakan native SQLite backup API.
+    Aman terhadap transaksi konkuren WAL mode tanpa me-lock database.
+    Menghapus backup lama yang berusia lebih dari retention_days (default 14 hari).
+    Mengembalikan path file backup yang baru dibuat.
+    """
+    global SQLITE_PATH
+    if USE_POSTGRES:
+        return None
+
+    target_path = SQLITE_PATH
+    if not os.path.exists(target_path):
+        local_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "lab_users.db")
+        if os.path.exists(local_path):
+            target_path = local_path
+        else:
+            try:
+                conn, _ = get_connection()
+                conn.close()
+            except Exception:
+                pass
+            if os.path.exists(SQLITE_PATH):
+                target_path = SQLITE_PATH
+            elif os.path.exists(local_path):
+                target_path = local_path
+            else:
+                logger.warning("File database tidak ditemukan untuk backup.")
+                return None
+
+    try:
+        base_dir = os.path.dirname(target_path)
+        backup_dir = os.path.join(base_dir, "backups")
+        try:
+            os.makedirs(backup_dir, exist_ok=True)
+        except (PermissionError, OSError):
+            local_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
+            backup_dir = os.path.join(local_dir, "backups")
+            os.makedirs(backup_dir, exist_ok=True)
+
+        now_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+        dest_filename = f"lab_users_backup_{now_str}.db"
+        dest_path = os.path.join(backup_dir, dest_filename)
+
+        # Hot backup menggunakan native sqlite3 backup
+        src_conn = sqlite3.connect(target_path, timeout=10)
+        dst_conn = sqlite3.connect(dest_path)
+        with dst_conn:
+            src_conn.backup(dst_conn)
+        dst_conn.close()
+        src_conn.close()
+
+        logger.info(f"✅ Auto-backup database berhasil dibuat: {dest_path}")
+
+        # Rotasi / Pembersihan backup lama
+        cleanup_old_backups(backup_dir, retention_days)
+
+        return dest_path
+    except Exception as e:
+        logger.error(f"❌ Gagal melakukan auto-backup database: {e}")
+        return None
+
+
+def cleanup_old_backups(backup_dir: str, retention_days: int = 14):
+    """Menghapus file backup yang lebih tua dari retention_days hari, mempertahankan minimal 5 backup terbaru."""
+    try:
+        if not os.path.exists(backup_dir):
+            return
+        files = [
+            os.path.join(backup_dir, f) for f in os.listdir(backup_dir)
+            if f.startswith("lab_users_backup_") and f.endswith(".db")
+        ]
+        files.sort(key=os.path.getmtime, reverse=True)
+
+        cutoff_time = time.time() - (retention_days * 86400)
+        # Selalu pertahankan minimal 5 file backup terbaru
+        for f in files[5:]:
+            if os.path.getmtime(f) < cutoff_time:
+                try:
+                    os.remove(f)
+                    logger.info(f"Dihapus backup lama: {os.path.basename(f)}")
+                except Exception:
+                    pass
+    except Exception as e:
+        logger.warning(f"Gagal rotasi backup: {e}")
+
+
+def list_database_backups() -> List[Dict[str, Any]]:
+    """Mendaftar riwayat file backup yang tersedia."""
+    global SQLITE_PATH
+    results = []
+    dirs_to_check = []
+    if SQLITE_PATH:
+        dirs_to_check.append(os.path.join(os.path.dirname(SQLITE_PATH), "backups"))
+    local_backup_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "backups")
+    if local_backup_dir not in dirs_to_check:
+        dirs_to_check.append(local_backup_dir)
+
+    for bdir in dirs_to_check:
+        if not os.path.exists(bdir):
+            continue
+        for fname in os.listdir(bdir):
+            if fname.startswith("lab_users_backup_") and fname.endswith(".db"):
+                fpath = os.path.join(bdir, fname)
+                try:
+                    stat = os.stat(fpath)
+                    results.append({
+                        "filename": fname,
+                        "path": fpath,
+                        "size_kb": round(stat.st_size / 1024, 1),
+                        "created_at": datetime.fromtimestamp(stat.st_mtime).isoformat()
+                    })
+                except Exception:
+                    pass
+    results.sort(key=lambda x: x["created_at"], reverse=True)
+    return results
 

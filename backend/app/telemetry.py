@@ -404,6 +404,8 @@ def get_per_user_gpu_metrics(gpus: List[Dict[str, Any]]) -> List[Dict[str, Any]]
             status = "Offline"
             status_color = "gray"
 
+        disk_metrics = get_user_disk_metrics(uname, is_priority=is_priority_user)
+
         results.append({
             "uid": uid,
             "username": uname,
@@ -430,7 +432,12 @@ def get_per_user_gpu_metrics(gpus: List[Dict[str, Any]]) -> List[Dict[str, Any]]
             "terminal": login_info.get("terminal", "-") if login_info else "-",
             "ram_used_mb": ram_used_mb,
             "ram_max_mb": ram_max_mb,
-            "ram_percent": round((ram_used_mb / ram_max_mb) * 100, 1) if ram_max_mb else 0.0
+            "ram_percent": round((ram_used_mb / ram_max_mb) * 100, 1) if ram_max_mb else 0.0,
+            "disk_used_mb": disk_metrics["disk_used_mb"],
+            "disk_quota_gb": disk_metrics["disk_quota_gb"],
+            "disk_quota_mb": disk_metrics["disk_quota_mb"],
+            "disk_percent": disk_metrics["disk_percent"],
+            "is_over_quota": disk_metrics["is_over_quota"]
         })
 
     # Update cache for next iteration
@@ -438,6 +445,60 @@ def get_per_user_gpu_metrics(gpus: List[Dict[str, Any]]) -> List[Dict[str, Any]]
     _prev_cpu_timestamp = now
 
     return results
+
+# In-memory storage disk usage cache (username -> used_mb)
+_USER_DISK_USAGE: Dict[str, float] = {}
+
+def update_all_user_disk_usage(additional_usernames: Optional[List[str]] = None):
+    """Memindai penggunaan disk home direktori user secara asinkron di background thread."""
+    global _USER_DISK_USAGE
+    unames = set(list(TRAINING_UIDS.values()) + ["labriset"])
+    if additional_usernames:
+        unames.update(additional_usernames)
+
+    # Tambahkan semua direktori /home/m* di sistem
+    try:
+        if os.path.exists("/home"):
+            for entry in os.listdir("/home"):
+                if (entry.startswith("m") and entry[1:].isdigit()) or entry in TRAINING_UIDS.values() or entry == "labriset":
+                    unames.add(entry)
+    except Exception:
+        pass
+
+    new_usage = {}
+    for uname in unames:
+        home_path = f"/home/{uname}"
+        if not os.path.exists(home_path):
+            new_usage[uname] = 0.0
+            continue
+        try:
+            cmd = ["du", "-sm", home_path]
+            if os.geteuid() != 0:
+                cmd = ["sudo", "-n"] + cmd
+            res = subprocess.run(cmd, capture_output=True, text=True, timeout=5)
+            if res.returncode == 0 and res.stdout.strip():
+                mb_str = res.stdout.strip().split()[0]
+                new_usage[uname] = float(mb_str)
+            else:
+                new_usage[uname] = _USER_DISK_USAGE.get(uname, 0.0)
+        except Exception:
+            new_usage[uname] = _USER_DISK_USAGE.get(uname, 0.0)
+
+    _USER_DISK_USAGE = new_usage
+
+def get_user_disk_metrics(username: str, is_priority: bool = False) -> Dict[str, Any]:
+    """Menghitung metrik kuota storage untuk user tertentu (Soft Limit: 10GB standard, 50GB riset/priority)."""
+    used_mb = _USER_DISK_USAGE.get(username, 0.0)
+    quota_gb = 50.0 if (is_priority or username == "labriset") else 10.0
+    quota_mb = quota_gb * 1024.0
+    percent = round((used_mb / quota_mb) * 100.0, 1) if quota_mb > 0 else 0.0
+    return {
+        "disk_used_mb": round(used_mb, 1),
+        "disk_quota_gb": quota_gb,
+        "disk_quota_mb": quota_mb,
+        "disk_percent": percent,
+        "is_over_quota": used_mb > quota_mb
+    }
 
 def get_snapshot() -> Dict[str, Any]:
     gpus = get_gpu_telemetry()

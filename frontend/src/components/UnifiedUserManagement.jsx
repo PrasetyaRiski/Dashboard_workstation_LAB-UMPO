@@ -215,7 +215,21 @@ export default function UnifiedUserManagement({
       su => !(su.username?.startsWith('m') && /^\d+$/.test(su.username.slice(1)))
     );
     pureSystemUsers.forEach(su => {
-      list.push({ ...su, type: 'system' });
+      const isRiset = su.username === 'labriset';
+      const diskQuotaGb = su.disk_quota_gb ?? (isRiset ? 50 : 10);
+      const diskUsedMb = su.disk_used_mb ?? 0;
+      const diskQuotaMb = diskQuotaGb * 1024;
+      const diskPercent = su.disk_percent ?? (diskQuotaMb > 0 ? Math.round((diskUsedMb / diskQuotaMb) * 100) : 0);
+      const isOverQuota = su.is_over_quota ?? (diskUsedMb > diskQuotaMb);
+      list.push({
+        ...su,
+        type: 'system',
+        disk_used_mb: diskUsedMb,
+        disk_quota_gb: diskQuotaGb,
+        disk_quota_mb: diskQuotaMb,
+        disk_percent: diskPercent,
+        is_over_quota: isOverQuota
+      });
     });
 
     // 2. Map OS telemetry for students by NIM
@@ -231,6 +245,11 @@ export default function UnifiedUserManagement({
     (students || []).forEach(st => {
       const osUser = studentTelemetryMap.get(st.nim);
       const isOnline = Boolean(st.is_active && (osUser?.is_online || (osUser?.total_process_count > 0)));
+      const diskQuotaGb = st.disk_quota_gb ?? osUser?.disk_quota_gb ?? (st.is_priority ? 50 : 10);
+      const diskUsedMb = st.disk_used_mb ?? osUser?.disk_used_mb ?? 0;
+      const diskQuotaMb = diskQuotaGb * 1024;
+      const diskPercent = st.disk_percent ?? (diskQuotaMb > 0 ? Math.round((diskUsedMb / diskQuotaMb) * 100) : 0);
+      const isOverQuota = st.is_over_quota ?? (diskUsedMb > diskQuotaMb);
       list.push({
         ...st,
         type: 'student',
@@ -240,7 +259,12 @@ export default function UnifiedUserManagement({
         ram_max_mb: osUser?.ram_max_mb || (st.is_priority ? 71680 : 3072),
         vram_used_mb: osUser?.vram_used_mb || 0,
         cpu_percent: osUser?.cpu_percent || 0,
-        processes: osUser?.processes || []
+        processes: osUser?.processes || [],
+        disk_used_mb: diskUsedMb,
+        disk_quota_gb: diskQuotaGb,
+        disk_quota_mb: diskQuotaMb,
+        disk_percent: diskPercent,
+        is_over_quota: isOverQuota
       });
     });
 
@@ -252,6 +276,7 @@ export default function UnifiedUserManagement({
     return unifiedList.filter(item => {
       if (filterType === 'System' && item.type !== 'system') return false;
       if (filterType === 'Simtik' && item.type !== 'student') return false;
+      if (filterType === 'OverQuota' && !item.is_over_quota) return false;
       const q = searchQuery.toLowerCase();
       if (item.type === 'system') {
         const uname = item.username?.toLowerCase() || '';
@@ -270,6 +295,7 @@ export default function UnifiedUserManagement({
   const boostedStudents = students?.filter(s => s.is_priority)?.length || 0;
   const aslabStudents = students?.filter(s => s.role === 'aslab')?.length || 0;
   const onlineSystem = (systemUsers || []).filter(u => u.is_online && !u.username?.startsWith('m'))?.length || 0;
+  const overQuotaCount = useMemo(() => unifiedList.filter(u => u.is_over_quota).length, [unifiedList]);
   
   return (
     <div className="flex flex-col h-full bg-slate-900 rounded-xl border border-slate-800 shadow-2xl overflow-hidden">
@@ -321,22 +347,28 @@ export default function UnifiedUserManagement({
               <span><strong className="text-[#dfe2ef] text-base">{boostedStudents}/1</strong> slot GPU prioritas</span>
               <span><strong className="text-[#4cd7f6] text-base">{aslabStudents}</strong> aslab terdaftar</span>
               <span><strong className="text-[#dfe2ef] text-base">{onlineSystem}/11</strong> akun dosen & riset aktif</span>
+              {overQuotaCount > 0 && (
+                <span className="flex items-center gap-1.5 text-rose-400 font-mono">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  <strong className="text-base">{overQuotaCount}</strong> over-quota
+                </span>
+              )}
             </div>
 
             {/* Filter & Search Header */}
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
               <div className="flex gap-2 p-1 bg-[#0a0e17] rounded-xl border border-[#46455430]">
-                {['All', 'System', 'Simtik'].map((f) => (
+                {['All', 'System', 'Simtik', 'OverQuota'].map((f) => (
                   <button
                     key={f}
                     onClick={() => setFilterType(f)}
                     className={`px-3.5 py-1.5 text-xs font-mono font-medium rounded-lg transition-all ${
                       filterType === f 
-                        ? 'bg-[#1c1f29] text-[#c0c1ff] border border-[#c0c1ff]/30 shadow-sm' 
-                        : 'text-[#908fa0] hover:text-[#dfe2ef]'
+                        ? (f === 'OverQuota' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-sm' : 'bg-[#1c1f29] text-[#c0c1ff] border border-[#c0c1ff]/30 shadow-sm') 
+                        : (f === 'OverQuota' && overQuotaCount > 0 ? 'text-rose-400 hover:text-rose-300' : 'text-[#908fa0] hover:text-[#dfe2ef]')
                     }`}
                   >
-                    {f === 'System' ? 'Dosen & Riset (Local)' : f === 'Simtik' ? 'Mahasiswa SIMTIK' : 'Semua Akun'}
+                    {f === 'System' ? 'Dosen & Riset' : f === 'Simtik' ? 'Mahasiswa SIMTIK' : f === 'OverQuota' ? `⚠️ Over Quota (${overQuotaCount})` : 'Semua Akun'}
                   </button>
                 ))}
               </div>
@@ -364,13 +396,14 @@ export default function UnifiedUserManagement({
                       <th className="px-5 py-3.5">QoS & Cgroup Slice</th>
                       <th className="px-5 py-3.5">Alokasi Hardware</th>
                       <th className="px-5 py-3.5">Penggunaan RAM</th>
+                      <th className="px-5 py-3.5">Storage (Disk)</th>
                       <th className="px-5 py-3.5 text-right">Aksi Manajemen</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-700/50">
                     {filteredData.length === 0 ? (
                       <tr>
-                        <td colSpan="7" className="px-6 py-12 text-center text-slate-500 text-sm">
+                        <td colSpan="8" className="px-6 py-12 text-center text-slate-500 text-sm">
                           Tidak ada data akun yang ditemukan.
                         </td>
                       </tr>
@@ -524,7 +557,34 @@ export default function UnifiedUserManagement({
                                 </div>
                               </td>
 
-                              {/* 7. Root Actions */}
+                              {/* 7. Storage / Disk Quota */}
+                              <td className="px-5 py-3.5">
+                                <div className="flex flex-col gap-1 w-28 font-mono">
+                                  <div className="flex justify-between text-[10px]">
+                                    <span className="text-[#908fa0]">{item.disk_quota_gb}GB</span>
+                                    <span className={item.is_over_quota ? 'text-[#ffb4ab] font-bold' : 'text-[#c7c4d7]'}>
+                                      {item.disk_used_mb ? (item.disk_used_mb >= 1024 ? `${(item.disk_used_mb / 1024).toFixed(1)} GB` : `${Math.round(item.disk_used_mb)} MB`) : '0 MB'}
+                                    </span>
+                                  </div>
+                                  <div className="w-full bg-[#262a34] h-1.5 rounded-full overflow-hidden">
+                                    <div
+                                      className={`h-full rounded-full transition-all ${
+                                        item.is_over_quota 
+                                          ? 'bg-[#ffb4ab]' 
+                                          : (item.disk_percent > 80 ? 'bg-[#fbbf24]' : 'bg-[#c0c1ff]')
+                                      }`}
+                                      style={{ width: `${Math.min(Math.max(item.disk_percent || 0, item.disk_used_mb ? 4 : 0), 100)}%` }}
+                                    ></div>
+                                  </div>
+                                  {item.is_over_quota && (
+                                    <span className="text-[9px] text-[#ffb4ab] font-bold flex items-center gap-1">
+                                      <AlertTriangle className="w-2.5 h-2.5 text-[#ffb4ab]" /> Over Quota
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+
+                              {/* 8. Root Actions */}
                               <td className="px-5 py-3.5 text-right">
                                 {isAdmin ? (
                                   <div className="flex items-center justify-end gap-1.5 opacity-90 group-hover:opacity-100 transition-opacity">
@@ -700,7 +760,34 @@ export default function UnifiedUserManagement({
                                 </div>
                               </td>
 
-                              {/* 7. Root Actions */}
+                              {/* 7. Storage / Disk Quota */}
+                              <td className="px-5 py-3.5">
+                                <div className="flex flex-col gap-1 w-28 font-mono">
+                                  <div className="flex justify-between text-[10px]">
+                                    <span className="text-[#908fa0]">{item.disk_quota_gb}GB</span>
+                                    <span className={item.is_over_quota ? 'text-[#ffb4ab] font-bold' : 'text-[#c7c4d7]'}>
+                                      {item.disk_used_mb ? (item.disk_used_mb >= 1024 ? `${(item.disk_used_mb / 1024).toFixed(1)} GB` : `${Math.round(item.disk_used_mb)} MB`) : '0 MB'}
+                                    </span>
+                                  </div>
+                                  <div className="w-full bg-[#262a34] h-1.5 rounded-full overflow-hidden">
+                                    <div
+                                      className={`h-full rounded-full transition-all ${
+                                        item.is_over_quota 
+                                          ? 'bg-[#ffb4ab]' 
+                                          : (item.disk_percent > 80 ? 'bg-[#fbbf24]' : 'bg-[#c0c1ff]')
+                                      }`}
+                                      style={{ width: `${Math.min(Math.max(item.disk_percent || 0, item.disk_used_mb ? 4 : 0), 100)}%` }}
+                                    ></div>
+                                  </div>
+                                  {item.is_over_quota && (
+                                    <span className="text-[9px] text-[#ffb4ab] font-bold flex items-center gap-1">
+                                      <AlertTriangle className="w-2.5 h-2.5 text-[#ffb4ab]" /> Over Quota
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+
+                              {/* 8. Root Actions */}
                               <td className="px-5 py-3.5 text-right">
                                 {isAdmin ? (
                                   <div className="flex items-center justify-end gap-1.5 opacity-90 group-hover:opacity-100 transition-opacity">

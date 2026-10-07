@@ -15,7 +15,10 @@ from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 
-from app.telemetry import get_snapshot, TRAINING_UIDS, PROTECTED_PROCESS_NAMES
+from app.telemetry import (
+    get_snapshot, TRAINING_UIDS, PROTECTED_PROCESS_NAMES,
+    get_user_disk_metrics, update_all_user_disk_usage
+)
 from app.simtik_auth import verify_simtik_credentials
 from app.db import (
     init_db, get_or_create_user, list_users,
@@ -542,8 +545,12 @@ async def auth_simtik(req: SimtikLoginRequest):
 
 @app.get("/api/users/students")
 def get_students():
-    """Mengambil daftar seluruh mahasiswa terdaftar beserta status mode prioritas (Public Read-Only)"""
+    """Mengambil daftar seluruh mahasiswa terdaftar beserta status mode prioritas dan kuota storage"""
     users = list_users()
+    for u in users:
+        uname = f"m{u['nim']}"
+        disk_info = get_user_disk_metrics(uname, is_priority=bool(u.get("is_priority")))
+        u.update(disk_info)
     return {"success": True, "users": users}
 
 @app.post("/api/users/boost")
@@ -771,8 +778,22 @@ async def startup_event():
                 print("Auto expire worker error:", e)
             await asyncio.sleep(60.0)
 
+    async def disk_usage_worker():
+        while True:
+            try:
+                try:
+                    db_users = list_users()
+                    extra_unames = [f"m{u['nim']}" for u in db_users if u.get("nim")]
+                except Exception:
+                    extra_unames = []
+                await asyncio.to_thread(update_all_user_disk_usage, extra_unames)
+            except Exception as e:
+                print("Disk usage worker error:", e)
+            await asyncio.sleep(60.0)
+
     asyncio.create_task(telemetry_broadcaster())
     asyncio.create_task(auto_expire_worker())
+    asyncio.create_task(disk_usage_worker())
 
 # Serve static frontend dist if it exists
 FRONTEND_DIST = os.getenv("FRONTEND_DIST", os.path.join(PROJECT_ROOT, "frontend", "dist"))

@@ -127,34 +127,6 @@ export default function Sidebar({
 
         {/* Bottom Section: VRAM Quota Widget & Live Status */}
         <div className="shrink-0 p-3 flex flex-col gap-2.5 border-t border-border-subtle bg-surface-dim/40">
-          {/* VRAM Quota Meter */}
-          <div className="p-3 bg-surface-container-lowest/80 rounded-lg border border-border-subtle flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <span className="font-mono-code-xs text-mono-code-xs text-text-muted">VRAM QUOTA</span>
-              <span
-                className={`font-mono-code-xs text-mono-code-xs font-semibold ${
-                  vramPct >= 85 ? 'text-neon-rose' : vramPct >= 65 ? 'text-neon-amber' : 'text-neon-emerald'
-                }`}
-              >
-                {vramPct}%
-              </span>
-            </div>
-            <div className="w-full h-1.5 bg-surface-variant rounded-md overflow-hidden">
-              <div
-                className={`h-full rounded-md transition-all duration-500 ${
-                  vramPct >= 85
-                    ? 'bg-neon-rose shadow-[0_0_8px_rgba(255,180,171,0.8)]'
-                    : '  '
-                }`}
-                style={{ width: `${vramPct}%` }}
-              />
-            </div>
-            <div className="flex items-center justify-between pt-0.5 text-mono-code-xs font-mono-code-xs text-outline">
-              <span className="truncate">node-dgx-umpo01</span>
-              <span>{vramUsedGb}/{vramTotalGb} GB</span>
-            </div>
-          </div>
-
           {/* Quick Telemetry & Refresh Row */}
           <div className="flex items-center justify-between px-2 py-1 bg-surface-2 rounded-lg border border-border-subtle font-mono text-sm">
             <div className="flex items-center gap-2">

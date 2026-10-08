@@ -105,7 +105,7 @@ function SystemOverview({ system = {}, gpus = [], onTriggerBackup, isBackingUp, 
               </li>
               <li className="flex items-center gap-2 text-sm text-text-secondary">
                 <span className={`w-2 h-2 rounded-md ${latestBackup ? 'bg-tertiary' : 'bg-amber-400'}`}></span>
-                {latestBackup ? `Backup terakhir: ${new Date(latestBackup.timestamp * 1000).toLocaleDateString('id-ID')}` : 'Belum ada backup'}
+                {latestBackup ? `Backup terakhir: ${new Date(latestBackup.created_at).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}` : 'Belum ada backup'}
               </li>
             </ul>
           </div>

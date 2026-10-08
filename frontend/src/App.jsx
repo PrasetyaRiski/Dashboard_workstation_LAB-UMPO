@@ -8,6 +8,7 @@ import AuditLogView from './components/AuditLogView';
 import KillConfirmModal from './components/KillConfirmModal';
 import UnifiedUserManagement from './components/UnifiedUserManagement';
 import AdminPinModal from './components/AdminPinModal';
+import ErrorBoundary from './components/ErrorBoundary';
 
 import {
   WifiOff, RefreshCw, Layers, ShieldCheck,
@@ -486,61 +487,68 @@ export default function App() {
         {/* Scrollable Main Content Canvas */}
         <main className="flex-1 pt-20 px-6 lg:px-8 pb-12 w-full max-w-[1600px] mx-auto">
           {activeTab === 'overview' && (
-            <div className="flex flex-col gap-6 fade-in-up">
-              <SystemOverview system={data?.system} gpus={data?.gpus} />
-              <LiveChart history={data?.history} theme="dark" />
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <GpuCard
-                  gpu={data?.gpus?.[0]}
-                  isAdmin={isAdmin}
-                  onOpenKillModal={handleOpenKillModal}
-                  sparkHistory={data?.history || []}
-                />
-                <GpuCard
-                  gpu={data?.gpus?.[1]}
-                  isAdmin={isAdmin}
-                  onOpenKillModal={handleOpenKillModal}
-                  sparkHistory={data?.history || []}
-                />
+            <ErrorBoundary title="Kendala Modul Ringkasan Sistem">
+              <div className="flex flex-col gap-6 fade-in-up">
+                <SystemOverview system={data?.system} gpus={data?.gpus} />
+                <LiveChart history={data?.history} theme="dark" />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <GpuCard
+                    gpu={data?.gpus?.[0]}
+                    isAdmin={isAdmin}
+                    onOpenKillModal={handleOpenKillModal}
+                    sparkHistory={data?.history || []}
+                  />
+                  <GpuCard
+                    gpu={data?.gpus?.[1]}
+                    isAdmin={isAdmin}
+                    onOpenKillModal={handleOpenKillModal}
+                    sparkHistory={data?.history || []}
+                  />
+                </div>
               </div>
-            </div>
+            </ErrorBoundary>
           )}
 
           {activeTab === 'jobs' && (
-            <div className="fade-in-up">
-              <ProcessManager
-                processes={activeProcesses}
-                isAdmin={isAdmin}
-                isSuperAdmin={isSuperAdmin}
-                adminRole={adminRole}
-                onOpenKillModal={handleOpenKillModal}
-                onRunSimulation={handleRunSimulation}
-                onStopSimulation={handleStopSimulation}
-                isSimulating={isSimulating}
-                onOpenPinModal={() => setLoginModalOpen(true)}
-              />
-            </div>
+            <ErrorBoundary title="Kendala Modul Manajemen Job">
+              <div className="fade-in-up">
+                <ProcessManager
+                  processes={activeProcesses}
+                  isAdmin={isAdmin}
+                  isSuperAdmin={isSuperAdmin}
+                  adminRole={adminRole}
+                  onOpenKillModal={handleOpenKillModal}
+                  onRunSimulation={handleRunSimulation}
+                  onStopSimulation={handleStopSimulation}
+                  isSimulating={isSimulating}
+                  onOpenPinModal={() => setLoginModalOpen(true)}
+                />
+              </div>
+            </ErrorBoundary>
           )}
 
           {activeTab === 'students' && (
-            <div className="fade-in-up">
-              <UnifiedUserManagement
-                isAdmin={isAdmin}
-                adminRole={adminRole}
-                adminUser={adminUser}
-                students={students}
-                systemUsers={data?.users || []}
-                onOpenKillModal={handleOpenKillModal}
-                onResetPassword={handleResetPassword}
-                onKillAllUser={handleKillAllUser}
-                fetchStudents={fetchStudents}
-                showToast={showToast}
-              />
-            </div>
+            <ErrorBoundary title="Kendala Modul Manajemen User">
+              <div className="fade-in-up">
+                <UnifiedUserManagement
+                  isAdmin={isAdmin}
+                  adminRole={adminRole}
+                  adminUser={adminUser}
+                  students={students}
+                  systemUsers={data?.users || []}
+                  onOpenKillModal={handleOpenKillModal}
+                  onResetPassword={handleResetPassword}
+                  onKillAllUser={handleKillAllUser}
+                  fetchStudents={fetchStudents}
+                  showToast={showToast}
+                />
+              </div>
+            </ErrorBoundary>
           )}
 
           {activeTab === 'system' && (
-            <div className="flex flex-col gap-6 fade-in-up">
+            <ErrorBoundary title="Kendala Modul Infrastruktur">
+              <div className="flex flex-col gap-6 fade-in-up">
               {/* Top Operational Banner */}
               <div className="relative overflow-hidden rounded-xl bg-surface-1 p-6 shadow-xl border border-border-subtle">
                 <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-neon-cyan/5 blur-3xl pointer-events-none"></div>
@@ -876,7 +884,7 @@ export default function App() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border-subtle text-on-surface">
-                        {backups.length === 0 ? (
+                        {(!Array.isArray(backups) || backups.length === 0) ? (
                           <tr>
                             <td colSpan="4" className="px-4 py-6 text-center text-text-muted">
                               {isAdmin
@@ -885,17 +893,17 @@ export default function App() {
                             </td>
                           </tr>
                         ) : (
-                          backups.slice(0, 5).map((bk, idx) => (
+                          (Array.isArray(backups) ? backups : []).slice(0, 5).map((bk, idx) => (
                             <tr key={idx} className="hover:bg-surface-3 transition-colors">
                               <td className="px-4 py-3 flex items-center gap-2">
                                 <span className="material-symbols-outlined text-[16px] text-neon-cyan">archive</span>
-                                <span className="text-primary font-semibold">{bk.filename}</span>
+                                <span className="text-primary font-semibold">{bk?.filename || 'snapshot.tar.gz'}</span>
                               </td>
                               <td className="px-4 py-3 text-on-surface-variant">
-                                {bk.created_at || 'Baru Saja'}
+                                {bk?.created_at || 'Baru Saja'}
                               </td>
                               <td className="px-4 py-3 text-right text-neon-emerald font-semibold">
-                                {bk.size_kb ? `${bk.size_kb} KB` : `${(bk.size_bytes / 1024).toFixed(1)} KB`}
+                                {bk?.size_kb ? `${bk.size_kb} KB` : `${(((bk?.size_bytes || 0)) / 1024).toFixed(1)} KB`}
                               </td>
                               <td className="px-4 py-3 text-center">
                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container-high text-neon-emerald font-semibold">
@@ -911,12 +919,15 @@ export default function App() {
                 </div>
               </div>
             </div>
+            </ErrorBoundary>
           )}
 
           {activeTab === 'audit' && (
-            <div className="fade-in-up">
-              <AuditLogView logs={data?.audit_logs || []} />
-            </div>
+            <ErrorBoundary title="Kendala Modul Audit Log">
+              <div className="fade-in-up">
+                <AuditLogView logs={data?.audit_logs || []} />
+              </div>
+            </ErrorBoundary>
           )}
         </main>
       </div>

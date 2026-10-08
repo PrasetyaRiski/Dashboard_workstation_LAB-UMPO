@@ -26,6 +26,11 @@ fi
 git fetch origin main
 git reset --hard origin/main
 
+if command -v npm &> /dev/null && [ -f "frontend/package.json" ]; then
+    echo "⚡ Memeriksa dan memperbarui build frontend dist..."
+    (cd frontend && npm run build --silent || true)
+fi
+
 # 3. Update dependencies venv
 echo "📦 Menginstall modul backend ke venv..."
 if [ -d "venv" ]; then

@@ -49,16 +49,24 @@ function MetricCard({ icon: Icon, iconColor, label, title, subtitle, value, unit
   );
 }
 
-function SystemOverview({ system, gpus = [] }) {
+function SystemOverview({ system = {}, gpus = [] }) {
   if (!system) return null;
 
-  const { cpu, memory, disks } = system;
-  const gpu0 = gpus[0];
-  const gpu1 = gpus[1];
+  const cpu = system?.cpu || {};
+  const memory = system?.memory || {};
+  const disks = system?.disks || {};
+  const homeDisk = disks.home || disks.root || {};
+
+  const gpu0 = gpus?.[0] || {};
+  const gpu1 = gpus?.[1] || {};
   const totalVramUsedGb = (((gpu0?.vram_used_mb || 0) + (gpu1?.vram_used_mb || 0)) / 1024).toFixed(1);
   const totalVramMaxGb  = (((gpu0?.vram_total_mb || 16384) + (gpu1?.vram_total_mb || 16384)) / 1024).toFixed(0);
-  const totalVramPct    = Math.round((totalVramUsedGb / (totalVramMaxGb || 1)) * 100) || 0;
+  const totalVramPct    = Math.round((Number(totalVramUsedGb) / (Number(totalVramMaxGb) || 1)) * 100) || 0;
   const totalGpuCompute = Math.round(((gpu0?.compute_percent || 0) + (gpu1?.compute_percent || 0)) / 2);
+
+  const coreCount = cpu.core_count || 24;
+  const cpuPercent = cpu.overall_percent || 0;
+  const memoryPercent = memory.percent || 0;
 
   return (
     <div className="flex flex-col gap-6">
@@ -90,7 +98,7 @@ function SystemOverview({ system, gpus = [] }) {
         <div className="flex items-center gap-4 bg-surface-1 px-4 py-2 rounded-lg border border-border-subtle shadow-sm">
           <div className="flex flex-col text-right">
             <span className="font-mono text-[10px] text-text-muted">TOTAL VCPU</span>
-            <span className="font-mono text-sm text-text-primary font-bold">{cpu.core_count} Threads</span>
+            <span className="font-mono text-sm text-text-primary font-bold">{coreCount} Threads</span>
           </div>
           <div className="h-6 w-px bg-surface-variant"></div>
           <div className="flex flex-col text-right">
@@ -110,15 +118,15 @@ function SystemOverview({ system, gpus = [] }) {
           iconColor="#4cd7f6"
           label="HOST COMPUTE CORE"
           title="AMD EPYC / Intel Xeon"
-          subtitle={`${cpu.core_count} Threads @ 2.45GHz`}
-          value={cpu.overall_percent}
+          subtitle={`${coreCount} Threads @ 2.45GHz`}
+          value={cpuPercent}
           unit="%"
-          percent={cpu.overall_percent}
-          barColor={cpu.overall_percent >= 85 ? '#ffb4ab' : '#4cd7f6'}
+          percent={cpuPercent}
+          barColor={cpuPercent >= 85 ? '#ffb4ab' : '#4cd7f6'}
           subRows={
             <>
-              <span>Avg Load: {cpu.overall_percent}%</span>
-              <span>Total Cores: {cpu.core_count}</span>
+              <span>Avg Load: {cpuPercent}%</span>
+              <span>Total Cores: {coreCount}</span>
             </>
           }
         />
@@ -130,14 +138,14 @@ function SystemOverview({ system, gpus = [] }) {
           label="SYSTEM MEMORY ALLOCATION"
           title="DDR4 ECC Server Registered"
           subtitle={`user.slice Limit: ${memory.user_slice_max_gb || 100} GB`}
-          value={memory.used_gb}
-          unit={`/ ${memory.total_gb} GB`}
-          percent={memory.percent}
-          barColor={memory.percent >= 85 ? '#ffb4ab' : '#4edea3'}
+          value={memory.used_gb || 0}
+          unit={`/ ${memory.total_gb || 128} GB`}
+          percent={memoryPercent}
+          barColor={memoryPercent >= 85 ? '#ffb4ab' : '#4edea3'}
           subRows={
             <>
               <span>user.slice: {memory.user_slice_used_gb || 0} GB</span>
-              <span>{memory.percent}% Digunakan</span>
+              <span>{memoryPercent}% Digunakan</span>
             </>
           }
         />
@@ -167,14 +175,14 @@ function SystemOverview({ system, gpus = [] }) {
           iconColor="#c0c1ff"
           label="DATASET & STORAGE POOL"
           title="High-Speed NVMe Storage (/home)"
-          subtitle={`Sisa Kuota: ${disks.home ? disks.home.free_gb : 0} GB Free`}
-          value={disks.home ? disks.home.used_gb : 0}
+          subtitle={`Sisa Kuota: ${homeDisk.free_gb || 0} GB Free`}
+          value={homeDisk.used_gb || 0}
           unit="GB Digunakan"
-          percent={disks.home ? disks.home.percent : 0}
-          barColor={disks.home?.percent >= 85 ? '#ffb4ab' : '#c0c1ff'}
+          percent={homeDisk.percent || 0}
+          barColor={(homeDisk.percent || 0) >= 85 ? '#ffb4ab' : '#c0c1ff'}
           subRows={
             <>
-              <span>{disks.home?.percent || 0}% Terpakai</span>
+              <span>{homeDisk.percent || 0}% Terpakai</span>
               <span>NVMe Shared Pool</span>
             </>
           }
@@ -185,14 +193,14 @@ function SystemOverview({ system, gpus = [] }) {
       <div className="bg-surface-2 rounded-xl p-5 border border-border-subtle shadow-sm">
         <div className="flex items-center justify-between mb-3">
           <span className="font-mono text-xs text-text-muted uppercase tracking-wider font-semibold">
-            CPU Core Load Matrix — {cpu.core_count} Threads
+            CPU Core Load Matrix — {coreCount} Threads
           </span>
           <span className="font-mono text-[10px] text-outline">
             CFS Scheduler Real-time
           </span>
         </div>
         <div className="flex items-end gap-1 h-7">
-          {cpu.cores_percent && cpu.cores_percent.map((c, idx) => {
+          {Array.isArray(cpu.cores_percent) && cpu.cores_percent.map((c, idx) => {
             const color = c > 80 ? '#ffb4ab' : c > 50 ? '#fbbf24' : '#4cd7f6';
             return (
               <div

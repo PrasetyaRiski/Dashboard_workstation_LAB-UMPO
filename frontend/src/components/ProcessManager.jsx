@@ -199,12 +199,12 @@ export default function ProcessManager({
       if (filterType === 'gpu1' && !(p.gpu_index === 1 || p.gpu_name?.includes('1'))) return false;
       if (filterType === 'highmem' && (p.vram_mb || 0) <= 8000) return false;
       if (search) {
-        const q = search.toLowerCase();
+        const q = search.toLowerCase().trim();
         return (
-          p.username?.toLowerCase().includes(q) ||
-          p.name?.toLowerCase().includes(q) ||
-          p.cmdline?.toLowerCase().includes(q) ||
-          String(p.pid).includes(q)
+          String(p.username || '').toLowerCase().includes(q) ||
+          String(p.name || '').toLowerCase().includes(q) ||
+          String(p.cmdline || '').toLowerCase().includes(q) ||
+          String(p.pid || '').includes(q)
         );
       }
       return true;

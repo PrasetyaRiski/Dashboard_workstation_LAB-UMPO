@@ -70,11 +70,11 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
   const vramPct = gpu.vram_percent || 0;
   const computePct = gpu.compute_percent || 0;
 
-  const vramUsedGb = (gpu.vram_used_mb / 1024).toFixed(2);
-  const vramTotalGb = (gpu.vram_total_mb / 1024).toFixed(1);
+  const vramUsedGb = (((gpu.vram_used_mb || 0)) / 1024).toFixed(2);
+  const vramTotalGb = (((gpu.vram_total_mb || 16384)) / 1024).toFixed(1);
 
   const topProc = gpu.processes && gpu.processes[0];
-  const uniqueUsers = Array.from(new Set((gpu.processes || []).map(p => p.username)));
+  const uniqueUsers = Array.from(new Set((gpu.processes || []).map(p => p.username).filter(Boolean)));
 
   return (
     <div className={`bg-surface-2 rounded-xl p-6 shadow-xl relative flex flex-col justify-between border-t-2 ${
@@ -126,7 +126,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
                 Admission Control Quota
               </span>
               <span className={`font-mono text-xs font-semibold ${topProc ? 'text-neon-amber' : 'text-neon-emerald'}`}>
-                {topProc ? `[Slot Prioritas: 1/1 Terpakai - ${topProc.username}]` : '[Slot Prioritas: 0/1 Tersedia]'}
+                {topProc ? `[Slot Prioritas: 1/1 Terpakai - ${topProc.username || 'User'}]` : '[Slot Prioritas: 0/1 Tersedia]'}
               </span>
             </div>
             <div className="w-full bg-surface-container-high h-2 rounded-full overflow-hidden flex">
@@ -180,7 +180,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
               <span className="font-mono text-[9px] text-text-muted uppercase">TEMPERATURE</span>
             </div>
             <span className="font-mono text-sm font-bold text-text-primary">
-              {gpu.temperature_c}°C
+              {gpu.temperature_c ?? 0}°C
             </span>
             <span className="font-mono text-[9px] text-outline">Max: 89°C</span>
           </div>
@@ -192,7 +192,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
               <span className="font-mono text-[9px] text-text-muted uppercase">FAN SPEED</span>
             </div>
             <span className="font-mono text-sm font-bold text-text-primary">
-              {gpu.fan_speed_percent}%
+              {gpu.fan_speed_percent ?? 0}%
             </span>
             <span className="font-mono text-[9px] text-outline">Auto Curve</span>
           </div>
@@ -204,9 +204,9 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
               <span className="font-mono text-[9px] text-text-muted uppercase">POWER DRAW</span>
             </div>
             <span className="font-mono text-sm font-bold text-text-primary">
-              {gpu.power_w} W
+              {gpu.power_w ?? 0} W
             </span>
-            <span className="font-mono text-[9px] text-outline">TDP: {gpu.power_limit_w} W</span>
+            <span className="font-mono text-[9px] text-outline">TDP: {gpu.power_limit_w ?? 285} W</span>
           </div>
 
           {/* VRAM Allocation */}

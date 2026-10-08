@@ -216,7 +216,7 @@ export default function UnifiedUserManagement({
     
     // 1. Pure System Users (labriset, training1-10, etc.)
     const pureSystemUsers = (systemUsers || []).filter(
-      su => !(su.username?.startsWith('m') && /^\d+$/.test(su.username.slice(1)))
+      su => !(su?.username && su.username.startsWith('m') && /^\d+$/.test(su.username.slice(1)))
     );
     pureSystemUsers.forEach(su => {
       const isRiset = su.username === 'labriset';
@@ -239,16 +239,17 @@ export default function UnifiedUserManagement({
     // 2. Map OS telemetry for students by NIM
     const studentTelemetryMap = new Map();
     (systemUsers || []).forEach(su => {
-      if (su.username?.startsWith('m') && /^\d+$/.test(su.username.slice(1))) {
-        const nim = su.username.slice(1);
+      if (su?.username && su.username.startsWith('m') && /^\d+$/.test(su.username.slice(1))) {
+        const nim = String(su.username.slice(1));
         studentTelemetryMap.set(nim, su);
       }
     });
 
     // 3. Process SIMTIK students
     (students || []).forEach(st => {
-      const osUser = studentTelemetryMap.get(st.nim);
-      const isOnline = Boolean(st.is_active && (osUser?.is_online || (osUser?.total_process_count > 0)));
+      const nimStr = String(st.nim || '');
+      const osUser = studentTelemetryMap.get(nimStr);
+      const isOnline = Boolean(st.is_active && (osUser?.is_online || ((osUser?.total_process_count || 0) > 0)));
       const diskQuotaGb = st.disk_quota_gb ?? osUser?.disk_quota_gb ?? (st.is_priority ? 50 : 10);
       const diskUsedMb = st.disk_used_mb ?? osUser?.disk_used_mb ?? 0;
       const diskQuotaMb = diskQuotaGb * 1024;
@@ -256,6 +257,7 @@ export default function UnifiedUserManagement({
       const isOverQuota = st.is_over_quota ?? (diskUsedMb > diskQuotaMb);
       list.push({
         ...st,
+        nim: nimStr,
         type: 'student',
         is_online: isOnline,
         os_user: osUser || null,
@@ -280,7 +282,7 @@ export default function UnifiedUserManagement({
   const totalStudents = students?.length || 0;
   const pureSystemCount = useMemo(() => {
     return (systemUsers || []).filter(
-      su => !(su.username?.startsWith('m') && /^\d+$/.test(su.username.slice(1)))
+      su => !(su?.username && su.username.startsWith('m') && /^\d+$/.test(su.username.slice(1)))
     ).length;
   }, [systemUsers]);
 
@@ -303,16 +305,15 @@ export default function UnifiedUserManagement({
       if (!q) return true;
 
       if (item.type === 'system') {
-        const uname = item.username?.toLowerCase() || '';
+        const uname = String(item.username || '').toLowerCase();
         const isRiset = item.username === 'labriset';
         const label = isRiset ? 'labriset dosen skripsi' : 'pelatihan training';
         return uname.includes(q) || label.includes(q);
       } else {
-        return (
-          (item.nim?.toLowerCase() || '').includes(q) ||
-          (item.nama?.toLowerCase() || '').includes(q) ||
-          (item.active_ip?.toLowerCase() || '').includes(q)
-        );
+        const nimStr = String(item.nim || '').toLowerCase();
+        const namaStr = String(item.nama || '').toLowerCase();
+        const ipStr = String(item.active_ip || '').toLowerCase();
+        return nimStr.includes(q) || namaStr.includes(q) || ipStr.includes(q);
       }
     });
   }, [unifiedList, filterType, searchQuery]);
@@ -665,8 +666,8 @@ export default function UnifiedUserManagement({
                     const diskPct = Math.min(100, Math.round(((item.disk_used_mb || 0) / (diskQuotaGb * 1024)) * 100));
 
                     const initials = item.nama
-                      ? item.nama.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()
-                      : item.nim.slice(-2);
+                      ? (item.nama.trim().split(/\s+/).map(n => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || 'M')
+                      : String(item.nim || 'M').slice(-2).toUpperCase();
 
                     return (
                       <tr

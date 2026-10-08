@@ -113,15 +113,16 @@ export default function AuditLogView({ logs = [] }) {
   const [filter, setFilter] = useState('ALL');
   const [search, setSearch] = useState('');
 
-  const filteredLogs = logs.filter((log) => {
+  const safeLogs = Array.isArray(logs) ? logs : [];
+
+  const filteredLogs = safeLogs.filter((log) => {
     if (filter !== 'ALL' && log.action !== filter) return false;
     if (search) {
-      const q = search.toLowerCase();
-      return (
-        (log.target || '').toLowerCase().includes(q) ||
-        (log.detail || '').toLowerCase().includes(q) ||
-        (log.action || '').toLowerCase().includes(q)
-      );
+      const q = search.toLowerCase().trim();
+      const targetStr = String(log.target || log.nim || '').toLowerCase();
+      const detailStr = String(log.detail || '').toLowerCase();
+      const actionStr = String(log.action || '').toLowerCase();
+      return targetStr.includes(q) || detailStr.includes(q) || actionStr.includes(q);
     }
     return true;
   });
@@ -225,18 +226,18 @@ export default function AuditLogView({ logs = [] }) {
                         </span>
                         <span className="text-outline text-xs">•</span>
                         <span className="text-xs font-mono font-bold text-text-primary bg-surface-1 px-2 py-0.5 rounded border border-border-base">
-                          {log.target}
+                          {log.target || log.nim || 'System'}
                         </span>
                       </div>
                       <p className="text-xs text-text-muted leading-relaxed">
-                        {log.detail}
+                        {log.detail || '—'}
                       </p>
                     </div>
 
                     {/* Timestamp */}
                     <div className="shrink-0 flex flex-col items-end gap-1 pt-0.5 font-mono">
                       <span className="text-[10px] text-text-primary px-2 py-0.5 bg-surface-1 rounded border border-border-base">
-                        {log.time}
+                        {log.time || log.created_at || 'Baru Saja'}
                       </span>
                       <span className="text-[9px] uppercase tracking-wider text-neon-emerald flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <span className="w-1.5 h-1.5 rounded-full bg-neon-emerald"></span>

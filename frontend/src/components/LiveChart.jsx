@@ -30,7 +30,7 @@ const CustomTooltip = ({ active, payload, label }) => {
   return (
     <div className="bg-surface-1 border border-border-base rounded-xl p-3 shadow-2xl font-mono min-w-[170px]">
       <p className="text-[10px] text-text-muted mb-2 font-bold uppercase tracking-wider">
-        Waktu: {label}
+        Waktu: {label || '—'}
       </p>
       <div className="flex flex-col gap-1.5">
         {payload.map((entry) => (
@@ -40,7 +40,7 @@ const CustomTooltip = ({ active, payload, label }) => {
               {entry.name}
             </span>
             <span className="font-bold font-mono" style={{ color: entry.color }}>
-              {entry.value?.toFixed(1)}%
+              {Number(entry.value || 0).toFixed(1)}%
             </span>
           </div>
         ))}
@@ -49,13 +49,26 @@ const CustomTooltip = ({ active, payload, label }) => {
   );
 };
 
-function LiveChart({ history }) {
+function LiveChart({ history = [] }) {
   const [range, setRange] = useState(60);
 
-  const slicedData = history ? history.slice(-range) : [];
-  const latest = slicedData[slicedData.length - 1];
+  const formattedData = React.useMemo(() => {
+    if (!Array.isArray(history)) return [];
+    return history.slice(-range).map((item) => ({
+      ...item,
+      time: item.time || item.timestamp || '',
+      cpu: Number(item.cpu || 0),
+      ram: Number(item.ram || 0),
+      gpu0_compute: Number(item.gpu0_compute || 0),
+      gpu1_compute: Number(item.gpu1_compute || 0),
+      gpu0_vram: Number(item.gpu0_vram || 0),
+      gpu1_vram: Number(item.gpu1_vram || 0),
+    }));
+  }, [history, range]);
 
-  if (!history || history.length === 0) {
+  const latest = formattedData[formattedData.length - 1];
+
+  if (!Array.isArray(history) || history.length === 0) {
     return (
       <div className="bg-surface-2 rounded-xl p-8 border border-border-subtle flex items-center justify-center text-xs font-mono text-text-muted">
         <span>Menunggu stream data telemetri real-time…</span>
@@ -125,7 +138,7 @@ function LiveChart({ history }) {
       {/* Chart Canvas */}
       <div className="w-full h-56 bg-surface-container-lowest/80 rounded-lg p-2 border border-border-subtle relative overflow-hidden">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={slicedData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+          <AreaChart data={formattedData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="gpuGrad" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#4cd7f6" stopOpacity={0.35} />
@@ -142,7 +155,7 @@ function LiveChart({ history }) {
             </defs>
             <CartesianGrid stroke="rgba(70, 69, 84, 0.15)" strokeDasharray="3 3" vertical={false} />
             <XAxis
-              dataKey="timestamp"
+              dataKey="time"
               stroke="#869397"
               fontSize={10}
               tickLine={false}

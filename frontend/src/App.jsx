@@ -388,10 +388,6 @@ export default function App() {
               <span className="font-headline-md text-label-lg text-on-surface font-bold tracking-tight">
                 Lab Komputasi AI UMPO
               </span>
-              <span className="text-outline-variant font-mono-code-xs hidden sm:inline">/</span>
-              <span className="hidden sm:inline font-mono-code-xs text-mono-code-xs text-primary-fixed-dim bg-surface-2 px-2 py-0.5 rounded border border-border-base">
-                node-dgx-umpo01
-              </span>
             </div>
           </div>
 

@@ -327,13 +327,13 @@ export default function UnifiedUserManagement({
             </span>
             <span className="text-outline text-xs">/</span>
             <span className="font-mono text-xs text-text-muted">SLURM-CGROUP-ORCHESTRATOR</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-neon-emerald animate-ping ml-1"></span>
+            <span className="w-1.5 h-1.5 rounded-md bg-neon-emerald animate-ping ml-1"></span>
           </div>
           <div className="flex items-baseline gap-3 flex-wrap">
             <h1 className="font-headline-xl text-2xl lg:text-3xl font-bold text-text-primary tracking-tight">
               Manajemen User Terpadu
             </h1>
-            <span className="font-mono text-xs text-neon-cyan px-2.5 py-0.5 rounded-full bg-surface-container-high/80 border border-neon-cyan/20">
+            <span className="font-mono text-xs text-neon-cyan px-2.5 py-0.5 rounded-md bg-surface-container-high/80 border border-neon-cyan/20">
               v4.2 QoS Controller
             </span>
           </div>
@@ -393,9 +393,9 @@ export default function UnifiedUserManagement({
                 {slotUtilPct}% Utilisasi
               </span>
             </div>
-            <div className="w-full h-1.5 rounded-full bg-surface-variant overflow-hidden">
+            <div className="w-full h-1.5 rounded-md bg-surface-variant overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all duration-500 ${
+                className={`h-full rounded-md transition-all duration-500 ${
                   isSlotsFull
                     ? 'bg-neon-rose shadow-[0_0_10px_rgba(255,180,171,0.8)]'
                     : 'bg-neon-cyan shadow-[0_0_10px_rgba(76,215,246,0.6)]'
@@ -443,7 +443,7 @@ export default function UnifiedUserManagement({
                 Active SIMTIK
               </span>
             </div>
-            <div className="w-full h-1.5 rounded-full bg-surface-variant overflow-hidden flex">
+            <div className="w-full h-1.5 rounded-md bg-surface-variant overflow-hidden flex">
               <div
                 className="h-full bg-secondary rounded-l-full"
                 style={{ width: `${Math.round((totalStudents / (unifiedList.length || 1)) * 100)}%` }}
@@ -485,9 +485,9 @@ export default function UnifiedUserManagement({
                 Full Boosted
               </span>
             </div>
-            <div className="w-full h-1.5 rounded-full bg-surface-variant overflow-hidden">
+            <div className="w-full h-1.5 rounded-md bg-surface-variant overflow-hidden">
               <div
-                className="h-full bg-neon-amber rounded-full shadow-[0_0_8px_rgba(251,191,36,0.6)]"
+                className="h-full bg-neon-amber rounded-md shadow-[0_0_8px_rgba(251,191,36,0.6)]"
                 style={{ width: `${slotUtilPct}%` }}
               />
             </div>
@@ -526,8 +526,8 @@ export default function UnifiedUserManagement({
                 {overQuotaCount} <span className="text-outline text-xs font-normal">Akun</span>
               </span>
               {overQuotaCount > 0 ? (
-                <span className="inline-flex items-center gap-1 font-mono text-[10px] text-neon-rose bg-error-container/40 px-2 py-0.5 rounded-full shadow-[0_0_8px_rgba(255,180,171,0.3)]">
-                  <span className="w-1.5 h-1.5 rounded-full bg-neon-rose animate-ping"></span>
+                <span className="inline-flex items-center gap-1 font-mono text-[10px] text-neon-rose bg-error-container/40 px-2 py-0.5 rounded-md shadow-[0_0_8px_rgba(255,180,171,0.3)]">
+                  <span className="w-1.5 h-1.5 rounded-md bg-neon-rose animate-ping"></span>
                   Over Quota
                 </span>
               ) : (
@@ -536,9 +536,9 @@ export default function UnifiedUserManagement({
                 </span>
               )}
             </div>
-            <div className="w-full h-1.5 rounded-full bg-surface-variant overflow-hidden">
+            <div className="w-full h-1.5 rounded-md bg-surface-variant overflow-hidden">
               <div
-                className={`h-full rounded-full ${
+                className={`h-full rounded-md ${
                   overQuotaCount > 0
                     ? 'bg-neon-rose shadow-[0_0_8px_rgba(255,180,171,0.8)]'
                     : 'bg-neon-emerald'
@@ -603,7 +603,7 @@ export default function UnifiedUserManagement({
             type="button"
           >
             <span>⚠️ Over Quota</span>
-            <span className="px-1.5 py-0.2 rounded-full bg-neon-rose text-surface-container-lowest font-mono font-bold text-[10px]">
+            <span className="px-1.5 py-0.2 rounded-md bg-neon-rose text-surface-container-lowest font-mono font-bold text-[10px]">
               {overQuotaCount}
             </span>
           </button>
@@ -628,7 +628,7 @@ export default function UnifiedUserManagement({
       </div>
 
       {/* Precision 8-Column Data Table Container */}
-      <div className="bg-surface-container-low rounded-xl shadow-xl overflow-hidden border border-border-subtle">
+      <div className="bg-surface-container-low rounded-xl shadow-sm overflow-hidden border border-border-subtle">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[1240px]">
             <thead>
@@ -677,7 +677,7 @@ export default function UnifiedUserManagement({
                         {/* 1. Akun & Pengguna */}
                         <td className="py-3.5 px-5">
                           <div className="flex items-center gap-3">
-                            <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shrink-0 shadow-sm ${
+                            <div className={`w-9 h-9 rounded-md flex items-center justify-center font-bold text-xs shrink-0 shadow-sm ${
                               item.is_priority
                                 ? 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/40'
                                 : 'bg-secondary-container text-secondary-fixed'
@@ -704,7 +704,7 @@ export default function UnifiedUserManagement({
                             {item.is_active ? (
                               item.is_online ? (
                                 <div className="flex items-center gap-1.5 font-mono text-[10px]">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-neon-emerald animate-pulse"></span>
+                                  <span className="w-1.5 h-1.5 rounded-md bg-neon-emerald animate-pulse"></span>
                                   <span className="text-neon-emerald font-semibold">Online</span>
                                   {item.active_ip && (
                                     <span className="text-outline text-[9px]">({item.active_ip})</span>
@@ -712,14 +712,14 @@ export default function UnifiedUserManagement({
                                 </div>
                               ) : (
                                 <div className="flex items-center gap-1.5 font-mono text-[10px] text-text-muted">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-outline"></span>
+                                  <span className="w-1.5 h-1.5 rounded-md bg-outline"></span>
                                   <span>⚪ Offline</span>
                                 </div>
                               )
                             ) : (
                               <div className="flex items-center gap-1.5 font-mono text-[10px] text-neon-rose font-semibold">
-                                <span className="w-1.5 h-1.5 rounded-full bg-neon-rose"></span>
-                                <span>🔴 Blocked</span>
+                                <span className="w-1.5 h-1.5 rounded-md bg-neon-rose"></span>
+                                <span> Blocked</span>
                               </div>
                             )}
                           </div>
@@ -754,12 +754,12 @@ export default function UnifiedUserManagement({
                         <td className="py-3.5 px-4">
                           <div className="flex flex-col gap-0.5">
                             {item.is_priority ? (
-                              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary-container/20 text-neon-cyan w-fit shadow-sm border border-neon-cyan/20">
+                              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary-container/20 text-neon-cyan w-fit shadow-sm border border-neon-cyan/20">
                                 <Zap className="w-3 h-3 text-neon-cyan" />
                                 <span className="font-mono text-[10px] font-semibold">Level 1 (Priority)</span>
                               </div>
                             ) : (
-                              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-variant text-on-surface-variant w-fit">
+                              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-surface-variant text-on-surface-variant w-fit">
                                 <span className="font-mono text-[10px]">Level 2 (Standard)</span>
                               </div>
                             )}
@@ -795,9 +795,9 @@ export default function UnifiedUserManagement({
                               <span className="text-text-primary font-semibold">{ramUsedGb} GB</span>
                               <span className="text-outline">/ {ramMaxGb} GB</span>
                             </div>
-                            <div className="w-full h-1.5 rounded-full bg-surface-variant overflow-hidden">
+                            <div className="w-full h-1.5 rounded-md bg-surface-variant overflow-hidden">
                               <div
-                                className={`h-full rounded-full transition-all duration-300 ${
+                                className={`h-full rounded-md transition-all duration-300 ${
                                   ramPct >= 85 ? 'bg-neon-rose' : ramPct >= 60 ? 'bg-neon-amber' : 'bg-neon-cyan'
                                 }`}
                                 style={{ width: `${ramPct}%` }}
@@ -815,9 +815,9 @@ export default function UnifiedUserManagement({
                               </span>
                               <span className="text-outline">/ {diskQuotaGb} GB</span>
                             </div>
-                            <div className="w-full h-1.5 rounded-full bg-surface-variant overflow-hidden">
+                            <div className="w-full h-1.5 rounded-md bg-surface-variant overflow-hidden">
                               <div
-                                className={`h-full rounded-full transition-all duration-300 ${
+                                className={`h-full rounded-md transition-all duration-300 ${
                                   item.is_over_quota
                                     ? 'bg-neon-rose shadow-[0_0_8px_rgba(255,180,171,0.8)]'
                                     : diskPct >= 80
@@ -968,13 +968,13 @@ export default function UnifiedUserManagement({
                           </span>
                           {isOnline ? (
                             <div className="flex items-center gap-1.5 font-mono text-[10px]">
-                              <span className="w-1.5 h-1.5 rounded-full bg-neon-emerald animate-pulse"></span>
+                              <span className="w-1.5 h-1.5 rounded-md bg-neon-emerald animate-pulse"></span>
                               <span className="text-neon-emerald font-semibold">Online</span>
                               <span className="text-outline text-[9px]">({item.active_ip || '127.0.0.1'})</span>
                             </div>
                           ) : (
                             <div className="flex items-center gap-1.5 font-mono text-[10px] text-text-muted">
-                              <span className="w-1.5 h-1.5 rounded-full bg-outline"></span>
+                              <span className="w-1.5 h-1.5 rounded-md bg-outline"></span>
                               <span>⚪ Offline</span>
                             </div>
                           )}
@@ -996,12 +996,12 @@ export default function UnifiedUserManagement({
                       <td className="py-3.5 px-4">
                         <div className="flex flex-col gap-0.5">
                           {isRiset ? (
-                            <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary-container/20 text-neon-cyan w-fit shadow-sm border border-neon-cyan/20">
+                            <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary-container/20 text-neon-cyan w-fit shadow-sm border border-neon-cyan/20">
                               <Zap className="w-3 h-3 text-neon-cyan" />
                               <span className="font-mono text-[10px] font-semibold">Level 1 (Priority)</span>
                             </div>
                           ) : (
-                            <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-variant text-on-surface-variant w-fit">
+                            <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-surface-variant text-on-surface-variant w-fit">
                               <span className="font-mono text-[10px]">Level 2 (Standard)</span>
                             </div>
                           )}
@@ -1030,9 +1030,9 @@ export default function UnifiedUserManagement({
                             <span className="text-text-primary font-semibold">{ramUsedGb} GB</span>
                             <span className="text-outline">/ {ramMaxGb} GB</span>
                           </div>
-                          <div className="w-full h-1.5 rounded-full bg-surface-variant overflow-hidden">
+                          <div className="w-full h-1.5 rounded-md bg-surface-variant overflow-hidden">
                             <div
-                              className={`h-full rounded-full transition-all duration-300 ${
+                              className={`h-full rounded-md transition-all duration-300 ${
                                 ramPct >= 85 ? 'bg-neon-rose' : 'bg-neon-cyan'
                               }`}
                               style={{ width: `${ramPct}%` }}
@@ -1050,9 +1050,9 @@ export default function UnifiedUserManagement({
                             </span>
                             <span className="text-outline">/ {diskQuotaGb} GB</span>
                           </div>
-                          <div className="w-full h-1.5 rounded-full bg-surface-variant overflow-hidden">
+                          <div className="w-full h-1.5 rounded-md bg-surface-variant overflow-hidden">
                             <div
-                              className={`h-full rounded-full transition-all duration-300 ${
+                              className={`h-full rounded-md transition-all duration-300 ${
                                 item.is_over_quota
                                   ? 'bg-neon-rose shadow-[0_0_8px_rgba(255,180,171,0.8)]'
                                   : 'bg-neon-cyan'
@@ -1111,8 +1111,8 @@ export default function UnifiedUserManagement({
 
       {/* Boost QoS Modal */}
       {boostModal.isOpen && (
-        <div className="fixed inset-0 z-50 bg-[#0f131c]/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-[#181b25] border border-[#46455440] rounded-2xl shadow-2xl p-6 w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 bg-[#0f131c]/80  flex items-center justify-center p-4">
+          <div className="bg-[#181b25] border border-[#46455440] rounded-xl shadow-sm p-6 w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between pb-4 border-b border-border-subtle">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-lg bg-neon-cyan/20 border border-neon-cyan/40 flex items-center justify-center text-neon-cyan">
@@ -1185,7 +1185,7 @@ export default function UnifiedUserManagement({
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 rounded-lg bg-neon-cyan hover:bg-primary-fixed text-on-primary font-mono text-xs font-bold transition-colors shadow-lg"
+                  className="flex-1 py-2 rounded-lg bg-neon-cyan hover:bg-primary-fixed text-on-primary font-mono text-xs font-bold transition-colors shadow-sm"
                 >
                   Konfirmasi Boost
                 </button>
@@ -1197,8 +1197,8 @@ export default function UnifiedUserManagement({
 
       {/* Reset Linux Password Modal */}
       {resetModal.isOpen && (
-        <div className="fixed inset-0 z-50 bg-[#0f131c]/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-[#181b25] border border-[#46455440] rounded-2xl shadow-2xl p-6 w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 bg-[#0f131c]/80  flex items-center justify-center p-4">
+          <div className="bg-[#181b25] border border-[#46455440] rounded-xl shadow-sm p-6 w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between pb-4 border-b border-border-subtle">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-lg bg-secondary-container flex items-center justify-center text-secondary-fixed">
@@ -1244,7 +1244,7 @@ export default function UnifiedUserManagement({
                 <button
                   type="submit"
                   disabled={resetModal.isSubmitting}
-                  className="flex-1 py-2 rounded-lg bg-secondary hover:bg-secondary-fixed text-surface-dim font-mono text-xs font-bold transition-colors shadow-lg disabled:opacity-50"
+                  className="flex-1 py-2 rounded-lg bg-secondary hover:bg-secondary-fixed text-surface-dim font-mono text-xs font-bold transition-colors shadow-sm disabled:opacity-50"
                 >
                   {resetModal.isSubmitting ? 'Memproses...' : 'Simpan Password'}
                 </button>

@@ -33,9 +33,9 @@ function MetricCard({ icon: Icon, iconColor, label, title, subtitle, value, unit
       </div>
 
       <div className="space-y-1.5 mt-auto">
-        <div className="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
+        <div className="w-full bg-surface-container-high h-1.5 rounded-md overflow-hidden">
           <div
-            className="h-full rounded-full transition-all duration-500"
+            className="h-full rounded-md transition-all duration-500"
             style={{ width: `${safePercent}%`, background: barBg, boxShadow: `0 0 8px ${barBg}80` }}
           />
         </div>
@@ -85,8 +85,8 @@ function SystemOverview({ system = {}, gpus = [] }) {
             <h1 className="font-headline-lg text-2xl font-bold text-text-primary tracking-tight">
               Ringkasan Sistem & Telemetri Komputasi
             </h1>
-            <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-surface-2 border border-border-subtle shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-neon-emerald animate-pulse"></span>
+            <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-md bg-surface-2 border border-border-subtle shadow-sm">
+              <span className="w-2 h-2 rounded-md bg-neon-emerald animate-pulse"></span>
               <span className="font-mono text-[10px] text-neon-emerald uppercase font-semibold">
                 Operational Normal
               </span>

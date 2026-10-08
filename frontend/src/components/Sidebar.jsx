@@ -45,7 +45,7 @@ export default function Sidebar({
       {/* Collapse/Expand toggle — fixed, centered on sidebar edge */}
       <button
         onClick={onToggle}
-        className={`fixed z-50 flex items-center justify-center w-7 h-7 rounded-full bg-surface-2 border border-border-base text-text-muted hover:text-text-primary hover:border-secondary shadow-lg transition-all duration-300 ${
+        className={`fixed z-50 flex items-center justify-center w-7 h-7 rounded-md bg-surface-2 border border-border-base text-text-muted hover:text-text-primary hover:border-secondary shadow-sm transition-all duration-300 ${
           !isOpen ? 'shadow-[0_0_12px_rgba(76,215,246,0.3)] text-neon-cyan' : ''
         }`}
         style={{
@@ -64,13 +64,13 @@ export default function Sidebar({
 
       {/* Fixed Sidebar — Stitch Console Aesthetic */}
       <aside
-        className={`fixed inset-y-0 left-0 w-64 bg-surface-1 z-40 flex flex-col justify-between border-r border-border-subtle shadow-2xl transition-transform duration-300 ${
+        className={`fixed inset-y-0 left-0 w-64 bg-surface-1 z-40 flex flex-col justify-between border-r border-border-subtle shadow-sm transition-colors duration-300 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <div className="flex flex-col flex-1 overflow-hidden">
           {/* Header Brand */}
-          <div className="h-16 px-4 flex items-center gap-3 bg-surface-1/60 backdrop-blur-xl border-b border-border-subtle shrink-0">
+          <div className="h-16 px-4 flex items-center gap-3 bg-surface-1  border-b border-border-subtle shrink-0">
             <div className="w-9 h-9 rounded-lg bg-surface-2 border border-border-base flex items-center justify-center shrink-0 p-1 overflow-hidden shadow-sm">
               <img src="/ti-umpo-logo.png" alt="Logo Teknik Informatika" className="w-full h-full object-contain" />
             </div>
@@ -102,7 +102,7 @@ export default function Sidebar({
                   onClick={() => onTabChange(tab.id)}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-left transition-all text-xs ${
                     isActive
-                      ? 'bg-surface-3 text-primary-fixed font-bold shadow-[inset_0_0_12px_rgba(76,215,246,0.15)] border-l-2 border-neon-cyan'
+                      ? 'bg-surface-3 text-primary-fixed font-bold  border-l-2 border-neon-cyan'
                       : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
                   }`}
                   type="button"
@@ -118,7 +118,7 @@ export default function Sidebar({
                   )}
                   {tab.badgeCount !== undefined && tab.badgeCount > 0 && (
                     <span
-                      className={`px-2 py-0.5 rounded-full font-mono-code-xs text-mono-code-xs ${
+                      className={`px-2 py-0.5 rounded-md font-mono-code-xs text-mono-code-xs ${
                         tab.badgeHighlight
                           ? 'bg-surface-container-high text-neon-cyan'
                           : 'bg-surface-container-high text-text-muted'
@@ -147,12 +147,12 @@ export default function Sidebar({
                 {vramPct}%
               </span>
             </div>
-            <div className="w-full h-1.5 bg-surface-variant rounded-full overflow-hidden">
+            <div className="w-full h-1.5 bg-surface-variant rounded-md overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all duration-500 ${
+                className={`h-full rounded-md transition-all duration-500 ${
                   vramPct >= 85
                     ? 'bg-neon-rose shadow-[0_0_8px_rgba(255,180,171,0.8)]'
-                    : 'bg-gradient-to-r from-neon-cyan to-neon-emerald'
+                    : '  '
                 }`}
                 style={{ width: `${vramPct}%` }}
               />
@@ -169,11 +169,11 @@ export default function Sidebar({
               <span className="relative flex h-2 w-2">
                 {isConnected ? (
                   <>
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-neon-emerald opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-neon-emerald"></span>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-md bg-neon-emerald opacity-75"></span>
+                    <span className="relative inline-flex rounded-md h-2 w-2 bg-neon-emerald"></span>
                   </>
                 ) : (
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-neon-rose"></span>
+                  <span className="relative inline-flex rounded-md h-2 w-2 bg-neon-rose"></span>
                 )}
               </span>
               <span className={isConnected ? 'text-neon-emerald font-semibold' : 'text-neon-rose font-semibold'}>

@@ -371,7 +371,7 @@ export default function App() {
       >
         {/* Fixed Header — Google Stitch Design */}
         <header
-          className="fixed top-0 right-0 h-16 bg-surface-1/80 backdrop-blur-xl border-b border-border-subtle z-40 flex items-center justify-between px-6 shadow-sm transition-all duration-300"
+          className="fixed top-0 right-0 h-16 bg-surface-1/80  border-b border-border-subtle z-40 flex items-center justify-between px-6 shadow-sm transition-all duration-300"
           style={{ left: isSidebarOpen ? '16rem' : '0' }}
         >
           {/* Left Title & Breadcrumbs */}
@@ -393,15 +393,15 @@ export default function App() {
 
           {/* Center / Telemetry Ping Pill */}
           <div className="hidden md:flex items-center">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container-lowest border border-border-subtle">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-surface-container-lowest border border-border-subtle">
               <span className="relative flex h-2 w-2">
                 {isConnected ? (
                   <>
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-neon-emerald opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-neon-emerald"></span>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-md bg-neon-emerald opacity-75"></span>
+                    <span className="relative inline-flex rounded-md h-2 w-2 bg-neon-emerald"></span>
                   </>
                 ) : (
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-neon-rose"></span>
+                  <span className="relative inline-flex rounded-md h-2 w-2 bg-neon-rose"></span>
                 )}
               </span>
               <span className="font-mono-code-xs text-mono-code-xs text-on-surface-variant">
@@ -414,17 +414,17 @@ export default function App() {
           <div className="flex items-center gap-3">
             {/* RBAC Mode Pill */}
             {!isAdmin ? (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-2 text-text-muted border border-border-subtle text-xs font-mono">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-surface-2 text-text-muted border border-border-subtle text-xs font-mono">
                 <Info className="w-3.5 h-3.5 text-secondary-fixed" />
                 <span>Public Monitoring</span>
               </div>
             ) : isOperator ? (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neon-cyan/15 text-neon-cyan border border-neon-cyan/30 text-xs font-mono">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-neon-cyan/15 text-neon-cyan border border-neon-cyan/30 text-xs font-mono">
                 <ShieldCheck className="w-3.5 h-3.5" />
                 <span>Operator: {adminUser?.nama ? adminUser.nama.split(' ')[0] : 'Aslab'}</span>
               </div>
             ) : (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-container text-secondary-fixed text-xs font-mono shadow-sm">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-secondary-container text-secondary-fixed text-xs font-mono shadow-sm">
                 <span className="material-symbols-outlined text-[16px] text-neon-amber">bolt</span>
                 <span>Super Admin{adminUser?.nama ? `: ${adminUser.nama.split(' ')[0]}` : ''}</span>
               </div>
@@ -463,7 +463,7 @@ export default function App() {
         {/* Floating Disconnect Alert Banner */}
         {!isConnected && (
           <div className="pt-20 px-6">
-            <div className="flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-error-container/20 border border-error-container/40 text-neon-rose text-xs font-mono shadow-lg">
+            <div className="flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-error-container/20 border border-error-container/40 text-neon-rose text-xs font-mono shadow-sm">
               <div className="flex items-center gap-2">
                 <WifiOff className="w-4 h-4 animate-pulse shrink-0" />
                 <span>Koneksi telemetri WebSocket terputus — mencoba menghubungkan kembali secara otomatis…</span>
@@ -546,17 +546,17 @@ export default function App() {
             <ErrorBoundary title="Kendala Modul Infrastruktur">
               <div className="flex flex-col gap-6 fade-in-up">
               {/* Top Operational Banner */}
-              <div className="relative overflow-hidden rounded-xl bg-surface-1 p-6 shadow-xl border border-border-subtle">
-                <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-neon-cyan/5 blur-3xl pointer-events-none"></div>
-                <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-secondary/5 blur-3xl pointer-events-none"></div>
+              <div className="relative overflow-hidden rounded-xl bg-surface-1 p-6 shadow-sm border border-border-subtle">
+                <div className="absolute -right-20 -top-20 h-64 w-64 rounded-md bg-neon-cyan/5 blur-3xl pointer-events-none"></div>
+                <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-md bg-secondary/5 blur-3xl pointer-events-none"></div>
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
                   <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-2.5 flex-wrap">
-                      <span className="px-2.5 py-0.5 rounded-full bg-secondary-container text-secondary-fixed font-mono-code-xs text-mono-code-xs font-semibold tracking-wider uppercase">
+                      <span className="px-2.5 py-0.5 rounded-md bg-secondary-container text-secondary-fixed font-mono-code-xs text-mono-code-xs font-semibold tracking-wider uppercase">
                         ARCH-SYSTEM TELEMETRY
                       </span>
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-2 text-neon-emerald font-mono-code-xs text-mono-code-xs">
-                        <span className="w-1.5 h-1.5 rounded-full bg-neon-emerald animate-pulse"></span>
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-surface-2 text-neon-emerald font-mono-code-xs text-mono-code-xs">
+                        <span className="w-1.5 h-1.5 rounded-md bg-neon-emerald animate-pulse"></span>
                         cgroups-v2 UNIFIED HIERARCHY ACTIVE
                       </span>
                       <span className="text-outline font-mono-code-xs text-mono-code-xs">|</span>
@@ -600,7 +600,7 @@ export default function App() {
               {/* Bento Grid Canvas: Cgroups Tree & Hardware Driver */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 {/* BOX 1: Cgroups v2 Resource Hierarchy (Span 7) */}
-                <div className="lg:col-span-7 flex flex-col rounded-xl bg-surface-2 p-6 shadow-xl border border-border-subtle relative overflow-hidden">
+                <div className="lg:col-span-7 flex flex-col rounded-xl bg-surface-2 p-6 shadow-sm border border-border-subtle relative overflow-hidden">
                   <div className="flex items-center justify-between pb-4 border-b border-border-subtle mb-4">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg bg-surface-3 flex items-center justify-center text-neon-cyan">
@@ -641,7 +641,7 @@ export default function App() {
                         {data?.system?.memory?.used_gb || 0} GB / {data?.system?.memory?.total_gb || 128} GB Aktif
                       </span>
                     </div>
-                    <div className="w-full h-2 bg-surface-container-lowest rounded-full overflow-hidden mt-2 flex">
+                    <div className="w-full h-2 bg-surface-container-lowest rounded-md overflow-hidden mt-2 flex">
                       <div className="h-full bg-neon-cyan w-[70%]" title="Skripsi / Level 1 (70 GB)"></div>
                       <div className="h-full bg-secondary w-[20%]" title="Shared Pool / Level 2 (20 GB)"></div>
                       <div className="h-full bg-surface-variant w-[10%]" title="Unallocated Host (10 GB)"></div>
@@ -665,7 +665,7 @@ export default function App() {
                               Priority Level 1 (Skripsi / labriset)
                             </span>
                             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-surface-container-high font-mono text-[10px] text-primary-fixed">
-                              <span className="w-1.5 h-1.5 rounded-full bg-neon-cyan"></span> GPU 0 Dedicated
+                              <span className="w-1.5 h-1.5 rounded-md bg-neon-cyan"></span> GPU 0 Dedicated
                             </span>
                           </div>
                           <p className="text-xs text-on-surface-variant">
@@ -692,7 +692,7 @@ export default function App() {
                               Shared Pool (Praktikum & Mhs)
                             </span>
                             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-surface-container-high font-mono text-[10px] text-secondary">
-                              <span className="w-1.5 h-1.5 rounded-full bg-secondary"></span> GPU 1 Multi-Tenant
+                              <span className="w-1.5 h-1.5 rounded-md bg-secondary"></span> GPU 1 Multi-Tenant
                             </span>
                           </div>
                           <p className="text-xs text-on-surface-variant">
@@ -711,7 +711,7 @@ export default function App() {
                 </div>
 
                 {/* BOX 2: NVIDIA & Driver Configuration (Span 5) */}
-                <div className="lg:col-span-5 flex flex-col rounded-xl bg-surface-2 p-6 shadow-xl border border-border-subtle relative overflow-hidden">
+                <div className="lg:col-span-5 flex flex-col rounded-xl bg-surface-2 p-6 shadow-sm border border-border-subtle relative overflow-hidden">
                   <div className="flex items-center justify-between pb-4 border-b border-border-subtle mb-4">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg bg-surface-3 flex items-center justify-center text-neon-emerald">
@@ -726,8 +726,8 @@ export default function App() {
                         </p>
                       </div>
                     </div>
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container-high font-mono-code-xs text-mono-code-xs text-neon-emerald">
-                      <span className="w-1.5 h-1.5 rounded-full bg-neon-emerald"></span> READY
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-surface-container-high font-mono-code-xs text-mono-code-xs text-neon-emerald">
+                      <span className="w-1.5 h-1.5 rounded-md bg-neon-emerald"></span> READY
                     </span>
                   </div>
 
@@ -796,7 +796,7 @@ export default function App() {
               </div>
 
               {/* BOX 3: Status Database & Auto-Backup System (Span 12) */}
-              <div className="flex flex-col rounded-xl bg-surface-2 p-6 shadow-xl border border-border-subtle">
+              <div className="flex flex-col rounded-xl bg-surface-2 p-6 shadow-sm border border-border-subtle">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-border-subtle">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-surface-3 flex items-center justify-center text-secondary">
@@ -836,7 +836,7 @@ export default function App() {
                       /home/public/web/data/lab_users.db
                     </span>
                     <div className="inline-flex items-center gap-1.5 text-mono-code-xs font-mono-code-xs text-neon-emerald mt-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-neon-emerald"></span>
+                      <span className="w-1.5 h-1.5 rounded-md bg-neon-emerald"></span>
                       SQLite WAL-safe mode aktif
                     </div>
                   </div>
@@ -902,8 +902,8 @@ export default function App() {
                                 {bk?.size_kb ? `${bk.size_kb} KB` : `${(((bk?.size_bytes || 0)) / 1024).toFixed(1)} KB`}
                               </td>
                               <td className="px-4 py-3 text-center">
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container-high text-neon-emerald font-semibold">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-neon-emerald"></span> Verified
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-surface-container-high text-neon-emerald font-semibold">
+                                  <span className="w-1.5 h-1.5 rounded-md bg-neon-emerald"></span> Verified
                                 </span>
                               </td>
                             </tr>
@@ -930,8 +930,8 @@ export default function App() {
 
       {/* Toast Notification — Google Stitch Floating Style */}
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom duration-300">
-          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-2 border border-border-base shadow-2xl text-xs font-mono text-on-surface">
+        <div className="fixed bottom-6 right-6 z-50 animate-in slide-in- duration-300">
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-2 border border-border-base shadow-sm text-xs font-mono text-on-surface">
             {toast.type === 'success' ? (
               <CheckCircle2 className="w-4 h-4 text-neon-emerald shrink-0" />
             ) : toast.type === 'error' ? (

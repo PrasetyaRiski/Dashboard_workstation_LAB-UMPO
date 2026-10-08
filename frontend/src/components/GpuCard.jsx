@@ -77,7 +77,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
   const uniqueUsers = Array.from(new Set((gpu.processes || []).map(p => p.username).filter(Boolean)));
 
   return (
-    <div className={`bg-surface-2 rounded-xl p-6 shadow-xl relative flex flex-col justify-between border-t-2 ${
+    <div className={`bg-surface-2 rounded-xl p-6 shadow-sm relative flex flex-col justify-between border-t-2 ${
       isLevel1 ? 'border-neon-cyan' : 'border-secondary'
     } border-x border-b border-border-subtle`}>
       <div className="flex flex-col gap-4">
@@ -113,7 +113,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
             </div>
           </div>
           <div className="inline-flex items-center gap-1.5 text-neon-emerald bg-surface-1 px-2.5 py-1 rounded border border-border-base">
-            <span className="w-1.5 h-1.5 rounded-full bg-neon-emerald animate-pulse"></span>
+            <span className="w-1.5 h-1.5 rounded-md bg-neon-emerald animate-pulse"></span>
             <span className="font-mono text-[10px] font-semibold uppercase">ONLINE</span>
           </div>
         </div>
@@ -129,9 +129,9 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
                 {topProc ? `[Slot Prioritas: 1/1 Terpakai - ${topProc.username || 'User'}]` : '[Slot Prioritas: 0/1 Tersedia]'}
               </span>
             </div>
-            <div className="w-full bg-surface-container-high h-2 rounded-full overflow-hidden flex">
+            <div className="w-full bg-surface-container-high h-2 rounded-md overflow-hidden flex">
               <div
-                className={`h-full rounded-full transition-all duration-500 ${
+                className={`h-full rounded-md transition-all duration-500 ${
                   topProc ? 'bg-neon-cyan' : 'bg-neon-emerald'
                 }`}
                 style={{ width: topProc ? '100%' : '0%' }}
@@ -154,7 +154,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
                 [{uniqueUsers.length} Mahasiswa / Akun Aktif]
               </span>
             </div>
-            <div className="w-full bg-surface-container-high h-2 rounded-full overflow-hidden flex gap-0.5">
+            <div className="w-full bg-surface-container-high h-2 rounded-md overflow-hidden flex gap-0.5">
               {Array.from({ length: 7 }).map((_, i) => (
                 <div
                   key={i}

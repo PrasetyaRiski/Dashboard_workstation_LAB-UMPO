@@ -139,7 +139,7 @@ export default function AuditLogView({ logs = [] }) {
     <div className="flex flex-col w-full gap-6">
       {/* Security & Integrity Compliance Banner — Stitch Style */}
       <div className="relative overflow-hidden rounded-xl bg-surface-1 p-5 shadow-md border border-border-subtle">
-        <div className="absolute -right-10 -bottom-10 w-44 h-44 rounded-full bg-neon-cyan/5 blur-3xl pointer-events-none"></div>
+        <div className="absolute -right-10 -bottom-10 w-44 h-44 rounded-md bg-neon-cyan/5 blur-3xl pointer-events-none"></div>
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative z-10">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary-fixed shrink-0 border border-border-base shadow-inner">
@@ -150,7 +150,7 @@ export default function AuditLogView({ logs = [] }) {
                 <span className="font-headline-md text-sm font-bold text-text-primary tracking-tight">
                   Immutable Append-Only Audit Trail
                 </span>
-                <span className="px-2 py-0.5 rounded-full bg-secondary-container font-mono text-[9px] text-secondary-fixed font-semibold uppercase">
+                <span className="px-2 py-0.5 rounded-md bg-secondary-container font-mono text-[9px] text-secondary-fixed font-semibold uppercase">
                   Audit Ready
                 </span>
               </div>
@@ -160,14 +160,14 @@ export default function AuditLogView({ logs = [] }) {
             </div>
           </div>
           <div className="flex items-center gap-2 font-mono text-xs text-neon-emerald bg-surface-2 px-3 py-1.5 rounded-lg border border-border-base shrink-0">
-            <span className="w-2 h-2 rounded-full bg-neon-emerald animate-pulse"></span>
+            <span className="w-2 h-2 rounded-md bg-neon-emerald animate-pulse"></span>
             <span>{logs.length} Catatan Terverifikasi</span>
           </div>
         </div>
       </div>
 
       {/* Main Container */}
-      <div className="bg-surface-2 rounded-xl border border-border-subtle overflow-hidden shadow-xl flex flex-col">
+      <div className="bg-surface-2 rounded-xl border border-border-subtle overflow-hidden shadow-sm flex flex-col">
         {/* Filter Bar & Search */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-b border-border-subtle bg-surface-1">
           <div className="flex gap-1.5 p-1 bg-surface-container-lowest rounded-lg border border-border-subtle w-full sm:w-auto overflow-x-auto">
@@ -240,7 +240,7 @@ export default function AuditLogView({ logs = [] }) {
                         {log.time || log.created_at || 'Baru Saja'}
                       </span>
                       <span className="text-[9px] uppercase tracking-wider text-neon-emerald flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="w-1.5 h-1.5 rounded-full bg-neon-emerald"></span>
+                        <span className="w-1.5 h-1.5 rounded-md bg-neon-emerald"></span>
                         Terekam
                       </span>
                     </div>

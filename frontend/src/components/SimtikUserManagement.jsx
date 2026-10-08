@@ -284,9 +284,9 @@ export default function SimtikUserManagement({ isAdmin, showToast }) {
   if (!adminToken) {
     return (
       <div className="fixed inset-0 bg-slate-950 flex flex-col items-center justify-center p-5 z-50">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-800 via-slate-950 to-slate-950"></div>
-        <div className="relative p-10 max-w-sm w-full text-center bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-3xl shadow-2xl">
-          <div className="w-16 h-16 mx-auto mb-6 bg-indigo-500/10 rounded-2xl flex items-center justify-center border border-indigo-500/20">
+        <div className="absolute inset-0    "></div>
+        <div className="relative p-10 max-w-sm w-full text-center bg-surface-2  border border-slate-800 rounded-xl shadow-sm">
+          <div className="w-16 h-16 mx-auto mb-6 bg-indigo-500/10 rounded-xl flex items-center justify-center border border-indigo-500/20">
             <Lock className="w-8 h-8 text-indigo-400" />
           </div>
           <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">Admin Portal</h2>
@@ -298,14 +298,14 @@ export default function SimtikUserManagement({ isAdmin, showToast }) {
                 value={pin}
                 onChange={(e) => setPin(e.target.value)}
                 placeholder="Enter PIN"
-                className="w-full px-5 py-3.5 rounded-2xl bg-slate-950/50 border border-slate-700 text-center text-white text-xl tracking-[0.5em] focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-mono placeholder:tracking-normal placeholder:text-slate-600"
+                className="w-full px-5 py-3.5 rounded-xl bg-slate-950/50 border border-slate-700 text-center text-white text-xl tracking-[0.5em] focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-mono placeholder:tracking-normal placeholder:text-slate-600"
                 autoFocus
               />
             </div>
             {loginError && <div className="text-rose-400 text-sm font-medium bg-rose-500/10 py-2 rounded-lg">{loginError}</div>}
             <button
               type="submit"
-              className="w-full py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition-all active:scale-[0.98] cursor-pointer"
+              className="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition-all active:scale-[0.98] cursor-pointer"
             >
               Authenticate
             </button>
@@ -374,7 +374,7 @@ export default function SimtikUserManagement({ isAdmin, showToast }) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden bg-slate-900 rounded-l-3xl border-l border-slate-800 shadow-2xl relative">
+      <main className="flex-1 flex flex-col h-screen overflow-hidden bg-slate-900 rounded-l-3xl border-l border-slate-800 shadow-sm relative">
         <header className="px-8 py-6 flex items-center justify-between border-b border-slate-800/50">
           <div>
             <h2 className="text-2xl font-bold text-white tracking-tight">
@@ -387,7 +387,7 @@ export default function SimtikUserManagement({ isAdmin, showToast }) {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setTestLoginModal({ isOpen: true, nim: '', password: '', loading: false, result: null })}
-              className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-slate-800 border border-slate-700 hover:bg-slate-700 transition text-slate-300 hover:text-white"
+              className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-slate-800 border border-slate-700 hover:bg-slate-700 transition text-slate-300 hover:text-white"
               title="Test Authentication"
             >
               <KeyRound className="w-4 h-4" />
@@ -395,7 +395,7 @@ export default function SimtikUserManagement({ isAdmin, showToast }) {
             <button
               onClick={() => { fetchStudents(); fetchCapacity(); }}
               disabled={loading}
-              className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-slate-800 border border-slate-700 hover:bg-slate-700 transition text-slate-300 hover:text-white"
+              className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-slate-800 border border-slate-700 hover:bg-slate-700 transition text-slate-300 hover:text-white"
               title="Refresh Data"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -409,7 +409,7 @@ export default function SimtikUserManagement({ isAdmin, showToast }) {
               {/* Metrics Bar (Bento Grid) */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Card 1: GPU Capacity */}
-                <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-5 flex flex-col justify-between">
+                <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-5 flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2 text-slate-400">
                       <Cpu className="w-4 h-4" />
@@ -417,39 +417,39 @@ export default function SimtikUserManagement({ isAdmin, showToast }) {
                     </div>
                     <span className="text-xs font-bold text-white">{capacity.used_slots} / {capacity.total_slots} Slots</span>
                   </div>
-                  <div className="w-full bg-slate-900 rounded-full h-2.5 mt-2 border border-slate-800 overflow-hidden">
+                  <div className="w-full bg-slate-900 rounded-md h-2.5 mt-2 border border-slate-800 overflow-hidden">
                     <div 
-                      className={`h-2.5 rounded-full ${capacityPercent >= 100 ? 'bg-rose-500' : 'bg-indigo-500'}`} 
+                      className={`h-2.5 rounded-md ${capacityPercent >= 100 ? 'bg-rose-500' : 'bg-indigo-500'}`} 
                       style={{ width: `${Math.min(100, capacityPercent)}%` }}
                     ></div>
                   </div>
                 </div>
 
                 {/* Card 2: Total Users */}
-                <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-5 flex items-center justify-between">
+                <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-5 flex items-center justify-between">
                   <div>
                     <h3 className="text-sm font-medium text-slate-400 mb-1">Total Users</h3>
                     <div className="text-3xl font-bold text-white">{students.length}</div>
                   </div>
-                  <div className="w-12 h-12 rounded-full bg-slate-900 flex items-center justify-center border border-slate-800">
+                  <div className="w-12 h-12 rounded-md bg-slate-900 flex items-center justify-center border border-slate-800">
                     <Users className="w-6 h-6 text-slate-400" />
                   </div>
                 </div>
 
                 {/* Card 3: Active Priority Users */}
-                <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-5 flex items-center justify-between">
+                <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-5 flex items-center justify-between">
                   <div>
                     <h3 className="text-sm font-medium text-slate-400 mb-1">Priority Users</h3>
                     <div className="text-3xl font-bold text-amber-400">{priorityCount}</div>
                   </div>
-                  <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
+                  <div className="w-12 h-12 rounded-md bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
                     <Zap className="w-6 h-6 text-amber-400" />
                   </div>
                 </div>
               </div>
 
               {/* Table Area */}
-              <div className="bg-slate-800/30 border border-slate-700 rounded-2xl overflow-hidden">
+              <div className="bg-slate-800/30 border border-slate-700 rounded-xl overflow-hidden">
                 <div className="p-4 border-b border-slate-700/50 flex items-center justify-between">
                   <div className="relative max-w-sm w-full">
                     <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
@@ -466,7 +466,7 @@ export default function SimtikUserManagement({ isAdmin, showToast }) {
                 <div className="overflow-x-auto">
                   <table className="w-full text-left whitespace-nowrap">
                     <thead>
-                      <tr className="bg-slate-900/50 text-slate-400 text-xs uppercase tracking-wider font-medium">
+                      <tr className="bg-surface-2 text-slate-400 text-xs uppercase tracking-wider font-medium">
                         <th className="px-6 py-4 border-b border-slate-700/50">User Info</th>
                         <th className="px-6 py-4 border-b border-slate-700/50">Badges</th>
                         <th className="px-6 py-4 border-b border-slate-700/50">Boost Timer</th>
@@ -486,7 +486,7 @@ export default function SimtikUserManagement({ isAdmin, showToast }) {
                           <tr key={s.nim} className="hover:bg-slate-800/50 transition-colors group">
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-xs uppercase">
+                                <div className="w-8 h-8 rounded-md bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-xs uppercase">
                                   {s.nama ? s.nama.charAt(0) : s.nim.slice(-1)}
                                 </div>
                                 <div>
@@ -501,21 +501,21 @@ export default function SimtikUserManagement({ isAdmin, showToast }) {
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-2">
                                 {s.is_active ? (
-                                  <span className="rounded-full px-2.5 py-0.5 text-[10px] uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                  <span className="rounded-md px-2.5 py-0.5 text-[10px] uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                                     Active
                                   </span>
                                 ) : (
-                                  <span className="rounded-full px-2.5 py-0.5 text-[10px] uppercase tracking-wider bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                                  <span className="rounded-md px-2.5 py-0.5 text-[10px] uppercase tracking-wider bg-rose-500/10 text-rose-400 border border-rose-500/20">
                                     Blocked
                                   </span>
                                 )}
                                 {s.is_priority && (
-                                  <span className="rounded-full px-2.5 py-0.5 text-[10px] uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                  <span className="rounded-md px-2.5 py-0.5 text-[10px] uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20">
                                     Priority
                                   </span>
                                 )}
                                 {s.is_admin && (
-                                  <span className="rounded-full px-2.5 py-0.5 text-[10px] uppercase tracking-wider bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                                  <span className="rounded-md px-2.5 py-0.5 text-[10px] uppercase tracking-wider bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
                                     Admin
                                   </span>
                                 )}
@@ -614,11 +614,11 @@ export default function SimtikUserManagement({ isAdmin, showToast }) {
           )}
 
           {activeTab === 'audit' && (
-            <div className="bg-slate-800/30 border border-slate-700 rounded-2xl overflow-hidden">
+            <div className="bg-slate-800/30 border border-slate-700 rounded-xl overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left whitespace-nowrap">
                   <thead>
-                    <tr className="bg-slate-900/50 text-slate-400 text-xs uppercase tracking-wider font-medium">
+                    <tr className="bg-surface-2 text-slate-400 text-xs uppercase tracking-wider font-medium">
                       <th className="px-6 py-4 border-b border-slate-700/50">Timestamp</th>
                       <th className="px-6 py-4 border-b border-slate-700/50">Admin</th>
                       <th className="px-6 py-4 border-b border-slate-700/50">Action</th>
@@ -642,7 +642,7 @@ export default function SimtikUserManagement({ isAdmin, showToast }) {
                             {log.admin_username || log.admin_nim || '--'}
                           </td>
                           <td className="px-6 py-4 text-xs">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-600 tracking-wide">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-md bg-slate-800 text-slate-300 border border-slate-600 tracking-wide">
                               {log.action || '--'}
                             </span>
                           </td>
@@ -664,8 +664,8 @@ export default function SimtikUserManagement({ isAdmin, showToast }) {
       
       {/* Boost Modal */}
       {boostModal.isOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-8 shadow-2xl">
+        <div className="fixed inset-0 z-50 bg-slate-950/80  flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-8 shadow-sm">
             <div className="flex items-center gap-4 mb-6">
               <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
                 <Zap className="w-6 h-6 text-amber-400 fill-current" />
@@ -726,8 +726,8 @@ export default function SimtikUserManagement({ isAdmin, showToast }) {
 
       {/* Test SIMTIK Modal */}
       {testLoginModal.isOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-8 shadow-2xl">
+        <div className="fixed inset-0 z-50 bg-slate-950/80  flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-8 shadow-sm">
             <div className="flex items-center gap-4 mb-6">
               <div className="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
                 <KeyRound className="w-6 h-6 text-indigo-400" />

@@ -39,7 +39,7 @@ export default function UserManagement({ users, onResetPassword }) {
   };
 
   return (
-    <div className="bg-slate-900/90 rounded-2xl border border-slate-800 p-6 shadow-xl">
+    <div className="bg-slate-900/90 rounded-xl border border-slate-800 p-6 shadow-sm">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Users className="w-5 h-5 text-indigo-400" />
@@ -81,8 +81,8 @@ export default function UserManagement({ users, onResetPassword }) {
                   </span>
                 </td>
                 <td className="py-3">
-                  <span className={'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ' + (u.status === 'Online' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-slate-800/60 text-slate-500')}>
-                    <span className={'w-1.5 h-1.5 rounded-full ' + (u.status === 'Online' ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500')} />
+                  <span className={'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold ' + (u.status === 'Online' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-slate-800/60 text-slate-500')}>
+                    <span className={'w-1.5 h-1.5 rounded-md ' + (u.status === 'Online' ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500')} />
                     {u.status}
                   </span>
                 </td>
@@ -91,9 +91,9 @@ export default function UserManagement({ users, onResetPassword }) {
                 </td>
                 <td className="py-3">
                   <div className="flex items-center gap-2">
-                    <div className="w-20 h-1.5 rounded-full bg-slate-800 overflow-hidden">
+                    <div className="w-20 h-1.5 rounded-md bg-slate-800 overflow-hidden">
                       <div
-                        className="h-full bg-indigo-500 rounded-full"
+                        className="h-full bg-indigo-500 rounded-md"
                         style={{ width: `${Math.min(u.ram_percent || 0, 100)}%` }}
                       />
                     </div>
@@ -122,8 +122,8 @@ export default function UserManagement({ users, onResetPassword }) {
 
       {/* Reset Password Modal */}
       {selectedUser && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 bg-black/70  flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 shadow-sm animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
                 <Shield className="w-5 h-5" />

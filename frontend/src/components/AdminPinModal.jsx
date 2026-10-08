@@ -57,8 +57,8 @@ export default function AdminPinModal({ isOpen, onSuccess, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
-      <div className="w-full max-w-md overflow-hidden bg-[#181b25] border border-slate-700/80 rounded-2xl shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black ">
+      <div className="w-full max-w-md overflow-hidden bg-[#181b25] border border-slate-700/80 rounded-xl shadow-sm animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-[#46455430] bg-[#0a0e17]/60">
           <div className="flex items-center gap-3">
@@ -188,7 +188,7 @@ export default function AdminPinModal({ isOpen, onSuccess, onClose }) {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 disabled:text-indigo-400 border border-transparent text-white text-xs font-bold transition-colors flex items-center gap-2 shadow-lg"
+                className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 disabled:text-indigo-400 border border-transparent text-white text-xs font-bold transition-colors flex items-center gap-2 shadow-sm"
               >
                 {isLoading ? (
                   'Memverifikasi…'

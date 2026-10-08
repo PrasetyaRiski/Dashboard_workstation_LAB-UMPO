@@ -34,10 +34,10 @@ function ProcessDrawer({ proc, onClose, onKill, isAdmin }) {
       onClick={onClose}
     >
       {/* Backdrop */}
-      <div className="flex-1 bg-black/60 backdrop-blur-md transition-opacity" />
+      <div className="flex-1 bg-black  transition-opacity" />
       {/* Drawer panel */}
       <div
-        className="w-full max-w-md bg-surface-2 border-l border-border-base h-[100dvh] overflow-y-auto flex flex-col animate-in slide-in-from-right duration-300 shadow-2xl"
+        className="w-full max-w-md bg-surface-2 border-l border-border-base h-[100dvh] overflow-y-auto flex flex-col animate-in slide-in- duration-300 shadow-sm"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
@@ -63,18 +63,18 @@ function ProcessDrawer({ proc, onClose, onKill, isAdmin }) {
           {/* Status chip */}
           <div className="flex items-center gap-3">
             {isProtected ? (
-              <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-neon-emerald text-xs font-semibold flex items-center gap-1.5 shadow-sm">
+              <span className="px-3 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-neon-emerald text-xs font-semibold flex items-center gap-1.5 shadow-sm">
                 <Shield className="w-3.5 h-3.5" />
                 Proses Sistem (Terproteksi)
               </span>
             ) : (
-              <span className="px-3 py-1 rounded-full bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan text-xs font-semibold flex items-center gap-1.5 shadow-sm">
+              <span className="px-3 py-1 rounded-md bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan text-xs font-semibold flex items-center gap-1.5 shadow-sm">
                 <Zap className="w-3.5 h-3.5" />
                 Job User Compute
               </span>
             )}
             {proc.username === 'labriset' && (
-              <span className="px-3 py-1 rounded-full bg-secondary-container text-secondary-fixed text-xs font-semibold shadow-sm">
+              <span className="px-3 py-1 rounded-md bg-secondary-container text-secondary-fixed text-xs font-semibold shadow-sm">
                 Riset Dosen
               </span>
             )}
@@ -215,14 +215,14 @@ export default function ProcessManager({
     <div className="flex flex-col w-full gap-6">
       {/* Dynamic Operational Backdrop Banner — Stitch Style */}
       <div className="relative w-full overflow-hidden rounded-xl bg-surface-1 shadow-md border border-border-subtle p-6">
-        <div className="absolute -top-24 right-1/4 w-96 h-96 rounded-full bg-primary/5 blur-3xl pointer-events-none"></div>
-        <div className="absolute -bottom-20 -left-12 w-80 h-80 rounded-full bg-secondary-container/10 blur-3xl pointer-events-none"></div>
+        <div className="absolute -top-24 right-1/4 w-96 h-96 rounded-md bg-primary/5 blur-3xl pointer-events-none"></div>
+        <div className="absolute -bottom-20 -left-12 w-80 h-80 rounded-md bg-secondary-container/10 blur-3xl pointer-events-none"></div>
 
         <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-6 z-10">
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-3 font-mono text-[10px] text-tertiary border border-border-base">
-                <span className="w-2 h-2 rounded-full bg-neon-emerald animate-pulse"></span>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-surface-3 font-mono text-[10px] text-tertiary border border-border-base">
+                <span className="w-2 h-2 rounded-md bg-neon-emerald animate-pulse"></span>
                 CLUSTER DEDICATED ONLINE
               </span>
               <span className="font-mono text-xs text-text-muted">SLURM / CGROUP v2</span>
@@ -300,9 +300,9 @@ export default function ProcessManager({
               <span>{workerCount} Worker Bersama</span>
             </div>
           </div>
-          <div className="w-full h-1.5 rounded-full bg-surface-variant overflow-hidden">
+          <div className="w-full h-1.5 rounded-md bg-surface-variant overflow-hidden">
             <div
-              className="h-full bg-neon-cyan rounded-full transition-all duration-500"
+              className="h-full bg-neon-cyan rounded-md transition-all duration-500"
               style={{ width: `${Math.min(100, (totalProcesses / 15) * 100)}%` }}
             />
           </div>
@@ -330,9 +330,9 @@ export default function ProcessManager({
               <span>GPU 1: {gpu1VramGb} GB</span>
             </div>
           </div>
-          <div className="w-full h-1.5 rounded-full bg-surface-variant overflow-hidden">
+          <div className="w-full h-1.5 rounded-md bg-surface-variant overflow-hidden">
             <div
-              className="h-full bg-neon-amber rounded-full transition-all duration-500"
+              className="h-full bg-neon-amber rounded-md transition-all duration-500"
               style={{ width: `${Math.min(100, (Number(totalVramGb) / 32) * 100)}%` }}
             />
           </div>
@@ -360,9 +360,9 @@ export default function ProcessManager({
               <span>Shared Pool: {gpu1Processes.length} task</span>
             </div>
           </div>
-          <div className="w-full h-1.5 rounded-full bg-surface-variant overflow-hidden">
+          <div className="w-full h-1.5 rounded-md bg-surface-variant overflow-hidden">
             <div
-              className="h-full bg-secondary-fixed-dim rounded-full transition-all duration-500"
+              className="h-full bg-secondary-fixed-dim rounded-md transition-all duration-500"
               style={{ width: `${totalProcesses > 0 ? (gpu0Processes.length / totalProcesses) * 100 : 50}%` }}
             />
           </div>
@@ -387,7 +387,7 @@ export default function ProcessManager({
         <div className="flex items-center gap-1.5 flex-wrap">
           <button
             onClick={() => setFilterType('all')}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full font-mono text-xs transition-colors border ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md font-mono text-xs transition-colors border ${
               filterType === 'all'
                 ? 'bg-secondary text-surface-dim font-bold border-secondary'
                 : 'bg-surface-3 text-text-muted hover:text-text-primary border-border-base'
@@ -395,13 +395,13 @@ export default function ProcessManager({
             type="button"
           >
             <span>Semua Job</span>
-            <span className="px-1.5 py-0.2 rounded-full bg-surface-dim/20 text-[10px] font-bold">
+            <span className="px-1.5 py-0.2 rounded-md bg-surface-dim/20 text-[10px] font-bold">
               {totalProcesses}
             </span>
           </button>
           <button
             onClick={() => setFilterType('gpu0')}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full font-mono text-xs transition-colors border ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md font-mono text-xs transition-colors border ${
               filterType === 'gpu0'
                 ? 'bg-secondary text-surface-dim font-bold border-secondary'
                 : 'bg-surface-3 text-text-muted hover:text-text-primary border-border-base'
@@ -409,13 +409,13 @@ export default function ProcessManager({
             type="button"
           >
             <span>GPU 0 Dedicated</span>
-            <span className="px-1.5 py-0.2 rounded-full bg-surface-container-high text-neon-cyan text-[10px] font-bold">
+            <span className="px-1.5 py-0.2 rounded-md bg-surface-container-high text-neon-cyan text-[10px] font-bold">
               {gpu0Processes.length}
             </span>
           </button>
           <button
             onClick={() => setFilterType('gpu1')}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full font-mono text-xs transition-colors border ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md font-mono text-xs transition-colors border ${
               filterType === 'gpu1'
                 ? 'bg-secondary text-surface-dim font-bold border-secondary'
                 : 'bg-surface-3 text-text-muted hover:text-text-primary border-border-base'
@@ -423,13 +423,13 @@ export default function ProcessManager({
             type="button"
           >
             <span>GPU 1 Shared</span>
-            <span className="px-1.5 py-0.2 rounded-full bg-surface-container-high text-secondary-fixed text-[10px] font-bold">
+            <span className="px-1.5 py-0.2 rounded-md bg-surface-container-high text-secondary-fixed text-[10px] font-bold">
               {gpu1Processes.length}
             </span>
           </button>
           <button
             onClick={() => setFilterType('highmem')}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full font-mono text-xs transition-colors border ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md font-mono text-xs transition-colors border ${
               filterType === 'highmem'
                 ? 'bg-secondary text-surface-dim font-bold border-secondary'
                 : 'bg-surface-3 text-text-muted hover:text-text-primary border-border-base'
@@ -438,7 +438,7 @@ export default function ProcessManager({
           >
             <AlertTriangle className="w-3.5 h-3.5 text-neon-amber" />
             <span>High VRAM (&gt;8GB)</span>
-            <span className="px-1.5 py-0.2 rounded-full bg-surface-container-high text-neon-amber text-[10px] font-bold">
+            <span className="px-1.5 py-0.2 rounded-md bg-surface-container-high text-neon-amber text-[10px] font-bold">
               {highMemProcesses.length}
             </span>
           </button>
@@ -446,7 +446,7 @@ export default function ProcessManager({
       </div>
 
       {/* Unified Process Table Section */}
-      <div className="rounded-xl bg-surface-1 shadow-xl overflow-hidden border border-border-subtle flex flex-col">
+      <div className="rounded-xl bg-surface-1 shadow-sm overflow-hidden border border-border-subtle flex flex-col">
         <div className="overflow-x-auto">
           <table className="w-full text-left min-w-[1100px]">
             <thead className="bg-surface-2 text-text-muted font-mono text-[10px] uppercase tracking-wider border-b border-border-subtle">
@@ -488,7 +488,7 @@ export default function ProcessManager({
                       {/* Pengguna / Akun */}
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-7 h-7 rounded-full bg-surface-container-high flex items-center justify-center font-mono text-[10px] text-primary-fixed font-bold border border-border-base shrink-0">
+                          <div className="w-7 h-7 rounded-md bg-surface-container-high flex items-center justify-center font-mono text-[10px] text-primary-fixed font-bold border border-border-base shrink-0">
                             {initials}
                           </div>
                           <div className="flex flex-col min-w-0">
@@ -512,12 +512,12 @@ export default function ProcessManager({
 
                       {/* Alokasi GPU */}
                       <td className="px-4 py-3">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-mono text-[10px] font-semibold border ${
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md font-mono text-[10px] font-semibold border ${
                           isGpu0
                             ? 'bg-primary-container/15 text-neon-cyan border-neon-cyan/20'
                             : 'bg-secondary-container/20 text-secondary-fixed border-secondary/20'
                         }`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${isGpu0 ? 'bg-neon-cyan' : 'bg-secondary-fixed'}`}></span>
+                          <span className={`w-1.5 h-1.5 rounded-md ${isGpu0 ? 'bg-neon-cyan' : 'bg-secondary-fixed'}`}></span>
                           {isGpu0 ? 'GPU 0 (Dedicated)' : 'GPU 1 (Shared)'}
                         </span>
                       </td>

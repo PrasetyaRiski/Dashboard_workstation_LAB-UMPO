@@ -6,8 +6,8 @@ export default function KillConfirmModal({ isOpen, processInfo, onConfirm, onClo
   const { pid, username, procName, cmdline, vramMb, is_system } = processInfo;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
-      <div className={`w-full max-w-md overflow-hidden bg-[#181b25] border ${is_system ? 'border-amber-500/30' : 'border-rose-500/30'} rounded-2xl shadow-2xl animate-in fade-in zoom-in-95 duration-200`}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black ">
+      <div className={`w-full max-w-md overflow-hidden bg-[#181b25] border ${is_system ? 'border-amber-500/30' : 'border-rose-500/30'} rounded-xl shadow-sm animate-in fade-in zoom-in-95 duration-200`}>
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-slate-700/50">
           <div className="flex items-center gap-3">

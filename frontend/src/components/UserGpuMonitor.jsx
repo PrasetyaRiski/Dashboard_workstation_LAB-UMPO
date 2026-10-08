@@ -257,7 +257,7 @@ function UserCard({ user, isAdmin, onOpenKillModal, onKillAllUser, onOpenReset }
         >
           <div className="flex items-center gap-1.5">
             <span
-              className="w-1.5 h-1.5 rounded-full"
+              className="w-1.5 h-1.5 rounded-md"
               style={{ background: user.is_online ? 'var(--accent-emerald)' : 'var(--text-muted)' }}
             />
             <p

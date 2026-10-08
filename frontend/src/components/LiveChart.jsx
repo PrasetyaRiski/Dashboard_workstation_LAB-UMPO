@@ -28,7 +28,7 @@ const SERIES = [
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload || !payload.length) return null;
   return (
-    <div className="bg-surface-1 border border-border-base rounded-xl p-3 shadow-2xl font-mono min-w-[170px]">
+    <div className="bg-surface-1 border border-border-base rounded-xl p-3 shadow-sm font-mono min-w-[170px]">
       <p className="text-[10px] text-text-muted mb-2 font-bold uppercase tracking-wider">
         Waktu: {label || '—'}
       </p>
@@ -99,19 +99,19 @@ function LiveChart({ history = [] }) {
           {latest && (
             <>
               <div className="flex items-center gap-1.5 bg-surface-1 px-3 py-1 rounded-lg border border-border-base font-mono text-xs">
-                <div className="w-2.5 h-0.5 bg-neon-cyan rounded-full"></div>
+                <div className="w-2.5 h-0.5 bg-neon-cyan rounded-md"></div>
                 <span className="text-text-muted">GPU 0:</span>
                 <span className="text-neon-cyan font-bold">{latest.gpu0_compute?.toFixed(1) || 0}%</span>
               </div>
               <div className="flex items-center gap-1.5 bg-surface-1 px-3 py-1 rounded-lg border border-border-base font-mono text-xs">
-                <div className="w-2.5 h-0.5 bg-secondary-fixed-dim rounded-full"></div>
+                <div className="w-2.5 h-0.5 bg-secondary-fixed-dim rounded-md"></div>
                 <span className="text-text-muted">CPU:</span>
                 <span className="text-secondary-fixed-dim font-bold">{latest.cpu?.toFixed(1) || 0}%</span>
               </div>
             </>
           )}
           <div className="flex items-center gap-1.5 text-neon-emerald font-mono text-xs font-semibold">
-            <span className="w-2 h-2 rounded-full bg-neon-emerald animate-pulse"></span>
+            <span className="w-2 h-2 rounded-md bg-neon-emerald animate-pulse"></span>
             <span>STREAMING</span>
           </div>
 

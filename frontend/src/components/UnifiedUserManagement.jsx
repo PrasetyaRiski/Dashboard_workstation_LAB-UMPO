@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Users, Zap, ShieldCheck, Search, CheckCircle2,
   AlertCircle, AlertTriangle, Clock, UserCheck, UserX, KeyRound, RefreshCw,
-  Cpu, Trash2, X, HardDrive, Layers
+  Cpu, Trash2, X, HardDrive, Layers, Database, Server
 } from 'lucide-react';
 
 /* ── Live Countdown Timer Component ── */
@@ -935,19 +935,26 @@ export default function UnifiedUserManagement({
                       {/* 1. Akun & Pengguna */}
                       <td className="py-3.5 px-5">
                         <div className="flex items-center gap-3">
-                          <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shrink-0 shadow-sm ${
+                          <div className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 shadow-sm border ${
                             isRiset
-                              ? 'bg-secondary-container text-secondary-fixed border border-secondary/30'
-                              : 'bg-surface-3 text-neon-cyan border border-border-base'
+                              ? 'bg-primary-container/20 text-neon-cyan border-neon-cyan/30'
+                              : 'bg-secondary-container/40 text-secondary-fixed border-secondary/30'
                           }`}>
-                            {isRiset ? 'LR' : 'AI'}
+                            {isRiset ? <Database className="w-4 h-4" /> : <Server className="w-4 h-4" />}
                           </div>
                           <div className="flex flex-col min-w-0">
-                            <span className="font-semibold text-xs text-text-primary truncate">
-                              {isRiset ? 'dr. Arifin (Lab Riset)' : item.username}
+                            <span className="font-semibold text-xs text-text-primary truncate flex items-center gap-2">
+                              {item.username}
+                              <span className={`text-[9px] px-1.5 py-0.2 rounded font-mono font-bold uppercase border ${
+                                isRiset
+                                  ? 'bg-neon-cyan/15 text-neon-cyan border-neon-cyan/30'
+                                  : 'bg-secondary-container text-secondary-fixed border-secondary/30'
+                              }`}>
+                                {isRiset ? 'RISET & SKRIPSI' : 'DOSEN / PELATIHAN'}
+                              </span>
                             </span>
                             <span className="font-mono text-[10px] text-text-muted truncate">
-                              {isRiset ? 'arifin.ai@umpo.ac.id' : `${item.username}@umpo.ai`}
+                              {isRiset ? 'Akun Riset & Skripsi Mahasiswa/Dosen' : 'Akun Dosen & Pelatihan Praktikum'}
                             </span>
                           </div>
                         </div>
@@ -957,7 +964,7 @@ export default function UnifiedUserManagement({
                       <td className="py-3.5 px-4">
                         <div className="flex flex-col gap-0.5">
                           <span className="font-mono text-xs text-outline font-bold tracking-tight">
-                            {isRiset ? 'NIDN-071408' : `SYS-${item.username}`}
+                            {item.username}
                           </span>
                           {isOnline ? (
                             <div className="flex items-center gap-1.5 font-mono text-[10px]">

@@ -426,7 +426,7 @@ export default function App() {
             ) : (
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-container text-secondary-fixed text-xs font-mono shadow-sm">
                 <span className="material-symbols-outlined text-[16px] text-neon-amber">bolt</span>
-                <span>Super Admin: {adminUser?.nama ? adminUser.nama.split(' ')[0] : 'dr. Arifin'}</span>
+                <span>Super Admin{adminUser?.nama ? `: ${adminUser.nama.split(' ')[0]}` : ''}</span>
               </div>
             )}
 

@@ -363,59 +363,7 @@ export default function UnifiedUserManagement({
       )}
 
       {/* Bento Metric Summary Cards (Top Tier - 4 Cards) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-        {/* Card 1: Slot GPU 0 Prioritas */}
-        <div className="bg-surface-container-low rounded-xl p-5 relative overflow-hidden border border-border-subtle shadow-md flex flex-col justify-between">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-neon-cyan shadow-[0_0_12px_rgba(76,215,246,0.8)]"></div>
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex flex-col">
-              <span className="text-sm font-medium text-text-secondary">
-                Kapasitas GPU 0
-              </span>
-              <span className="font-headline-md text-sm font-semibold text-text-primary mt-1">
-                Slot GPU 0 Prioritas
-              </span>
-            </div>
-            <div className="w-9 h-9 rounded-lg bg-surface-3 flex items-center justify-center text-neon-cyan border border-neon-cyan/20">
-              <Cpu className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="flex flex-col gap-2">
-            <div className="flex items-baseline justify-between">
-              <span className="font-mono text-xl font-bold text-text-primary">
-                {usedSlots} <span className="text-outline text-xs font-normal">/ {totalSlots} Slot</span>
-              </span>
-              <span className={`font-mono text-xs px-2 py-0.5 rounded font-semibold ${
-                isSlotsFull ? 'bg-error-container/40 text-neon-rose' : 'bg-surface-3 text-neon-cyan'
-              }`}>
-                {slotUtilPct}% Utilisasi
-              </span>
-            </div>
-            <div className="w-full h-1.5 rounded-md bg-surface-variant overflow-hidden">
-              <div
-                className={`h-full rounded-md transition-all duration-500 ${
-                  isSlotsFull
-                    ? 'bg-neon-rose shadow-[0_0_10px_rgba(255,180,171,0.8)]'
-                    : 'bg-neon-cyan shadow-[0_0_10px_rgba(76,215,246,0.6)]'
-                }`}
-                style={{ width: `${slotUtilPct}%` }}
-              />
-            </div>
-            <div className="flex items-center gap-1.5 mt-1 text-sm font-mono text-on-surface-variant">
-              {isSlotsFull ? (
-                <>
-                  <AlertCircle className="w-3.5 h-3.5 text-neon-rose" />
-                  <span className="text-neon-rose font-semibold">Semua Slot Penuh</span>
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="w-3.5 h-3.5 text-neon-emerald" />
-                  <span>{availableSlots} Slot Tersedia untuk Skripsi</span>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
         {/* Card 2: Total Akun Terdaftar */}
         <div className="bg-surface-container-low rounded-xl p-5 border border-border-subtle shadow-md flex flex-col justify-between">

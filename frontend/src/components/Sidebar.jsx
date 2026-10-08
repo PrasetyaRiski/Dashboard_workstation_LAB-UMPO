@@ -81,12 +81,7 @@ export default function Sidebar({
             </div>
           </div>
 
-          {/* Section Label */}
-          <div className="px-5 pt-4 pb-2 shrink-0">
-            <div className="font-mono-code-xs text-mono-code-xs text-text-muted   px-1">
-              Navigasi Telemetri
-            </div>
-          </div>
+
 
           {/* Navigation Links */}
           <nav className="flex-1 overflow-y-auto px-3 flex flex-col gap-1">

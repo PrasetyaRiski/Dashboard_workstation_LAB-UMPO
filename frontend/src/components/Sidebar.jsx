@@ -27,8 +27,7 @@ export default function Sidebar({
     { id: 'overview',  label: 'Ringkasan',       icon: LayoutDashboard, badgeText: 'SYS' },
     { id: 'jobs',      label: 'Manajemen Job',   icon: Cpu,              badgeCount: processCount, badgeHighlight: true },
     { id: 'students',  label: 'User',            icon: Users,            badgeText: 'RBAC' },
-    { id: 'system',    label: 'Infrastruktur',   icon: Server,           badgeText: 'NVLink' },
-    { id: 'audit',     label: 'Audit Log',       icon: FileText,         badgeCount: auditCount },
+        { id: 'audit',     label: 'Audit Log',       icon: FileText,         badgeCount: auditCount },
   ];
 
   // Calculate VRAM Quota

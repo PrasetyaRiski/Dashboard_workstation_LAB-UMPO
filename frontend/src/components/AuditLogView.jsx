@@ -150,7 +150,7 @@ export default function AuditLogView({ logs = [] }) {
                 <span className="font-headline-md text-sm font-bold text-text-primary tracking-tight">
                   Immutable Append-Only Audit Trail
                 </span>
-                <span className="px-2 py-0.5 rounded-md bg-secondary-container font-mono text-[9px] text-secondary-fixed font-semibold uppercase">
+                <span className="px-2 py-0.5 rounded-md bg-secondary-container font-mono text-[9px] text-secondary-fixed font-semibold ">
                   Audit Ready
                 </span>
               </div>
@@ -236,10 +236,10 @@ export default function AuditLogView({ logs = [] }) {
 
                     {/* Timestamp */}
                     <div className="shrink-0 flex flex-col items-end gap-1 pt-0.5 font-mono">
-                      <span className="text-[10px] text-text-primary px-2 py-0.5 bg-surface-1 rounded border border-border-base">
+                      <span className="text-xs text-text-primary px-2 py-0.5 bg-surface-1 rounded border border-border-base">
                         {log.time || log.created_at || 'Baru Saja'}
                       </span>
-                      <span className="text-[9px] uppercase tracking-wider text-neon-emerald flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="text-[9px]   text-neon-emerald flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <span className="w-1.5 h-1.5 rounded-md bg-neon-emerald"></span>
                         Terekam
                       </span>

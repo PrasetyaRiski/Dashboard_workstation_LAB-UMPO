@@ -96,7 +96,7 @@ function ProcessDrawer({ proc, onClose, onKill, isAdmin }) {
                 key={label}
                 className="flex justify-between items-center p-3 border-b border-border-subtle last:border-b-0"
               >
-                <span className="text-xs font-mono text-text-muted uppercase tracking-wider">
+                <span className="text-xs font-mono text-text-muted  ">
                   {label}
                 </span>
                 <span className={`text-xs font-mono font-bold ${color}`}>
@@ -110,12 +110,12 @@ function ProcessDrawer({ proc, onClose, onKill, isAdmin }) {
           {proc.cmdline && (
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-mono text-text-muted uppercase tracking-wider">
+                <span className="text-xs font-mono text-text-muted  ">
                   Command Line
                 </span>
                 <button
                   onClick={() => copy(proc.cmdline)}
-                  className="flex items-center gap-1 text-[11px] font-mono text-text-muted hover:text-neon-cyan transition-colors"
+                  className="flex items-center gap-1 text-sm font-mono text-text-muted hover:text-neon-cyan transition-colors"
                 >
                   <Copy className="w-3 h-3" />
                   Salin
@@ -221,7 +221,7 @@ export default function ProcessManager({
         <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-6 z-10">
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-surface-3 font-mono text-[10px] text-tertiary border border-border-base">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-surface-3 font-mono text-xs text-tertiary border border-border-base">
                 <span className="w-2 h-2 rounded-md bg-neon-emerald animate-pulse"></span>
                 CLUSTER DEDICATED ONLINE
               </span>
@@ -281,7 +281,7 @@ export default function ProcessManager({
         {/* Stat 1: Running Compute */}
         <div className="p-5 rounded-xl bg-surface-2 border border-border-subtle shadow-sm flex flex-col justify-between gap-3">
           <div className="flex items-center justify-between">
-            <span className="font-mono text-[10px] text-text-muted uppercase tracking-wider">
+            <span className="text-sm font-medium text-text-muted ">
               Running Compute Tasks
             </span>
             <div className="w-8 h-8 rounded-lg bg-surface-3 flex items-center justify-center text-neon-cyan border border-neon-cyan/20">
@@ -295,7 +295,7 @@ export default function ProcessManager({
               </span>
               <span className="font-mono text-xs text-neon-cyan font-bold">Proses Aktif</span>
             </div>
-            <div className="flex items-center justify-between pt-1 font-mono text-[10px] text-outline">
+            <div className="flex items-center justify-between pt-1 font-mono text-xs text-outline">
               <span>{highPriorityCount} Prioritas Tinggi</span>
               <span>{workerCount} Worker Bersama</span>
             </div>
@@ -311,7 +311,7 @@ export default function ProcessManager({
         {/* Stat 2: Total VRAM Teralokasi */}
         <div className="p-5 rounded-xl bg-surface-2 border border-border-subtle shadow-sm flex flex-col justify-between gap-3">
           <div className="flex items-center justify-between">
-            <span className="font-mono text-[10px] text-text-muted uppercase tracking-wider">
+            <span className="text-sm font-medium text-text-muted ">
               Total GPU VRAM Teralokasi
             </span>
             <div className="w-8 h-8 rounded-lg bg-surface-3 flex items-center justify-center text-neon-amber border border-neon-amber/20">
@@ -325,7 +325,7 @@ export default function ProcessManager({
               </span>
               <span className="font-mono text-xs text-text-muted">/ 32.0 GB Total</span>
             </div>
-            <div className="flex items-center justify-between pt-1 font-mono text-[10px] text-outline">
+            <div className="flex items-center justify-between pt-1 font-mono text-xs text-outline">
               <span>GPU 0: {gpu0VramGb} GB</span>
               <span>GPU 1: {gpu1VramGb} GB</span>
             </div>
@@ -341,7 +341,7 @@ export default function ProcessManager({
         {/* Stat 3: Avg Duration & Balance */}
         <div className="p-5 rounded-xl bg-surface-2 border border-border-subtle shadow-sm flex flex-col justify-between gap-3">
           <div className="flex items-center justify-between">
-            <span className="font-mono text-[10px] text-text-muted uppercase tracking-wider">
+            <span className="text-sm font-medium text-text-muted ">
               Alokasi Akselerator
             </span>
             <div className="w-8 h-8 rounded-lg bg-surface-3 flex items-center justify-center text-secondary border border-secondary/20">
@@ -355,7 +355,7 @@ export default function ProcessManager({
               </span>
               <span className="font-mono text-xs text-tertiary">GPU 0 : GPU 1</span>
             </div>
-            <div className="flex items-center justify-between pt-1 font-mono text-[10px] text-outline">
+            <div className="flex items-center justify-between pt-1 font-mono text-xs text-outline">
               <span>Dedicated: {gpu0Processes.length} task</span>
               <span>Shared Pool: {gpu1Processes.length} task</span>
             </div>
@@ -395,7 +395,7 @@ export default function ProcessManager({
             type="button"
           >
             <span>Semua Job</span>
-            <span className="px-1.5 py-0.2 rounded-md bg-surface-dim/20 text-[10px] font-bold">
+            <span className="px-1.5 py-0.2 rounded-md bg-surface-dim/20 text-xs font-bold">
               {totalProcesses}
             </span>
           </button>
@@ -409,7 +409,7 @@ export default function ProcessManager({
             type="button"
           >
             <span>GPU 0 Dedicated</span>
-            <span className="px-1.5 py-0.2 rounded-md bg-surface-container-high text-neon-cyan text-[10px] font-bold">
+            <span className="px-1.5 py-0.2 rounded-md bg-surface-container-high text-neon-cyan text-xs font-bold">
               {gpu0Processes.length}
             </span>
           </button>
@@ -423,7 +423,7 @@ export default function ProcessManager({
             type="button"
           >
             <span>GPU 1 Shared</span>
-            <span className="px-1.5 py-0.2 rounded-md bg-surface-container-high text-secondary-fixed text-[10px] font-bold">
+            <span className="px-1.5 py-0.2 rounded-md bg-surface-container-high text-secondary-fixed text-xs font-bold">
               {gpu1Processes.length}
             </span>
           </button>
@@ -438,7 +438,7 @@ export default function ProcessManager({
           >
             <AlertTriangle className="w-3.5 h-3.5 text-neon-amber" />
             <span>High VRAM (&gt;8GB)</span>
-            <span className="px-1.5 py-0.2 rounded-md bg-surface-container-high text-neon-amber text-[10px] font-bold">
+            <span className="px-1.5 py-0.2 rounded-md bg-surface-container-high text-neon-amber text-xs font-bold">
               {highMemProcesses.length}
             </span>
           </button>
@@ -449,7 +449,7 @@ export default function ProcessManager({
       <div className="rounded-xl bg-surface-1 shadow-sm overflow-hidden border border-border-subtle flex flex-col">
         <div className="overflow-x-auto">
           <table className="w-full text-left min-w-[1100px]">
-            <thead className="bg-surface-2 text-text-muted font-mono text-[10px] uppercase tracking-wider border-b border-border-subtle">
+            <thead className="bg-surface-2 text-text-muted text-sm font-medium text-text-secondary border-b border-border-subtle">
               <tr>
                 <th className="px-4 py-3">PID</th>
                 <th className="px-4 py-3">Pengguna / Akun</th>
@@ -488,14 +488,14 @@ export default function ProcessManager({
                       {/* Pengguna / Akun */}
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-7 h-7 rounded-md bg-surface-container-high flex items-center justify-center font-mono text-[10px] text-primary-fixed font-bold border border-border-base shrink-0">
+                          <div className="w-7 h-7 rounded-md bg-surface-container-high flex items-center justify-center font-mono text-xs text-primary-fixed font-bold border border-border-base shrink-0">
                             {initials}
                           </div>
                           <div className="flex flex-col min-w-0">
                             <span className="text-xs text-text-primary font-medium truncate">
                               {proc.username}
                             </span>
-                            <span className="font-mono text-[10px] text-text-muted">
+                            <span className="font-mono text-xs text-text-muted">
                               {proc.username === 'labriset' ? 'Riset Dosen' : proc.username?.startsWith('m') ? 'SIMTIK Mhs' : 'System Service'}
                             </span>
                           </div>
@@ -505,14 +505,14 @@ export default function ProcessManager({
                       {/* Nama Perintah / Skrip Model */}
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1.5 font-mono text-xs text-text-primary bg-surface-2 px-2.5 py-1 rounded max-w-sm border border-border-subtle">
-                          <span className="text-tertiary font-bold text-[10px]">py</span>
+                          <span className="text-tertiary font-bold text-xs">py</span>
                           <span className="truncate">{proc.cmdline || proc.name}</span>
                         </div>
                       </td>
 
                       {/* Alokasi GPU */}
                       <td className="px-4 py-3">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md font-mono text-[10px] font-semibold border ${
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md font-mono text-xs font-semibold border ${
                           isGpu0
                             ? 'bg-primary-container/15 text-neon-cyan border-neon-cyan/20'
                             : 'bg-secondary-container/20 text-secondary-fixed border-secondary/20'
@@ -556,7 +556,7 @@ export default function ProcessManager({
                             <span className="material-symbols-outlined text-[16px]">stop</span>
                           </button>
                         ) : (
-                          <span className="text-text-muted text-[10px] font-mono">
+                          <span className="text-text-muted text-xs font-mono">
                             {isProtected ? 'Sys' : '—'}
                           </span>
                         )}

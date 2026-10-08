@@ -322,7 +322,7 @@ export default function UnifiedUserManagement({
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 relative z-10">
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded bg-surface-container font-mono text-[10px] text-primary-fixed-dim uppercase tracking-wider border border-border-base">
+            <span className="px-2 py-0.5 rounded bg-surface-container font-mono text-xs text-primary-fixed-dim   border border-border-base">
               HPC-NODE-01
             </span>
             <span className="text-outline text-xs">/</span>
@@ -334,12 +334,10 @@ export default function UnifiedUserManagement({
               Manajemen User Terpadu
             </h1>
             <span className="font-mono text-xs text-neon-cyan px-2.5 py-0.5 rounded-md bg-surface-container-high/80 border border-neon-cyan/20">
-              v4.2 QoS Controller
+              v4.2
             </span>
           </div>
-          <p className="text-xs text-on-surface-variant max-w-2xl leading-relaxed">
-            Kontrol terpadu multi-tenant node komputasi AI UMPO. Alokasi real-time untuk mahasiswa skripsi, riset dosen, penegakan cgroup slice, dan kuota NVMe.
-          </p>
+          
         </div>
 
         <div className="flex items-center gap-2 self-start lg:self-auto">
@@ -359,7 +357,7 @@ export default function UnifiedUserManagement({
         <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan text-xs font-mono">
           <ShieldCheck className="w-4 h-4 shrink-0" />
           <span>
-            <strong>Mode Operator Aslab ({adminUser?.nama || 'Asisten'}):</strong> Anda memiliki izin memantau aktivitas server dan menghentikan (Kill Sesi) notebook mahasiswa yang macet/over-quota. Aksi boost level, edit role, blokir, dan reset password dilindungi hak Super Admin.
+            <strong>Mode Operator Aslab ({adminUser?.nama || 'Asisten'}):</strong> Akses pemantauan dan Kill Sesi aktif. Hak akses super admin dibatasi.
           </span>
         </div>
       )}
@@ -371,8 +369,8 @@ export default function UnifiedUserManagement({
           <div className="absolute top-0 left-0 right-0 h-1 bg-neon-cyan shadow-[0_0_12px_rgba(76,215,246,0.8)]"></div>
           <div className="flex items-start justify-between mb-3">
             <div className="flex flex-col">
-              <span className="font-mono text-[10px] text-text-muted uppercase tracking-wider">
-                Dedicated Accelerator
+              <span className="text-sm font-medium text-text-secondary">
+                Kapasitas GPU 0
               </span>
               <span className="font-headline-md text-sm font-semibold text-text-primary mt-1">
                 Slot GPU 0 Prioritas
@@ -387,7 +385,7 @@ export default function UnifiedUserManagement({
               <span className="font-mono text-xl font-bold text-text-primary">
                 {usedSlots} <span className="text-outline text-xs font-normal">/ {totalSlots} Slot</span>
               </span>
-              <span className={`font-mono text-[10px] px-2 py-0.5 rounded font-semibold ${
+              <span className={`font-mono text-xs px-2 py-0.5 rounded font-semibold ${
                 isSlotsFull ? 'bg-error-container/40 text-neon-rose' : 'bg-surface-3 text-neon-cyan'
               }`}>
                 {slotUtilPct}% Utilisasi
@@ -403,7 +401,7 @@ export default function UnifiedUserManagement({
                 style={{ width: `${slotUtilPct}%` }}
               />
             </div>
-            <div className="flex items-center gap-1.5 mt-1 text-[11px] font-mono text-on-surface-variant">
+            <div className="flex items-center gap-1.5 mt-1 text-sm font-mono text-on-surface-variant">
               {isSlotsFull ? (
                 <>
                   <AlertCircle className="w-3.5 h-3.5 text-neon-rose" />
@@ -423,7 +421,7 @@ export default function UnifiedUserManagement({
         <div className="bg-surface-container-low rounded-xl p-5 border border-border-subtle shadow-md flex flex-col justify-between">
           <div className="flex items-start justify-between mb-3">
             <div className="flex flex-col">
-              <span className="font-mono text-[10px] text-text-muted uppercase tracking-wider">
+              <span className="text-sm font-medium text-text-secondary">
                 Tenant Directory
               </span>
               <span className="font-headline-md text-sm font-semibold text-text-primary mt-1">
@@ -439,7 +437,7 @@ export default function UnifiedUserManagement({
               <span className="font-mono text-xl font-bold text-text-primary">
                 {unifiedList.length} <span className="text-outline text-xs font-normal">Akun</span>
               </span>
-              <span className="font-mono text-[10px] text-secondary-fixed-dim px-2 py-0.5 rounded bg-secondary-container/40">
+              <span className="font-mono text-xs text-secondary-fixed-dim px-2 py-0.5 rounded bg-secondary-container/40">
                 Active SIMTIK
               </span>
             </div>
@@ -453,7 +451,7 @@ export default function UnifiedUserManagement({
                 style={{ width: `${Math.round((pureSystemCount / (unifiedList.length || 1)) * 100)}%` }}
               />
             </div>
-            <div className="flex items-center justify-between text-on-surface-variant font-mono text-[11px] mt-1">
+            <div className="flex items-center justify-between text-on-surface-variant font-mono text-sm mt-1">
               <span>{totalStudents} Mhs SIMTIK</span>
               <span className="text-outline">•</span>
               <span>{pureSystemCount} Dosen & Lab</span>
@@ -465,7 +463,7 @@ export default function UnifiedUserManagement({
         <div className="bg-surface-container-low rounded-xl p-5 border border-border-subtle shadow-md flex flex-col justify-between">
           <div className="flex items-start justify-between mb-3">
             <div className="flex flex-col">
-              <span className="font-mono text-[10px] text-text-muted uppercase tracking-wider">
+              <span className="text-sm font-medium text-text-secondary">
                 QoS Level 1 Active
               </span>
               <span className="font-headline-md text-sm font-semibold text-text-primary mt-1">
@@ -481,7 +479,7 @@ export default function UnifiedUserManagement({
               <span className="font-mono text-xl font-bold text-neon-amber">
                 {boostedStudents} <span className="text-outline text-xs font-normal">Akun</span>
               </span>
-              <span className="font-mono text-[10px] bg-tertiary-container/20 text-neon-emerald px-2 py-0.5 rounded font-semibold">
+              <span className="font-mono text-xs bg-tertiary-container/20 text-neon-emerald px-2 py-0.5 rounded font-semibold">
                 Full Boosted
               </span>
             </div>
@@ -491,7 +489,7 @@ export default function UnifiedUserManagement({
                 style={{ width: `${slotUtilPct}%` }}
               />
             </div>
-            <div className="flex items-center gap-1.5 mt-1 text-[11px] font-mono text-on-surface-variant">
+            <div className="flex items-center gap-1.5 mt-1 text-sm font-mono text-on-surface-variant">
               <Layers className="w-3.5 h-3.5 text-neon-cyan" />
               <span className="truncate">Hak Akses Dedicated <code className="text-primary-fixed">compute-level1</code></span>
             </div>
@@ -505,7 +503,7 @@ export default function UnifiedUserManagement({
           )}
           <div className="flex items-start justify-between mb-3">
             <div className="flex flex-col">
-              <span className="font-mono text-[10px] text-text-muted uppercase tracking-wider">
+              <span className="text-sm font-medium text-text-secondary">
                 Disk Limit Breached
               </span>
               <span className="font-headline-md text-sm font-semibold text-text-primary mt-1">
@@ -526,12 +524,12 @@ export default function UnifiedUserManagement({
                 {overQuotaCount} <span className="text-outline text-xs font-normal">Akun</span>
               </span>
               {overQuotaCount > 0 ? (
-                <span className="inline-flex items-center gap-1 font-mono text-[10px] text-neon-rose bg-error-container/40 px-2 py-0.5 rounded-md shadow-[0_0_8px_rgba(255,180,171,0.3)]">
+                <span className="inline-flex items-center gap-1 font-mono text-xs text-neon-rose bg-error-container/40 px-2 py-0.5 rounded-md shadow-[0_0_8px_rgba(255,180,171,0.3)]">
                   <span className="w-1.5 h-1.5 rounded-md bg-neon-rose animate-ping"></span>
                   Over Quota
                 </span>
               ) : (
-                <span className="font-mono text-[10px] text-neon-emerald bg-surface-3 px-2 py-0.5 rounded">
+                <span className="font-mono text-xs text-neon-emerald bg-surface-3 px-2 py-0.5 rounded">
                   Semua Normal
                 </span>
               )}
@@ -546,7 +544,7 @@ export default function UnifiedUserManagement({
                 style={{ width: overQuotaCount > 0 ? '100%' : '15%' }}
               />
             </div>
-            <div className={`flex items-center gap-1.5 mt-1 text-[11px] font-mono ${overQuotaCount > 0 ? 'text-neon-rose' : 'text-on-surface-variant'}`}>
+            <div className={`flex items-center gap-1.5 mt-1 text-sm font-mono ${overQuotaCount > 0 ? 'text-neon-rose' : 'text-on-surface-variant'}`}>
               <HardDrive className="w-3.5 h-3.5" />
               <span>{overQuotaCount > 0 ? 'Batas soft quota terlampaui' : 'Semua kuota aman terisolasi'}</span>
             </div>
@@ -603,7 +601,7 @@ export default function UnifiedUserManagement({
             type="button"
           >
             <span>⚠️ Over Quota</span>
-            <span className="px-1.5 py-0.2 rounded-md bg-neon-rose text-surface-container-lowest font-mono font-bold text-[10px]">
+            <span className="px-1.5 py-0.2 rounded-md bg-neon-rose text-surface-container-lowest font-mono font-bold text-xs">
               {overQuotaCount}
             </span>
           </button>
@@ -620,7 +618,7 @@ export default function UnifiedUserManagement({
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-surface-3 rounded-lg pl-9 pr-10 py-2 font-mono text-xs text-text-primary placeholder:text-text-muted focus:outline-none focus:bg-surface-container-high transition-all border border-border-base"
             />
-            <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:inline-block font-mono text-[10px] text-outline px-1.5 py-0.5 rounded bg-surface-container-low border border-border-subtle">
+            <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:inline-block font-mono text-xs text-outline px-1.5 py-0.5 rounded bg-surface-container-low border border-border-subtle">
               ⌘K
             </kbd>
           </div>
@@ -632,7 +630,7 @@ export default function UnifiedUserManagement({
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[1240px]">
             <thead>
-              <tr className="bg-surface-1 text-text-muted uppercase font-mono text-[10px] tracking-wider border-b border-border-subtle">
+              <tr className="bg-surface-1 text-text-muted  font-mono text-xs  border-b border-border-subtle">
                 <th className="py-3 px-5" scope="col">Akun & Pengguna</th>
                 <th className="py-3 px-4" scope="col">Identitas & Status</th>
                 <th className="py-3 px-4" scope="col">Role / Hak Akses</th>
@@ -688,7 +686,7 @@ export default function UnifiedUserManagement({
                               <span className="font-semibold text-xs text-text-primary truncate">
                                 {item.nama || 'Mahasiswa SIMTIK'}
                               </span>
-                              <span className="font-mono text-[10px] text-text-muted truncate">
+                              <span className="font-mono text-xs text-text-muted truncate">
                                 mhs.{item.nim}@umpo.ac.id
                               </span>
                             </div>
@@ -703,7 +701,7 @@ export default function UnifiedUserManagement({
                             </span>
                             {item.is_active ? (
                               item.is_online ? (
-                                <div className="flex items-center gap-1.5 font-mono text-[10px]">
+                                <div className="flex items-center gap-1.5 font-mono text-xs">
                                   <span className="w-1.5 h-1.5 rounded-md bg-neon-emerald animate-pulse"></span>
                                   <span className="text-neon-emerald font-semibold">Online</span>
                                   {item.active_ip && (
@@ -711,13 +709,13 @@ export default function UnifiedUserManagement({
                                   )}
                                 </div>
                               ) : (
-                                <div className="flex items-center gap-1.5 font-mono text-[10px] text-text-muted">
+                                <div className="flex items-center gap-1.5 font-mono text-xs text-text-muted">
                                   <span className="w-1.5 h-1.5 rounded-md bg-outline"></span>
                                   <span>⚪ Offline</span>
                                 </div>
                               )
                             ) : (
-                              <div className="flex items-center gap-1.5 font-mono text-[10px] text-neon-rose font-semibold">
+                              <div className="flex items-center gap-1.5 font-mono text-xs text-neon-rose font-semibold">
                                 <span className="w-1.5 h-1.5 rounded-md bg-neon-rose"></span>
                                 <span> Blocked</span>
                               </div>
@@ -731,14 +729,14 @@ export default function UnifiedUserManagement({
                             <select
                               value={userRole}
                               onChange={(e) => handleSetRole(item.nim, e.target.value)}
-                              className="bg-surface-2 text-text-primary text-[11px] font-mono rounded px-2 py-1 focus:outline-none border border-border-base cursor-pointer hover:bg-surface-3 transition-colors"
+                              className="bg-surface-2 text-text-primary text-sm font-mono rounded px-2 py-1 focus:outline-none border border-border-base cursor-pointer hover:bg-surface-3 transition-colors"
                             >
                               <option value="mahasiswa">Mahasiswa</option>
                               <option value="aslab">Aslab</option>
                               <option value="admin">Admin</option>
                             </select>
                           ) : (
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-mono uppercase font-semibold ${
+                            <span className={`px-2 py-0.5 rounded text-xs font-mono  font-semibold ${
                               userRole === 'admin'
                                 ? 'bg-secondary-container text-secondary-fixed'
                                 : userRole === 'aslab'
@@ -756,14 +754,14 @@ export default function UnifiedUserManagement({
                             {item.is_priority ? (
                               <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary-container/20 text-neon-cyan w-fit shadow-sm border border-neon-cyan/20">
                                 <Zap className="w-3 h-3 text-neon-cyan" />
-                                <span className="font-mono text-[10px] font-semibold">Level 1 (Priority)</span>
+                                <span className="font-mono text-xs font-semibold">Level 1 (Priority)</span>
                               </div>
                             ) : (
                               <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-surface-variant text-on-surface-variant w-fit">
-                                <span className="font-mono text-[10px]">Level 2 (Standard)</span>
+                                <span className="font-mono text-xs">Level 2 (Standard)</span>
                               </div>
                             )}
-                            <span className="font-mono text-[10px] text-outline mt-0.5">
+                            <span className="font-mono text-xs text-outline mt-0.5">
                               {item.is_priority ? 'compute-level1.slice' : 'compute-level2.slice'}
                             </span>
                           </div>
@@ -776,12 +774,12 @@ export default function UnifiedUserManagement({
                               {item.is_priority ? 'GPU 0 (Dedicated) | 20 Cores | 70GB' : 'GPU 1 (Shared Pool) | 2 Cores | 3GB'}
                             </span>
                             {item.is_priority && item.priority_expires_at ? (
-                              <div className="inline-flex items-center gap-1 text-neon-amber font-mono text-[11px] font-bold">
+                              <div className="inline-flex items-center gap-1 text-neon-amber font-mono text-sm font-bold">
                                 <Clock className="w-3 h-3" />
                                 <span>Sisa: <LiveCountdown expiresAt={item.priority_expires_at} /></span>
                               </div>
                             ) : (
-                              <span className="font-mono text-[10px] text-outline">
+                              <span className="font-mono text-xs text-outline">
                                 {item.is_online ? 'Fair-share FairQ active' : 'Tidak ada proses aktif'}
                               </span>
                             )}
@@ -791,7 +789,7 @@ export default function UnifiedUserManagement({
                         {/* 6. Penggunaan RAM */}
                         <td className="py-3.5 px-4">
                           <div className="flex flex-col gap-1 w-28">
-                            <div className="flex justify-between font-mono text-[10px]">
+                            <div className="flex justify-between font-mono text-xs">
                               <span className="text-text-primary font-semibold">{ramUsedGb} GB</span>
                               <span className="text-outline">/ {ramMaxGb} GB</span>
                             </div>
@@ -809,7 +807,7 @@ export default function UnifiedUserManagement({
                         {/* 7. Storage & Quota */}
                         <td className="py-3.5 px-4">
                           <div className="flex flex-col gap-1 w-32">
-                            <div className="flex justify-between font-mono text-[10px]">
+                            <div className="flex justify-between font-mono text-xs">
                               <span className={`font-semibold ${item.is_over_quota ? 'text-neon-rose' : 'text-text-primary'}`}>
                                 {diskUsedGb} GB
                               </span>
@@ -849,7 +847,7 @@ export default function UnifiedUserManagement({
                                 item.is_priority ? (
                                   <button
                                     onClick={() => handleUnboost(item.nim)}
-                                    className="px-2 py-1 rounded bg-secondary-container/40 text-neon-amber hover:bg-secondary-container transition-colors text-[10px] font-mono font-semibold"
+                                    className="px-2 py-1 rounded bg-secondary-container/40 text-neon-amber hover:bg-secondary-container transition-colors text-xs font-mono font-semibold"
                                     title="Kembalikan ke Level 2 Standard"
                                     type="button"
                                   >
@@ -859,7 +857,7 @@ export default function UnifiedUserManagement({
                                   <button
                                     onClick={() => setBoostModal({ isOpen: true, nim: item.nim, nama: item.nama || '', hours: 4, reason: '' })}
                                     disabled={isSlotsFull}
-                                    className="px-2 py-1 rounded bg-primary-container text-on-primary-container hover:bg-neon-cyan transition-colors text-[10px] font-mono font-bold shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                                    className="px-2 py-1 rounded bg-primary-container text-on-primary-container hover:bg-neon-cyan transition-colors text-xs font-mono font-bold shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
                                     title={isSlotsFull ? 'Slot Prioritas GPU 0 Penuh' : 'Boost ke Level 1 Dedicated'}
                                     type="button"
                                   >
@@ -945,7 +943,7 @@ export default function UnifiedUserManagement({
                           <div className="flex flex-col min-w-0">
                             <span className="font-semibold text-xs text-text-primary truncate flex items-center gap-2">
                               {item.username}
-                              <span className={`text-[9px] px-1.5 py-0.2 rounded font-mono font-bold uppercase border ${
+                              <span className={`text-[9px] px-1.5 py-0.2 rounded font-mono font-bold  border ${
                                 isRiset
                                   ? 'bg-neon-cyan/15 text-neon-cyan border-neon-cyan/30'
                                   : 'bg-secondary-container text-secondary-fixed border-secondary/30'
@@ -953,7 +951,7 @@ export default function UnifiedUserManagement({
                                 {isRiset ? 'RISET & SKRIPSI' : 'DOSEN / PELATIHAN'}
                               </span>
                             </span>
-                            <span className="font-mono text-[10px] text-text-muted truncate">
+                            <span className="font-mono text-xs text-text-muted truncate">
                               {isRiset ? 'Akun Riset & Skripsi Mahasiswa/Dosen' : 'Akun Dosen & Pelatihan Praktikum'}
                             </span>
                           </div>
@@ -967,13 +965,13 @@ export default function UnifiedUserManagement({
                             {item.username}
                           </span>
                           {isOnline ? (
-                            <div className="flex items-center gap-1.5 font-mono text-[10px]">
+                            <div className="flex items-center gap-1.5 font-mono text-xs">
                               <span className="w-1.5 h-1.5 rounded-md bg-neon-emerald animate-pulse"></span>
                               <span className="text-neon-emerald font-semibold">Online</span>
                               <span className="text-outline text-[9px]">({item.active_ip || '127.0.0.1'})</span>
                             </div>
                           ) : (
-                            <div className="flex items-center gap-1.5 font-mono text-[10px] text-text-muted">
+                            <div className="flex items-center gap-1.5 font-mono text-xs text-text-muted">
                               <span className="w-1.5 h-1.5 rounded-md bg-outline"></span>
                               <span>⚪ Offline</span>
                             </div>
@@ -983,7 +981,7 @@ export default function UnifiedUserManagement({
 
                       {/* 3. Role / Hak Akses */}
                       <td className="py-3.5 px-4">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-mono uppercase font-semibold ${
+                        <span className={`px-2 py-0.5 rounded text-xs font-mono  font-semibold ${
                           isRiset
                             ? 'bg-secondary-container text-secondary-fixed'
                             : 'bg-surface-2 text-on-surface-variant'
@@ -998,14 +996,14 @@ export default function UnifiedUserManagement({
                           {isRiset ? (
                             <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary-container/20 text-neon-cyan w-fit shadow-sm border border-neon-cyan/20">
                               <Zap className="w-3 h-3 text-neon-cyan" />
-                              <span className="font-mono text-[10px] font-semibold">Level 1 (Priority)</span>
+                              <span className="font-mono text-xs font-semibold">Level 1 (Priority)</span>
                             </div>
                           ) : (
                             <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-surface-variant text-on-surface-variant w-fit">
-                              <span className="font-mono text-[10px]">Level 2 (Standard)</span>
+                              <span className="font-mono text-xs">Level 2 (Standard)</span>
                             </div>
                           )}
-                          <span className="font-mono text-[10px] text-outline mt-0.5">
+                          <span className="font-mono text-xs text-outline mt-0.5">
                             {isRiset ? 'compute-level1.slice' : 'compute-level2.slice'}
                           </span>
                         </div>
@@ -1017,7 +1015,7 @@ export default function UnifiedUserManagement({
                           <span className="font-mono text-xs text-text-primary font-medium">
                             {isRiset ? 'GPU 0 (Dedicated) | 20 Cores | 70GB' : 'GPU 1 (Shared Pool) | 2 Cores | 3GB'}
                           </span>
-                          <span className="font-mono text-[10px] text-outline">
+                          <span className="font-mono text-xs text-outline">
                             {isRiset ? 'Riset Dosen Tetap' : 'Batch Job Pipeline'}
                           </span>
                         </div>
@@ -1026,7 +1024,7 @@ export default function UnifiedUserManagement({
                       {/* 6. Penggunaan RAM */}
                       <td className="py-3.5 px-4">
                         <div className="flex flex-col gap-1 w-28">
-                          <div className="flex justify-between font-mono text-[10px]">
+                          <div className="flex justify-between font-mono text-xs">
                             <span className="text-text-primary font-semibold">{ramUsedGb} GB</span>
                             <span className="text-outline">/ {ramMaxGb} GB</span>
                           </div>
@@ -1044,7 +1042,7 @@ export default function UnifiedUserManagement({
                       {/* 7. Storage & Quota */}
                       <td className="py-3.5 px-4">
                         <div className="flex flex-col gap-1 w-32">
-                          <div className="flex justify-between font-mono text-[10px]">
+                          <div className="flex justify-between font-mono text-xs">
                             <span className={`font-semibold ${item.is_over_quota ? 'text-neon-rose' : 'text-text-primary'}`}>
                               {diskUsedGb} GB
                             </span>

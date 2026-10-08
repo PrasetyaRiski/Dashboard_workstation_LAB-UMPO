@@ -78,7 +78,7 @@ export default function Sidebar({
               <span className="font-headline-md text-sm text-on-surface font-bold truncate leading-tight">
                 Lab Komputasi
               </span>
-              <span className="font-mono-code-xs text-[11px] text-primary-fixed-dim truncate leading-tight">
+              <span className="font-mono-code-xs text-sm text-primary-fixed-dim truncate leading-tight">
                 Teknik Informatika
               </span>
             </div>
@@ -86,7 +86,7 @@ export default function Sidebar({
 
           {/* Section Label */}
           <div className="px-5 pt-4 pb-2 shrink-0">
-            <div className="font-mono-code-xs text-mono-code-xs text-text-muted uppercase tracking-wider px-1">
+            <div className="font-mono-code-xs text-mono-code-xs text-text-muted   px-1">
               Navigasi Telemetri
             </div>
           </div>
@@ -164,7 +164,7 @@ export default function Sidebar({
           </div>
 
           {/* Quick Telemetry & Refresh Row */}
-          <div className="flex items-center justify-between px-2 py-1 bg-surface-2 rounded-lg border border-border-subtle font-mono text-[11px]">
+          <div className="flex items-center justify-between px-2 py-1 bg-surface-2 rounded-lg border border-border-subtle font-mono text-sm">
             <div className="flex items-center gap-2">
               <span className="relative flex h-2 w-2">
                 {isConnected ? (

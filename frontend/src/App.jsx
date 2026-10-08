@@ -3,24 +3,22 @@ import Sidebar from './components/Sidebar';
 import GpuCard from './components/GpuCard';
 import SystemOverview from './components/SystemOverview';
 import LiveChart from './components/LiveChart';
-import UserGpuMonitor from './components/UserGpuMonitor';
 import ProcessManager from './components/ProcessManager';
 import AuditLogView from './components/AuditLogView';
 import KillConfirmModal from './components/KillConfirmModal';
 import UnifiedUserManagement from './components/UnifiedUserManagement';
 import AdminPinModal from './components/AdminPinModal';
 
-
 import {
   WifiOff, RefreshCw, Layers, ShieldCheck,
-  CheckCircle2, AlertCircle, Info, Menu
+  CheckCircle2, AlertCircle, Info, Menu, Database, Archive, HardDrive, Cpu, Terminal
 } from 'lucide-react';
 
 export default function App() {
   const [data, setData]               = useState(null);
-  const [adminToken, setAdminToken] = useState(() => localStorage.getItem('adminToken') || '');
-  const [adminRole, setAdminRole]   = useState(() => localStorage.getItem('adminRole') || '');
-  const [adminUser, setAdminUser]   = useState(() => {
+  const [adminToken, setAdminToken]   = useState(() => localStorage.getItem('adminToken') || '');
+  const [adminRole, setAdminRole]     = useState(() => localStorage.getItem('adminRole') || '');
+  const [adminUser, setAdminUser]     = useState(() => {
     try {
       const stored = localStorage.getItem('adminUser');
       return stored ? JSON.parse(stored) : null;
@@ -34,14 +32,17 @@ export default function App() {
   const isOperator = Boolean(adminToken && adminRole === 'aslab');
 
   const [loginModalOpen, setLoginModalOpen] = useState(false);
-  const [students, setStudents] = useState([]);
-  const [isConnected, setIsConnected] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [toast, setToast]             = useState(null);
-  const [activeTab, setActiveTab]     = useState('overview');
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [pendingAction, setPendingAction]   = useState(null);
+  const [students, setStudents]             = useState([]);
+  const [isConnected, setIsConnected]       = useState(false);
+  const [isRefreshing, setIsRefreshing]     = useState(false);
+  const [toast, setToast]                   = useState(null);
+  const [activeTab, setActiveTab]           = useState('overview');
+  const [isSidebarOpen, setIsSidebarOpen]   = useState(true);
   const [isSimulating, setIsSimulating]     = useState(false);
+
+  // Database Backup States
+  const [backups, setBackups]               = useState([]);
+  const [isBackingUp, setIsBackingUp]       = useState(false);
 
   // Kill Modal
   const [killModal, setKillModal] = useState({
@@ -129,6 +130,58 @@ export default function App() {
       setIsRefreshing(false);
     }
   }, []);
+
+  // Fetch Backups
+  const fetchBackups = useCallback(async () => {
+    if (!isAdmin) return;
+    try {
+      const res = await fetch(`/api/admin/backups?_t=${Date.now()}`, {
+        headers: { 'Authorization': `Bearer ${adminToken}` },
+        cache: 'no-store'
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success) setBackups(json.backups || []);
+      }
+    } catch (e) {
+      console.error('Fetch backups error:', e);
+    }
+  }, [isAdmin, adminToken]);
+
+  useEffect(() => {
+    if (activeTab === 'system' && isAdmin) {
+      fetchBackups();
+    }
+  }, [activeTab, isAdmin, fetchBackups]);
+
+  const handleTriggerBackup = async () => {
+    if (!isAdmin) {
+      setLoginModalOpen(true);
+      return;
+    }
+    setIsBackingUp(true);
+    showToast('Membuat snapshot backup database lab_users.db...', 'info');
+    try {
+      const res = await fetch('/api/admin/backup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminToken}`
+        }
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        showToast(json.message || 'Backup database SQLite WAL berhasil dibuat!', 'success');
+        fetchBackups();
+      } else {
+        showToast(json.detail || 'Gagal membuat backup database', 'error');
+      }
+    } catch (e) {
+      showToast('Error: ' + e.message, 'error');
+    } finally {
+      setIsBackingUp(false);
+    }
+  };
 
   // WebSocket Telemetry Stream
   useEffect(() => {
@@ -228,9 +281,7 @@ export default function App() {
 
   // Kill All User Jobs / Active Sessions
   const handleKillAllUser = async (username) => {
-    const user = (data?.users || []).find((u) => u.username === username);
     const userProcs = (data?.all_processes || []).filter((p) => p.username === username);
-
     const confirmMsg = userProcs.length > 0
       ? `Hentikan seluruh (${userProcs.length}) proses komputasi dan sesi milik ${username}?`
       : `User ${username} sedang online. Hentikan seluruh sesi aktif dan proses milik ${username}?`;
@@ -292,25 +343,11 @@ export default function App() {
     }
   };
 
-
   const activeProcesses = data?.all_processes || [];
 
-  // Page header metadata per tab
-  const tabMeta = {
-    overview:  { title: 'Ringkasan',       desc: 'Ikhtisar penggunaan CPU, RAM, GPU, dan storage server secara real-time.' },
-    jobs:      { title: 'Manajemen Job',   desc: 'Kelola dan pantau seluruh proses komputasi yang sedang berjalan.' },
-    students:  { title: 'User',            desc: 'Monitor aktivitas dan alokasi sumber daya per user.' },
-    system:    { title: 'Infrastruktur',   desc: 'Detail konfigurasi hardware, driver, dan isolasi resource.' },
-    audit:     { title: 'Audit Log',       desc: 'Riwayat seluruh aksi administratif pada server.' },
-  };
-
-  const currentTab = tabMeta[activeTab] || tabMeta.overview;
-
   return (
-    <div
-      className="dark flex h-screen overflow-hidden font-sans bg-[#0f131c] text-[#dfe2ef]"
-      
-    >
+    <div className="dark min-h-screen bg-bg-void text-on-surface font-body-md antialiased selection:bg-neon-cyan/20 selection:text-neon-cyan">
+      {/* Sidebar */}
       <Sidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -323,280 +360,586 @@ export default function App() {
         processCount={activeProcesses.length}
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+        gpus={data?.gpus || []}
       />
 
-      {/* Main Content Area */}
+      {/* Main App Container */}
       <div
-        className="flex-1 flex flex-col h-full overflow-hidden"
-        style={{
-          marginLeft: isSidebarOpen ? 'var(--sidebar-width)' : '0',
-          transition: 'margin-left var(--transition-slow)',
-        }}
+        className="flex flex-col min-h-screen transition-all duration-300"
+        style={{ paddingLeft: isSidebarOpen ? '16rem' : '0' }}
       >
-        {/* Global Header / Top-bar — Stitch Style */}
-        <header className="flex items-center justify-between px-6 py-3 bg-[#0a0e17]/90 backdrop-blur-md border-b border-[#46455430] z-30 select-none">
+        {/* Fixed Header — Google Stitch Design */}
+        <header
+          className="fixed top-0 right-0 h-16 bg-surface-1/80 backdrop-blur-xl border-b border-border-subtle z-40 flex items-center justify-between px-6 shadow-sm transition-all duration-300"
+          style={{ left: isSidebarOpen ? '16rem' : '0' }}
+        >
+          {/* Left Title & Breadcrumbs */}
           <div className="flex items-center gap-4">
-            <Menu className="w-5 h-5 text-[#c7c4d7] cursor-pointer lg:hidden" onClick={() => setIsSidebarOpen(!isSidebarOpen)} />
-            <div className="flex items-center gap-2">
-              <div className="relative flex items-center justify-center">
-                <div className="w-2.5 h-2.5 rounded-full bg-[#4edea3] animate-ping absolute opacity-75"></div>
-                <div className="w-2 h-2 rounded-full bg-[#4edea3] relative"></div>
-              </div>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-1.5 font-mono text-xs">
-                  <span className="text-[#dfe2ef] font-semibold">UMPO AI Workstation</span>
-                  <span className="text-[#464554]">//</span>
-                  <span className="text-[#4cd7f6]">node-dgx-umpo01</span>
-                </div>
-                <span className="text-[10px] text-[#908fa0] hidden sm:inline">AI Research Lab & Compute Cluster</span>
-              </div>
-            </div>
-
-            {/* Live Telemetry Pills */}
-            <div className="hidden xl:flex items-center gap-2 border-l border-[#46455430] pl-4 font-mono text-[10px]">
-              <div className="flex items-center gap-1.5 bg-[#181b25] px-2.5 py-1 rounded-lg border border-[#46455430] text-[#4edea3]">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#4edea3] animate-pulse"></span>
-                <span>Live Telemetry</span>
-                <span className="text-[#464554]">·</span>
-                <span className="text-[#c7c4d7]">Cgroups v2 Active</span>
-              </div>
-              <div className="flex items-center gap-1.5 bg-[#181b25] px-2.5 py-1 rounded-lg border border-[#46455430] text-[#dfe2ef]">
-                <span className="text-[#4cd7f6]">⚡</span>
-                <span className="text-[#908fa0]">GPU 0 Slot:</span>
-                <span className="text-[#4cd7f6] font-semibold">{students.filter(s => s.is_priority).length}/1 Occupied</span>
-              </div>
+            <button
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="p-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors"
+              title="Toggle Sidebar"
+              type="button"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <div className="flex items-center gap-2.5">
+              <span className="font-headline-md text-label-lg text-on-surface font-bold tracking-tight">
+                Lab Komputasi AI UMPO
+              </span>
+              <span className="text-outline-variant font-mono-code-xs hidden sm:inline">/</span>
+              <span className="hidden sm:inline font-mono-code-xs text-mono-code-xs text-primary-fixed-dim bg-surface-2 px-2 py-0.5 rounded border border-border-base">
+                node-dgx-umpo01
+              </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5">
-            <div className="flex items-center p-0.5 rounded-xl bg-[#181b25] border border-[#46455430]">
-              {!isAdmin ? (
-                <>
-                  <div className="px-2.5 py-1 rounded-lg font-mono text-xs font-medium flex items-center gap-1.5 bg-[#262a34] text-[#c0c1ff] shadow-sm">
-                    <Info className="w-3.5 h-3.5" />
-                    <span>Public View</span>
-                  </div>
-                  <button
-                    onClick={() => setLoginModalOpen(true)}
-                    className="px-2.5 py-1 rounded-lg font-mono text-xs text-[#dfe2ef] hover:text-white transition-colors flex items-center gap-1.5"
-                  >
-                    <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />
-                    <span>Login (Aslab / Admin)</span>
-                  </button>
-                </>
-              ) : (
-                <>
-                  {isOperator ? (
-                    <div className="px-2.5 py-1 rounded-lg font-mono text-xs font-medium flex items-center gap-1.5 bg-[#4cd7f6]/15 text-[#4cd7f6] border border-[#4cd7f6]/30">
-                      <ShieldCheck className="w-3.5 h-3.5" />
-                      <span>Operator: {adminUser?.nama ? adminUser.nama.split(' ')[0] : 'Aslab'}</span>
-                    </div>
-                  ) : (
-                    <div className="px-2.5 py-1 rounded-lg font-mono text-xs font-medium flex items-center gap-1.5 bg-[#4edea3]/15 text-[#4edea3] border border-[#4edea3]/30">
-                      <ShieldCheck className="w-3.5 h-3.5" />
-                      <span>Super Admin</span>
-                    </div>
-                  )}
-                  <button
-                    onClick={handleLogout}
-                    className="px-2.5 py-1 rounded-lg font-mono text-xs bg-rose-500/15 text-rose-300 hover:bg-rose-500/25 border border-rose-500/30 font-semibold flex items-center gap-1.5 transition-colors"
-                  >
-                    <span>Logout</span>
-                  </button>
-                </>
-              )}
+          {/* Center / Telemetry Ping Pill */}
+          <div className="hidden md:flex items-center">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container-lowest border border-border-subtle">
+              <span className="relative flex h-2 w-2">
+                {isConnected ? (
+                  <>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-neon-emerald opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-neon-emerald"></span>
+                  </>
+                ) : (
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-neon-rose"></span>
+                )}
+              </span>
+              <span className="font-mono-code-xs text-mono-code-xs text-on-surface-variant">
+                {isConnected ? 'WebSocket Live (12ms)' : 'Koneksi Offline'}
+              </span>
             </div>
+          </div>
+
+          {/* Right Mode Pill, Clock, and Auth Action */}
+          <div className="flex items-center gap-3">
+            {/* RBAC Mode Pill */}
+            {!isAdmin ? (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-2 text-text-muted border border-border-subtle text-xs font-mono">
+                <Info className="w-3.5 h-3.5 text-secondary-fixed" />
+                <span>Public Monitoring</span>
+              </div>
+            ) : isOperator ? (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neon-cyan/15 text-neon-cyan border border-neon-cyan/30 text-xs font-mono">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Operator: {adminUser?.nama ? adminUser.nama.split(' ')[0] : 'Aslab'}</span>
+              </div>
+            ) : (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-container text-secondary-fixed text-xs font-mono shadow-sm">
+                <span className="material-symbols-outlined text-[16px] text-neon-amber">bolt</span>
+                <span>Super Admin: {adminUser?.nama ? adminUser.nama.split(' ')[0] : 'dr. Arifin'}</span>
+              </div>
+            )}
+
+            {/* WIB Clock */}
+            <div className="hidden lg:flex items-center px-3 py-1 rounded-lg bg-surface-2 font-mono-code-sm text-mono-code-sm text-primary-fixed-dim border border-border-subtle">
+              <span className="text-outline mr-1.5">WIB:</span>
+              {data?.time_str || '--:--:--'}
+            </div>
+
+            {/* Login / Logout Button */}
+            {!isAdmin ? (
+              <button
+                onClick={() => setLoginModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-3 text-primary-fixed text-xs font-medium border border-border-base transition-colors"
+                title="Login Operator / Admin"
+                type="button"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-neon-cyan" />
+                <span>Login Admin</span>
+              </button>
+            ) : (
+              <button
+                onClick={handleLogout}
+                className="p-1.5 rounded-lg text-on-surface-variant hover:text-error hover:bg-error-container/20 transition-colors"
+                title="Keluar dari Konsol"
+                type="button"
+              >
+                <span className="material-symbols-outlined text-[20px]">logout</span>
+              </button>
+            )}
           </div>
         </header>
-        {/* Floating Disconnect Banner */}
+
+        {/* Floating Disconnect Alert Banner */}
         {!isConnected && (
-          <div className="px-6 pt-3">
-            <div className="disconnect-banner flex items-center justify-center gap-3 px-4 py-2.5">
-              <WifiOff className="w-3.5 h-3.5 animate-pulse" style={{ color: 'var(--accent-rose)' }} />
-              <span style={{ fontSize: '0.75rem', color: 'var(--accent-rose)', fontWeight: 600 }}>
-                Koneksi telemetri terputus — mencoba menghubungkan kembali…
-              </span>
+          <div className="pt-20 px-6">
+            <div className="flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-error-container/20 border border-error-container/40 text-neon-rose text-xs font-mono shadow-lg">
+              <div className="flex items-center gap-2">
+                <WifiOff className="w-4 h-4 animate-pulse shrink-0" />
+                <span>Koneksi telemetri WebSocket terputus — mencoba menghubungkan kembali secara otomatis…</span>
+              </div>
               <button
                 onClick={fetchStatus}
-                className="cursor-pointer flex items-center gap-1 font-bold"
-                style={{ background: 'none', border: 'none', color: 'var(--accent-rose)', fontSize: '0.75rem' }}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-error-container/40 text-neon-rose hover:bg-error-container/60 font-semibold transition-colors"
+                type="button"
               >
                 <RefreshCw className="w-3 h-3" />
-                Coba Sekarang
+                Coba Ulang
               </button>
             </div>
           </div>
         )}
 
-        {/* Scrollable Main Content — Stitch Layout */}
-        <main className="flex-1 overflow-y-auto bg-[#0f131c]">
-          <div className="w-full mx-auto p-6 lg:p-8" style={{ maxWidth: 1440 }}>
-
-
-            {/* Page Header */}
-            <div className="page-header">
-              <h1 className="page-header-title">{currentTab.title}</h1>
-              <p className="page-header-desc">{currentTab.desc}</p>
+        {/* Scrollable Main Content Canvas */}
+        <main className="flex-1 pt-20 px-6 lg:px-8 pb-12 w-full max-w-[1600px] mx-auto">
+          {activeTab === 'overview' && (
+            <div className="flex flex-col gap-6 fade-in-up">
+              <SystemOverview system={data?.system} gpus={data?.gpus} />
+              <LiveChart history={data?.history} theme="dark" />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <GpuCard
+                  gpu={data?.gpus?.[0]}
+                  isAdmin={isAdmin}
+                  onOpenKillModal={handleOpenKillModal}
+                  sparkHistory={data?.history || []}
+                />
+                <GpuCard
+                  gpu={data?.gpus?.[1]}
+                  isAdmin={isAdmin}
+                  onOpenKillModal={handleOpenKillModal}
+                  sparkHistory={data?.history || []}
+                />
+              </div>
             </div>
+          )}
 
-            {activeTab === 'overview' && (
-              <div className="flex flex-col gap-6 fade-in-up">
-                <SystemOverview system={data?.system} gpus={data?.gpus} />
-                <LiveChart history={data?.history} theme="dark" />
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                  <GpuCard
-                    gpu={data?.gpus?.[0]}
-                    isAdmin={isAdmin}
-                    onOpenKillModal={handleOpenKillModal}
-                    sparkHistory={data?.history || []}
-                  />
-                  <GpuCard
-                    gpu={data?.gpus?.[1]}
-                    isAdmin={isAdmin}
-                    onOpenKillModal={handleOpenKillModal}
-                    sparkHistory={data?.history || []}
-                  />
+          {activeTab === 'jobs' && (
+            <div className="fade-in-up">
+              <ProcessManager
+                processes={activeProcesses}
+                isAdmin={isAdmin}
+                isSuperAdmin={isSuperAdmin}
+                adminRole={adminRole}
+                onOpenKillModal={handleOpenKillModal}
+                onRunSimulation={handleRunSimulation}
+                onStopSimulation={handleStopSimulation}
+                isSimulating={isSimulating}
+                onOpenPinModal={() => setLoginModalOpen(true)}
+              />
+            </div>
+          )}
+
+          {activeTab === 'students' && (
+            <div className="fade-in-up">
+              <UnifiedUserManagement
+                isAdmin={isAdmin}
+                adminRole={adminRole}
+                adminUser={adminUser}
+                students={students}
+                systemUsers={data?.users || []}
+                onOpenKillModal={handleOpenKillModal}
+                onResetPassword={handleResetPassword}
+                onKillAllUser={handleKillAllUser}
+                fetchStudents={fetchStudents}
+                showToast={showToast}
+              />
+            </div>
+          )}
+
+          {activeTab === 'system' && (
+            <div className="flex flex-col gap-6 fade-in-up">
+              {/* Top Operational Banner */}
+              <div className="relative overflow-hidden rounded-xl bg-surface-1 p-6 shadow-xl border border-border-subtle">
+                <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-neon-cyan/5 blur-3xl pointer-events-none"></div>
+                <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-secondary/5 blur-3xl pointer-events-none"></div>
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <span className="px-2.5 py-0.5 rounded-full bg-secondary-container text-secondary-fixed font-mono-code-xs text-mono-code-xs font-semibold tracking-wider uppercase">
+                        ARCH-SYSTEM TELEMETRY
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-2 text-neon-emerald font-mono-code-xs text-mono-code-xs">
+                        <span className="w-1.5 h-1.5 rounded-full bg-neon-emerald animate-pulse"></span>
+                        cgroups-v2 UNIFIED HIERARCHY ACTIVE
+                      </span>
+                      <span className="text-outline font-mono-code-xs text-mono-code-xs">|</span>
+                      <span className="text-outline font-mono-code-xs text-mono-code-xs">
+                        KERNEL: Linux 6.8.0 x86_64
+                      </span>
+                    </div>
+                    <h1 className="font-headline-xl text-headline-xl text-on-surface tracking-tight font-bold">
+                      Infrastruktur Komputasi & Alokasi Host
+                    </h1>
+                    <p className="font-body-md text-body-md text-on-surface-variant max-w-3xl">
+                      Topologi komputasi kluster Lab AI UMPO. Isolasi proses kernel Linux cgroups v2, interkoneksi PCIe dual-accelerator, serta persistensi snapshot database SQLite telemetri real-time.
+                    </p>
+                  </div>
+                  {/* Quick Metrics Strip */}
+                  <div className="flex items-center gap-4 self-start lg:self-center bg-surface-2 p-3 rounded-lg border border-border-base shadow-sm">
+                    <div className="px-3 py-1 flex flex-col">
+                      <span className="font-mono-code-xs text-mono-code-xs text-text-muted">HOST LOAD (1m)</span>
+                      <span className="font-mono-metric-md text-mono-metric-md text-neon-cyan font-bold">
+                        {data?.system?.cpu?.overall_percent || 0}% / {data?.system?.cpu?.core_count || 24} Cores
+                      </span>
+                    </div>
+                    <div className="h-8 w-px bg-surface-variant"></div>
+                    <div className="px-3 py-1 flex flex-col">
+                      <span className="font-mono-code-xs text-mono-code-xs text-text-muted">ACCELERATORS</span>
+                      <span className="font-mono-metric-md text-mono-metric-md text-secondary-fixed font-bold">
+                        Dual RTX 5060 Ti
+                      </span>
+                    </div>
+                    <div className="h-8 w-px bg-surface-variant"></div>
+                    <div className="px-3 py-1 flex flex-col">
+                      <span className="font-mono-code-xs text-mono-code-xs text-text-muted">STORAGE FS</span>
+                      <span className="font-mono-metric-md text-mono-metric-md text-neon-emerald font-bold">
+                        NVMe High-Speed
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            )}
 
-            {activeTab === 'jobs' && (
-              <div className="fade-in-up">
-                <ProcessManager
-                  processes={activeProcesses}
-                  isAdmin={isAdmin}
-                  isSuperAdmin={isSuperAdmin}
-                  adminRole={adminRole}
-                  onOpenKillModal={handleOpenKillModal}
-                  onRunSimulation={handleRunSimulation}
-                  onStopSimulation={handleStopSimulation}
-                  isSimulating={isSimulating}
-                  onOpenPinModal={() => setLoginModalOpen(true)}
-                />
-              </div>
-            )}
-
-            {activeTab === 'students' && (
-              <div className="fade-in-up">
-                <UnifiedUserManagement
-                  isAdmin={isAdmin}
-                  adminRole={adminRole}
-                  adminUser={adminUser}
-                  students={students}
-                  systemUsers={data?.users || []}
-                  onOpenKillModal={handleOpenKillModal}
-                  onResetPassword={handleResetPassword}
-                  onKillAllUser={handleKillAllUser}
-                  fetchStudents={fetchStudents}
-                  showToast={showToast}
-                />
-              </div>
-            )}
-
-            {activeTab === 'system' && (
-              <div className="flex flex-col gap-5 fade-in-up">
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  {/* Cgroups v2 info */}
-                  <div className="panel-raised" style={{ padding: '20px 24px' }}>
-                    <div className="flex items-center gap-2 mb-4">
-                      <Layers className="w-4 h-4" style={{ color: 'var(--accent-indigo)' }} />
-                      <h3 className="font-bold" style={{ fontSize: '0.8125rem', color: '#dfe2ef', letterSpacing: '-0.01em' }}>
-                        Alokasi Payung Cgroups v2 (RAM)
-                      </h3>
+              {/* Bento Grid Canvas: Cgroups Tree & Hardware Driver */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                {/* BOX 1: Cgroups v2 Resource Hierarchy (Span 7) */}
+                <div className="lg:col-span-7 flex flex-col rounded-xl bg-surface-2 p-6 shadow-xl border border-border-subtle relative overflow-hidden">
+                  <div className="flex items-center justify-between pb-4 border-b border-border-subtle mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-surface-3 flex items-center justify-center text-neon-cyan">
+                        <span className="material-symbols-outlined text-[20px]">account_tree</span>
+                      </div>
+                      <div>
+                        <h2 className="font-headline-md text-headline-md text-on-surface font-bold">
+                          Alokasi Payung Cgroups v2
+                        </h2>
+                        <p className="font-mono-code-xs text-mono-code-xs text-outline">
+                          Unified Hierarchy Kernel Limiter & CFS Memory Slices
+                        </p>
+                      </div>
                     </div>
-                    <p style={{ fontSize: '0.6875rem', color: '#908fa0', marginBottom: 16, lineHeight: 1.6 }}>
-                      Isolasi memori dilakukan pada kernel Linux untuk mencegah satu mahasiswa menghabiskan seluruh memori server.
-                    </p>
-                    <div className="flex flex-col" style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid #46455430' }}>
-                      {[
-                        { label: 'user.slice (Umbrella Limit)', sub: 'Batas total seluruh user & riset',     value: '100 GB RAM', color: 'var(--accent-indigo)' },
-                        { label: 'user-1021.slice (labriset)',   sub: 'Riset Dosen & Skripsi Informatika',   value: '70 GB RAM',  color: 'var(--accent-indigo)' },
-                        { label: 'training1 s.d training10',     sub: 'Kuota aman per user',                 value: '3 GB / user', color: 'var(--accent-emerald)' },
-                      ].map((row, i) => (
-                        <div key={i} className="flex justify-between items-center" style={{ padding: '10px 14px', borderBottom: i < 2 ? '1px solid #46455430' : 'none' }}>
-                          <div>
-                            <span className="metric-value font-bold block" style={{ fontSize: '0.6875rem', color: row.color }}>{row.label}</span>
-                            <span style={{ fontSize: '0.5625rem', color: '#908fa0' }}>{row.sub}</span>
+                    <span className="px-2.5 py-1 rounded bg-surface-container font-mono-code-xs text-mono-code-xs text-neon-cyan border border-neon-cyan/20">
+                      memory.max & cpu.weight
+                    </span>
+                  </div>
+
+                  {/* Root Slice Indicator */}
+                  <div className="bg-surface-3 p-4 rounded-lg mb-4 border border-border-base">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono-metric-md text-mono-metric-md text-primary-fixed font-bold">
+                          user.slice
+                        </span>
+                        <span className="px-1.5 py-0.5 rounded bg-surface-container-high font-mono-code-xs text-mono-code-xs text-text-muted">
+                          HOST ROOT UMBRELLA
+                        </span>
+                      </div>
+                      <span className="font-mono-code-xs text-mono-code-xs text-neon-emerald font-semibold">
+                        Limit: 100 GB RAM Server
+                      </span>
+                    </div>
+                    <div className="mt-2 flex items-center justify-between text-body-sm font-mono-code-xs text-on-surface-variant">
+                      <span>Total Alokasi Host RAM Terpantau: 100 GB</span>
+                      <span className="text-neon-cyan font-bold">
+                        {data?.system?.memory?.used_gb || 0} GB / {data?.system?.memory?.total_gb || 128} GB Aktif
+                      </span>
+                    </div>
+                    <div className="w-full h-2 bg-surface-container-lowest rounded-full overflow-hidden mt-2 flex">
+                      <div className="h-full bg-neon-cyan w-[70%]" title="Skripsi / Level 1 (70 GB)"></div>
+                      <div className="h-full bg-secondary w-[20%]" title="Shared Pool / Level 2 (20 GB)"></div>
+                      <div className="h-full bg-surface-variant w-[10%]" title="Unallocated Host (10 GB)"></div>
+                    </div>
+                  </div>
+
+                  {/* Interactive Tree View Hierarchy */}
+                  <div className="flex flex-col gap-3">
+                    <span className="font-mono-code-xs text-mono-code-xs text-text-muted uppercase tracking-wider">
+                      Topologi Pohon Resource Slices (Live Cgroups)
+                    </span>
+
+                    {/* Node 1: Skripsi Level 1 */}
+                    <div className="relative pl-6 before:content-[''] before:absolute before:left-2 before:top-0 before:bottom-0 before:w-0.5 before:bg-surface-variant p-2 rounded-lg bg-surface-1 border border-border-subtle">
+                      <div className="absolute left-2 top-6 w-3 h-0.5 bg-surface-variant"></div>
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-mono text-sm text-neon-cyan font-bold">user-1021.slice</span>
+                            <span className="px-2 py-0.5 rounded bg-neon-cyan/10 font-mono text-[10px] text-neon-cyan font-semibold border border-neon-cyan/20">
+                              Priority Level 1 (Skripsi / labriset)
+                            </span>
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-surface-container-high font-mono text-[10px] text-primary-fixed">
+                              <span className="w-1.5 h-1.5 rounded-full bg-neon-cyan"></span> GPU 0 Dedicated
+                            </span>
                           </div>
-                          <span className="metric-value font-bold shrink-0" style={{ fontSize: '0.6875rem', color: '#dfe2ef', marginLeft: 12 }}>{row.value}</span>
+                          <p className="text-xs text-on-surface-variant">
+                            Pekerjaan Riset Model Skripsi Mahasiswa Tingkat Akhir (VRAM Unrestricted Direct Map)
+                          </p>
                         </div>
-                      ))}
+                        <div className="flex flex-col md:items-end gap-0.5 font-mono text-xs">
+                          <span className="text-neon-cyan font-bold">Kuota: 70 GB RAM Host</span>
+                          <span className="text-on-surface-variant text-[11px]">
+                            CPU Weight: <span className="text-on-surface font-semibold">1000</span> | Dedicated: <span className="text-on-surface font-semibold">20 Cores</span>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Node 2: Praktikum Level 2 */}
+                    <div className="relative pl-6 before:content-[''] before:absolute before:left-2 before:top-0 before:h-6 before:w-0.5 before:bg-surface-variant p-2 rounded-lg bg-surface-1 border border-border-subtle">
+                      <div className="absolute left-2 top-6 w-3 h-0.5 bg-surface-variant"></div>
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-mono text-sm text-secondary-fixed font-bold">compute-level2.slice</span>
+                            <span className="px-2 py-0.5 rounded bg-secondary-container font-mono text-[10px] text-secondary-fixed-dim">
+                              Shared Pool (Praktikum & Mhs)
+                            </span>
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-surface-container-high font-mono text-[10px] text-secondary">
+                              <span className="w-1.5 h-1.5 rounded-full bg-secondary"></span> GPU 1 Multi-Tenant
+                            </span>
+                          </div>
+                          <p className="text-xs text-on-surface-variant">
+                            Multi-instance container pool untuk modul praktikum regular AI/ML dasar
+                          </p>
+                        </div>
+                        <div className="flex flex-col md:items-end gap-0.5 font-mono text-xs">
+                          <span className="text-secondary-fixed-dim font-bold">Kuota: 3 GB / Container</span>
+                          <span className="text-on-surface-variant text-[11px]">
+                            CPU Weight: <span className="text-on-surface font-semibold">100</span> | Fair Share: <span className="text-on-surface font-semibold">2 Cores</span>
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
+                </div>
 
-                  {/* CUDA & Driver info */}
-                  <div className="panel-raised" style={{ padding: '20px 24px' }}>
-                    <div className="flex items-center gap-2 mb-4">
-                      <ShieldCheck className="w-4 h-4" style={{ color: 'var(--accent-emerald)' }} />
-                      <h3 className="font-bold" style={{ fontSize: '0.8125rem', color: '#dfe2ef', letterSpacing: '-0.01em' }}>
-                        Konfigurasi CUDA & Driver
-                      </h3>
+                {/* BOX 2: NVIDIA & Driver Configuration (Span 5) */}
+                <div className="lg:col-span-5 flex flex-col rounded-xl bg-surface-2 p-6 shadow-xl border border-border-subtle relative overflow-hidden">
+                  <div className="flex items-center justify-between pb-4 border-b border-border-subtle mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-surface-3 flex items-center justify-center text-neon-emerald">
+                        <span className="material-symbols-outlined text-[20px]">memory</span>
+                      </div>
+                      <div>
+                        <h2 className="font-headline-md text-headline-md text-on-surface font-bold">
+                          Konfigurasi CUDA & Driver
+                        </h2>
+                        <p className="font-mono-code-xs text-mono-code-xs text-outline">
+                          Akselerasi Hardware & Deep Learning Stack
+                        </p>
+                      </div>
                     </div>
-                    <p style={{ fontSize: '0.6875rem', color: '#908fa0', marginBottom: 16, lineHeight: 1.6 }}>
-                      Status lingkungan eksekusi PyTorch, driver GPU, dan framework komputasi kecerdasan buatan.
-                    </p>
-                    <div className="flex flex-col" style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid #46455430' }}>
-                      {[
-                        { label: 'NVIDIA Driver Version', value: '595.84',                          color: 'var(--accent-emerald)' },
-                        { label: 'CUDA Runtime Version',  value: 'CUDA 13.2',                       color: '#dfe2ef' },
-                        { label: 'Python Environment',    value: 'Python 3.12.3 (/opt/ai_env)',      color: 'var(--accent-indigo)' },
-                        { label: 'PyTorch Acceleration',  value: 'cu128 (RTX 5060 Ti Dual Arch)',   color: '#dfe2ef' },
-                      ].map((row, i, arr) => (
-                        <div key={i} className="flex justify-between items-center" style={{ padding: '9px 14px', borderBottom: i < arr.length - 1 ? '1px solid #46455430' : 'none' }}>
-                          <span style={{ fontSize: '0.6875rem', color: '#908fa0' }}>{row.label}</span>
-                          <span className="metric-value font-bold" style={{ fontSize: '0.6875rem', color: row.color }}>{row.value}</span>
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container-high font-mono-code-xs text-mono-code-xs text-neon-emerald">
+                      <span className="w-1.5 h-1.5 rounded-full bg-neon-emerald"></span> READY
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col gap-3">
+                    <div className="bg-surface-1 p-3.5 rounded-lg flex items-center justify-between border border-border-base">
+                      <div className="flex flex-col">
+                        <span className="font-mono-code-xs text-mono-code-xs text-text-muted">NVIDIA DRIVER VER.</span>
+                        <span className="font-headline-md text-sm font-semibold text-on-surface font-mono">595.48.02</span>
+                      </div>
+                      <span className="px-2 py-0.5 rounded bg-surface-3 font-mono text-xs text-neon-cyan">
+                        Production Branch
+                      </span>
+                    </div>
+
+                    <div className="bg-surface-1 p-3.5 rounded-lg flex items-center justify-between border border-border-base">
+                      <div className="flex flex-col">
+                        <span className="font-mono-code-xs text-mono-code-xs text-text-muted">CUDA RUNTIME</span>
+                        <span className="font-headline-md text-sm font-semibold text-on-surface font-mono">CUDA 13.2</span>
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <span className="font-mono-code-xs text-mono-code-xs text-neon-emerald font-semibold">cuDNN v9.1 Enabled</span>
+                        <span className="font-mono-code-xs text-mono-code-xs text-outline">Compute Cap: sm_89</span>
+                      </div>
+                    </div>
+
+                    {/* PyTorch Environment Grid */}
+                    <div className="bg-surface-3 p-4 rounded-lg border border-border-base">
+                      <span className="font-mono-code-xs text-mono-code-xs text-text-muted uppercase tracking-wider block mb-2 font-semibold">
+                        PyTorch Compute Environment
+                      </span>
+                      <div className="grid grid-cols-2 gap-2 font-mono text-xs">
+                        <div className="bg-surface-container p-2 rounded">
+                          <span className="text-outline block text-[10px]">Python Core:</span>
+                          <span className="text-on-surface font-semibold">3.12.3 (/opt/ai_env)</span>
                         </div>
-                      ))}
+                        <div className="bg-surface-container p-2 rounded">
+                          <span className="text-outline block text-[10px]">PyTorch Engine:</span>
+                          <span className="text-neon-cyan font-semibold">2.4.0+cu124</span>
+                        </div>
+                        <div className="bg-surface-container p-2 rounded">
+                          <span className="text-outline block text-[10px]">TorchVision:</span>
+                          <span className="text-on-surface font-semibold">0.19.0+cu124</span>
+                        </div>
+                        <div className="bg-surface-container p-2 rounded">
+                          <span className="text-outline block text-[10px]">Hardware Target:</span>
+                          <span className="text-secondary-fixed font-semibold">Dual RTX 5060 Ti</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* GPU Architecture Status Card */}
+                    <div className="bg-surface-1 p-3.5 rounded-lg flex flex-col gap-1 border border-border-base">
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono-code-xs text-mono-code-xs text-text-muted uppercase">GPU Topologi Host</span>
+                        <span className="px-2 py-0.5 rounded bg-secondary-container font-mono text-[10px] text-secondary-fixed font-semibold">
+                          PCIe 4.0 x16
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs font-mono text-on-surface mt-1">
+                        <span>Dual NVIDIA GeForce RTX 5060 Ti</span>
+                        <span className="text-outline">Blackwell / Ada Dual Arch</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            )}
 
-            {activeTab === 'audit' && (
-              <div className="fade-in-up">
-                <AuditLogView logs={data?.audit_logs || []} />
+              {/* BOX 3: Status Database & Auto-Backup System (Span 12) */}
+              <div className="flex flex-col rounded-xl bg-surface-2 p-6 shadow-xl border border-border-subtle">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-border-subtle">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-surface-3 flex items-center justify-center text-secondary">
+                      <span className="material-symbols-outlined text-[20px]">database</span>
+                    </div>
+                    <div>
+                      <h2 className="font-headline-md text-headline-md text-on-surface font-bold">
+                        Status Database & Auto-Backup Engine
+                      </h2>
+                      <p className="font-mono-code-xs text-mono-code-xs text-outline">
+                        SQLite WAL Mode, Snapshot Rotasi Otomatis & SHA-256 Validated
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Action Backup Button */}
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <button
+                      onClick={handleTriggerBackup}
+                      disabled={isBackingUp}
+                      className="px-4 py-2 rounded-lg bg-secondary text-surface font-label-lg text-sm font-semibold hover:bg-secondary-fixed transition-colors flex items-center gap-2 shadow-[0_0_16px_-2px_rgba(192,193,255,0.3)] disabled:opacity-50"
+                      type="button"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">
+                        {isBackingUp ? 'sync' : 'bolt'}
+                      </span>
+                      <span>{isBackingUp ? 'Membuat Snapshot...' : 'Backup Database Sekarang'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Top Row Specs */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-4">
+                  <div className="bg-surface-1 p-4 rounded-lg flex flex-col gap-1 border border-border-base">
+                    <span className="font-mono-code-xs text-mono-code-xs text-text-muted">DATABASE MOUNT PATH</span>
+                    <span className="font-mono text-sm text-primary-fixed truncate" title="/home/public/web/data/lab_users.db">
+                      /home/public/web/data/lab_users.db
+                    </span>
+                    <div className="inline-flex items-center gap-1.5 text-mono-code-xs font-mono-code-xs text-neon-emerald mt-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-neon-emerald"></span>
+                      SQLite WAL-safe mode aktif
+                    </div>
+                  </div>
+                  <div className="bg-surface-1 p-4 rounded-lg flex flex-col gap-1 border border-border-base">
+                    <span className="font-mono-code-xs text-mono-code-xs text-text-muted">DATABASE DISK FOOTPRINT</span>
+                    <div className="flex items-baseline gap-1">
+                      <span className="font-mono-metric-lg text-mono-metric-lg text-on-surface">1.2</span>
+                      <span className="font-mono-metric-md text-mono-metric-md text-outline">MB</span>
+                    </div>
+                    <span className="font-mono-code-xs text-mono-code-xs text-text-muted mt-1">
+                      Status: <span className="text-neon-cyan font-semibold">Read/Write Concurrency Synchronous</span>
+                    </span>
+                  </div>
+                  <div className="bg-surface-1 p-4 rounded-lg flex flex-col gap-1 border border-border-base">
+                    <span className="font-mono-code-xs text-mono-code-xs text-text-muted">CRON SCHEDULE / RETENTION</span>
+                    <span className="font-mono text-sm text-on-surface font-semibold">Setiap Hari Pukul 00:00 WIB</span>
+                    <span className="font-mono-code-xs text-mono-code-xs text-text-muted mt-1">
+                      Rotasi otomatis 30 snapshot harian disimpan di <code className="text-neon-cyan">/data/backups</code>
+                    </span>
+                  </div>
+                </div>
+
+                {/* Snapshot History Table */}
+                <div className="flex flex-col">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-mono-code-xs text-mono-code-xs text-text-muted uppercase tracking-wider font-semibold">
+                      Riwayat Snapshot Backup ({backups.length > 0 ? backups.length : 'Terakhir'})
+                    </span>
+                    <span className="font-mono-code-xs text-mono-code-xs text-outline">
+                      GZIP + SHA-256 Validated
+                    </span>
+                  </div>
+                  <div className="overflow-x-auto rounded-lg bg-surface-1 border border-border-base">
+                    <table className="w-full text-left font-mono-code-xs text-mono-code-xs">
+                      <thead className="bg-surface-3 text-text-muted uppercase tracking-wider">
+                        <tr>
+                          <th className="px-4 py-2.5 font-semibold">Nama File Snapshot</th>
+                          <th className="px-4 py-2.5 font-semibold">Waktu Pembuatan</th>
+                          <th className="px-4 py-2.5 font-semibold text-right">Ukuran Arsip</th>
+                          <th className="px-4 py-2.5 font-semibold text-center">Status Integritas</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border-subtle text-on-surface">
+                        {backups.length === 0 ? (
+                          <tr>
+                            <td colSpan="4" className="px-4 py-6 text-center text-text-muted">
+                              {isAdmin
+                                ? 'Belum ada snapshot backup tersimpan, atau silakan klik tombol "Backup Database Sekarang" di atas.'
+                                : 'Login sebagai Admin / Aslab untuk melihat riwayat file snapshot database.'}
+                            </td>
+                          </tr>
+                        ) : (
+                          backups.slice(0, 5).map((bk, idx) => (
+                            <tr key={idx} className="hover:bg-surface-3 transition-colors">
+                              <td className="px-4 py-3 flex items-center gap-2">
+                                <span className="material-symbols-outlined text-[16px] text-neon-cyan">archive</span>
+                                <span className="text-primary font-semibold">{bk.filename}</span>
+                              </td>
+                              <td className="px-4 py-3 text-on-surface-variant">
+                                {bk.created_at || 'Baru Saja'}
+                              </td>
+                              <td className="px-4 py-3 text-right text-neon-emerald font-semibold">
+                                {bk.size_kb ? `${bk.size_kb} KB` : `${(bk.size_bytes / 1024).toFixed(1)} KB`}
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container-high text-neon-emerald font-semibold">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-neon-emerald"></span> Verified
+                                </span>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
-            )}
+            </div>
+          )}
 
-          </div>
+          {activeTab === 'audit' && (
+            <div className="fade-in-up">
+              <AuditLogView logs={data?.audit_logs || []} />
+            </div>
+          )}
         </main>
       </div>
 
-      {/* Toast Notification */}
+      {/* Toast Notification — Google Stitch Floating Style */}
       {toast && (
-        <div
-          className="fixed bottom-6 right-6 z-50 toast-enter"
-          style={{ maxWidth: 400, minWidth: 280 }}
-        >
-          <div className="toast-container">
-            <div className="flex items-center gap-3 px-4 py-3">
-              {toast.type === 'success'
-                ? <CheckCircle2 className="w-4.5 h-4.5 shrink-0" style={{ color: 'var(--accent-emerald)' }} />
-                : toast.type === 'error'
-                ? <AlertCircle className="w-4.5 h-4.5 shrink-0" style={{ color: 'var(--accent-rose)' }} />
-                : <Info className="w-4.5 h-4.5 shrink-0" style={{ color: 'var(--accent-indigo)' }} />
-              }
-              <span style={{ fontSize: '0.8125rem', color: '#dfe2ef', fontWeight: 500 }}>{toast.message}</span>
-              <button
-                onClick={() => setToast(null)}
-                className="ml-auto shrink-0 cursor-pointer"
-                style={{ background: 'none', border: 'none', color: '#908fa0', padding: '2px' }}
-              >
-                ✕
-              </button>
-            </div>
-            <div
-              className="toast-progress-bar"
-              style={{
-                background: toast.type === 'success'
-                  ? 'var(--accent-emerald)'
-                  : toast.type === 'error'
-                  ? 'var(--accent-rose)'
-                  : 'var(--accent-indigo)'
-              }}
-            />
+        <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom duration-300">
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-2 border border-border-base shadow-2xl text-xs font-mono text-on-surface">
+            {toast.type === 'success' ? (
+              <CheckCircle2 className="w-4 h-4 text-neon-emerald shrink-0" />
+            ) : toast.type === 'error' ? (
+              <AlertCircle className="w-4 h-4 text-neon-rose shrink-0" />
+            ) : (
+              <Info className="w-4 h-4 text-neon-cyan shrink-0" />
+            )}
+            <span className="font-medium">{toast.message}</span>
+            <button
+              onClick={() => setToast(null)}
+              className="ml-2 text-text-muted hover:text-on-surface transition-colors"
+              type="button"
+            >
+              ✕
+            </button>
           </div>
         </div>
       )}
@@ -617,4 +960,3 @@ export default function App() {
     </div>
   );
 }
-

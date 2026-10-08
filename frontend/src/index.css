@@ -3,6 +3,78 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
 @import "tailwindcss";
 
+@theme {
+  --color-surface-dim: #0f131c;
+  --color-surface-1: #141822;
+  --color-surface-2: #181b25;
+  --color-surface-3: #1c1f29;
+  --color-surface-variant: #31353f;
+  --color-surface-bright: #353943;
+  --color-surface-container: #1c2029;
+  --color-surface-container-low: #181b25;
+  --color-surface-container-lowest: #0a0e17;
+  --color-surface-container-high: #262a34;
+  --color-surface-container-highest: #31353f;
+  --color-surface-tint: #4cd7f6;
+  --color-bg-void: #0f131c;
+
+  --color-on-surface: #dfe2ef;
+  --color-on-surface-variant: #bcc9cd;
+  --color-text-primary: #dfe2ef;
+  --color-text-muted: #908fa0;
+
+  --color-outline: #869397;
+  --color-outline-variant: #3d494c;
+  --color-border-subtle: rgba(70, 69, 84, 0.12);
+  --color-border-base: rgba(70, 69, 84, 0.19);
+  --color-border-active: rgba(192, 193, 255, 0.31);
+
+  --color-primary: #acedff;
+  --color-primary-fixed: #acedff;
+  --color-primary-fixed-dim: #4cd7f6;
+  --color-primary-container: #4cd7f6;
+  --color-on-primary: #003640;
+  --color-on-primary-container: #005b6b;
+
+  --color-secondary: #c0c1ff;
+  --color-secondary-fixed: #e1e0ff;
+  --color-secondary-fixed-dim: #c0c1ff;
+  --color-secondary-container: #424479;
+  --color-on-secondary: #292b5e;
+  --color-on-secondary-container: #b2b3f0;
+
+  --color-tertiary: #6ffbbe;
+  --color-tertiary-fixed: #6ffbbe;
+  --color-tertiary-fixed-dim: #4edea3;
+  --color-tertiary-container: #4edea3;
+  --color-on-tertiary: #003824;
+  --color-on-tertiary-container: #005f40;
+
+  --color-neon-cyan: #4cd7f6;
+  --color-neon-emerald: #4edea3;
+  --color-neon-amber: #fbbf24;
+  --color-neon-rose: #ffb4ab;
+  --color-neon-indigo: #c0c1ff;
+
+  --color-error: #ffb4ab;
+  --color-error-container: #93000a;
+  --color-on-error: #690005;
+  --color-on-error-container: #ffdad6;
+
+  --font-headline-xl: "Plus Jakarta Sans", sans-serif;
+  --font-headline-lg: "Plus Jakarta Sans", sans-serif;
+  --font-headline-md: "Plus Jakarta Sans", sans-serif;
+  --font-body-lg: "Inter", sans-serif;
+  --font-body-md: "Inter", sans-serif;
+  --font-body-sm: "Inter", sans-serif;
+  --font-label-lg: "Inter", sans-serif;
+  --font-label-md: "Inter", sans-serif;
+  --font-mono-code-sm: "JetBrains Mono", monospace;
+  --font-mono-code-xs: "JetBrains Mono", monospace;
+  --font-mono-metric-lg: "JetBrains Mono", monospace;
+  --font-mono-metric-md: "JetBrains Mono", monospace;
+}
+
 @variant dark (&:where(.dark, .dark *));
 
 /* ─────────────────────────────────────────────────────────────────

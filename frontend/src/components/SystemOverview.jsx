@@ -1,41 +1,50 @@
 import React, { memo } from 'react';
-import { HardDrive, Server, MemoryStick as Memory, Cpu, Zap } from 'lucide-react';
+import { HardDrive, Server, MemoryStick as Memory, Cpu, Zap, Activity } from 'lucide-react';
 
-function MetricCard({ icon: Icon, iconColor, label, value, unit, sub, percent, barColor }) {
+function MetricCard({ icon: Icon, iconColor, label, title, subtitle, value, unit, percent, barColor, subRows }) {
   const safePercent = Math.min(Math.max(percent || 0, 0), 100);
   const barBg = barColor || (safePercent >= 85 ? '#ffb4ab' : safePercent >= 65 ? '#fbbf24' : '#4cd7f6');
 
   return (
-    <div className="rounded-xl bg-[#1c1f29] border border-[#46455430] p-4 flex flex-col justify-between shadow-md">
-      {/* Row 1: label + value */}
-      <div className="flex items-start justify-between gap-2 mb-3">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-[#262a34] border border-[#46455440] flex items-center justify-center shrink-0" style={{ color: iconColor }}>
-            <Icon className="w-4 h-4" />
-          </div>
-          <span className="font-mono text-xs font-medium text-[#c7c4d7]">
+    <div className="bg-surface-2 rounded-xl p-5 flex flex-col justify-between shadow-sm relative overflow-hidden group hover:bg-surface-3 transition-colors border border-border-subtle">
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <span className="font-mono text-[10px] uppercase text-text-muted tracking-wider">
             {label}
           </span>
+          <Icon className="w-4 h-4" style={{ color: iconColor }} />
         </div>
-        <span className="font-mono font-bold text-base text-[#dfe2ef]">
-          {value}<span className="text-xs font-normal text-[#908fa0] ml-1">{unit}</span>
-        </span>
+        {title && (
+          <div className="font-semibold text-xs text-text-primary truncate mb-0.5">
+            {title}
+          </div>
+        )}
+        {subtitle && (
+          <div className="font-mono text-[10px] text-outline mb-2">
+            {subtitle}
+          </div>
+        )}
+        <div className="flex items-baseline gap-1 mb-2">
+          <span className="font-mono text-2xl font-bold" style={{ color: iconColor }}>
+            {value}
+          </span>
+          {unit && <span className="font-mono text-xs text-outline font-normal">{unit}</span>}
+        </div>
       </div>
 
-      {/* Progress track - Stitch Glow */}
-      <div className="w-full bg-[#262a34] h-2 rounded-full overflow-hidden mb-2">
-        <div
-          className="h-full rounded-full transition-all duration-500"
-          style={{ width: `${safePercent}%`, background: barBg, boxShadow: `0 0 8px ${barBg}80` }}
-        />
+      <div className="space-y-1.5 mt-auto">
+        <div className="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
+          <div
+            className="h-full rounded-full transition-all duration-500"
+            style={{ width: `${safePercent}%`, background: barBg, boxShadow: `0 0 8px ${barBg}80` }}
+          />
+        </div>
+        {subRows && (
+          <div className="flex justify-between font-mono text-[10px] text-outline pt-0.5">
+            {subRows}
+          </div>
+        )}
       </div>
-
-      {/* Sub row */}
-      {sub && (
-        <p className="text-[11px] text-[#908fa0] truncate">
-          {sub}
-        </p>
-      )}
     </div>
   );
 }
@@ -47,133 +56,157 @@ function SystemOverview({ system, gpus = [] }) {
   const gpu0 = gpus[0];
   const gpu1 = gpus[1];
   const totalVramUsedGb = (((gpu0?.vram_used_mb || 0) + (gpu1?.vram_used_mb || 0)) / 1024).toFixed(1);
-  const totalVramMaxGb  = (((gpu0?.vram_total_mb || 16311) + (gpu1?.vram_total_mb || 16311)) / 1024).toFixed(0);
-  const totalVramPct    = Math.round((totalVramUsedGb / totalVramMaxGb) * 100) || 0;
+  const totalVramMaxGb  = (((gpu0?.vram_total_mb || 16384) + (gpu1?.vram_total_mb || 16384)) / 1024).toFixed(0);
+  const totalVramPct    = Math.round((totalVramUsedGb / (totalVramMaxGb || 1)) * 100) || 0;
   const totalGpuCompute = Math.round(((gpu0?.compute_percent || 0) + (gpu1?.compute_percent || 0)) / 2);
 
-  const cpuBar = cpu.overall_percent >= 85
-    ? 'var(--accent-rose)'
-    : cpu.overall_percent >= 65
-    ? 'var(--accent-amber)'
-    : 'var(--accent-violet)';
-
-  const ramBar = memory.percent >= 85
-    ? 'var(--accent-rose)'
-    : memory.percent >= 65
-    ? 'var(--accent-amber)'
-    : 'var(--accent-blue)';
-
   return (
-    <div className="rounded-2xl bg-[#181b25] border border-[#46455430] shadow-xl fade-in-up" style={{ padding: '24px 28px 28px' }}>
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
-        <div className="flex items-center gap-2.5">
-          <div
-            className="flex items-center justify-center rounded-lg"
-            style={{
-              width: 32,
-              height: 32,
-              background: 'color-mix(in srgb, var(--accent-indigo) 12%, transparent)',
-              color: 'var(--accent-indigo)',
-            }}
-          >
-            <Server className="w-4 h-4" />
+    <div className="flex flex-col gap-6">
+      {/* Cluster Sub-Header & Live Breadcrumb Zone */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 py-1">
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="font-mono text-[10px] text-outline tracking-wider uppercase">Cluster Node:</span>
+            <span className="font-mono text-xs text-primary-fixed bg-surface-2 px-2 py-0.5 rounded border border-border-base">
+              gpu-server-01.lab.umpo.ac.id
+            </span>
+            <span className="text-outline-variant font-mono text-xs">/</span>
+            <span className="font-mono text-xs text-text-muted">cgroup-v2.hybrid</span>
           </div>
-          <h2
-            className="font-bold"
-            style={{ fontSize: '0.9375rem', color: '#dfe2ef', letterSpacing: '-0.02em' }}
-          >
-            Infrastruktur Triad — CPU · RAM · GPU · Storage
-          </h2>
+          <div className="flex items-center gap-3">
+            <h1 className="font-headline-lg text-2xl font-bold text-text-primary tracking-tight">
+              Ringkasan Sistem & Telemetri Komputasi
+            </h1>
+            <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-surface-2 border border-border-subtle shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-neon-emerald animate-pulse"></span>
+              <span className="font-mono text-[10px] text-neon-emerald uppercase font-semibold">
+                Operational Normal
+              </span>
+            </div>
+          </div>
         </div>
-        <span
-          className="metric-value"
-          style={{ fontSize: '0.6875rem', color: '#908fa0' }}
-        >
-          24 vCPU · 128 GB RAM · Dual RTX 5060 Ti (32 GB VRAM)
-        </span>
+
+        {/* Cluster Quick Status Ticker */}
+        <div className="flex items-center gap-4 bg-surface-1 px-4 py-2 rounded-lg border border-border-subtle shadow-sm">
+          <div className="flex flex-col text-right">
+            <span className="font-mono text-[10px] text-text-muted">TOTAL VCPU</span>
+            <span className="font-mono text-sm text-text-primary font-bold">{cpu.core_count} Threads</span>
+          </div>
+          <div className="h-6 w-px bg-surface-variant"></div>
+          <div className="flex flex-col text-right">
+            <span className="font-mono text-[10px] text-text-muted">SCHEDULER</span>
+            <span className="font-mono text-xs text-neon-cyan flex items-center justify-end gap-1 font-semibold">
+              <Zap className="w-3 h-3" /> ACTIVE
+            </span>
+          </div>
+        </div>
       </div>
 
-      {/* 4-column metric cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      {/* Bento Row 1: Hardware & Tenant Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: CPU Host */}
         <MetricCard
           icon={Cpu}
-          iconColor="var(--accent-violet)"
-          label={`CPU (${cpu.core_count} Threads)`}
+          iconColor="#4cd7f6"
+          label="HOST COMPUTE CORE"
+          title="AMD EPYC / Intel Xeon"
+          subtitle={`${cpu.core_count} Threads @ 2.45GHz`}
           value={cpu.overall_percent}
           unit="%"
           percent={cpu.overall_percent}
-          barColor={cpuBar}
-          sub={`Utilisasi saat ini · Riset: 20 Core | Mhs: 2 Core`}
+          barColor={cpu.overall_percent >= 85 ? '#ffb4ab' : '#4cd7f6'}
+          subRows={
+            <>
+              <span>Avg Load: {cpu.overall_percent}%</span>
+              <span>Total Cores: {cpu.core_count}</span>
+            </>
+          }
         />
+
+        {/* Card 2: RAM Host */}
         <MetricCard
           icon={Memory}
-          iconColor="var(--accent-blue)"
-          label="Host RAM & Cgroups"
+          iconColor="#4edea3"
+          label="SYSTEM MEMORY ALLOCATION"
+          title="DDR4 ECC Server Registered"
+          subtitle={`user.slice Limit: ${memory.user_slice_max_gb || 100} GB`}
           value={memory.used_gb}
-          unit="GB"
+          unit={`/ ${memory.total_gb} GB`}
           percent={memory.percent}
-          barColor={ramBar}
-          sub={`${memory.percent}% dari ${memory.total_gb} GB · user.slice: ${memory.user_slice_used_gb || 0}/${memory.user_slice_max_gb || 100} GB`}
+          barColor={memory.percent >= 85 ? '#ffb4ab' : '#4edea3'}
+          subRows={
+            <>
+              <span>user.slice: {memory.user_slice_used_gb || 0} GB</span>
+              <span>{memory.percent}% Digunakan</span>
+            </>
+          }
         />
+
+        {/* Card 3: GPU Cluster (Dual) */}
         <MetricCard
           icon={Zap}
-          iconColor="var(--accent-amber)"
-          label="GPU Cluster (Dual)"
+          iconColor="#fbbf24"
+          label="DUAL ACCELERATOR CLUSTER"
+          title="NVIDIA RTX 5060 Ti Dual Arch"
+          subtitle={`Compute Avg: ${totalGpuCompute}%`}
           value={totalVramUsedGb}
-          unit="GB VRAM"
+          unit={`/ ${totalVramMaxGb} GB VRAM`}
           percent={totalVramPct}
-          barColor={totalVramPct >= 85 ? 'var(--accent-rose)' : 'var(--accent-amber)'}
-          sub={`${totalVramPct}% · Compute avg: ${totalGpuCompute}%`}
+          barColor={totalVramPct >= 85 ? '#ffb4ab' : '#fbbf24'}
+          subRows={
+            <>
+              <span>GPU 0: {((gpu0?.vram_used_mb || 0) / 1024).toFixed(1)} GB</span>
+              <span>GPU 1: {((gpu1?.vram_used_mb || 0) / 1024).toFixed(1)} GB</span>
+            </>
+          }
         />
+
+        {/* Card 4: Dataset & Model Storage (/home) */}
         <MetricCard
           icon={HardDrive}
-          iconColor="var(--accent-emerald)"
-          label="Dataset & Model (/home)"
+          iconColor="#c0c1ff"
+          label="DATASET & STORAGE POOL"
+          title="High-Speed NVMe Storage (/home)"
+          subtitle={`Sisa Kuota: ${disks.home ? disks.home.free_gb : 0} GB Free`}
           value={disks.home ? disks.home.used_gb : 0}
-          unit="GB"
+          unit="GB Digunakan"
           percent={disks.home ? disks.home.percent : 0}
-          sub={`${disks.home ? disks.home.percent : 0}% · Sisa: ${disks.home ? disks.home.free_gb : 0} GB · NVMe Shared Pool`}
+          barColor={disks.home?.percent >= 85 ? '#ffb4ab' : '#c0c1ff'}
+          subRows={
+            <>
+              <span>{disks.home?.percent || 0}% Terpakai</span>
+              <span>NVMe Shared Pool</span>
+            </>
+          }
         />
       </div>
 
       {/* CPU Core Heat Matrix */}
-      <div>
-        <div className="section-label mb-2.5">
-          CPU Core Load Matrix — {cpu.core_count} Threads
+      <div className="bg-surface-2 rounded-xl p-5 border border-border-subtle shadow-sm">
+        <div className="flex items-center justify-between mb-3">
+          <span className="font-mono text-xs text-text-muted uppercase tracking-wider font-semibold">
+            CPU Core Load Matrix — {cpu.core_count} Threads
+          </span>
+          <span className="font-mono text-[10px] text-outline">
+            CFS Scheduler Real-time
+          </span>
         </div>
-        <div className="flex items-end gap-0.5" style={{ height: 28 }}>
+        <div className="flex items-end gap-1 h-7">
           {cpu.cores_percent && cpu.cores_percent.map((c, idx) => {
-            const color = c > 80
-              ? 'var(--accent-rose)'
-              : c > 50
-              ? 'var(--accent-amber)'
-              : c > 15
-              ? 'var(--accent-violet)'
-              : '#262a34';
-            const h = Math.max(4, Math.round((c / 100) * 28));
+            const color = c > 80 ? '#ffb4ab' : c > 50 ? '#fbbf24' : '#4cd7f6';
             return (
               <div
                 key={idx}
-                title={`Core #${idx}: ${c}%`}
+                className="flex-1 rounded-sm transition-all duration-300"
                 style={{
-                  flex: 1,
-                  height: `${h}px`,
-                  background: color,
-                  borderRadius: '3px',
-                  transition: 'height 0.5s ease, background 0.5s ease',
-                  cursor: 'default',
+                  height: `${Math.max(12, c)}%`,
+                  backgroundColor: color,
+                  opacity: c > 5 ? 0.9 : 0.35,
                 }}
+                title={`Core #${idx}: ${c}%`}
               />
             );
           })}
-        </div>
-        <div
-          className="flex justify-between metric-value mt-1.5"
-          style={{ fontSize: '0.5625rem', color: '#908fa0' }}
-        >
-          <span>Core #0</span>
-          <span>Core #{(cpu.core_count || 24) - 1}</span>
         </div>
       </div>
     </div>

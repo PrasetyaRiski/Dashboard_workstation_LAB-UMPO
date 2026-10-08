@@ -7,8 +7,7 @@ import {
   FileText,
   Cpu,
   PanelLeftClose,
-  PanelLeftOpen,
-  Terminal
+  PanelLeftOpen
 } from 'lucide-react';
 
 export default function Sidebar({
@@ -71,16 +70,16 @@ export default function Sidebar({
       >
         <div className="flex flex-col flex-1 overflow-hidden">
           {/* Header Brand */}
-          <div className="h-16 px-5 flex items-center gap-3 bg-surface-1/60 backdrop-blur-xl border-b border-border-subtle shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-surface-2 border border-border-base flex items-center justify-center text-primary-fixed-dim shrink-0">
-              <Terminal className="w-4 h-4 text-neon-cyan" />
+          <div className="h-16 px-4 flex items-center gap-3 bg-surface-1/60 backdrop-blur-xl border-b border-border-subtle shrink-0">
+            <div className="w-9 h-9 rounded-lg bg-surface-2 border border-border-base flex items-center justify-center shrink-0 p-1 overflow-hidden shadow-sm">
+              <img src="/ti-umpo-logo.png" alt="Logo Teknik Informatika" className="w-full h-full object-contain" />
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="font-headline-md text-label-md text-on-surface uppercase tracking-wider font-bold truncate">
-                KONSOL AI
+              <span className="font-headline-md text-sm text-on-surface font-bold truncate leading-tight">
+                Lab Komputasi
               </span>
-              <span className="font-mono-code-xs text-mono-code-xs text-on-surface-variant">
-                v4.2-cluster
+              <span className="font-mono-code-xs text-[11px] text-primary-fixed-dim truncate leading-tight">
+                Teknik Informatika
               </span>
             </div>
           </div>

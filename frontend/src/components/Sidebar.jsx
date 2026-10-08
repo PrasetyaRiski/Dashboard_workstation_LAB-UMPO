@@ -18,14 +18,12 @@ export default function Sidebar({
   onManualRefresh,
   isRefreshing,
   auditCount = 0,
-  processCount = 0,
   isOpen = true,
   onToggle,
   gpus = []
 }) {
   const tabs = [
     { id: 'overview',  label: 'Ringkasan',       icon: LayoutDashboard, badgeText: 'SYS' },
-    { id: 'jobs',      label: 'Manajemen Job',   icon: Cpu,              badgeCount: processCount, badgeHighlight: true },
     { id: 'students',  label: 'User',            icon: Users,            badgeText: 'RBAC' },
         { id: 'audit',     label: 'Audit Log',       icon: FileText,         badgeCount: auditCount },
   ];

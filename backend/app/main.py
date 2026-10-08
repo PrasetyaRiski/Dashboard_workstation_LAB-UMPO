@@ -490,39 +490,6 @@ def reset_password(req: ResetPasswordRequest, request: Request, session: Dict[st
     except subprocess.CalledProcessError as e:
         raise HTTPException(status_code=500, detail=f"Gagal mengubah password: {e.stderr}")
 
-@app.post("/api/run-simulation")
-def run_simulation(req: SimulationRequest, request: Request, session: Dict[str, Any] = Depends(verify_super_admin)):
-    try:
-        # Run test_simulation.py via subprocess
-        script_path = os.path.join(PROJECT_ROOT, "test_simulation.py")
-        subprocess.Popen(["sudo", "python3", script_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-        actor_name = session.get("nama") or "Super Admin"
-        record_audit(
-            target="11 Akun User & Riset",
-            action="SIMULATION_START",
-            detail=f"Simulasi komputasi serentak 11 akun diluncurkan oleh {actor_name} untuk pengujian beban & Kill Process.",
-            log_type="info"
-        )
-        return {"success": True, "message": "Simulasi komputasi serentak 11 user berhasil dijalankan! Beban CPU, RAM & GPU akan termonitor dalam 2-3 detik."}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/api/stop-simulation")
-def stop_simulation(req: SimulationRequest, request: Request, session: Dict[str, Any] = Depends(verify_super_admin)):
-    try:
-        stop_script = os.path.join(PROJECT_ROOT, "stop_simulation.sh")
-        subprocess.run(["sudo", "bash", stop_script], check=False)
-        actor_name = session.get("nama") or "Super Admin"
-        record_audit(
-            target="11 Akun User & Riset",
-            action="SIMULATION_STOP",
-            detail=f"Semua proses simulasi uji coba berhasil dibersihkan oleh {actor_name}.",
-            log_type="warning"
-        )
-        return {"success": True, "message": "Seluruh proses komputasi uji coba telah dihentikan dan dibersihkan."}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 # ==========================================
 # SIMTIK AUTHENTICATION & USER MANAGEMENT API

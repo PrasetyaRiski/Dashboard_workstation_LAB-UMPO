@@ -3,7 +3,6 @@ import Sidebar from './components/Sidebar';
 import GpuCard from './components/GpuCard';
 import SystemOverview from './components/SystemOverview';
 import LiveChart from './components/LiveChart';
-import ProcessManager from './components/ProcessManager';
 import AuditLogView from './components/AuditLogView';
 import KillConfirmModal from './components/KillConfirmModal';
 import UnifiedUserManagement from './components/UnifiedUserManagement';
@@ -307,26 +306,6 @@ export default function App() {
     }
   };
 
-  // Run Simulation
-  const handleRunSimulation = async () => {
-    setIsSimulating(true);
-    showToast('Memulai simulasi komputasi PyTorch (11 akun)...', 'info');
-    try {
-      const res = await fetch('/api/run-simulation', {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({}),
-      });
-      const result = await res.json();
-      if (res.ok && result.success) { showToast(result.message, 'success'); fetchStatus(); }
-      else showToast(result.detail || 'Gagal menjalankan simulasi', 'error');
-    } catch (e) {
-      showToast('Error: ' + e.message, 'error');
-    } finally {
-      setIsSimulating(false);
-    }
-  };
-
   // Stop Simulation
   const handleStopSimulation = async () => {
     showToast('Membersihkan proses simulasi...', 'info');
@@ -344,8 +323,6 @@ export default function App() {
     }
   };
 
-  const activeProcesses = data?.all_processes || [];
-
   return (
     <div className="dark min-h-screen bg-bg-void text-on-surface font-body-md antialiased selection:bg-neon-cyan/20 selection:text-neon-cyan">
       {/* Sidebar */}
@@ -358,7 +335,6 @@ export default function App() {
         isRefreshing={isRefreshing}
         isAdmin={isAdmin}
         auditCount={data?.audit_logs?.length || 0}
-        processCount={activeProcesses.length}
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
         gpus={data?.gpus || []}
@@ -501,24 +477,6 @@ export default function App() {
                     sparkHistory={data?.history || []}
                   />
                 </div>
-              </div>
-            </ErrorBoundary>
-          )}
-
-          {activeTab === 'jobs' && (
-            <ErrorBoundary title="Kendala Modul Manajemen Job">
-              <div className="fade-in-up">
-                <ProcessManager
-                  processes={activeProcesses}
-                  isAdmin={isAdmin}
-                  isSuperAdmin={isSuperAdmin}
-                  adminRole={adminRole}
-                  onOpenKillModal={handleOpenKillModal}
-                  onRunSimulation={handleRunSimulation}
-                  onStopSimulation={handleStopSimulation}
-                  isSimulating={isSimulating}
-                  onOpenPinModal={() => setLoginModalOpen(true)}
-                />
               </div>
             </ErrorBoundary>
           )}

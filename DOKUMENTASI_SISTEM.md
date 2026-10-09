@@ -216,6 +216,8 @@ Jika mahasiswa memerlukan library khusus untuk tugasnya:
 | `/home/public/web/panel-lab/backup_db.py` | Skrip CLI eksekusi auto-backup database. |
 | `/home/public/web/data/lab_users.db` | Database SQLite terpusat (WAL Mode) bersama JupyterHub & Dashboard. |
 | `/home/public/web/data/backups/` | Folder arsip snapshot auto-backup (retensi 14 hari). |
+| `/home/public/web/panel-lab/setup_local_domain.sh` | Skrip instalasi Domain Lokal (mDNS) & Nginx Reverse Proxy. |
+| `/home/public/web/panel-lab/nginx/labai_local.conf` | Konfigurasi reverse proxy Nginx untuk Dashboard & JupyterHub. |
 | `/opt/jupyterhub/etc/jupyterhub_config.py` | Berkas konfigurasi utama JupyterHub. |
 | `/home/public/web/panel-lab/jupyterhub_simtik_auth.py` | Plugin Authenticator SIMTIK & Spawner Dynamic QoS. |
 | `/etc/systemd/system/compute-level1.slice` | Konfigurasi slice cgroups Level 1 (Dedicated GPU 0). |

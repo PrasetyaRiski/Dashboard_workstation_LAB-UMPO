@@ -156,15 +156,15 @@ Kutipan konfigurasi penting yang dipasang oleh `simtik.sh`:
    * Mode *read-only*. Dapat melihat grafik utilisasi GPU/CPU/RAM dan antrean aktivitas tanpa tombol tindakan modifikasi.
 2. **Operator Mode (Asisten Lab / Aslab):**
    * Login menggunakan NIM & Password SIMTIK (akun bertipe `role: aslab`).
-   * Berwenang: Membersihkan disk cache mahasiswa, menghentikan proses notebook mahasiswa yang bermasalah (*Kill Process* / *Kill All Sessions*), memicu backup database.
+   * Berwenang: Membersihkan disk cache mahasiswa, menghentikan sesi OS mahasiswa yang bermasalah (*Kill Sesi OS Aktif*), memicu backup database.
 3. **Super Admin Mode:**
    * Login menggunakan **PIN Master** atau akun NIM bertipe `role: admin`.
    * Berwenang penuh: Memberikan GPU Boost Level 1, mengubah peran akun (Mahasiswa/Aslab/Admin), memblokir/mengaktifkan akun, serta mengelola berkas melalui *Admin File Explorer*.
 
 ### 3.2. Prosedur Pemberian GPU Boost (Admission Control)
-1. Buka Tab **Users** di Dashboard.
+1. Buka Tab **Pengguna** di Dashboard.
 2. Cari NIM mahasiswa skripsi yang mengajukan riset.
-3. Klik ikon petir emas (**Boost Priority**).
+3. Klik ikon petir (**⚡ Boost**).
 4. Pilih durasi komputasi yang diizinkan (misal: 4 Jam atau 8 Jam).
 5. Sistem memeriksa kapasitas: Jika slot GPU 0 sedang penuh (1/1 terpakai), tombol boost dicegah agar GPU tidak oversubscribed.
 6. Begitu boost aktif, sesi lama mahasiswa dihentikan sejenak; spawn berikutnya otomatis dialokasikan ke **GPU 0 + 20 Core CPU + 70 GB RAM**. Hitung mundur otomatis berjalan di tabel dashboard.
@@ -213,15 +213,15 @@ Skrip ini akan secara otomatis:
 #### Kasus B: GPU Out-of-Memory (OOM) atau Server Lambat
 * **Penyebab:** Mahasiswa memuat model LLM / Vision yang melebihi kapasitas VRAM atau CPU RAM.
 * **Solusi:**
-  1. Buka Tab **Processes** di Dashboard.
+  1. Buka Tab **Ringkasan** dan Tab **Pengguna** di Dashboard.
   2. Urutkan berdasarkan kolom **VRAM (MB)** atau **RAM (MB)**.
-  3. Klik tombol merah **Kill Process** pada PID terkait, atau klik **Kill User All Sessions** untuk membersihkan seluruh proses pengguna tersebut.
+  3. Klik ikon stop (**Kill Sesi OS Aktif**) untuk membersihkan seluruh proses pengguna tersebut.
   4. Sesi kernel Linux mahasiswa bersangkutan akan dilepas tanpa memengaruhi kestabilan kernel server.
 
 #### Kasus C: Kuota Disk Penuh (`⚠️ Over Quota`)
 * **Penyebab:** Folder cache PIP (`~/.cache/pip`) atau checkpoint model PyTorch menumpuk di home direktori.
 * **Solusi:**
-  1. Klik tombol sapu (**Clear Cache**) pada baris mahasiswa bersangkutan di Dashboard.
+  1. Klik ikon penghapus (**Bersihkan Cache Disk**) pada baris mahasiswa bersangkutan di Dashboard.
   2. Sistem otomatis mengeksekusi penghapusan `~/.cache/pip` dan `.ipynb_checkpoints` secara aman.
 
 ### 4.3. Prosedur Pemulihan Database (*Restore Backup*)
@@ -333,7 +333,7 @@ Bagi mahasiswa yang sedang menempuh mata kuliah **Tugas Akhir / Skripsi** dengan
 * Jika Anda membuka sesi di Laptop A lalu mencoba login di Laptop B, sistem secara otomatis menolak login di Laptop B:
   > *"Akses Ditolak: Akun sedang aktif digunakan di perangkat lain. Silakan logout dari perangkat sebelumnya."*
 * **Tujuan:** Mencegah kerusakan data akibat penulisan berkas notebook secara bersamaan, serta mencegah praktik *joki komputasi*.
-* Jika Anda berpindah perangkat, pastikan selalu menekan tombol **File -> Log Out** pada JupyterLab di perangkat lama Anda.
+* Jika Anda berpindah perangkat, pastikan selalu menekan tombol **File -> Log Out** pada antarmuka JupyterLab di perangkat lama Anda.
 
 ### 8.2. Kebijakan *Idle-Timeout* (Pemadaman Otomatis)
 * Server dilengkapi sistem *Idle Culler*.

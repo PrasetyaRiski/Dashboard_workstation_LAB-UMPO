@@ -201,7 +201,7 @@ pip install --user scikit-learn seaborn transformers
                     <span>Kill Process & OOM Safeguard</span>
                   </div>
                   <p className="text-slate-600 leading-relaxed">
-                    Jika ada proses yang memakan VRAM berlebihan atau freeze, gunakan tab <strong>Processes</strong> untuk mematikan PID terkait. Akun sistem inti (systemd, sshd, uvicorn) diproteksi secara mutlak agar server tidak mati.
+                    Jika ada proses yang memakan VRAM berlebihan atau freeze, gunakan tab <strong>Pengguna</strong> dan klik ikon stop (<strong>Kill Sesi OS Aktif</strong>) pada mahasiswa yang bersangkutan. Akun sistem inti (systemd, sshd, uvicorn) diproteksi secara mutlak agar server tidak mati.
                   </p>
                 </div>
               </div>
@@ -310,7 +310,7 @@ tail -n 50 /home/public/web/panel-lab/backend/dashboard.log
                 <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
                   <span className="font-bold text-slate-900 block mb-1">🟡 Kuota Penyimpanan Penuh (⚠️ Over Quota)</span>
                   <p className="text-slate-600 mb-2">
-                    Mahasiswa dapat membersihkan cache PIP dan checkpoint notebook dengan menekan tombol sapu <strong>Clear Cache</strong> di dashboard atau via terminal:
+                    Mahasiswa dapat membersihkan cache PIP dan checkpoint notebook dengan menekan ikon penghapus <strong>Bersihkan Cache Disk</strong> di dashboard atau via terminal:
                   </p>
                   <pre className="p-2 rounded bg-slate-900 text-slate-200 font-mono text-[11px]">
 rm -rf ~/.cache/pip && find ~ -name ".ipynb_checkpoints" -type d -exec rm -rf {} +

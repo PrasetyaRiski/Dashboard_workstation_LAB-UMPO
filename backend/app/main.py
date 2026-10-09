@@ -725,8 +725,11 @@ class CopyRequest(BaseModel):
 @app.get("/api/users/{nim}/files")
 def list_user_files(nim: str, path: str = "", session: Dict[str, Any] = Depends(verify_super_admin)):
     import subprocess, os
-    clean_nim = "".join(c for c in nim if c.isalnum())
+    clean_nim = "".join(c for c in nim if c.isalnum() or c in ["_", "-"])
     home_dir = f"/home/{clean_nim}"
+    if not os.path.exists(home_dir):
+        home_dir = f"/home/m{clean_nim}"
+
     if not os.path.exists(home_dir):
         return {"success": False, "files": [], "detail": "Direktori tidak ditemukan."}
     
@@ -766,8 +769,11 @@ import mimetypes
 @app.get("/api/users/{nim}/download")
 def download_user_file(nim: str, filepath: str, session: Dict[str, Any] = Depends(verify_super_admin)):
     import subprocess, os
-    clean_nim = "".join(c for c in nim if c.isalnum())
+    clean_nim = "".join(c for c in nim if c.isalnum() or c in ["_", "-"])
     home_dir = f"/home/{clean_nim}"
+    if not os.path.exists(home_dir):
+        home_dir = f"/home/m{clean_nim}"
+
     target_path = os.path.abspath(os.path.join(home_dir, filepath))
     if not target_path.startswith(home_dir):
         raise HTTPException(status_code=400, detail="Invalid path")
@@ -788,8 +794,11 @@ def download_user_file(nim: str, filepath: str, session: Dict[str, Any] = Depend
 def copy_file_to_shared(nim: str, req: CopyRequest, session: Dict[str, Any] = Depends(verify_super_admin)):
     import subprocess, os
     filepath = req.filepath
-    clean_nim = "".join(c for c in nim if c.isalnum())
+    clean_nim = "".join(c for c in nim if c.isalnum() or c in ["_", "-"])
     home_dir = f"/home/{clean_nim}"
+    if not os.path.exists(home_dir):
+        home_dir = f"/home/m{clean_nim}"
+
     target_path = os.path.abspath(os.path.join(home_dir, filepath))
     if not target_path.startswith(home_dir):
         raise HTTPException(status_code=400, detail="Invalid path")

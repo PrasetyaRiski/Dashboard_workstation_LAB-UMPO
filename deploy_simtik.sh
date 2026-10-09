@@ -81,7 +81,7 @@ else
     fi
 fi
 
-# 5. Konfigurasi JupyterHub
+# 5. Konfigurasi JupyterHub & Idle Culler
 JH_CONFIG="/opt/jupyterhub/etc/jupyterhub_config.py"
 if [ ! -f "$JH_CONFIG" ]; then
     JH_CONFIG="/etc/jupyterhub/jupyterhub_config.py"
@@ -89,17 +89,30 @@ fi
 
 if [ -f "$JH_CONFIG" ]; then
     echo "⚙️ Memeriksa konfigurasi JupyterHub di $JH_CONFIG..."
-    # Hapus konfigurasi hook SIMTIK versi lama agar selalu bersih dan terupdate
-    sudo sed -i '/# =* INTEGRASI OTENTIKASI SIMTIK UMPO/,+12d' "$JH_CONFIG" 2>/dev/null || true
+    
+    # 5.1 Pastikan jupyterhub-idle-culler terinstall
+    echo "📦 Memeriksa modul jupyterhub-idle-culler..."
+    if [ -x "/opt/jupyterhub/bin/pip" ]; then
+        sudo /opt/jupyterhub/bin/pip install --quiet jupyterhub-idle-culler || true
+    elif command -v pip3 &> /dev/null; then
+        sudo pip3 install --quiet jupyterhub-idle-culler || true
+    fi
+
+    # 5.2 Bersihkan konfigurasi versi lama agar tidak terjadi duplikasi
+    sudo sed -i '/# === BEGIN SIMTIK & QoS CONFIG ===/,/# === END SIMTIK & QoS CONFIG ===/d' "$JH_CONFIG" 2>/dev/null || true
+    sudo sed -i '/# =* INTEGRASI OTENTIKASI SIMTIK UMPO/,+35d' "$JH_CONFIG" 2>/dev/null || true
     sudo sed -i '/jupyterhub_simtik_auth/d' "$JH_CONFIG" 2>/dev/null || true
     sudo sed -i '/c.JupyterHub.authenticator_class = SimtikAuthenticator/d' "$JH_CONFIG" 2>/dev/null || true
     sudo sed -i '/c.Spawner.pre_spawn_hook = simtik_pre_spawn_hook/d' "$JH_CONFIG" 2>/dev/null || true
     sudo sed -i '/c.Spawner.post_stop_hook = simtik_post_stop_hook/d' "$JH_CONFIG" 2>/dev/null || true
     sudo sed -i '/c.JupyterHub.shutdown_on_logout = True/d' "$JH_CONFIG" 2>/dev/null || true
+    sudo sed -i '/jupyterhub_idle_culler/d' "$JH_CONFIG" 2>/dev/null || true
+    sudo sed -i "/'name': 'idle-culler'/d" "$JH_CONFIG" 2>/dev/null || true
     
-    echo "📝 Menambahkan hook SIMTIK & Single-Device Policy ke $JH_CONFIG..."
+    echo "📝 Menambahkan hook SIMTIK, Single-Device Policy, & Idle Culler ke $JH_CONFIG..."
     sudo tee -a "$JH_CONFIG" > /dev/null << 'EOF'
 
+# === BEGIN SIMTIK & QoS CONFIG ===
 # ========================================================
 # INTEGRASI OTENTIKASI SIMTIK UMPO & DYNAMIC QoS LAB AI
 # ========================================================
@@ -111,8 +124,37 @@ c.JupyterHub.authenticator_class = SimtikAuthenticator
 c.Spawner.pre_spawn_hook = simtik_pre_spawn_hook
 c.Spawner.post_stop_hook = simtik_post_stop_hook
 c.JupyterHub.shutdown_on_logout = True
+
+# ========================================================
+# JUPYTERHUB IDLE CULLER (PELEPASAN OTOMATIS RAM & VRAM GPU)
+# Mematikan server notebook yang tidak aktif > 30 menit (1800 detik)
+# ========================================================
+c.JupyterHub.services = [
+    {
+        'name': 'idle-culler',
+        'admin': True,
+        'command': [
+            sys.executable,
+            '-m', 'jupyterhub_idle_culler',
+            '--timeout=1800',         # 30 menit (1800 detik) idle -> stop server
+            '--cull-every=300',        # Pemeriksaan setiap 5 menit (300 detik)
+            '--cull-users=False',      # Hanya stop server singleuser, JANGAN hapus akun
+            '--cull-connected=True',   # Tetap stop jika tab browser terbuka tapi kernel idle
+            '--concurrency=10',
+        ],
+    }
+]
+
+c.JupyterHub.load_roles = [
+    {
+        'name': 'idle-culler',
+        'scopes': ['list:users', 'read:users:activity', 'admin:servers'],
+        'services': ['idle-culler'],
+    }
+]
+# === END SIMTIK & QoS CONFIG ===
 EOF
-    echo "✅ Konfigurasi JupyterHub berhasil diperbarui."
+    echo "✅ Konfigurasi JupyterHub & Idle Culler berhasil diperbarui."
 
     # 6. Restart JupyterHub Service
     echo "🔄 Merestart service JupyterHub..."

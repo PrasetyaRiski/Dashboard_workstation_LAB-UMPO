@@ -132,6 +132,13 @@ Melindungi data registrasi, hak akses, dan catatan audit:
 * **Timer Hitung Mundur:** Dashboard menampilkan hitung mundur waktu riil (misal `1 Jam 15 Menit tersisa`).
 * **Auto-Expire Worker:** Begitu durasi habis, worker backend otomatis menurunkan status akun ke Standard Level 2 dan mencatatnya ke dalam Audit Log.
 
+### 4.6. JupyterHub Idle Culler (Auto-Release VRAM & RAM)
+Mencegah pemborosan VRAM GPU akibat mahasiswa yang lupa logout atau meninggalkan laptop dalam keadaan menyala:
+* **Deteksi Otomatis:** Service `jupyterhub-idle-culler` memantau aktivitas kernel dan API server setiap 5 menit (`--cull-every=300`).
+* **Batas Toleransi (30 Menit):** Jika sebuah server notebook tidak menjalankan eksekusi kode selama **30 menit** (`--timeout=1800`), server single-user tersebut akan otomatis dihentikan.
+* **Pelepasan Resource & VRAM:** Penghentian server langsung mematikan proses CUDA di level OS, melepaskan VRAM GPU 1 seketika, dan memicu `simtik_post_stop_hook` untuk melepas kunci sesi (Single-Device Lock) di database.
+* **Keamanan Data Mahasiswa:** Idle Culler **tidak pernah menghapus berkas notebook** milik mahasiswa, hanya menonaktifkan proses kernel yang menganggur.
+
 ---
 
 ## 5. Matriks Peran & Role-Based Access Control (RBAC)

@@ -105,12 +105,21 @@ fi
 if [ -f "$JH_CONFIG" ]; then
     echo "⚙️ Memeriksa konfigurasi JupyterHub di $JH_CONFIG..."
     
-    # 5.1 Pastikan jupyterhub-idle-culler terinstall
+    # 5.1 Pastikan jupyterhub-idle-culler terinstall (Mengatasi PEP 668 externally-managed-environment pada Ubuntu 24.04/Debian 12)
     echo "📦 Memeriksa modul jupyterhub-idle-culler..."
     if [ -x "/opt/jupyterhub/bin/pip" ]; then
-        sudo /opt/jupyterhub/bin/pip install --quiet jupyterhub-idle-culler || true
-    elif command -v pip3 &> /dev/null; then
-        sudo pip3 install --quiet jupyterhub-idle-culler || true
+        sudo /opt/jupyterhub/bin/pip install --quiet --break-system-packages jupyterhub-idle-culler 2>/dev/null \
+            || sudo /opt/jupyterhub/bin/pip install --quiet jupyterhub-idle-culler 2>/dev/null || true
+    fi
+
+    # Cek apakah modul sudah dapat diimpor oleh Python sistem
+    if ! python3 -c "import jupyterhub_idle_culler" &>/dev/null; then
+        if command -v pip3 &> /dev/null; then
+            sudo pip3 install --quiet --break-system-packages jupyterhub-idle-culler 2>/dev/null \
+                || sudo pip3 install --quiet jupyterhub-idle-culler 2>/dev/null \
+                || sudo apt-get install -y python3-jupyterhub-idle-culler 2>/dev/null \
+                || true
+        fi
     fi
 
     # 5.2 Bersihkan konfigurasi versi lama agar tidak terjadi duplikasi

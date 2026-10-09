@@ -114,6 +114,21 @@ for u in $(cut -d: -f1 /etc/passwd | grep -E '^m[0-9]+'); do
 done
 sudo chmod 666 /dev/nvidia* /dev/nvidia-uvm* 2>/dev/null || true
 
+# 4.7 Pastikan direktori bersama /home/dataset_shared dan pintasan (symlink) untuk setiap akun
+echo "📁 Memeriksa direktori bersama /home/dataset_shared & sinkronisasi pintasan..."
+sudo mkdir -p /home/dataset_shared
+sudo chmod 755 /home/dataset_shared
+
+for user_dir in /home/m[0-9]* /home/training* /home/labriset; do
+    if [ -d "$user_dir" ]; then
+        u=$(basename "$user_dir")
+        if [ ! -e "$user_dir/dataset_shared" ]; then
+            sudo ln -s /home/dataset_shared "$user_dir/dataset_shared"
+            sudo chown -h "$u:$u" "$user_dir/dataset_shared" 2>/dev/null || true
+        fi
+    fi
+done
+
 # 5. Konfigurasi JupyterHub & Idle Culler
 JH_CONFIG="/opt/jupyterhub/etc/jupyterhub_config.py"
 if [ ! -f "$JH_CONFIG" ]; then

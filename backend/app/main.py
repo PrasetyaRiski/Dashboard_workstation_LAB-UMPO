@@ -764,7 +764,7 @@ def sanitize_filename(name: str) -> str:
         raise HTTPException(status_code=400, detail="Karakter null-byte terdeteksi.")
     return clean
 
-def resolve_safe_user_path(nim: str, relative_path: str = "", allow_home_root: bool = False) -> tuple[str, str]:
+def resolve_safe_user_path(nim: str, relative_path: str = "", allow_home_root: bool = False, for_write: bool = False) -> tuple[str, str]:
     """
     Validasi keamanan ketat untuk akses file/folder pengguna:
     1. Memastikan clean_nim tidak kosong.
@@ -773,6 +773,7 @@ def resolve_safe_user_path(nim: str, relative_path: str = "", allow_home_root: b
     4. Menggunakan realpath/resolve untuk mencegah symlink traversal ke luar direktori home.
     5. Menghindari prefix mismatch bug (contoh: /home/user2 vs /home/user).
     6. Mencegah manipulasi root home jika allow_home_root=False.
+    7. Mendukung symlink pintasan dataset_shared (/home/dataset_shared) secara read-only untuk akun pengguna.
     """
     clean_nim = "".join(c for c in str(nim) if c.isalnum() or c in ["_", "-"]).strip()
     if not clean_nim:
@@ -816,8 +817,17 @@ def resolve_safe_user_path(nim: str, relative_path: str = "", allow_home_root: b
     # Symlink traversal check jika target sudah ada di filesystem
     if os.path.exists(joined):
         real_target = os.path.realpath(joined)
-        if real_target != home_dir and not real_target.startswith(home_dir_sep):
+        shared_dir = os.path.realpath("/home/dataset_shared")
+        shared_dir_sep = shared_dir.rstrip(os.sep) + os.sep
+        is_in_home = (real_target == home_dir or real_target.startswith(home_dir_sep))
+        is_in_shared = (real_target == shared_dir or real_target.startswith(shared_dir_sep))
+
+        if not (is_in_home or is_in_shared):
             raise HTTPException(status_code=403, detail="Akses ditolak: Symbolic link mengarah ke luar direktori aman.")
+
+        # Blokir operasi modifikasi pada direktori bersama dataset_shared jika bukan dikelola langsung
+        if is_in_shared and for_write and clean_nim != "dataset_shared":
+            raise HTTPException(status_code=403, detail="Akses ditolak: Direktori bersama dataset_shared bersifat hanya-baca (read-only) untuk akun pengguna.")
             
     if not allow_home_root and joined == home_dir:
         raise HTTPException(status_code=400, detail="Operasi tidak diizinkan pada direktori utama pengguna (home root).")
@@ -911,7 +921,7 @@ def copy_file_to_shared(nim: str, req: CopyRequest, session: Dict[str, Any] = De
 @app.post("/api/users/{nim}/delete")
 def delete_file(nim: str, req: DeleteRequest, session: Dict[str, Any] = Depends(verify_super_admin)):
     import os, subprocess
-    home_dir, target_path = resolve_safe_user_path(nim, req.path, allow_home_root=False)
+    home_dir, target_path = resolve_safe_user_path(nim, req.path, allow_home_root=False, for_write=True)
     if not os.path.exists(target_path):
         return {"success": True, "message": "File atau direktori sudah tidak ada."}
     
@@ -927,7 +937,7 @@ def delete_file(nim: str, req: DeleteRequest, session: Dict[str, Any] = Depends(
 @app.post("/api/users/{nim}/rename")
 def rename_file(nim: str, req: RenameRequest, session: Dict[str, Any] = Depends(verify_super_admin)):
     import os, subprocess
-    home_dir, old_path = resolve_safe_user_path(nim, req.old_path, allow_home_root=False)
+    home_dir, old_path = resolve_safe_user_path(nim, req.old_path, allow_home_root=False, for_write=True)
     if not os.path.exists(old_path):
         raise HTTPException(status_code=404, detail="File atau direktori tidak ditemukan.")
         
@@ -952,7 +962,7 @@ def rename_file(nim: str, req: RenameRequest, session: Dict[str, Any] = Depends(
 @app.post("/api/users/{nim}/create-folder")
 def create_folder(nim: str, req: CreateFolderRequest, session: Dict[str, Any] = Depends(verify_super_admin)):
     import os, subprocess
-    home_dir, parent_dir = resolve_safe_user_path(nim, req.path, allow_home_root=True)
+    home_dir, parent_dir = resolve_safe_user_path(nim, req.path, allow_home_root=True, for_write=True)
     if not os.path.exists(parent_dir):
         raise HTTPException(status_code=404, detail="Direktori induk tidak ditemukan.")
         
@@ -981,7 +991,7 @@ def create_folder(nim: str, req: CreateFolderRequest, session: Dict[str, Any] = 
 @app.post("/api/users/{nim}/upload")
 def upload_file(nim: str, path: str = Form(...), file: UploadFile = File(...), session: Dict[str, Any] = Depends(verify_super_admin)):
     import os, subprocess, shutil
-    home_dir, parent_dir = resolve_safe_user_path(nim, path, allow_home_root=True)
+    home_dir, parent_dir = resolve_safe_user_path(nim, path, allow_home_root=True, for_write=True)
     if not os.path.exists(parent_dir):
         raise HTTPException(status_code=404, detail="Direktori tujuan tidak ditemukan.")
         
@@ -1015,11 +1025,11 @@ def upload_file(nim: str, path: str = Form(...), file: UploadFile = File(...), s
 @app.post("/api/users/{nim}/move")
 def move_file(nim: str, req: MoveRequest, session: Dict[str, Any] = Depends(verify_super_admin)):
     import os, subprocess
-    home_dir, source_path = resolve_safe_user_path(nim, req.source_path, allow_home_root=False)
+    home_dir, source_path = resolve_safe_user_path(nim, req.source_path, allow_home_root=False, for_write=True)
     if not os.path.exists(source_path):
         raise HTTPException(status_code=404, detail="File atau direktori sumber tidak ditemukan.")
         
-    home_dir_target, target_parent = resolve_safe_user_path(nim, req.target_dir, allow_home_root=True)
+    home_dir_target, target_parent = resolve_safe_user_path(nim, req.target_dir, allow_home_root=True, for_write=True)
     if not os.path.exists(target_parent):
         raise HTTPException(status_code=404, detail="Direktori tujuan tidak ditemukan.")
         

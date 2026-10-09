@@ -183,8 +183,45 @@ def ensure_linux_user(username: str) -> bool:
     if os.geteuid() != 0:
         chmod_cmd = ["sudo", "-n"] + chmod_cmd
     subprocess.run(chmod_cmd)
+    
+    # Pasang otomatis symlink dataset_shared agar langsung terlihat di JupyterLab
+    ensure_dataset_shared_symlink(username)
+
     logger.info(f"User Linux {username} berhasil dibuat dengan akses GPU (group video, render).")
     return True
+
+
+def ensure_dataset_shared_symlink(username: str) -> None:
+    """Memastikan folder /home/dataset_shared ada (755) dan symlink dataset_shared terpasang di home user."""
+    try:
+        shared_path = "/home/dataset_shared"
+        if not os.path.exists(shared_path):
+            cmd_mkdir = ["mkdir", "-p", shared_path]
+            if os.geteuid() != 0:
+                cmd_mkdir = ["sudo", "-n"] + cmd_mkdir
+            subprocess.run(cmd_mkdir, check=False)
+
+            cmd_chmod = ["chmod", "755", shared_path]
+            if os.geteuid() != 0:
+                cmd_chmod = ["sudo", "-n"] + cmd_chmod
+            subprocess.run(cmd_chmod, check=False)
+
+        user_home = f"/home/{username}"
+        if os.path.isdir(user_home):
+            symlink_path = os.path.join(user_home, "dataset_shared")
+            if not os.path.exists(symlink_path) and not os.path.islink(symlink_path):
+                cmd_ln = ["ln", "-s", shared_path, symlink_path]
+                if os.geteuid() != 0:
+                    cmd_ln = ["sudo", "-n"] + cmd_ln
+                subprocess.run(cmd_ln, check=False)
+
+                cmd_chown = ["chown", "-h", f"{username}:{username}", symlink_path]
+                if os.geteuid() != 0:
+                    cmd_chown = ["sudo", "-n"] + cmd_chown
+                subprocess.run(cmd_chown, check=False)
+                logger.info(f"[Symlink] Pintasan dataset_shared berhasil dipasang di {symlink_path}")
+    except Exception as e:
+        logger.warning(f"Gagal menyiapkan symlink dataset_shared untuk {username}: {e}")
 
 
 def _pam_check(username: str, password: str) -> bool:
@@ -292,6 +329,9 @@ class SimtikAuthenticator(Authenticator):
 
 def simtik_pre_spawn_hook(spawner):
     username = spawner.user.name
+    # Pastikan pintasan dataset_shared terpasang di home user sebelum notebook diluncurkan
+    ensure_dataset_shared_symlink(username)
+
     priority = username in LEVEL1_SYSTEM
     if not priority and not is_system_account(username):
         nim = username_to_nim(username)

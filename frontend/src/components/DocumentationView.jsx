@@ -156,7 +156,7 @@ export default function DocumentationView({ showToast }) {
                     <span>Direktori Bersama (dataset_shared)</span>
                   </div>
                   <p className="text-slate-600 leading-relaxed">
-                    Dataset praktikum dan riset bersama tersedia langsung di jalur <code>/home/dataset_shared/</code>. Mahasiswa dapat langsung membaca data tanpa menduplikasi atau mengurangi kuota penyimpanan pribadi.
+                    Folder <code>dataset_shared</code> otomatis terpasang sebagai pintasan di panel file JupyterLab Anda. Seluruh mahasiswa dapat langsung membuka dan membaca dataset bersama tanpa mengurangi kuota penyimpanan pribadi.
                   </p>
                 </div>
               </div>

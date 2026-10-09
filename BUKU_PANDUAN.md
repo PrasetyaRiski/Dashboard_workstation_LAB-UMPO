@@ -156,8 +156,10 @@ Setiap notebook Python yang dibuka di JupyterHub secara otomatis terintegrasi de
 
 ### 2.4 Pemanfaatan Direktori Dataset Bersama (*dataset_shared*)
 Untuk menghemat ruang kuota penyimpanan pribadi mahasiswa dan memangkas waktu pengunduhan dataset berukuran besar, laboratorium menyediakan direktori bersama:
-* **Lokasi Jalur Direktori:** `/home/dataset_shared/`
-* **Keuntungan:** Dataset standar praktikum (seperti dataset citra, tabular CSV, teks, maupun bobot pretrained model) dapat dibaca langsung oleh notebook tanpa perlu disalin atau diunduh ulang ke folder pribadi `/home/m<NIM>`. Hal ini menjaga kuota penyimpanan 10 GB mahasiswa tetap hemat dan leluasa.
+* **Lokasi Jalur Direktori Master:** `/home/dataset_shared/`
+* **Pintasan Otomatis di JupyterLab Mahasiswa:** Sistem otomatis membuatkan pintasan (*symbolic link*) folder `dataset_shared` langsung di dalam direktori kerja setiap mahasiswa (`/home/m<NIM>/dataset_shared`).
+* **Kemudahan Akses Visual:** Saat membuka JupyterLab, mahasiswa SIMTIK akan langsung melihat folder `dataset_shared` di panel penjelajah berkas (*File Browser*) sebelah kiri tanpa perlu mencari jalur absolut atau mengetik perintah manual.
+* **Keuntungan Kuota & Keamanan:** Dataset praktikum (citra, tabular CSV, teks, maupun bobot pretrained model) dapat langsung dibaca oleh notebook. Folder ini bersifat hanya-baca (*read-only*) bagi mahasiswa sehingga aman dari risiko terhapus atau tertimpa secara tidak sengaja.
 
 ---
 

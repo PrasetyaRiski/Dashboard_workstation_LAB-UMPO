@@ -161,77 +161,15 @@ export default function UnifiedUserManagement({
   // Modals state
   const [boostModal, setBoostModal] = useState({ isOpen: false, nim: null, nama: '', hours: 4, reason: '' });
   const [resetModal, setResetModal] = useState({ isOpen: false, username: '', newPassword: '', isSubmitting: false });
-  const [selectedUserForFiles, setSelectedUserForFiles] = useState(null);
-  const [explorerPath, setExplorerPath] = useState('');
-  const [explorerFiles, setExplorerFiles] = useState([]);
 
   const getAuthHeaders = () => ({
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${localStorage.getItem('adminToken') || ''}`
   });
 
-  const fetchExplorerFiles = useCallback(async (nim, path) => {
-    try {
-      const res = await fetch(`/api/users/${nim}/files?path=${encodeURIComponent(path)}`, {
-        headers: getAuthHeaders()
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setExplorerFiles(data.files || []);
-      } else {
-        showToast(data.detail || 'Gagal mengambil file', 'error');
-      }
-    } catch (err) {
-      showToast('Error: ' + err.message, 'error');
-    }
-  }, [showToast]);
 
-  useEffect(() => {
-    if (selectedUserForFiles) {
-      fetchExplorerFiles(selectedUserForFiles, explorerPath);
-    }
-  }, [selectedUserForFiles, explorerPath, fetchExplorerFiles]);
 
-  const handleDownloadFile = async (filepath) => {
-    try {
-      const res = await fetch(`/api/users/${selectedUserForFiles}/download?filepath=${encodeURIComponent(filepath)}`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken') || ''}` }
-      });
-      if (res.ok) {
-        const blob = await res.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filepath.split('/').pop();
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      } else {
-        showToast('Gagal mendownload file', 'error');
-      }
-    } catch (err) {
-      showToast('Error: ' + err.message, 'error');
-    }
-  };
 
-  const handleCopyToShared = async (filepath) => {
-    try {
-      const res = await fetch(`/api/users/${selectedUserForFiles}/copy-to-shared`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ filepath })
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        showToast('Berhasil disalin ke shared', 'success');
-      } else {
-        showToast(data.detail || 'Gagal menyalin', 'error');
-      }
-    } catch (err) {
-      showToast('Error: ' + err.message, 'error');
-    }
-  };
 
   const handleClearCache = async (nim) => {
     if (!confirm(`Bersihkan cache disk (PIP & Checkpoints) untuk NIM ${nim}?`)) return;
@@ -1132,16 +1070,6 @@ export default function UnifiedUserManagement({
                                 )
                               )}
 
-                              {/* File Explorer */}
-                              <button
-                                onClick={() => { setSelectedUserForFiles(item.nim); setExplorerPath(''); }}
-                                className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 shadow-sm active:translate-y-0.5 transition-all"
-                                title="File Explorer"
-                                type="button"
-                              >
-                                <Folder className="w-4 h-4" />
-                              </button>
-
                               {/* Kill Sesi */}
                               <button
                                 onClick={() => onKillAllUser(`m${item.nim}`)}
@@ -1357,15 +1285,6 @@ export default function UnifiedUserManagement({
                           <span className="font-mono text-xs text-slate-400">// SYSTEM_PROTECTED</span>
                         ) : (
                           <div className="inline-flex items-center gap-1.5 opacity-90 group-hover:opacity-100 transition-opacity">
-                            {/* File Explorer */}
-                            <button
-                              onClick={() => { setSelectedUserForFiles(item.username); setExplorerPath(''); }}
-                              className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 shadow-sm active:translate-y-0.5 transition-all"
-                              title="File Explorer"
-                              type="button"
-                            >
-                              <Folder className="w-4 h-4" />
-                            </button>
                             <button
                               onClick={() => onKillAllUser(item.username)}
                               disabled={!isOnline}
@@ -1538,109 +1457,6 @@ export default function UnifiedUserManagement({
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-      {/* File Explorer Modal */}
-      {selectedUserForFiles && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#181b25] border border-[#46455430] rounded-2xl shadow-2xl p-6 w-full max-w-4xl max-h-[85vh] flex flex-col animate-in fade-in zoom-in-95 duration-200 text-slate-200">
-            <div className="flex items-center justify-between pb-4 border-b border-[#46455430]">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-900/30 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-sm">
-                  <Folder className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-sm text-slate-100">File Explorer: {selectedUserForFiles}</h3>
-                  <p className="text-xs text-slate-400 font-mono flex items-center gap-2">
-                    Path: /{explorerPath}
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => { setSelectedUserForFiles(null); setExplorerPath(''); setExplorerFiles([]); }}
-                className="text-slate-400 hover:text-slate-200 p-1 rounded-lg hover:bg-slate-800 transition-colors"
-                type="button"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-auto mt-4">
-              <table className="w-full text-left border-collapse">
-                <thead className="sticky top-0 bg-[#181b25] z-10">
-                  <tr className="text-slate-400 font-mono text-xs font-semibold border-b border-[#46455430]">
-                    <th className="py-3 px-4">Name</th>
-                    <th className="py-3 px-4">Size</th>
-                    <th className="py-3 px-4">Modified</th>
-                    <th className="py-3 px-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#46455430] font-mono text-xs">
-                  {explorerPath !== '' && (
-                    <tr className="hover:bg-slate-800/50 transition-colors cursor-pointer" onClick={() => {
-                      const parts = explorerPath.split('/').filter(Boolean);
-                      parts.pop();
-                      setExplorerPath(parts.join('/'));
-                    }}>
-                      <td className="py-3 px-4 flex items-center gap-2 text-blue-400 font-bold">
-                        <ArrowUp className="w-4 h-4" />
-                        ..
-                      </td>
-                      <td className="py-3 px-4 text-slate-500">-</td>
-                      <td className="py-3 px-4 text-slate-500">-</td>
-                      <td className="py-3 px-4"></td>
-                    </tr>
-                  )}
-                  {explorerFiles.length === 0 ? (
-                    <tr>
-                      <td colSpan="4" className="py-8 text-center text-slate-500">Folder ini kosong.</td>
-                    </tr>
-                  ) : (
-                    explorerFiles.map((file, idx) => {
-                      const isDir = file.is_dir;
-                      const fullPath = explorerPath ? `${explorerPath}/${file.name}` : file.name;
-                      return (
-                        <tr key={idx} className={`hover:bg-slate-800/50 transition-colors ${isDir ? 'cursor-pointer' : ''}`} onClick={() => {
-                          if (isDir) {
-                            setExplorerPath(fullPath);
-                          }
-                        }}>
-                          <td className="py-3 px-4 flex items-center gap-2">
-                            {isDir ? <Folder className="w-4 h-4 text-amber-400" /> : <File className="w-4 h-4 text-slate-300" />}
-                            <span className={isDir ? 'text-amber-400 font-bold' : 'text-slate-200'}>{file.name}</span>
-                          </td>
-                          <td className="py-3 px-4 text-slate-400">{isDir ? '-' : (file.size >= 1048576 ? (file.size / 1048576).toFixed(1) + ' MB' : (file.size >= 1024 ? (file.size / 1024).toFixed(1) + ' KB' : file.size + ' B'))}</td>
-                          <td className="py-3 px-4 text-slate-400">
-                            {file.mtime ? new Date(file.mtime * 1000).toLocaleString() : '-'}
-                          </td>
-                          <td className="py-3 px-4 text-right">
-                            {!isDir && (
-                              <div className="inline-flex items-center gap-2">
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); handleDownloadFile(fullPath); }}
-                                  className="p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 transition-all"
-                                  title="Download File"
-                                >
-                                  <Download className="w-3.5 h-3.5" />
-                                </button>
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); handleCopyToShared(fullPath); }}
-                                  className="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition-all"
-                                  title="Copy to Shared"
-                                >
-                                  <Copy className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
           </div>
         </div>
       )}

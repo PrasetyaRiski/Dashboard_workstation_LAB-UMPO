@@ -6,6 +6,7 @@ import LiveChart from './components/LiveChart';
 import AuditLogView from './components/AuditLogView';
 import KillConfirmModal from './components/KillConfirmModal';
 import UnifiedUserManagement from './components/UnifiedUserManagement';
+import AdminFileExplorer from './components/AdminFileExplorer';
 import AdminPinModal from './components/AdminPinModal';
 import CommandPalette from './components/CommandPalette';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -260,6 +261,9 @@ export default function App() {
         } else if (e.key === '2') {
           e.preventDefault();
           setActiveTab('students');
+        } else if (e.key === '4') {
+          e.preventDefault();
+          setActiveTab('files');
         } else if (e.key === '3') {
           e.preventDefault();
           setActiveTab('audit');
@@ -539,6 +543,17 @@ export default function App() {
                 onResetPassword={handleResetPassword}
                 onKillAllUser={handleKillAllUser}
                 fetchStudents={fetchStudents}
+                showToast={showToast}
+              />
+            </ErrorBoundary>
+          )}
+
+          {activeTab === 'files' && (
+            <ErrorBoundary title="Kendala File Explorer">
+              <AdminFileExplorer
+                isAdmin={isAdmin}
+                adminToken={adminToken}
+                students={students}
                 showToast={showToast}
               />
             </ErrorBoundary>

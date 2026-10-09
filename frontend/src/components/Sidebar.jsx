@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  FolderOpen,
   RefreshCw,
   LayoutDashboard,
   Users,
@@ -22,6 +23,7 @@ export default function Sidebar({
   const tabs = [
     { id: 'overview', label: 'Ringkasan',   icon: LayoutDashboard, shortcut: '1' },
     { id: 'students', label: 'Pengguna',    icon: Users,           shortcut: '2' },
+    { id: 'files',    label: 'File Explorer', icon: FolderOpen,      shortcut: '4' },
     { id: 'audit',    label: 'Log Audit',   icon: FileText,        shortcut: '3', badgeCount: auditCount },
   ];
 

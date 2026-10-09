@@ -4,9 +4,12 @@ import secrets
 import signal
 import subprocess
 import time
+import logging
 from datetime import datetime
 from collections import deque, defaultdict
 import psutil
+
+logger = logging.getLogger("panel-lab")
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Request, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
@@ -20,12 +23,14 @@ from app.telemetry import (
     get_user_disk_metrics, update_all_user_disk_usage
 )
 from app.simtik_auth import verify_simtik_credentials
+import app.db as db
 from app.db import (
     init_db, get_or_create_user, list_users,
     set_user_priority, unset_user_priority,
     toggle_user_admin, toggle_user_active, set_user_role,
     is_user_priority, auto_expire_priorities, get_connection,
-    perform_database_backup, list_database_backups
+    perform_database_backup, list_database_backups,
+    get_user, nim_to_username
 )
 
 # Load .env file automatically jika tersedia di root direktori atau backend
@@ -688,7 +693,10 @@ def clear_user_cache(req: UserActionRequest, request: Request, session: Dict[str
         operator = session.get("nama") or session.get("nim") or "Admin"
         items_desc = ", ".join(deleted_items) if deleted_items else "Cache sudah bersih"
         action_desc = f"Disk Cache Cleared ({items_desc}) oleh {operator}"
-        record_audit(clean_nim, "CLEAR_CACHE", action_desc)
+        try:
+            record_audit(clean_nim, "CLEAR_CACHE", action_desc)
+        except Exception as audit_err:
+            logger.warning(f"Gagal mencatat audit log clear cache: {audit_err}")
         
         # Refresh metrik disk secara asinkron
         try:
@@ -704,7 +712,10 @@ def clear_user_cache(req: UserActionRequest, request: Request, session: Dict[str
         raise
     except Exception as e:
         logger.error(f"Error clear cache {req.nim}: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "detail": f"Gagal membersihkan cache: {str(e)}"}
+        )
 
 @app.post("/api/users")
 def add_user(req: AddUserRequest, request: Request, session: Dict[str, Any] = Depends(verify_super_admin)):

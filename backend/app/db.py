@@ -184,6 +184,37 @@ def nim_to_username(nim: str) -> str:
     return f"m{clean}"
 
 
+def get_user(nim: str) -> Optional[Dict[str, Any]]:
+    """Mengambil detail user berdasarkan NIM dari database"""
+    conn, engine = get_connection()
+    cur = conn.cursor()
+    try:
+        placeholder = "%s" if engine == "postgres" else "?"
+        cur.execute(f"SELECT * FROM users WHERE nim = {placeholder}", (str(nim).strip(),))
+        row = cur.fetchone()
+        if not row:
+            return None
+        if engine == "postgres":
+            res = dict(row) if hasattr(row, "keys") else {
+                "nim": row[0], "nama": row[1], "is_admin": bool(row[2]),
+                "is_priority": bool(row[3]), "priority_expires_at": row[4],
+                "is_active": bool(row[5]), "created_at": row[6], "last_login": row[7],
+                "role": row[8] if len(row) > 8 else "mahasiswa",
+                "active_ip": row[9] if len(row) > 9 else None,
+                "last_activity_at": str(row[10]) if len(row) > 10 and row[10] else None
+            }
+        else:
+            res = dict(row)
+            res["is_admin"] = bool(res.get("is_admin"))
+            res["is_priority"] = bool(res.get("is_priority"))
+            res["is_active"] = bool(res.get("is_active"))
+            res["role"] = res.get("role") or ("admin" if res.get("is_admin") else "mahasiswa")
+        return res
+    finally:
+        cur.close()
+        conn.close()
+
+
 def get_or_create_user(nim: str, nama: Optional[str] = None) -> Dict[str, Any]:
     conn, engine = get_connection()
     cur = conn.cursor()

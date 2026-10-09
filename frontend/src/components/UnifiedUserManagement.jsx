@@ -76,12 +76,18 @@ export default function UnifiedUserManagement({
         headers: getAuthHeaders(),
         body: JSON.stringify({ nim })
       });
-      const data = await res.json();
+      let data = {};
+      try {
+        data = await res.json();
+      } catch {
+        const text = await res.text().catch(() => '');
+        data = { detail: text || `Server HTTP Error ${res.status}` };
+      }
       if (res.ok && data.success) {
         showToast(data.message || `Cache NIM ${nim} berhasil dibersihkan.`, 'success');
         fetchStudents();
       } else {
-        showToast(data.detail || 'Gagal membersihkan cache', 'error');
+        showToast(data.detail || data.message || 'Gagal membersihkan cache', 'error');
       }
     } catch (err) {
       showToast('Error: ' + err.message, 'error');

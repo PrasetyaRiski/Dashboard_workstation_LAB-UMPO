@@ -419,20 +419,7 @@ export default function App() {
             </div>
           </div>
 
-          {/* Center Search / Command Palette trigger */}
-          <div className="hidden sm:flex items-center">
-            <button
-              onClick={() => setCommandPaletteOpen(true)}
-              className="flex items-center gap-2.5 px-3 py-1 rounded-md bg-[#18181b] hover:bg-[#27272a] border border-[rgba(255,255,255,0.08)] text-xs text-[#a1a1aa] transition-colors"
-              type="button"
-            >
-              <Search className="w-3.5 h-3.5 text-[#71717a]" />
-              <span>Cari perintah atau proses…</span>
-              <kbd className="px-1.5 py-0.2 rounded text-[10px] font-mono bg-[#111114] text-[#71717a] border border-[rgba(255,255,255,0.08)]">
-                Ctrl K
-              </kbd>
-            </button>
-          </div>
+
 
           {/* Right Mode Pill, Clock, and Auth Action */}
           <div className="flex items-center gap-2.5">
@@ -455,22 +442,17 @@ export default function App() {
             )}
 
             {/* Role Badge */}
-            {!isAdmin ? (
-              <div className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#18181b] text-[#a1a1aa] border border-[rgba(255,255,255,0.08)] text-xs font-mono">
-                <Info className="w-3 h-3 text-[#71717a]" />
-                <span>Public View</span>
-              </div>
-            ) : isOperator ? (
+            {isOperator ? (
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[rgba(14,165,233,0.1)] text-[#38bdf8] border border-[rgba(14,165,233,0.25)] text-xs font-mono">
                 <ShieldCheck className="w-3.5 h-3.5" />
                 <span>Operator: {adminUser?.nama ? adminUser.nama.split(' ')[0] : 'Aslab'}</span>
               </div>
-            ) : (
+            ) : isSuperAdmin ? (
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[rgba(99,102,241,0.12)] text-[#818cf8] border border-[rgba(99,102,241,0.25)] text-xs font-mono">
                 <ShieldCheck className="w-3.5 h-3.5" />
                 <span>Super Admin</span>
               </div>
-            )}
+            ) : null}
 
             {/* WIB Clock */}
             <div className="hidden lg:flex items-center px-2.5 py-1 rounded-md bg-[#18181b] font-mono text-xs text-[#fafafa] border border-[rgba(255,255,255,0.08)] tabular-nums">

@@ -717,7 +717,103 @@ def clear_user_cache(req: UserActionRequest, request: Request, session: Dict[str
             content={"success": False, "detail": f"Gagal membersihkan cache: {str(e)}"}
         )
 
+
+from pydantic import BaseModel
+class CopyRequest(BaseModel):
+    filepath: str
+
+@app.get("/api/users/{nim}/files")
+def list_user_files(nim: str, path: str = "", session: Dict[str, Any] = Depends(verify_super_admin)):
+    import subprocess, os
+    clean_nim = "".join(c for c in nim if c.isalnum())
+    home_dir = f"/home/{clean_nim}"
+    if not os.path.exists(home_dir):
+        return {"success": False, "files": [], "detail": "Direktori tidak ditemukan."}
+    
+    target_path = os.path.abspath(os.path.join(home_dir, path))
+    if not target_path.startswith(home_dir):
+        raise HTTPException(status_code=400, detail="Invalid path")
+    
+    cmd = ["find", target_path, "-maxdepth", "1", "-printf", "%f|%y|%s|%T@\n"]
+    if os.geteuid() != 0:
+        cmd = ["sudo", "-n"] + cmd
+        
+    try:
+        res = subprocess.run(cmd, capture_output=True, text=True)
+        files = []
+        for line in res.stdout.splitlines():
+            parts = line.split("|")
+            if len(parts) >= 4:
+                name = parts[0]
+                typ = parts[1]
+                size = parts[2]
+                mtime = parts[3]
+                if name == "." or name == "..":
+                    continue
+                files.append({
+                    "name": name,
+                    "is_dir": typ == 'd',
+                    "size": int(size),
+                    "mtime": float(mtime)
+                })
+        return {"success": True, "files": sorted(files, key=lambda x: (not x['is_dir'], x['name'].lower()))}
+    except Exception as e:
+        return {"success": False, "detail": str(e)}
+
+from fastapi.responses import Response
+import mimetypes
+
+@app.get("/api/users/{nim}/download")
+def download_user_file(nim: str, filepath: str, session: Dict[str, Any] = Depends(verify_super_admin)):
+    import subprocess, os
+    clean_nim = "".join(c for c in nim if c.isalnum())
+    home_dir = f"/home/{clean_nim}"
+    target_path = os.path.abspath(os.path.join(home_dir, filepath))
+    if not target_path.startswith(home_dir):
+        raise HTTPException(status_code=400, detail="Invalid path")
+        
+    cmd = ["cat", target_path]
+    if os.geteuid() != 0:
+        cmd = ["sudo", "-n"] + cmd
+    
+    res = subprocess.run(cmd, capture_output=True)
+    if res.returncode != 0:
+        raise HTTPException(status_code=404, detail="File not found or unreadable")
+        
+    mime, _ = mimetypes.guess_type(target_path)
+    filename = os.path.basename(target_path)
+    return Response(content=res.stdout, media_type=mime or "application/octet-stream", headers={"Content-Disposition": f'attachment; filename="{filename}"'})
+
+@app.post("/api/users/{nim}/copy-to-shared")
+def copy_file_to_shared(nim: str, req: CopyRequest, session: Dict[str, Any] = Depends(verify_super_admin)):
+    import subprocess, os
+    filepath = req.filepath
+    clean_nim = "".join(c for c in nim if c.isalnum())
+    home_dir = f"/home/{clean_nim}"
+    target_path = os.path.abspath(os.path.join(home_dir, filepath))
+    if not target_path.startswith(home_dir):
+        raise HTTPException(status_code=400, detail="Invalid path")
+        
+    shared_dir = "/home/dataset_shared"
+    dest_path = os.path.join(shared_dir, os.path.basename(target_path))
+    
+    cmd = ["cp", "-r", target_path, dest_path]
+    if os.geteuid() != 0:
+        cmd = ["sudo", "-n"] + cmd
+        
+    res = subprocess.run(cmd, capture_output=True, text=True)
+    if res.returncode != 0:
+        return {"success": False, "detail": res.stderr}
+        
+    cmd_chmod = ["chmod", "-R", "755", dest_path]
+    if os.geteuid() != 0:
+        cmd_chmod = ["sudo", "-n"] + cmd_chmod
+    subprocess.run(cmd_chmod, check=False)
+    
+    return {"success": True, "message": f"Berhasil disalin ke {dest_path}"}
+
 @app.post("/api/users")
+
 def add_user(req: AddUserRequest, request: Request, session: Dict[str, Any] = Depends(verify_super_admin)):
     conn, engine = get_connection()
     cur = conn.cursor()

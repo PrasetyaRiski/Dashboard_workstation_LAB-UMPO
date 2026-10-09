@@ -7,7 +7,6 @@ import AuditLogView from './components/AuditLogView';
 import KillConfirmModal from './components/KillConfirmModal';
 import UnifiedUserManagement from './components/UnifiedUserManagement';
 import AdminFileExplorer from './components/AdminFileExplorer';
-import Gpu3dIsometricScene from './components/Gpu3dIsometricScene';
 import AdminPinModal from './components/AdminPinModal';
 import CommandPalette from './components/CommandPalette';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -510,7 +509,6 @@ export default function App() {
                     backups={backups}
                     isAdmin={isAdmin && !isDataStale}
                   />
-                  <Gpu3dIsometricScene gpus={data?.gpus} />
                   <LiveChart history={data?.history} />
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                     <GpuCard

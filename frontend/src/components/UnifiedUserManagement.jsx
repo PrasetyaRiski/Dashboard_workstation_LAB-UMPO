@@ -341,6 +341,22 @@ export default function UnifiedUserManagement({
 
   const overQuotaCount = useMemo(() => unifiedList.filter(u => u.is_over_quota).length, [unifiedList]);
 
+  // Ekstrak angkatan yang tersedia secara dinamis dari data mahasiswa
+  const availableCohorts = useMemo(() => {
+    const cohorts = new Set();
+    (students || []).forEach(st => {
+      const nimStr = String(st.nim || '');
+      if (nimStr.length >= 2) {
+        const prefix = nimStr.substring(0, 2);
+        if (!isNaN(prefix)) {
+          cohorts.add(prefix);
+        }
+      }
+    });
+    // Urutkan dari angkatan terbaru (descending)
+    return Array.from(cohorts).sort((a, b) => b.localeCompare(a));
+  }, [students]);
+
   // Filtered List
   const filteredData = useMemo(() => {
     return unifiedList.filter(item => {
@@ -590,11 +606,9 @@ export default function UnifiedUserManagement({
             className="bg-[#18181b] border border-[rgba(255,255,255,0.08)] text-[#fafafa] text-xs font-mono rounded-md py-1 px-2 focus:outline-none focus:border-[#38bdf8] transition-colors"
           >
             <option value="all">Semua Angkatan</option>
-            <option value="20">Angkatan 2020</option>
-            <option value="21">Angkatan 2021</option>
-            <option value="22">Angkatan 2022</option>
-            <option value="23">Angkatan 2023</option>
-            <option value="24">Angkatan 2024</option>
+            {availableCohorts.map(c => (
+              <option key={c} value={c}>Angkatan 20{c}</option>
+            ))}
           </select>
 
           <div className="relative flex-1 sm:w-56">

@@ -28,7 +28,11 @@ git reset --hard origin/main
 
 if command -v npm &> /dev/null && [ -f "frontend/package.json" ]; then
     echo "⚡ Memeriksa dan memperbarui build frontend dist..."
-    (cd frontend && (npm list three >/dev/null 2>&1 || npm install --silent) && npm run build --silent || true)
+    (cd frontend && \
+        if [ ! -d "node_modules/three" ]; then \
+            echo "📦 Menginstall modul three.js..." && npm install three; \
+        fi && \
+        npm run build) || true
 fi
 
 # 3. Update dependencies venv

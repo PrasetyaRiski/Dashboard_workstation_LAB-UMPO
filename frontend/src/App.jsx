@@ -454,11 +454,6 @@ export default function App() {
               </div>
             ) : null}
 
-            {/* WIB Clock */}
-            <div className="hidden lg:flex items-center px-2.5 py-1 rounded-md bg-[#18181b] font-mono text-xs text-[#fafafa] border border-[rgba(255,255,255,0.08)] tabular-nums">
-              <span className="text-[#71717a] mr-1">WIB:</span>
-              {data?.time_str || '--:--:--'}
-            </div>
 
             {/* Login / Logout Action */}
             {!isAdmin ? (

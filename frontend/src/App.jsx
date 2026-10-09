@@ -41,7 +41,17 @@ export default function App() {
   const [isRefreshing, setIsRefreshing]           = useState(false);
   const [toast, setToast]                         = useState(null);
   const [activeTab, setActiveTab]                 = useState('overview');
-  const [isSidebarOpen, setIsSidebarOpen]         = useState(true);
+  const [isMobile, setIsMobile]                 = useState(() => typeof window !== 'undefined' ? window.innerWidth < 1024 : false);
+  const [isSidebarOpen, setIsSidebarOpen]         = useState(() => typeof window !== 'undefined' ? window.innerWidth >= 1024 : true);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 1024;
+      setIsMobile(mobile);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Stale Telemetry Detection (> 15 seconds)
   const [lastDataTimestamp, setLastDataTimestamp] = useState(Date.now());
@@ -380,10 +390,22 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#f1f5f9] text-[#0f172a] font-sans antialiased selection:bg-blue-100 selection:text-blue-700">
+      {/* Mobile Drawer Overlay */}
+      {isMobile && isSidebarOpen && (
+        <div
+          onClick={() => setIsSidebarOpen(false)}
+          className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-30 lg:hidden transition-opacity"
+          aria-hidden="true"
+        />
+      )}
+
       {/* Sidebar Navigation */}
       <Sidebar
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={(tab) => {
+          setActiveTab(tab);
+          if (isMobile) setIsSidebarOpen(false);
+        }}
         isConnected={isConnected && !isDataStale}
         timeStr={data?.time_str}
         onManualRefresh={fetchStatus}
@@ -398,24 +420,23 @@ export default function App() {
       {/* Main Canvas Area */}
       <div
         className="flex flex-col min-h-screen transition-all duration-200"
-        style={{ paddingLeft: isSidebarOpen ? '16rem' : '0' }}
+        style={{ paddingLeft: (!isMobile && isSidebarOpen) ? '16rem' : '0' }}
       >
         {/* Sticky Header with 3D Depth */}
         <header
-          className="fixed top-0 right-0 h-14 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-[0_2px_12px_rgba(0,0,0,0.03)] z-40 flex items-center justify-between px-5 transition-all duration-200"
-          style={{ left: isSidebarOpen ? '16rem' : '0' }}
+          className="fixed top-0 right-0 h-14 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-[0_2px_12px_rgba(0,0,0,0.03)] z-40 flex items-center justify-between px-3 sm:px-5 transition-all duration-200"
+          style={{ left: (!isMobile && isSidebarOpen) ? '16rem' : '0' }}
         >
-          {/* Left Brand & Toggle */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-slate-900 tracking-tight">
-                Lab Komputasi AI UMPO
-              </span>
-              <span className="text-slate-400 text-xs">/</span>
-              <span className="text-xs font-medium text-blue-600 capitalize">
-                {activeTab === 'overview' ? 'Ringkasan' : activeTab === 'students' ? 'Pengguna' : 'Log Audit'}
-              </span>
-            </div>
+          {/* Left Brand */}
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-xs font-bold text-slate-900 tracking-tight truncate">
+              <span className="hidden sm:inline">Lab Komputasi AI UMPO</span>
+              <span className="sm:hidden">Lab AI</span>
+            </span>
+            <span className="text-slate-400 text-xs">/</span>
+            <span className="text-xs font-medium text-blue-600 capitalize truncate">
+              {activeTab === 'overview' ? 'Ringkasan' : activeTab === 'students' ? 'Pengguna' : activeTab === 'files' ? 'File Explorer' : 'Log Audit'}
+            </span>
           </div>
 
           {/* Right Mode Pill, Clock, and Auth Action */}
@@ -440,12 +461,12 @@ export default function App() {
 
             {/* Role Badge */}
             {isOperator ? (
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-xs font-mono shadow-sm">
+              <div className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-xs font-mono shadow-sm">
                 <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
                 <span>Operator: {adminUser?.nama ? adminUser.nama.split(' ')[0] : 'Aslab'}</span>
               </div>
             ) : isSuperAdmin ? (
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-mono shadow-sm">
+              <div className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-mono shadow-sm">
                 <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
                 <span>Super Admin</span>
               </div>
@@ -496,7 +517,7 @@ export default function App() {
         )}
 
         {/* Main Content View Container */}
-        <main className="flex-1 pt-18 px-5 lg:px-7 pb-12 w-full max-w-[1600px] mx-auto">
+        <main className="flex-1 pt-16 sm:pt-18 px-3 sm:px-5 lg:px-7 pb-12 w-full max-w-[1600px] mx-auto">
           {activeTab === 'overview' && (
             <div key="overview" className="motion-view-enter">
               <ErrorBoundary title="Kendala Modul Ringkasan Sistem">

@@ -79,7 +79,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
         </div>
 
         {/* Telemetry Pills: Temperature, Fan, Power */}
-        <div className="flex items-center gap-2 font-mono text-xs">
+        <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 shadow-sm">
             <span className={`w-2 h-2 rounded-full ${
               tempStatus === 'rose' ? 'bg-rose-500' : tempStatus === 'amber' ? 'bg-amber-500' : 'bg-emerald-500'

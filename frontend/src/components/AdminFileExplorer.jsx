@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { 
-  Folder, File, ArrowUp, Download, Copy, X, Search, User,
+  Folder, File, ArrowUp, ArrowLeft, Download, Copy, X, Search, User,
   Trash2, Edit, Scissors, Upload, FolderPlus, Clipboard
 } from 'lucide-react';
 
@@ -259,9 +259,9 @@ export default function AdminFileExplorer({
   }, [searchQuery, students, systemUsers]);
 
   return (
-    <div className="flex h-full min-h-[500px] gap-4 w-full relative">
+    <div className="flex flex-col lg:flex-row h-full min-h-[500px] gap-4 w-full relative">
       {/* Left Pane - User List */}
-      <div className="w-1/3 min-w-[300px] max-w-sm flex flex-col bg-[#181b25] border border-[#46455430] rounded-2xl shadow-xl overflow-hidden">
+      <div className={`w-full lg:w-1/3 lg:min-w-[300px] lg:max-w-sm flex flex-col bg-[#181b25] border border-[#46455430] rounded-2xl shadow-xl overflow-hidden ${selectedUserForFiles ? 'hidden lg:flex' : 'flex'}`}>
         <div className="p-4 border-b border-[#46455430] bg-[#1a1d27]">
           <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2 mb-4">
             <User className="w-5 h-5 text-blue-400" />
@@ -317,24 +317,32 @@ export default function AdminFileExplorer({
       </div>
 
       {/* Right Pane - File Explorer */}
-      <div className="flex-1 flex flex-col bg-[#181b25] border border-[#46455430] rounded-2xl shadow-xl overflow-hidden">
+      <div className={`flex-1 flex flex-col bg-[#181b25] border border-[#46455430] rounded-2xl shadow-xl overflow-hidden ${!selectedUserForFiles ? 'hidden lg:flex' : 'flex'}`}>
         {selectedUserForFiles ? (
           <>
             <div className="p-4 border-b border-[#46455430] bg-[#1a1d27] flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-900/30 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-sm">
+                <button
+                  onClick={() => { setSelectedUserForFiles(null); setExplorerPath(''); setExplorerFiles([]); setClipboard({path:null,type:null}); }}
+                  className="lg:hidden flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white text-xs font-mono border border-slate-700 shrink-0"
+                  type="button"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>Daftar</span>
+                </button>
+                <div className="w-10 h-10 rounded-xl bg-blue-900/30 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-sm shrink-0">
                   <Folder className="w-5 h-5" />
                 </div>
-                <div>
-                  <h3 className="font-bold text-sm text-slate-100">File Explorer: {selectedUserForFiles}</h3>
-                  <p className="text-xs text-slate-400 font-mono flex items-center gap-2 mt-0.5">
+                <div className="min-w-0">
+                  <h3 className="font-bold text-sm text-slate-100 truncate">File Explorer: {selectedUserForFiles}</h3>
+                  <p className="text-xs text-slate-400 font-mono flex items-center gap-2 mt-0.5 truncate">
                     Path: /{explorerPath}
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => { setSelectedUserForFiles(null); setExplorerPath(''); setExplorerFiles([]); setClipboard({path:null,type:null}); }}
-                className="text-slate-400 hover:text-slate-200 p-2 rounded-lg hover:bg-slate-800 transition-colors"
+                className="text-slate-400 hover:text-slate-200 p-2 rounded-lg hover:bg-slate-800 transition-colors shrink-0"
                 title="Close Explorer"
               >
                 <X className="w-5 h-5" />
@@ -342,7 +350,7 @@ export default function AdminFileExplorer({
             </div>
             
             {/* Action Bar */}
-            <div className="px-4 py-3 border-b border-[#46455430] bg-[#1a1d27] flex items-center gap-2">
+            <div className="px-4 py-3 border-b border-[#46455430] bg-[#1a1d27] flex flex-wrap items-center gap-2">
               <button
                 onClick={() => fileInputRef.current?.click()}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 motion-press transition-all text-xs font-mono font-bold"
@@ -376,7 +384,7 @@ export default function AdminFileExplorer({
             </div>
             
             <div className="flex-1 overflow-auto p-4">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left border-collapse min-w-[550px]">
                 <thead className="sticky top-0 bg-[#181b25] z-10">
                   <tr className="text-slate-400 font-mono text-xs font-semibold border-b border-[#46455430]">
                     <th className="py-3 px-4">Name</th>

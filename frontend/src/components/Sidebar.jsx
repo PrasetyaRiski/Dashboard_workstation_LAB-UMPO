@@ -107,16 +107,11 @@ export default function Sidebar({
                     {isLocked && <Lock className="w-3.5 h-3.5 ml-1.5 text-rose-400/80 shrink-0" />}
                   </div>
 
-                  <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                    {tab.badgeCount !== undefined && tab.badgeCount > 0 && (
-                      <span className="px-1.5 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-blue-100 text-blue-700 border border-blue-200">
-                        {tab.badgeCount}
-                      </span>
-                    )}
-                    <kbd className="px-1.5 py-0.5 rounded text-[9px] font-mono text-slate-400 bg-slate-100 border border-slate-200">
-                      {tab.shortcut}
-                    </kbd>
-                  </div>
+                  {tab.badgeCount !== undefined && tab.badgeCount > 0 && (
+                    <span className="px-1.5 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-blue-100 text-blue-700 border border-blue-200 ml-2 shrink-0">
+                      {tab.badgeCount}
+                    </span>
+                  )}
                 </button>
               );
             })}

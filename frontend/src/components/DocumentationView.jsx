@@ -138,55 +138,26 @@ export default function DocumentationView({ showToast }) {
                 </div>
               </div>
 
-              {/* Script: Akses GPU PyTorch */}
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
-                  <span className="flex items-center gap-1.5">
+              {/* Fitur & Alokasi Komputasi JupyterLab */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col gap-1.5">
+                  <div className="flex items-center gap-2 font-bold text-slate-900">
                     <Sparkles className="w-4 h-4 text-amber-500" />
-                    Memeriksa & Menggunakan Akselerasi GPU di Notebook Python
-                  </span>
-                  <button
-                    onClick={() => copyToClipboard(`import torch\n\nif torch.cuda.is_available():\n    print("GPU Siap Digunakan:", torch.cuda.get_device_name(0))\n    device = torch.device("cuda:0")\n    x = torch.randn(1000, 1000, device=device)\n    print("VRAM Terpakai:", torch.cuda.memory_allocated() / (1024 ** 2), "MB")\nelse:\n    print("Berjalan pada mode CPU")`, 'check-gpu')}
-                    className="flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-700 font-sans"
-                  >
-                    {copiedCode === 'check-gpu' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>{copiedCode === 'check-gpu' ? 'Tersalin' : 'Salin Kode'}</span>
-                  </button>
-                </div>
-                <pre className="p-3.5 rounded-xl bg-slate-900 text-slate-200 text-xs font-mono overflow-x-auto border border-slate-800 leading-relaxed">
-{`import torch
-
-if torch.cuda.is_available():
-    print("GPU Siap Digunakan:", torch.cuda.get_device_name(0))
-    device = torch.device("cuda:0")
-    x = torch.randn(1000, 1000, device=device)
-    print("VRAM Terpakai:", torch.cuda.memory_allocated() / (1024 ** 2), "MB")
-else:
-    print("Berjalan pada mode CPU")`}
-                </pre>
-              </div>
-
-              {/* Install Lib & Shared Dataset */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col gap-1.5">
-                  <span className="font-semibold text-slate-900">📦 Instal Pustaka Tambahan di Notebook</span>
+                    <span>Akselerasi GPU & Cgroups Otomatis</span>
+                  </div>
                   <p className="text-slate-600 leading-relaxed">
-                    Jalankan sel dengan perintah sihir <code>%pip</code> untuk memasang pustaka ke folder pribadi Anda:
+                    Setiap notebook yang dibuka langsung terhubung dengan GPU NVIDIA RTX. Sistem secara otomatis mengatur isolasi hardware sesuai tingkat alokasi (Standard atau Prioritas Riset) tanpa perlu setup driver manual.
                   </p>
-                  <pre className="p-2 rounded bg-slate-900 text-emerald-400 font-mono text-[11px] overflow-x-auto">
-%pip install seaborn transformers albumentations
-                  </pre>
                 </div>
 
                 <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col gap-1.5">
-                  <span className="font-semibold text-slate-900">📂 Mengakses Dataset Bersama</span>
+                  <div className="flex items-center gap-2 font-bold text-slate-900">
+                    <FolderOpen className="w-4 h-4 text-blue-600" />
+                    <span>Direktori Bersama (dataset_shared)</span>
+                  </div>
                   <p className="text-slate-600 leading-relaxed">
-                    Baca dataset bersama langsung dari folder <code>/home/dataset_shared/</code> tanpa mendownload ulang:
+                    Dataset praktikum dan riset bersama tersedia langsung di jalur <code>/home/dataset_shared/</code>. Mahasiswa dapat langsung membaca data tanpa menduplikasi atau mengurangi kuota penyimpanan pribadi.
                   </p>
-                  <pre className="p-2 rounded bg-slate-900 text-sky-400 font-mono text-[11px] overflow-x-auto">
-import pandas as pd
-df = pd.read_csv('/home/dataset_shared/dataset.csv')
-                  </pre>
                 </div>
               </div>
             </div>

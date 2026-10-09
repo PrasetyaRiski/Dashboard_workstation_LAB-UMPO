@@ -147,101 +147,37 @@ Setelah login berhasil, Anda akan disambut oleh antarmuka modern JupyterLab:
 
 ---
 
-### 2.3 Memulai Notebook Python & Memanfaatkan Akselerasi GPU (PyTorch)
-Setiap notebook yang dibuka secara otomatis terhubung dengan driver komputasi NVIDIA CUDA.
-
-#### Menguji Ketersediaan GPU di Notebook:
-Ketik dan jalankan kode berikut pada sel (*cell*) notebook pertama Anda:
-
-```python
-import torch
-
-# Memeriksa ketersediaan kartu grafis GPU
-gpu_tersedia = torch.cuda.is_available()
-print(f"Status Ketersediaan GPU: {gpu_tersedia}")
-
-if gpu_tersedia:
-    nama_gpu = torch.cuda.get_device_name(0)
-    jumlah_gpu = torch.cuda.device_count()
-    print(f"Nama Akselerator : {nama_gpu}")
-    print(f"Jumlah Perangkat : {jumlah_gpu}")
-    
-    # Menetapkan perangkat komputasi aktif
-    device = torch.device("cuda:0")
-    
-    # Pengujian alokasi tensor sederhana di VRAM GPU
-    tensor_uji = torch.randn(2000, 2000, device=device)
-    vram_terpakai = torch.cuda.memory_allocated() / (1024 ** 2)
-    print(f"VRAM Terpakai Saat Ini: {vram_terpakai:.2f} MB")
-else:
-    print("Peringatan: Komputasi berjalan pada mode CPU.")
-```
-
-#### Tips Pelatihan Model AI:
-* Selalu pastikan model dan data gambar/teks Anda dialihkan ke GPU menggunakan perintah `.to(device)`.
-* Setelah proses kalkulasi atau evaluasi selesai, Anda dapat membebaskan sisa memori VRAM yang tidak lagi terpakai dengan menjalankan:
-  ```python
-  import torch
-  torch.cuda.empty_cache()
-  ```
+### 2.3 Pemanfaatan Akselerasi GPU Otomatis
+Setiap notebook Python yang dibuka di JupyterHub secara otomatis terintegrasi dengan akselerator kartu grafis NVIDIA RTX dan pustaka komputasi CUDA:
+* **Pengenalan Hardware Otomatis:** Kernel Python otomatis mengenali GPU yang dialokasikan (GPU 1 untuk mode Standard atau GPU 0 untuk mode Prioritas). Pengguna tidak perlu melakukan kompilasi driver atau konfigurasi environment secara manual.
+* **Isolasi Hardware:** Mekanisme Cgroups di latar belakang memastikan alokasi VRAM dan batas memori RAM berjalan terisolasi, sehingga beban komputasi satu mahasiswa tidak mengganggu kestabilan sistem secara keseluruhan.
 
 ---
 
-### 2.4 Mengakses Dataset Bersama (*Shared Datasets*)
-Untuk menghemat ruang kuota penyimpanan dan memangkas waktu pengunduhan dataset besar (seperti ImageNet, COCO, MNIST, atau dataset lokal penelitian), laboratorium menyediakan direktori bersama:
-* **Lokasi Folder:** `/home/dataset_shared/`
-
-Anda dapat membaca data langsung di notebook tanpa perlu menyalin atau mendownload ulang ke folder pribadi Anda.
-
-Contoh membaca dataset CSV menggunakan pustaka Pandas di notebook:
-```python
-import pandas as pd
-
-# Contoh membaca berkas dataset bersama secara langsung
-jalur_data = '/home/dataset_shared/dataset_contoh.csv'
-df = pd.read_csv(jalur_data)
-print(df.head())
-```
-
-Contoh membaca direktori citra gambar untuk PyTorch ImageFolder:
-```python
-from torchvision import datasets, transforms
-
-transformasi = transforms.Compose([transforms.Resize((224, 224)), transforms.ToTensor()])
-dataset = datasets.ImageFolder('/home/dataset_shared/citra_klasifikasi/', transform=transformasi)
-print(f"Total Sampel Gambar: {len(dataset)}")
-```
+### 2.4 Pemanfaatan Direktori Dataset Bersama (*dataset_shared*)
+Untuk menghemat ruang kuota penyimpanan pribadi mahasiswa dan memangkas waktu pengunduhan dataset berukuran besar, laboratorium menyediakan direktori bersama:
+* **Lokasi Jalur Direktori:** `/home/dataset_shared/`
+* **Keuntungan:** Dataset standar praktikum (seperti dataset citra, tabular CSV, teks, maupun bobot pretrained model) dapat dibaca langsung oleh notebook tanpa perlu disalin atau diunduh ulang ke folder pribadi `/home/m<NIM>`. Hal ini menjaga kuota penyimpanan 10 GB mahasiswa tetap hemat dan leluasa.
 
 ---
 
-### 2.5 Menginstal Pustaka (*Package*) Python Tambahan Melalui Notebook
-Lingkungan server laboratorium telah dilengkapi pustaka standar kecerdasan buatan (PyTorch, Torchvision, Scikit-Learn, Pandas, NumPy, OpenCV, Matplotlib). Jika modul yang Anda butuhkan belum tersedia, Anda dapat menginstalnya secara mandiri langsung dari sel notebook menggunakan perintah sihir (*magic command*) `%pip`:
-
-```python
-# Jalankan di sel notebook untuk menginstal pustaka tambahan ke direktori pribadi
-%pip install seaborn transformers albumentations
-```
-
-> [!NOTE]
-> Pustaka yang diinstal melalui sel notebook otomatis tersimpan di folder pengguna Anda, sehingga paket tersebut akan tetap tersedia setiap kali Anda masuk kembali.
+### 2.5 Ketersediaan Pustaka AI & Instalasi Mandiri
+Server laboratorium telah dilengkapi dengan bundel pustaka kecerdasan buatan dan sains data siap pakai (PyTorch, Torchvision, Scikit-Learn, Pandas, NumPy, OpenCV, Matplotlib):
+* Jika praktikum atau penelitian membutuhkan modul tambahan, mahasiswa dapat memasangnya langsung dari dalam notebook melalui perintah instalasi paket pengguna (`%pip install <nama_pustaka>`).
+* Seluruh pustaka tambahan yang dipasang akan tersimpan secara otomatis di direktori pribadi pengguna dan tetap tersimpan saat pengguna keluar (*logout*).
 
 ---
 
-### 2.6 Penyimpanan Bobot Model (*Weights*) & Kuota Disk
-Setiap akun mahasiswa diberikan kuota penyimpanan bawaan sebesar **10 GB** (atau **50 GB** saat mode prioritas aktif).
-* Berkas notebook (`.ipynb`), skrip (`.py`), dan model tersimpan (*checkpoint* `.pt` atau `.pth`) berada di direktori pribadi Anda.
-* **Menyimpan Model Pelatihan:**
-  ```python
-  # Simpan model di direktori kerja
-  torch.save(model.state_dict(), 'model_terbaik.pth')
-  print("Model berhasil disimpan!")
-  ```
-* **Mengunduh Berkas Hasil:**
-  1. Pada File Browser di bilah kiri JupyterLab, klik kanan pada berkas `model_terbaik.pth`.
-  2. Pilih opsi **Download**.
-  3. Berkas akan terunduh langsung ke komputer/laptop pribadi Anda.
+### 2.6 Penyimpanan Berkas & Pengunduhan Model (*Export Hasil*)
+Setiap mahasiswa memiliki kuota penyimpanan direktori sebesar **10 GB** (atau **50 GB** saat mode prioritas aktif):
+* Seluruh berkas lembar kerja (`.ipynb`), skrip Python, dan berkas bobot model hasil pelatihan tersimpan di dalam folder kerja pribadi Anda.
+* **Mengunduh Berkas Hasil ke Komputer Pribadi:**
+  1. Buka bilah **File Browser** di sisi kiri antarmuka JupyterLab.
+  2. Cari berkas model atau notebook yang ingin diunduh.
+  3. Klik kanan pada berkas tersebut, lalu pilih opsi **Download**.
+  4. Peramban web akan langsung mengunduh berkas ke penyimpanan komputer/laptop Anda.
 * **Memantau Status Kuota:**
-  Jika penyimpanan Anda mendekati batas 10 GB, status akun di Web Dashboard akan menandai peringatan kuning/merah. Segera bersihkan berkas duplikat atau mintalah asisten lab untuk menekan tombol pembersihan cache.
+  Penggunaan kuota dapat dipantau melalui Web Dashboard di port `8888`. Jika penyimpanan mendekati batas maksimal, mahasiswa disarankan membersihkan file sampah atau meminta asisten lab menekan tombol *Bersihkan Cache Disk*.
 
 ---
 

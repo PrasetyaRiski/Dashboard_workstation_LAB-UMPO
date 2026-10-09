@@ -54,7 +54,7 @@ export default function CommandPalette({
       label: 'Buka Manajemen Pengguna (Users)',
       shortcut: '2',
       icon: Users,
-      action: () => { onTabChange('users'); onClose(); }
+      action: () => { onTabChange('students'); onClose(); }
     },
     {
       id: 'tab-audit',
@@ -146,31 +146,31 @@ export default function CommandPalette({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 px-4 bg-black/75">
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 bg-slate-900/40 backdrop-blur-sm animate-fade-in">
       <div 
-        className="w-full max-w-xl bg-[#111114] border border-[rgba(255,255,255,0.14)] rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.45)] overflow-hidden flex flex-col"
+        className="w-full max-w-xl bg-white border border-slate-200/90 rounded-2xl shadow-[0_25px_60px_rgba(15,23,42,0.18)] overflow-hidden flex flex-col"
         onKeyDown={handleKeyDown}
       >
         {/* Search Input Bar */}
-        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[rgba(255,255,255,0.08)] bg-[#18181b]">
-          <Search className="w-4 h-4 text-[#a1a1aa] shrink-0" />
+        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-slate-100 bg-slate-50/70">
+          <Search className="w-4 h-4 text-slate-400 shrink-0" />
           <input
             ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => { setQuery(e.target.value); setSelectedIndex(0); }}
             placeholder="Cari perintah, navigasi tab, atau PID proses… (↑ ↓ Enter)"
-            className="flex-1 bg-transparent text-sm text-[#fafafa] placeholder:text-[#71717a] outline-none"
+            className="flex-1 bg-transparent text-sm text-slate-800 placeholder:text-slate-400 outline-none font-medium"
           />
-          <kbd className="px-1.5 py-0.5 text-[11px] font-mono bg-[#27272a] text-[#a1a1aa] rounded border border-[rgba(255,255,255,0.08)]">
+          <kbd className="px-2 py-0.5 text-[11px] font-mono bg-white text-slate-500 rounded-md border border-slate-200 shadow-sm">
             ESC
           </kbd>
         </div>
 
         {/* Command list */}
-        <div className="max-h-80 overflow-y-auto p-2 divide-y divide-[rgba(255,255,255,0.04)]">
+        <div className="max-h-80 overflow-y-auto p-2 divide-y divide-slate-50">
           {filtered.length === 0 ? (
-            <div className="p-6 text-center text-xs text-[#71717a]">
+            <div className="p-8 text-center text-xs text-slate-400">
               Tidak ada hasil yang cocok dengan &quot;{query}&quot;
             </div>
           ) : (
@@ -182,23 +182,23 @@ export default function CommandPalette({
                   key={item.id}
                   onClick={item.action}
                   onMouseEnter={() => setSelectedIndex(idx)}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left text-xs transition-colors ${
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-xs transition-colors ${
                     isSelected 
-                      ? 'bg-[#27272a] text-[#fafafa]' 
-                      : 'text-[#a1a1aa] hover:bg-[#18181b] hover:text-[#fafafa]'
+                      ? 'bg-blue-50 text-blue-900 font-semibold shadow-sm' 
+                      : 'text-slate-700 hover:bg-slate-50'
                   }`}
                   type="button"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <Icon className={`w-4 h-4 shrink-0 ${isSelected ? 'text-[#38bdf8]' : 'text-[#71717a]'}`} />
-                    <span className="truncate font-medium">{item.label}</span>
+                    <Icon className={`w-4 h-4 shrink-0 ${isSelected ? 'text-blue-600' : 'text-slate-400'}`} />
+                    <span className="truncate">{item.label}</span>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0 ml-3">
-                    <span className="text-[10px] text-[#71717a] uppercase tracking-wider font-mono">
+                  <div className="flex items-center gap-2.5 shrink-0 ml-3">
+                    <span className="text-[10px] text-slate-400 uppercase tracking-wider font-mono">
                       {item.category}
                     </span>
                     {item.shortcut && (
-                      <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-[#18181b] text-[#a1a1aa] rounded border border-[rgba(255,255,255,0.08)]">
+                      <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-white text-slate-600 rounded border border-slate-200 shadow-sm">
                         {item.shortcut}
                       </kbd>
                     )}
@@ -210,13 +210,13 @@ export default function CommandPalette({
         </div>
 
         {/* Footer shortcuts helper */}
-        <div className="px-4 py-2 bg-[#09090b] border-t border-[rgba(255,255,255,0.08)] flex items-center justify-between text-[11px] text-[#71717a] font-mono">
+        <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-mono">
           <div className="flex items-center gap-3">
             <span>↑↓ Pilih</span>
             <span>↵ Eksekusi</span>
             <span>Esc Tutup</span>
           </div>
-          <span>Obsidian Console v1.0</span>
+          <span className="text-blue-600 font-semibold">Azure 3D Console · TI UMPO</span>
         </div>
       </div>
     </div>

@@ -374,7 +374,7 @@ export default function App() {
   const isDataStale = staleSeconds > 15;
 
   return (
-    <div className="dark min-h-screen bg-[#09090b] text-[#fafafa] font-sans antialiased selection:bg-[#38bdf8]/20 selection:text-[#38bdf8]">
+    <div className="min-h-screen bg-[#f1f5f9] text-[#0f172a] font-sans antialiased selection:bg-blue-100 selection:text-blue-700">
       {/* Sidebar Navigation */}
       <Sidebar
         activeTab={activeTab}
@@ -393,83 +393,80 @@ export default function App() {
         className="flex flex-col min-h-screen transition-all duration-200"
         style={{ paddingLeft: isSidebarOpen ? '16rem' : '0' }}
       >
-        {/* Sticky Obsidian Header (Section 5) */}
+        {/* Sticky Header with 3D Depth */}
         <header
-          className="fixed top-0 right-0 h-14 bg-[#111114] border-b border-[rgba(255,255,255,0.08)] z-40 flex items-center justify-between px-5 transition-all duration-200"
+          className="fixed top-0 right-0 h-14 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-[0_2px_12px_rgba(0,0,0,0.03)] z-40 flex items-center justify-between px-5 transition-all duration-200"
           style={{ left: isSidebarOpen ? '16rem' : '0' }}
         >
           {/* Left Brand & Toggle */}
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-1 rounded-md text-[#a1a1aa] hover:text-[#fafafa] hover:bg-[#18181b] transition-colors"
+              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
               title="Toggle Sidebar"
               type="button"
             >
               <Menu className="w-4 h-4" />
             </button>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-[#fafafa] tracking-tight">
+              <span className="text-xs font-bold text-slate-900 tracking-tight">
                 Lab Komputasi AI UMPO
               </span>
-              <span className="text-[#71717a] text-xs">/</span>
-              <span className="text-xs text-[#a1a1aa] capitalize">
+              <span className="text-slate-400 text-xs">/</span>
+              <span className="text-xs font-medium text-blue-600 capitalize">
                 {activeTab === 'overview' ? 'Ringkasan' : activeTab === 'students' ? 'Pengguna' : 'Log Audit'}
               </span>
             </div>
           </div>
 
-
-
           {/* Right Mode Pill, Clock, and Auth Action */}
           <div className="flex items-center gap-2.5">
             {/* Status Telemetri Pill */}
             {isDataStale ? (
-              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[rgba(244,63,94,0.12)] border border-[rgba(244,63,94,0.25)] text-[#fb7185] text-xs font-mono">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#f43f5e]" />
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-mono shadow-sm">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
                 <span>Data Basi · {staleSeconds}s</span>
               </div>
             ) : isConnected ? (
-              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[#18181b] border border-[rgba(255,255,255,0.08)] text-xs font-mono text-[#a1a1aa]">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] pulse-dot" />
-                <span className="text-[#34d399] font-medium">Live</span>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-mono text-emerald-700 shadow-sm">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 pulse-dot" />
+                <span className="font-semibold">Live</span>
               </div>
             ) : (
-              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[rgba(245,158,11,0.12)] border border-[rgba(245,158,11,0.25)] text-[#fbbf24] text-xs font-mono">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]" />
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-xs font-mono shadow-sm">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                 <span>Menyambung ulang…</span>
               </div>
             )}
 
             {/* Role Badge */}
             {isOperator ? (
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[rgba(14,165,233,0.1)] text-[#38bdf8] border border-[rgba(14,165,233,0.25)] text-xs font-mono">
-                <ShieldCheck className="w-3.5 h-3.5" />
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-xs font-mono shadow-sm">
+                <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
                 <span>Operator: {adminUser?.nama ? adminUser.nama.split(' ')[0] : 'Aslab'}</span>
               </div>
             ) : isSuperAdmin ? (
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[rgba(99,102,241,0.12)] text-[#818cf8] border border-[rgba(99,102,241,0.25)] text-xs font-mono">
-                <ShieldCheck className="w-3.5 h-3.5" />
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-mono shadow-sm">
+                <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
                 <span>Super Admin</span>
               </div>
             ) : null}
-
 
             {/* Login / Logout Action */}
             {!isAdmin ? (
               <button
                 onClick={() => setLoginModalOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#18181b] hover:bg-[#27272a] text-[#fafafa] text-xs font-medium border border-[rgba(255,255,255,0.1)] transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-xs font-semibold shadow-[0_2px_0_#1d4ed8,0_4px_10px_rgba(37,99,235,0.25)] active:translate-y-0.5 transition-all"
                 title="Login Operator / Admin"
                 type="button"
               >
-                <ShieldCheck className="w-3.5 h-3.5 text-[#38bdf8]" />
+                <ShieldCheck className="w-3.5 h-3.5" />
                 <span>Login Admin</span>
               </button>
             ) : (
               <button
                 onClick={handleLogout}
-                className="p-1.5 rounded-md text-[#a1a1aa] hover:text-[#fb7185] hover:bg-[#18181b] border border-[rgba(255,255,255,0.06)] transition-colors"
+                className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 shadow-sm active:translate-y-0.5 transition-all"
                 title="Keluar dari Konsol"
                 type="button"
               >
@@ -557,18 +554,18 @@ export default function App() {
       {/* Floating Toast Notification (Manifesto Section 7.C) */}
       {toast && (
         <div className="fixed bottom-5 right-5 z-50">
-          <div className="flex items-center gap-3 px-3.5 py-2.5 rounded-lg bg-[#18181b] border border-[rgba(255,255,255,0.14)] shadow-[0_8px_24px_rgba(0,0,0,0.45)] text-xs font-mono text-[#fafafa]">
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white border border-slate-200 shadow-[0_10px_30px_rgba(0,0,0,0.1),0_2px_6px_rgba(37,99,235,0.08)] text-xs font-mono text-slate-800">
             {toast.type === 'success' ? (
-              <CheckCircle2 className="w-4 h-4 text-[#34d399] shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             ) : toast.type === 'error' ? (
-              <AlertCircle className="w-4 h-4 text-[#fb7185] shrink-0" />
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
             ) : (
-              <Info className="w-4 h-4 text-[#38bdf8] shrink-0" />
+              <Info className="w-4 h-4 text-blue-600 shrink-0" />
             )}
-            <span className="font-medium">{toast.message}</span>
+            <span className="font-semibold">{toast.message}</span>
             <button
               onClick={() => setToast(null)}
-              className="ml-2 text-[#71717a] hover:text-[#fafafa] transition-colors"
+              className="ml-2 text-slate-400 hover:text-slate-700 transition-colors"
               type="button"
             >
               ✕

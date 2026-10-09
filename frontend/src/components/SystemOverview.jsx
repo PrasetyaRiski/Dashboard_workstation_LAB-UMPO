@@ -40,45 +40,55 @@ function SystemOverview({ system = {}, gpus = [], onTriggerBackup, isBackingUp, 
       {/* Section Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="text-lg font-semibold text-[#fafafa] tracking-tight">Ringkasan Sistem</h1>
-          <p className="text-xs text-[#a1a1aa] mt-0.5">Telemetri sumber daya komputasi dan status klaster DGX UMPO</p>
+          <h1 className="text-lg font-bold text-slate-900 tracking-tight">Ringkasan Sistem</h1>
+          <p className="text-xs text-slate-500 mt-0.5">Telemetri sumber daya komputasi dan status klaster DGX UMPO</p>
         </div>
       </div>
       
-      {/* High-Density 4-Column KPI Grid */}
+      {/* High-Density 4-Column 3D KPI Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* Metric 1: Beban Komputasi CPU & RAM */}
-        <div className="bg-[#111114] p-4 rounded-xl border border-[rgba(255,255,255,0.08)] flex flex-col justify-between">
-          <div className="flex items-center justify-between text-[#a1a1aa] mb-3">
-            <span className="text-xs font-medium text-[#fafafa] flex items-center gap-2">
-              <Cpu className="w-3.5 h-3.5 text-[#38bdf8]" /> Beban Komputasi
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_10px_28px_-4px_rgba(37,99,235,0.12)] hover:-translate-y-0.5 transition-all flex flex-col justify-between">
+          <div className="flex items-center justify-between text-slate-500 mb-3">
+            <span className="text-xs font-semibold text-slate-900 flex items-center gap-2">
+              <Cpu className="w-4 h-4 text-blue-600" /> Beban Komputasi
             </span>
-            <span className="text-[10px] font-mono text-[#71717a]">{cpu.core_count || 24} Cores</span>
+            <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/80">
+              {cpu.core_count || 24} Cores
+            </span>
           </div>
           
           <div className="space-y-3 mt-1">
             <div>
-              <div className="flex justify-between text-xs mb-1">
-                <span className="text-[#a1a1aa]">CPU Host</span>
-                <span className="font-mono tabular-nums font-semibold text-[#fafafa]">{cpuPercent}%</span>
+              <div className="flex justify-between text-xs mb-1.5 font-medium">
+                <span className="text-slate-500">CPU Host</span>
+                <span className="font-mono tabular-nums font-bold text-slate-900">{cpuPercent}%</span>
               </div>
-              <div className="w-full bg-[#18181b] h-1.5 rounded-full overflow-hidden border border-[rgba(255,255,255,0.06)]">
+              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200/60 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]">
                 <div 
-                  className={`h-full transition-all duration-300 ${cpuPercent >= 90 ? 'bg-[#f43f5e]' : cpuPercent >= 75 ? 'bg-[#f59e0b]' : 'bg-[#38bdf8]'}`}
+                  className={`h-full rounded-full transition-all duration-300 ${
+                    cpuPercent >= 90 ? 'bg-gradient-to-r from-rose-500 to-rose-600' : 
+                    cpuPercent >= 75 ? 'bg-gradient-to-r from-amber-500 to-amber-600' : 
+                    'bg-gradient-to-r from-blue-500 to-blue-600'
+                  }`}
                   style={{ width: `${cpuPercent}%` }}
                 />
               </div>
             </div>
 
             <div>
-              <div className="flex justify-between text-xs mb-1">
-                <span className="text-[#a1a1aa]">RAM Host ({memory.total_gb || 128} GB)</span>
-                <span className="font-mono tabular-nums font-semibold text-[#fafafa]">{memoryPercent}%</span>
+              <div className="flex justify-between text-xs mb-1.5 font-medium">
+                <span className="text-slate-500">RAM Host ({memory.total_gb || 128} GB)</span>
+                <span className="font-mono tabular-nums font-bold text-slate-900">{memoryPercent}%</span>
               </div>
-              <div className="w-full bg-[#18181b] h-1.5 rounded-full overflow-hidden border border-[rgba(255,255,255,0.06)]">
+              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200/60 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]">
                 <div 
-                  className={`h-full transition-all duration-300 ${memoryPercent >= 90 ? 'bg-[#f43f5e]' : memoryPercent >= 75 ? 'bg-[#f59e0b]' : 'bg-[#10b981]'}`}
+                  className={`h-full rounded-full transition-all duration-300 ${
+                    memoryPercent >= 90 ? 'bg-gradient-to-r from-rose-500 to-rose-600' : 
+                    memoryPercent >= 75 ? 'bg-gradient-to-r from-amber-500 to-amber-600' : 
+                    'bg-gradient-to-r from-emerald-500 to-emerald-600'
+                  }`}
                   style={{ width: `${memoryPercent}%` }}
                 />
               </div>
@@ -87,31 +97,33 @@ function SystemOverview({ system = {}, gpus = [], onTriggerBackup, isBackingUp, 
         </div>
 
         {/* Metric 2: Penyimpanan /home */}
-        <div className="bg-[#111114] p-4 rounded-xl border border-[rgba(255,255,255,0.08)] flex flex-col justify-between">
-          <div className="flex items-center justify-between text-[#a1a1aa] mb-2">
-            <span className="text-xs font-medium text-[#fafafa] flex items-center gap-2">
-              <HardDrive className="w-3.5 h-3.5 text-[#818cf8]" /> Penyimpanan /home
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_10px_28px_-4px_rgba(37,99,235,0.12)] hover:-translate-y-0.5 transition-all flex flex-col justify-between">
+          <div className="flex items-center justify-between text-slate-500 mb-2">
+            <span className="text-xs font-semibold text-slate-900 flex items-center gap-2">
+              <HardDrive className="w-4 h-4 text-indigo-600" /> Penyimpanan /home
             </span>
-            <span className="text-[10px] font-mono text-[#71717a]">{homeDisk.mount || '/home'}</span>
+            <span className="text-[10px] font-mono text-slate-400">{homeDisk.mount || '/home'}</span>
           </div>
           
           <div className="mt-2">
             <div className="flex items-baseline gap-2 mb-2">
-              <span className="text-2xl font-semibold font-mono tabular-nums text-[#fafafa] tracking-tight">
+              <span className="text-2xl font-bold font-mono tabular-nums text-slate-900 tracking-tight">
                 {homeDisk.used_gb || 0}
               </span>
-              <span className="text-xs text-[#a1a1aa] font-mono">/ {homeDisk.total_gb || 0} GB</span>
+              <span className="text-xs text-slate-500 font-mono">/ {homeDisk.total_gb || 0} GB</span>
             </div>
 
-            <div className="w-full bg-[#18181b] h-1.5 rounded-full overflow-hidden border border-[rgba(255,255,255,0.06)] mb-2">
+            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200/60 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] mb-2">
               <div 
-                className={`h-full transition-all duration-300 ${!isStorageSafe ? 'bg-[#f43f5e]' : 'bg-[#818cf8]'}`}
+                className={`h-full rounded-full transition-all duration-300 ${
+                  !isStorageSafe ? 'bg-gradient-to-r from-rose-500 to-rose-600' : 'bg-gradient-to-r from-indigo-500 to-indigo-600'
+                }`}
                 style={{ width: `${homeDisk.percent || 0}%` }}
               />
             </div>
-            <div className="flex items-center justify-between text-[11px] text-[#a1a1aa] font-mono">
+            <div className="flex items-center justify-between text-[11px] text-slate-500 font-mono">
               <span>Sisa: {homeDisk.free_gb || 0} GB</span>
-              <span className={!isStorageSafe ? 'text-[#fb7185] font-semibold' : 'text-[#34d399]'}>
+              <span className={!isStorageSafe ? 'text-rose-600 font-bold' : 'text-emerald-600 font-semibold'}>
                 {isStorageSafe ? 'Kapasitas Normal' : 'Mendekati Penuh'}
               </span>
             </div>
@@ -119,56 +131,60 @@ function SystemOverview({ system = {}, gpus = [], onTriggerBackup, isBackingUp, 
         </div>
 
         {/* Metric 3: VRAM Quota Cluster (Dual GPU) */}
-        <div className="bg-[#111114] p-4 rounded-xl border border-[rgba(255,255,255,0.08)] flex flex-col justify-between">
-          <div className="flex items-center justify-between text-[#a1a1aa] mb-2">
-            <span className="text-xs font-medium text-[#fafafa] flex items-center gap-2">
-              <Layers className="w-3.5 h-3.5 text-[#34d399]" /> VRAM Quota Cluster
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_10px_28px_-4px_rgba(37,99,235,0.12)] hover:-translate-y-0.5 transition-all flex flex-col justify-between">
+          <div className="flex items-center justify-between text-slate-500 mb-2">
+            <span className="text-xs font-semibold text-slate-900 flex items-center gap-2">
+              <Layers className="w-4 h-4 text-sky-600" /> VRAM Quota Cluster
             </span>
-            <span className="text-[10px] font-mono text-[#71717a]">Dual GPU</span>
+            <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200/80">
+              Dual GPU
+            </span>
           </div>
           
           <div className="mt-2">
             <div className="flex items-baseline gap-2 mb-2">
-              <span className="text-2xl font-semibold font-mono tabular-nums text-[#fafafa] tracking-tight">
+              <span className="text-2xl font-bold font-mono tabular-nums text-slate-900 tracking-tight">
                 {vramUsedGb}
               </span>
-              <span className="text-xs text-[#a1a1aa] font-mono">/ {vramTotalGb} GB · {vramPct}%</span>
+              <span className="text-xs text-slate-500 font-mono">/ {vramTotalGb} GB · {vramPct}%</span>
             </div>
 
-            <div className="w-full bg-[#18181b] h-1.5 rounded-full overflow-hidden border border-[rgba(255,255,255,0.06)] mb-2">
+            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200/60 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] mb-2">
               <div 
-                className={`h-full transition-all duration-300 ${
-                  vramPct >= 90 ? 'bg-[#f43f5e]' : vramPct >= 75 ? 'bg-[#f59e0b]' : 'bg-[#10b981]'
+                className={`h-full rounded-full transition-all duration-300 ${
+                  vramPct >= 90 ? 'bg-gradient-to-r from-rose-500 to-rose-600' : 
+                  vramPct >= 75 ? 'bg-gradient-to-r from-amber-500 to-amber-600' : 
+                  'bg-gradient-to-r from-sky-500 to-blue-600'
                 }`}
                 style={{ width: `${vramPct}%` }}
               />
             </div>
-            <div className="flex items-center justify-between text-[11px] text-[#a1a1aa] font-mono">
-              <span className="truncate">node-dgx-umpo01</span>
-              <span className="text-[#34d399] font-medium">{gpus.length} Kartu Aktif</span>
+            <div className="flex items-center justify-between text-[11px] text-slate-500 font-mono">
+              <span className="truncate text-slate-600">node-dgx-umpo01</span>
+              <span className="text-blue-600 font-semibold">{gpus.length} Kartu Aktif</span>
             </div>
           </div>
         </div>
 
         {/* Metric 4: Keamanan & Status Backup */}
-        <div className="bg-[#111114] p-4 rounded-xl border border-[rgba(255,255,255,0.08)] flex flex-col justify-between">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_10px_28px_-4px_rgba(37,99,235,0.12)] hover:-translate-y-0.5 transition-all flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between text-[#a1a1aa] mb-2">
-              <span className="text-xs font-medium text-[#fafafa] flex items-center gap-2">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#10b981]" /> Keamanan & Backup
+            <div className="flex items-center justify-between text-slate-500 mb-2">
+              <span className="text-xs font-semibold text-slate-900 flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-600" /> Keamanan & Backup
               </span>
-              <span className="text-[10px] font-mono text-[#34d399] px-1.5 py-0.2 rounded bg-[#10b981]/10 border border-[#10b981]/20">
+              <span className="text-[10px] font-mono font-semibold text-emerald-700 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200">
                 WAL Active
               </span>
             </div>
             
             <ul className="space-y-1.5 my-2">
-              <li className="flex items-center gap-2 text-[11px] text-[#a1a1aa] font-mono">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#10b981]"></span>
+              <li className="flex items-center gap-2 text-[11px] text-slate-600 font-mono">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                 <span className="truncate">Integritas SQLite Aman</span>
               </li>
-              <li className="flex items-center gap-2 text-[11px] text-[#a1a1aa] font-mono">
-                <span className={`w-1.5 h-1.5 rounded-full ${latestBackup ? 'bg-[#10b981]' : 'bg-[#f59e0b]'}`}></span>
+              <li className="flex items-center gap-2 text-[11px] text-slate-600 font-mono">
+                <span className={`w-1.5 h-1.5 rounded-full ${latestBackup ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
                 <span className="truncate">{backupText}</span>
               </li>
             </ul>
@@ -178,23 +194,23 @@ function SystemOverview({ system = {}, gpus = [], onTriggerBackup, isBackingUp, 
             <button
               onClick={onTriggerBackup}
               disabled={isBackingUp}
-              className="w-full mt-2 py-1.5 px-3 bg-[#18181b] hover:bg-[#27272a] border border-[rgba(255,255,255,0.08)] hover:border-[rgba(255,255,255,0.16)] rounded-lg text-xs font-medium text-[#fafafa] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full mt-2 py-2 px-3 bg-white hover:bg-slate-50 border border-slate-200 hover:border-blue-300 text-slate-700 hover:text-blue-700 rounded-xl text-xs font-semibold shadow-[0_2px_0_#cbd5e1,0_2px_4px_rgba(0,0,0,0.03)] active:translate-y-0.5 active:shadow-none transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               type="button"
             >
               {isBackingUp ? (
                 <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-[#a1a1aa]" />
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-600" />
                   <span>Mencadangkan…</span>
                 </>
               ) : (
                 <>
-                  <DatabaseBackup className="w-3.5 h-3.5 text-[#a1a1aa]" />
+                  <DatabaseBackup className="w-3.5 h-3.5 text-blue-600" />
                   <span>Snapshot Database</span>
                 </>
               )}
             </button>
           ) : (
-            <div className="mt-2 py-1 px-2 rounded bg-[#18181b] border border-[rgba(255,255,255,0.06)] text-[10px] text-[#71717a] font-mono text-center">
+            <div className="mt-2 py-1 px-2 rounded-lg bg-slate-50 border border-slate-200 text-[10px] text-slate-500 font-mono text-center">
               Mode Monitoring (Read-Only)
             </div>
           )}

@@ -7,86 +7,86 @@ import {
 const ACTION_META = {
   BOOST_PRIORITY: {
     icon: Zap,
-    color: 'text-[#38bdf8]',
-    badgeBg: 'bg-[#0ea5e9]/10',
-    badgeBorder: 'border-[#0ea5e9]/25',
+    color: 'text-blue-600',
+    badgeBg: 'bg-blue-50',
+    badgeBorder: 'border-blue-200',
     label: 'Boost Prioritas GPU',
   },
   UNBOOST_PRIORITY: {
     icon: RotateCcw,
-    color: 'text-[#818cf8]',
-    badgeBg: 'bg-[#6366f1]/10',
-    badgeBorder: 'border-[#6366f1]/25',
+    color: 'text-indigo-600',
+    badgeBg: 'bg-indigo-50',
+    badgeBorder: 'border-indigo-200',
     label: 'Kembali Standar',
   },
   AUTO_EXPIRE_BOOST: {
     icon: Clock,
-    color: 'text-[#fbbf24]',
-    badgeBg: 'bg-[#f59e0b]/10',
-    badgeBorder: 'border-[#f59e0b]/25',
+    color: 'text-amber-600',
+    badgeBg: 'bg-amber-50',
+    badgeBorder: 'border-amber-200',
     label: 'Prioritas Kadaluarsa',
   },
   KILL_PROCESS: {
     icon: XCircle,
-    color: 'text-[#fb7185]',
-    badgeBg: 'bg-[#f43f5e]/10',
-    badgeBorder: 'border-[#f43f5e]/25',
+    color: 'text-rose-600',
+    badgeBg: 'bg-rose-50',
+    badgeBorder: 'border-rose-200',
     label: 'Hentikan Proses (Kill)',
   },
   KILL_USER_ALL: {
     icon: ShieldAlert,
-    color: 'text-[#fb7185]',
-    badgeBg: 'bg-[#f43f5e]/10',
-    badgeBorder: 'border-[#f43f5e]/25',
+    color: 'text-rose-600',
+    badgeBg: 'bg-rose-50',
+    badgeBorder: 'border-rose-200',
     label: 'Hentikan Sesi User',
   },
   BLOCK_USER: {
     icon: UserX,
-    color: 'text-[#fb7185]',
-    badgeBg: 'bg-[#f43f5e]/10',
-    badgeBorder: 'border-[#f43f5e]/25',
+    color: 'text-rose-600',
+    badgeBg: 'bg-rose-50',
+    badgeBorder: 'border-rose-200',
     label: 'Kunci Akun (Block)',
   },
   UNBLOCK_USER: {
     icon: UserCheck,
-    color: 'text-[#34d399]',
-    badgeBg: 'bg-[#10b981]/10',
-    badgeBorder: 'border-[#10b981]/25',
+    color: 'text-emerald-600',
+    badgeBg: 'bg-emerald-50',
+    badgeBorder: 'border-emerald-200',
     label: 'Buka Kunci Akun',
   },
   RESET_PASSWORD: {
     icon: KeyRound,
-    color: 'text-[#fbbf24]',
-    badgeBg: 'bg-[#f59e0b]/10',
-    badgeBorder: 'border-[#f59e0b]/25',
+    color: 'text-amber-600',
+    badgeBg: 'bg-amber-50',
+    badgeBorder: 'border-amber-200',
     label: 'Reset Password Linux',
   },
   SET_ROLE: {
     icon: ShieldCheck,
-    color: 'text-[#818cf8]',
-    badgeBg: 'bg-[#6366f1]/10',
-    badgeBorder: 'border-[#6366f1]/25',
+    color: 'text-indigo-600',
+    badgeBg: 'bg-indigo-50',
+    badgeBorder: 'border-indigo-200',
     label: 'Ubah Role Pengguna',
   },
   LOGIN_DASHBOARD: {
     icon: UserCheck,
-    color: 'text-[#38bdf8]',
-    badgeBg: 'bg-[#0ea5e9]/10',
-    badgeBorder: 'border-[#0ea5e9]/25',
+    color: 'text-blue-600',
+    badgeBg: 'bg-blue-50',
+    badgeBorder: 'border-blue-200',
     label: 'Otentikasi Admin',
   },
   OVER_QUOTA: {
     icon: AlertTriangle,
-    color: 'text-[#fb7185]',
-    badgeBg: 'bg-[#f43f5e]/10',
-    badgeBorder: 'border-[#f43f5e]/25',
+    color: 'text-rose-600',
+    badgeBg: 'bg-rose-50',
+    badgeBorder: 'border-rose-200',
     label: 'Storage Melebihi Kuota',
   },
   BACKUP_DATABASE: {
     icon: ShieldCheck,
-    color: 'text-[#818cf8]',
-    badgeBg: 'bg-[#6366f1]/10',
-    badgeBorder: 'border-[#6366f1]/25',
+    color: 'text-indigo-600',
+    badgeBg: 'bg-indigo-50',
+    badgeBorder: 'border-indigo-200',
     label: 'Snapshot Backup DB',
   },
 };
@@ -94,9 +94,9 @@ const ACTION_META = {
 function getActionMeta(action) {
   return ACTION_META[action] || {
     icon: Info,
-    color: 'text-[#a1a1aa]',
-    badgeBg: 'bg-[#27272a]',
-    badgeBorder: 'border-[rgba(255,255,255,0.08)]',
+    color: 'text-slate-600',
+    badgeBg: 'bg-slate-50',
+    badgeBorder: 'border-slate-200',
     label: action,
   };
 }
@@ -128,102 +128,110 @@ export default function AuditLogView({ logs = [] }) {
   ];
 
   return (
-    <div className="flex flex-col gap-5">
-      {/* Integrity Compliance Info Bar */}
-      <div className="bg-[#111114] rounded-xl p-4 border border-[rgba(255,255,255,0.08)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-[#18181b] border border-[rgba(255,255,255,0.08)] flex items-center justify-center text-[#34d399] shrink-0">
-            <ShieldCheck className="w-4 h-4" />
+    <div className="flex flex-col gap-6">
+      {/* Integrity Compliance Info Bar - 3D Card */}
+      <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200/80 flex items-center justify-center text-blue-600 shrink-0 shadow-sm">
+            <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-sm font-semibold text-[#fafafa] tracking-tight">
+            <div className="flex items-center gap-2.5">
+              <h2 className="text-sm font-bold text-slate-900 tracking-tight">
                 Log Audit Operasional (Immutable Audit Trail)
               </h2>
-              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#18181b] text-[#34d399] border border-[#10b981]/20">
+              <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                 SQLite WAL
               </span>
             </div>
-            <p className="text-xs text-[#a1a1aa] mt-0.5">
+            <p className="text-xs text-slate-500 mt-0.5">
               Pencatatan persisten aktivitas administratif level kernel & aplikasi.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 font-mono text-xs text-[#a1a1aa]">
-          <span>{logs.length} Peristiwa Terekam</span>
+        <div className="flex items-center gap-2">
+          <span className="px-3 py-1 bg-slate-100 text-slate-700 font-mono text-xs font-semibold rounded-lg border border-slate-200/80 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]">
+            {logs.length} Peristiwa Terekam
+          </span>
         </div>
       </div>
 
-      {/* Main Table / Stream Container */}
-      <div className="bg-[#111114] rounded-xl border border-[rgba(255,255,255,0.08)] overflow-hidden flex flex-col">
+      {/* Main Table / Stream Container - 3D Card */}
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] overflow-hidden flex flex-col">
         {/* Filters and Search Bar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3 border-b border-[rgba(255,255,255,0.08)] bg-[#18181b]">
-          <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto">
-            {filterChips.map((chip) => (
-              <button
-                key={chip.id}
-                onClick={() => setFilter(chip.id)}
-                className={`px-2.5 py-1 text-xs font-mono rounded-md transition-colors whitespace-nowrap ${
-                  filter === chip.id
-                    ? 'bg-[#27272a] text-[#fafafa] font-semibold border border-[rgba(255,255,255,0.14)]'
-                    : 'text-[#a1a1aa] hover:text-[#fafafa]'
-                }`}
-                type="button"
-              >
-                {chip.label}
-              </button>
-            ))}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-b border-slate-200/80 bg-slate-50/70">
+          <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto p-1 bg-slate-200/50 rounded-xl border border-slate-200/60 shadow-[inset_0_1px_2px_rgba(0,0,0,0.03)]">
+            {filterChips.map((chip) => {
+              const active = filter === chip.id;
+              return (
+                <button
+                  key={chip.id}
+                  onClick={() => setFilter(chip.id)}
+                  className={`px-3 py-1.5 text-xs font-mono font-medium rounded-lg transition-all duration-150 whitespace-nowrap ${
+                    active
+                      ? 'bg-white text-blue-700 font-semibold border border-blue-200/80 shadow-[0_2px_4px_rgba(37,99,235,0.1),0_1px_2px_rgba(0,0,0,0.05)]'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+                  }`}
+                  type="button"
+                >
+                  {chip.label}
+                </button>
+              );
+            })}
           </div>
 
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#71717a]" />
+          <div className="relative w-full sm:w-72">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Cari aksi, user, target…"
-              className="w-full bg-[#111114] border border-[rgba(255,255,255,0.08)] focus:border-[#38bdf8] rounded-md py-1 pl-8 pr-3 text-xs font-mono text-[#fafafa] placeholder:text-[#71717a] outline-none transition-colors"
+              className="w-full bg-white border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-xl py-1.5 pl-9 pr-3 text-xs font-mono text-slate-800 placeholder:text-slate-400 outline-none transition-all shadow-[inset_0_1px_2px_rgba(0,0,0,0.03)]"
             />
           </div>
         </div>
 
         {/* Entries */}
-        <div className="max-h-[550px] overflow-y-auto divide-y divide-[rgba(255,255,255,0.04)] font-mono text-xs">
+        <div className="max-h-[550px] overflow-y-auto divide-y divide-slate-100 font-mono text-xs">
           {filteredLogs.length === 0 ? (
-            <div className="py-12 text-center text-[#71717a]">
-              <Clock className="w-6 h-6 mx-auto mb-2 opacity-40" />
-              <p>Tidak ada catatan audit yang cocok dengan kriteria filter.</p>
+            <div className="py-16 text-center text-slate-400">
+              <Clock className="w-8 h-8 mx-auto mb-2.5 opacity-40 text-slate-400" />
+              <p className="font-sans font-medium text-slate-500">Tidak ada catatan audit yang cocok dengan kriteria filter.</p>
             </div>
           ) : (
             filteredLogs.map((log, idx) => {
               const meta = getActionMeta(log.action);
               const Icon = meta.icon;
               return (
-                <div key={idx} className="flex items-start justify-between gap-4 p-3 hover:bg-[#18181b] transition-colors">
-                  <div className="flex items-start gap-3 min-w-0">
-                    <div className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${meta.badgeBg} border ${meta.badgeBorder} ${meta.color} mt-0.5`}>
-                      <Icon className="w-3.5 h-3.5" />
+                <div
+                  key={idx}
+                  className="flex items-start justify-between gap-4 p-4 hover:bg-blue-50/40 transition-colors"
+                >
+                  <div className="flex items-start gap-3.5 min-w-0">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${meta.badgeBg} border ${meta.badgeBorder} ${meta.color} mt-0.5 shadow-sm`}>
+                      <Icon className="w-4 h-4" />
                     </div>
 
                     <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
                         <span className={`font-semibold ${meta.color}`}>
                           {meta.label}
                         </span>
-                        <span className="text-[#71717a]">·</span>
-                        <span className="text-[#fafafa] font-bold bg-[#18181b] px-1.5 py-0.2 rounded border border-[rgba(255,255,255,0.06)]">
+                        <span className="text-slate-300">·</span>
+                        <span className="text-slate-800 font-bold bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
                           {log.target || log.nim || 'System'}
                         </span>
                       </div>
-                      <p className="text-[#a1a1aa] text-[11px] font-sans leading-relaxed">
+                      <p className="text-slate-600 text-xs font-sans leading-relaxed">
                         {log.detail || '—'}
                       </p>
                     </div>
                   </div>
 
                   <div className="shrink-0 text-right">
-                    <span className="text-[#71717a] text-[11px] tabular-nums">
+                    <span className="text-slate-400 text-[11px] tabular-nums font-mono">
                       {log.time || log.created_at || 'Baru Saja'}
                     </span>
                   </div>

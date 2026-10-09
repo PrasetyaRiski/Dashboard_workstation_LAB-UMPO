@@ -391,31 +391,31 @@ export default function UnifiedUserManagement({
       {/* Section Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-lg font-semibold text-[#fafafa] tracking-tight">
+          <h1 className="text-lg font-bold text-slate-900 tracking-tight">
             Manajemen Pengguna Terpadu
           </h1>
-          <p className="text-xs text-[#a1a1aa] mt-0.5">
+          <p className="text-xs text-slate-500 mt-0.5">
             Manajemen akun Linux OS, integrasi SSO SIMTIK, dan isolasi kuota komputasi
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           {isAdmin && (
             <button
               onClick={handleExportCSV}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#18181b] hover:bg-[#27272a] text-[#fafafa] transition-colors border border-[rgba(255,255,255,0.08)] text-xs font-medium"
+              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-semibold border border-slate-200 shadow-[0_2px_0_#cbd5e1,0_2px_4px_rgba(0,0,0,0.03)] active:translate-y-0.5 transition-all text-xs"
               type="button"
             >
-              <Download className="w-3.5 h-3.5 text-neon-emerald" />
+              <Download className="w-3.5 h-3.5 text-blue-600" />
               <span>Export CSV</span>
             </button>
           )}
           <button
             onClick={() => { fetchStudents(); fetchCapacity(); }}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#18181b] hover:bg-[#27272a] text-[#fafafa] transition-colors border border-[rgba(255,255,255,0.08)] text-xs font-medium"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold shadow-[0_2px_0_#1d4ed8,0_4px_10px_rgba(37,99,235,0.25)] active:translate-y-0.5 transition-all text-xs"
             type="button"
           >
-            <RefreshCw className="w-3.5 h-3.5 text-[#38bdf8]" />
+            <RefreshCw className="w-3.5 h-3.5" />
             <span>Sinkronisasi SIMTIK</span>
           </button>
         </div>
@@ -423,48 +423,48 @@ export default function UnifiedUserManagement({
 
       {/* Operator Mode Banner (If logged in as Operator/Aslab) */}
       {isOperator && (
-        <div className="flex items-center gap-3 px-3.5 py-2.5 rounded-lg bg-[rgba(14,165,233,0.1)] border border-[rgba(14,165,233,0.25)] text-[#38bdf8] text-xs font-mono">
-          <ShieldCheck className="w-4 h-4 shrink-0" />
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 text-xs font-mono shadow-sm">
+          <ShieldCheck className="w-4 h-4 shrink-0 text-blue-600" />
           <span>
             <strong>Mode Operator Aslab ({adminUser?.nama || 'Asisten'}):</strong> Akses monitoring dan penghentian sesi aktif.
           </span>
         </div>
       )}
 
-      {/* 3 High-Density KPI Cards */}
+      {/* 3 High-Density 3D KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
         {/* Card 1: Total Akun Terdaftar */}
-        <div className="bg-[#111114] rounded-xl p-4 border border-[rgba(255,255,255,0.08)] flex flex-col justify-between">
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_10px_28px_-4px_rgba(37,99,235,0.12)] hover:-translate-y-0.5 transition-all flex flex-col justify-between">
           <div className="flex items-start justify-between mb-2">
             <div>
-              <span className="text-xs font-medium text-[#fafafa]">Total Akun Terdaftar</span>
-              <p className="text-[11px] text-[#a1a1aa]">Tenant Directory</p>
+              <span className="text-xs font-bold text-slate-900">Total Akun Terdaftar</span>
+              <p className="text-[11px] text-slate-500">Tenant Directory</p>
             </div>
-            <div className="w-8 h-8 rounded-lg bg-[#18181b] border border-[rgba(255,255,255,0.08)] flex items-center justify-center text-[#818cf8]">
-              <Users className="w-4 h-4" />
+            <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 shadow-sm">
+              <Users className="w-4.5 h-4.5" />
             </div>
           </div>
           <div className="flex flex-col gap-2 mt-1">
             <div className="flex items-baseline justify-between">
-              <span className="font-mono tabular-nums text-2xl font-bold text-[#fafafa]">
-                {unifiedList.length} <span className="text-[#71717a] text-xs font-normal">Akun</span>
+              <span className="font-mono tabular-nums text-2xl font-bold text-slate-900">
+                {unifiedList.length} <span className="text-slate-400 text-xs font-normal">Akun</span>
               </span>
-              <span className="font-mono text-[11px] text-[#818cf8] px-1.5 py-0.2 rounded bg-[#6366f1]/10 border border-[#6366f1]/20">
+              <span className="font-mono text-[11px] font-semibold text-blue-700 px-2 py-0.5 rounded-full bg-blue-50 border border-blue-200">
                 SIMTIK & OS
               </span>
             </div>
-            <div className="w-full h-1.5 rounded-full bg-[#18181b] overflow-hidden flex border border-[rgba(255,255,255,0.06)]">
+            <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden flex border border-slate-200/60 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]">
               <div
-                className="h-full bg-[#38bdf8]"
+                className="h-full bg-blue-500"
                 style={{ width: `${Math.round((totalStudents / (unifiedList.length || 1)) * 100)}%` }}
               />
               <div
-                className="h-full bg-[#818cf8]"
+                className="h-full bg-indigo-500"
                 style={{ width: `${Math.round((pureSystemCount / (unifiedList.length || 1)) * 100)}%` }}
               />
             </div>
-            <div className="flex items-center justify-between text-[#a1a1aa] font-mono text-[11px]">
+            <div className="flex items-center justify-between text-slate-500 font-mono text-[11px]">
               <span>{totalStudents} Mhs SIMTIK</span>
               <span>{pureSystemCount} Dosen & Lab</span>
             </div>
@@ -472,76 +472,76 @@ export default function UnifiedUserManagement({
         </div>
 
         {/* Card 2: Akun Riset & Prioritas Aktif */}
-        <div className="bg-[#111114] rounded-xl p-4 border border-[rgba(255,255,255,0.08)] flex flex-col justify-between">
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_10px_28px_-4px_rgba(37,99,235,0.12)] hover:-translate-y-0.5 transition-all flex flex-col justify-between">
           <div className="flex items-start justify-between mb-2">
             <div>
-              <span className="text-xs font-medium text-[#fafafa]">Akun Riset & Prioritas</span>
-              <p className="text-[11px] text-[#a1a1aa]">QoS Dedicated GPU</p>
+              <span className="text-xs font-bold text-slate-900">Akun Riset & Prioritas</span>
+              <p className="text-[11px] text-slate-500">QoS Dedicated GPU</p>
             </div>
-            <div className="w-8 h-8 rounded-lg bg-[#18181b] border border-[rgba(255,255,255,0.08)] flex items-center justify-center text-[#fbbf24]">
-              <Zap className="w-4 h-4" />
+            <div className="w-9 h-9 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 shadow-sm">
+              <Zap className="w-4.5 h-4.5" />
             </div>
           </div>
           <div className="flex flex-col gap-2 mt-1">
             <div className="flex items-baseline justify-between">
-              <span className="font-mono tabular-nums text-2xl font-bold text-[#fbbf24]">
-                {boostedStudents} <span className="text-[#71717a] text-xs font-normal">Akun</span>
+              <span className="font-mono tabular-nums text-2xl font-bold text-amber-600">
+                {boostedStudents} <span className="text-slate-400 text-xs font-normal">Akun</span>
               </span>
-              <span className="font-mono text-[11px] text-[#34d399] px-1.5 py-0.2 rounded bg-[#10b981]/10 border border-[#10b981]/20">
+              <span className="font-mono text-[11px] font-semibold text-emerald-700 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200">
                 Level 1 QoS
               </span>
             </div>
-            <div className="w-full h-1.5 rounded-full bg-[#18181b] overflow-hidden border border-[rgba(255,255,255,0.06)]">
+            <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden border border-slate-200/60 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]">
               <div
-                className="h-full bg-[#fbbf24]"
+                className="h-full bg-gradient-to-r from-amber-400 to-amber-500"
                 style={{ width: `${slotUtilPct}%` }}
               />
             </div>
-            <div className="flex items-center gap-1.5 text-[11px] font-mono text-[#a1a1aa]">
-              <Layers className="w-3 h-3 text-[#38bdf8]" />
-              <span className="truncate">Hak Akses Dedicated <code className="text-[#38bdf8]">compute-level1</code></span>
+            <div className="flex items-center gap-1.5 text-[11px] font-mono text-slate-500">
+              <Layers className="w-3.5 h-3.5 text-blue-600" />
+              <span className="truncate">Hak Akses Dedicated <code className="text-blue-600 font-semibold">compute-level1</code></span>
             </div>
           </div>
         </div>
 
         {/* Card 3: Peringatan Storage (Over Quota) */}
-        <div className="bg-[#111114] rounded-xl p-4 border border-[rgba(255,255,255,0.08)] flex flex-col justify-between">
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_10px_28px_-4px_rgba(37,99,235,0.12)] hover:-translate-y-0.5 transition-all flex flex-col justify-between">
           <div className="flex items-start justify-between mb-2">
             <div>
-              <span className="text-xs font-medium text-[#fafafa]">Peringatan Storage</span>
-              <p className="text-[11px] text-[#a1a1aa]">Disk Limit Policy</p>
+              <span className="text-xs font-bold text-slate-900">Peringatan Storage</span>
+              <p className="text-[11px] text-slate-500">Disk Limit Policy</p>
             </div>
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center border ${
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center border shadow-sm ${
               overQuotaCount > 0
-                ? 'bg-[rgba(244,63,94,0.12)] text-[#fb7185] border-[rgba(244,63,94,0.25)]'
-                : 'bg-[#18181b] text-[#34d399] border-[rgba(255,255,255,0.08)]'
+                ? 'bg-rose-50 text-rose-600 border-rose-200'
+                : 'bg-emerald-50 text-emerald-600 border-emerald-200'
             }`}>
-              <AlertTriangle className="w-4 h-4" />
+              <AlertTriangle className="w-4.5 h-4.5" />
             </div>
           </div>
           <div className="flex flex-col gap-2 mt-1">
             <div className="flex items-baseline justify-between">
-              <span className={`font-mono tabular-nums text-2xl font-bold ${overQuotaCount > 0 ? 'text-[#fb7185]' : 'text-[#fafafa]'}`}>
-                {overQuotaCount} <span className="text-[#71717a] text-xs font-normal">Akun</span>
+              <span className={`font-mono tabular-nums text-2xl font-bold ${overQuotaCount > 0 ? 'text-rose-600' : 'text-slate-900'}`}>
+                {overQuotaCount} <span className="text-slate-400 text-xs font-normal">Akun</span>
               </span>
               {overQuotaCount > 0 ? (
-                <span className="font-mono text-[11px] text-[#fb7185] bg-[rgba(244,63,94,0.12)] px-1.5 py-0.2 rounded border border-[rgba(244,63,94,0.25)]">
+                <span className="font-mono text-[11px] font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
                   Over Quota
                 </span>
               ) : (
-                <span className="font-mono text-[11px] text-[#34d399] bg-[#10b981]/10 px-1.5 py-0.2 rounded border border-[#10b981]/20">
+                <span className="font-mono text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                   Normal
                 </span>
               )}
             </div>
-            <div className="w-full h-1.5 rounded-full bg-[#18181b] overflow-hidden border border-[rgba(255,255,255,0.06)]">
+            <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden border border-slate-200/60 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]">
               <div
-                className={`h-full ${overQuotaCount > 0 ? 'bg-[#f43f5e]' : 'bg-[#10b981]'}`}
+                className={`h-full ${overQuotaCount > 0 ? 'bg-gradient-to-r from-rose-500 to-rose-600' : 'bg-gradient-to-r from-emerald-500 to-emerald-600'}`}
                 style={{ width: overQuotaCount > 0 ? '100%' : '15%' }}
               />
             </div>
-            <div className={`flex items-center gap-1.5 text-[11px] font-mono ${overQuotaCount > 0 ? 'text-[#fb7185]' : 'text-[#a1a1aa]'}`}>
-              <HardDrive className="w-3 h-3" />
+            <div className={`flex items-center gap-1.5 text-[11px] font-mono ${overQuotaCount > 0 ? 'text-rose-600 font-semibold' : 'text-slate-500'}`}>
+              <HardDrive className="w-3.5 h-3.5" />
               <span>{overQuotaCount > 0 ? 'Batas soft quota terlampaui' : 'Semua kuota aman terisolasi'}</span>
             </div>
           </div>
@@ -549,15 +549,15 @@ export default function UnifiedUserManagement({
       </div>
 
       {/* Filter Bar & Search Module */}
-      <div className="bg-[#111114] rounded-xl p-3 border border-[rgba(255,255,255,0.08)] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+      <div className="bg-white rounded-2xl p-3.5 border border-slate-200/90 shadow-[0_2px_12px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         {/* Segmented Controls */}
-        <div className="flex flex-wrap items-center gap-1 bg-[#18181b] p-1 rounded-lg border border-[rgba(255,255,255,0.06)] font-mono text-xs">
+        <div className="flex flex-wrap items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 font-mono text-xs">
           <button
             onClick={() => setFilterType('all')}
-            className={`px-2.5 py-1 rounded transition-colors ${
+            className={`px-3 py-1.5 rounded-lg transition-all ${
               filterType === 'all'
-                ? 'bg-[#27272a] text-[#fafafa] font-semibold border border-[rgba(255,255,255,0.12)]'
-                : 'text-[#a1a1aa] hover:text-[#fafafa]'
+                ? 'bg-white text-blue-700 font-bold shadow-sm border border-slate-200/60'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
             type="button"
           >
@@ -565,10 +565,10 @@ export default function UnifiedUserManagement({
           </button>
           <button
             onClick={() => setFilterType('mhs')}
-            className={`px-2.5 py-1 rounded transition-colors ${
+            className={`px-3 py-1.5 rounded-lg transition-all ${
               filterType === 'mhs'
-                ? 'bg-[#27272a] text-[#fafafa] font-semibold border border-[rgba(255,255,255,0.12)]'
-                : 'text-[#a1a1aa] hover:text-[#fafafa]'
+                ? 'bg-white text-blue-700 font-bold shadow-sm border border-slate-200/60'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
             type="button"
           >
@@ -576,10 +576,10 @@ export default function UnifiedUserManagement({
           </button>
           <button
             onClick={() => setFilterType('dosen')}
-            className={`px-2.5 py-1 rounded transition-colors ${
+            className={`px-3 py-1.5 rounded-lg transition-all ${
               filterType === 'dosen'
-                ? 'bg-[#27272a] text-[#fafafa] font-semibold border border-[rgba(255,255,255,0.12)]'
-                : 'text-[#a1a1aa] hover:text-[#fafafa]'
+                ? 'bg-white text-blue-700 font-bold shadow-sm border border-slate-200/60'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
             type="button"
           >
@@ -587,10 +587,10 @@ export default function UnifiedUserManagement({
           </button>
           <button
             onClick={() => setFilterType('overquota')}
-            className={`px-2.5 py-1 rounded transition-colors ${
+            className={`px-3 py-1.5 rounded-lg transition-all ${
               filterType === 'overquota'
-                ? 'bg-[#27272a] text-[#fb7185] font-semibold border border-[rgba(244,63,94,0.3)]'
-                : 'text-[#a1a1aa] hover:text-[#fafafa]'
+                ? 'bg-white text-rose-700 font-bold shadow-sm border border-rose-200'
+                : 'text-slate-600 hover:text-rose-600'
             }`}
             type="button"
           >
@@ -603,7 +603,7 @@ export default function UnifiedUserManagement({
           <select
             value={selectedCohort}
             onChange={(e) => setSelectedCohort(e.target.value)}
-            className="bg-[#18181b] border border-[rgba(255,255,255,0.08)] text-[#fafafa] text-xs font-mono rounded-md py-1 px-2 focus:outline-none focus:border-[#38bdf8] transition-colors"
+            className="bg-slate-50 border border-slate-200 text-slate-800 text-xs font-mono rounded-xl py-1.5 px-3 focus:outline-none focus:border-blue-500 focus:bg-white transition-all shadow-sm"
           >
             <option value="all">Semua Angkatan</option>
             {availableCohorts.map(c => (
@@ -612,38 +612,38 @@ export default function UnifiedUserManagement({
           </select>
 
           <div className="relative flex-1 sm:w-56">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#71717a]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari NIM, nama, atau IP…"
-              className="w-full bg-[#18181b] border border-[rgba(255,255,255,0.08)] focus:border-[#38bdf8] rounded-md py-1 pl-8 pr-3 text-xs font-mono text-[#fafafa] placeholder:text-[#71717a] outline-none transition-colors"
+              className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white rounded-xl py-1.5 pl-8.5 pr-3 text-xs font-mono text-slate-800 placeholder:text-slate-400 outline-none transition-all shadow-sm"
             />
           </div>
         </div>
       </div>
 
       {/* Precision 8-Column Data Table Container */}
-      <div className="bg-surface-container-low rounded-xl shadow-sm overflow-hidden border border-border-subtle">
+      <div className="bg-white rounded-2xl shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] overflow-hidden border border-slate-200/90">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[1240px]">
             <thead>
-              <tr className="bg-surface-1 text-text-muted  font-mono text-xs  border-b border-border-subtle">
-                <th className="py-3 px-5" scope="col">Akun & Pengguna</th>
-                <th className="py-3 px-4" scope="col">Identitas & Status</th>
-                <th className="py-3 px-4" scope="col">Role / Hak Akses</th>
-                <th className="py-3 px-4" scope="col">QoS & Cgroup Slice</th>
-                <th className="py-3 px-4" scope="col">Alokasi Hardware & Timer</th>
-                <th className="py-3 px-4" scope="col">Penggunaan RAM</th>
-                <th className="py-3 px-4" scope="col">Storage & Quota</th>
-                <th className="py-3 px-5 text-right" scope="col">Aksi Manajemen</th>
+              <tr className="bg-slate-50/90 text-slate-600 font-mono text-xs font-semibold border-b border-slate-200">
+                <th className="py-3.5 px-5" scope="col">Akun & Pengguna</th>
+                <th className="py-3.5 px-4" scope="col">Identitas & Status</th>
+                <th className="py-3.5 px-4" scope="col">Role / Hak Akses</th>
+                <th className="py-3.5 px-4" scope="col">QoS & Cgroup Slice</th>
+                <th className="py-3.5 px-4" scope="col">Alokasi Hardware & Timer</th>
+                <th className="py-3.5 px-4" scope="col">Penggunaan RAM</th>
+                <th className="py-3.5 px-4" scope="col">Storage & Quota</th>
+                <th className="py-3.5 px-5 text-right" scope="col">Aksi Manajemen</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border-subtle">
+            <tbody className="divide-y divide-slate-100 font-mono text-xs">
               {filteredData.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="py-12 text-center text-text-muted text-xs font-mono">
+                  <td colSpan="8" className="py-12 text-center text-slate-400 font-mono">
                     Tidak ada akun yang sesuai dengan filter atau kata kunci pencarian.
                   </td>
                 </tr>
@@ -667,25 +667,25 @@ export default function UnifiedUserManagement({
                     return (
                       <tr
                         key={`std-${item.nim}`}
-                        className={`hover:bg-surface-3/80 transition-colors group ${
-                          item.is_priority ? 'bg-surface-container-low/60' : 'bg-surface-container-low/20'
+                        className={`hover:bg-blue-50/40 transition-colors group ${
+                          item.is_priority ? 'bg-blue-50/20' : 'bg-white'
                         }`}
                       >
                         {/* 1. Akun & Pengguna */}
                         <td className="py-3.5 px-5">
                           <div className="flex items-center gap-3">
-                            <div className={`w-9 h-9 rounded-md flex items-center justify-center font-bold text-xs shrink-0 shadow-sm ${
+                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 shadow-sm border ${
                               item.is_priority
-                                ? 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/40'
-                                : 'bg-secondary-container text-secondary-fixed'
+                                ? 'bg-blue-50 text-blue-700 border-blue-200'
+                                : 'bg-slate-100 text-slate-700 border-slate-200'
                             }`}>
                               {initials}
                             </div>
                             <div className="flex flex-col min-w-0">
-                              <span className="font-semibold text-xs text-text-primary truncate">
+                              <span className="font-bold text-xs text-slate-900 truncate">
                                 {item.nama || 'Mahasiswa SIMTIK'}
                               </span>
-                              <span className="font-mono text-xs text-text-muted truncate">
+                              <span className="font-mono text-xs text-slate-400 truncate">
                                 mhs.{item.nim}@umpo.ac.id
                               </span>
                             </div>
@@ -695,27 +695,27 @@ export default function UnifiedUserManagement({
                         {/* 2. Identitas & Status */}
                         <td className="py-3.5 px-4">
                           <div className="flex flex-col gap-0.5">
-                            <span className="font-mono text-xs text-neon-cyan font-bold tracking-tight">
+                            <span className="font-mono text-xs text-blue-600 font-bold tracking-tight">
                               {item.nim}
                             </span>
                             {item.is_active ? (
                               item.is_online ? (
                                 <div className="flex items-center gap-1.5 font-mono text-xs">
-                                  <span className="w-1.5 h-1.5 rounded-md bg-neon-emerald animate-pulse"></span>
-                                  <span className="text-neon-emerald font-semibold">Online</span>
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 pulse-dot"></span>
+                                  <span className="text-emerald-700 font-bold">Online</span>
                                   {item.active_ip && (
-                                    <span className="text-outline text-[9px]">({item.active_ip})</span>
+                                    <span className="text-slate-400 text-[10px]">({item.active_ip})</span>
                                   )}
                                 </div>
                               ) : (
-                                <div className="flex items-center gap-1.5 font-mono text-xs text-text-muted">
-                                  <span className="w-1.5 h-1.5 rounded-md bg-outline"></span>
+                                <div className="flex items-center gap-1.5 font-mono text-xs text-slate-400">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
                                   <span>⚪ Offline</span>
                                 </div>
                               )
                             ) : (
-                              <div className="flex items-center gap-1.5 font-mono text-xs text-neon-rose font-semibold">
-                                <span className="w-1.5 h-1.5 rounded-md bg-neon-rose"></span>
+                              <div className="flex items-center gap-1.5 font-mono text-xs text-rose-600 font-bold">
+                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                                 <span> Blocked</span>
                               </div>
                             )}
@@ -728,19 +728,19 @@ export default function UnifiedUserManagement({
                             <select
                               value={userRole}
                               onChange={(e) => handleSetRole(item.nim, e.target.value)}
-                              className="bg-surface-2 text-text-primary text-sm font-mono rounded px-2 py-1 focus:outline-none border border-border-base cursor-pointer hover:bg-surface-3 transition-colors"
+                              className="bg-white text-slate-800 text-xs font-mono rounded-lg px-2 py-1 focus:outline-none border border-slate-200 shadow-sm cursor-pointer hover:border-blue-300 transition-colors"
                             >
                               <option value="mahasiswa">Mahasiswa</option>
                               <option value="aslab">Aslab</option>
                               <option value="admin">Admin</option>
                             </select>
                           ) : (
-                            <span className={`px-2 py-0.5 rounded text-xs font-mono  font-semibold ${
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-mono font-semibold border ${
                               userRole === 'admin'
-                                ? 'bg-secondary-container text-secondary-fixed'
+                                ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
                                 : userRole === 'aslab'
-                                ? 'bg-neon-cyan/20 text-neon-cyan'
-                                : 'bg-surface-2 text-on-surface-variant'
+                                ? 'bg-blue-50 text-blue-700 border-blue-200'
+                                : 'bg-slate-100 text-slate-600 border-slate-200'
                             }`}>
                               {userRole}
                             </span>
@@ -751,16 +751,16 @@ export default function UnifiedUserManagement({
                         <td className="py-3.5 px-4">
                           <div className="flex flex-col gap-0.5">
                             {item.is_priority ? (
-                              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary-container/20 text-neon-cyan w-fit shadow-sm border border-neon-cyan/20">
-                                <Zap className="w-3 h-3 text-neon-cyan" />
-                                <span className="font-mono text-xs font-semibold">Level 1 (Priority)</span>
+                              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 w-fit shadow-sm">
+                                <Zap className="w-3 h-3 text-blue-600" />
+                                <span className="font-mono text-xs font-bold">Level 1 (Priority)</span>
                               </div>
                             ) : (
-                              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-surface-variant text-on-surface-variant w-fit">
-                                <span className="font-mono text-xs">Level 2 (Standard)</span>
+                              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 w-fit">
+                                <span className="font-mono text-xs font-medium">Level 2 (Standard)</span>
                               </div>
                             )}
-                            <span className="font-mono text-xs text-outline mt-0.5">
+                            <span className="font-mono text-[10px] text-slate-400 mt-0.5">
                               {item.is_priority ? 'compute-level1.slice' : 'compute-level2.slice'}
                             </span>
                           </div>
@@ -769,16 +769,16 @@ export default function UnifiedUserManagement({
                         {/* 5. Alokasi Hardware & Timer */}
                         <td className="py-3.5 px-4">
                           <div className="flex flex-col gap-0.5">
-                            <span className="font-mono text-xs text-text-primary font-medium">
+                            <span className="font-mono text-xs text-slate-800 font-semibold">
                               {item.is_priority ? 'GPU 0 (Dedicated) | 20 Cores | 70GB' : 'GPU 1 (Shared Pool) | 2 Cores | 4GB'}
                             </span>
                             {item.is_priority && item.priority_expires_at ? (
-                              <div className="inline-flex items-center gap-1 text-neon-amber font-mono text-sm font-bold">
+                              <div className="inline-flex items-center gap-1 text-amber-600 font-mono text-xs font-bold">
                                 <Clock className="w-3 h-3" />
                                 <span>Sisa: <LiveCountdown expiresAt={item.priority_expires_at} /></span>
                               </div>
                             ) : (
-                              <span className="font-mono text-xs text-outline">
+                              <span className="font-mono text-xs text-slate-400">
                                 {item.is_online ? 'Fair-share FairQ active' : 'Tidak ada proses aktif'}
                               </span>
                             )}
@@ -789,13 +789,13 @@ export default function UnifiedUserManagement({
                         <td className="py-3.5 px-4">
                           <div className="flex flex-col gap-1 w-28">
                             <div className="flex justify-between font-mono text-xs">
-                              <span className="text-text-primary font-semibold">{ramUsedGb} GB</span>
-                              <span className="text-outline">/ {ramMaxGb} GB</span>
+                              <span className="text-slate-900 font-bold">{ramUsedGb} GB</span>
+                              <span className="text-slate-400">/ {ramMaxGb} GB</span>
                             </div>
-                            <div className="w-full h-1.5 rounded-md bg-surface-variant overflow-hidden">
+                            <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden border border-slate-200/50 shadow-inner">
                               <div
-                                className={`h-full rounded-md transition-all duration-300 ${
-                                  ramPct >= 85 ? 'bg-neon-rose' : ramPct >= 60 ? 'bg-neon-amber' : 'bg-neon-cyan'
+                                className={`h-full rounded-full transition-all duration-300 ${
+                                  ramPct >= 85 ? 'bg-rose-500' : ramPct >= 60 ? 'bg-amber-500' : 'bg-blue-500'
                                 }`}
                                 style={{ width: `${ramPct}%` }}
                               />
@@ -807,46 +807,46 @@ export default function UnifiedUserManagement({
                         <td className="py-3.5 px-4">
                           <div className="flex flex-col gap-1 w-32">
                             <div className="flex justify-between font-mono text-xs">
-                              <span className={`font-semibold ${item.is_over_quota ? 'text-neon-rose' : 'text-text-primary'}`}>
+                              <span className={`font-bold ${item.is_over_quota ? 'text-rose-600' : 'text-slate-900'}`}>
                                 {diskUsedGb} GB
                               </span>
-                              <span className="text-outline">/ {diskQuotaGb} GB</span>
+                              <span className="text-slate-400">/ {diskQuotaGb} GB</span>
                             </div>
-                            <div className="w-full h-1.5 rounded-md bg-surface-variant overflow-hidden">
+                            <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden border border-slate-200/50 shadow-inner">
                               <div
-                                className={`h-full rounded-md transition-all duration-300 ${
+                                className={`h-full rounded-full transition-all duration-300 ${
                                   item.is_over_quota
-                                    ? 'bg-neon-rose shadow-[0_0_8px_rgba(255,180,171,0.8)]'
+                                    ? 'bg-rose-500'
                                     : diskPct >= 80
-                                    ? 'bg-neon-amber'
-                                    : 'bg-neon-cyan'
+                                    ? 'bg-amber-500'
+                                    : 'bg-blue-500'
                                 }`}
                                 style={{ width: `${diskPct}%` }}
                               />
                             </div>
                             {item.is_over_quota ? (
-                              <div className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-error-container/30 text-neon-rose font-mono text-[9px] w-fit font-bold">
+                              <div className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-rose-50 text-rose-700 font-mono text-[9px] w-fit font-bold border border-rose-200">
                                 <span>⚠️ Over Quota</span>
                               </div>
                             ) : (
-                              <span className="font-mono text-[9px] text-neon-emerald">
+                              <span className="font-mono text-[10px] text-emerald-700 font-semibold">
                                 Normal ({diskPct}%)
                               </span>
                             )}
                           </div>
                         </td>
 
-                        {/* 8. Aksi Manajemen */}
+                        {/* 8. Aksi Manajemen with 3D Tactile Buttons */}
                         <td className="py-3.5 px-5 text-right">
                           {!isAdmin ? (
-                            <span className="font-mono text-xs text-outline">// READ_ONLY</span>
+                            <span className="font-mono text-xs text-slate-400">// READ_ONLY</span>
                           ) : (
-                            <div className="inline-flex items-center gap-1 opacity-90 group-hover:opacity-100 transition-opacity">
+                            <div className="inline-flex items-center gap-1.5 opacity-90 group-hover:opacity-100 transition-opacity">
                               {isSuperAdmin && (
                                 item.is_priority ? (
                                   <button
                                     onClick={() => handleUnboost(item.nim)}
-                                    className="px-2 py-1 rounded bg-secondary-container/40 text-neon-amber hover:bg-secondary-container transition-colors text-xs font-mono font-semibold"
+                                    className="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 shadow-sm active:translate-y-0.5 transition-all text-xs font-mono font-semibold"
                                     title="Kembalikan ke Level 2 Standard"
                                     type="button"
                                   >
@@ -856,7 +856,7 @@ export default function UnifiedUserManagement({
                                   <button
                                     onClick={() => setBoostModal({ isOpen: true, nim: item.nim, nama: item.nama || '', hours: 4, reason: '' })}
                                     disabled={isSlotsFull}
-                                    className="px-2 py-1 rounded bg-primary-container text-on-primary-container hover:bg-neon-cyan transition-colors text-xs font-mono font-bold shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                                    className="px-2.5 py-1 rounded-lg bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-[0_2px_0_#1d4ed8,0_2px_4px_rgba(37,99,235,0.2)] active:translate-y-0.5 transition-all text-xs font-mono font-bold disabled:opacity-40 disabled:cursor-not-allowed"
                                     title={isSlotsFull ? 'Slot Prioritas GPU 0 Penuh' : 'Boost ke Level 1 Dedicated'}
                                     type="button"
                                   >
@@ -865,15 +865,15 @@ export default function UnifiedUserManagement({
                                 )
                               )}
 
-                              {/* Kill Sesi (Available for Operator Aslab and Admin) */}
+                              {/* Kill Sesi */}
                               <button
                                 onClick={() => onKillAllUser(`m${item.nim}`)}
                                 disabled={!item.is_online}
-                                className="p-1 rounded bg-error-container/20 text-neon-rose hover:bg-error-container/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 shadow-sm active:translate-y-0.5 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                                 title="Kill Sesi OS Aktif"
                                 type="button"
                               >
-                                <span className="material-symbols-outlined text-[16px]">stop_circle</span>
+                                <span className="material-symbols-outlined text-[16px] block">stop_circle</span>
                               </button>
 
                               {/* Super Admin Advanced Actions */}
@@ -881,7 +881,7 @@ export default function UnifiedUserManagement({
                                 <>
                                   <button
                                     onClick={() => handleClearCache(item.nim)}
-                                    className="p-1 rounded bg-surface-2 text-on-surface-variant hover:text-neon-amber hover:bg-surface-3 transition-colors"
+                                    className="p-1.5 rounded-lg bg-white hover:bg-amber-50 text-slate-600 hover:text-amber-600 border border-slate-200 shadow-sm active:translate-y-0.5 transition-all"
                                     title="Bersihkan Cache Disk"
                                     type="button"
                                   >
@@ -889,7 +889,7 @@ export default function UnifiedUserManagement({
                                   </button>
                                   <button
                                     onClick={() => setResetModal({ isOpen: true, username: `m${item.nim}`, newPassword: '', isSubmitting: false })}
-                                    className="p-1 rounded bg-surface-2 text-on-surface-variant hover:text-text-primary hover:bg-surface-3 transition-colors"
+                                    className="p-1.5 rounded-lg bg-white hover:bg-blue-50 text-slate-600 hover:text-blue-600 border border-slate-200 shadow-sm active:translate-y-0.5 transition-all"
                                     title="Reset Password Linux"
                                     type="button"
                                   >
@@ -897,15 +897,15 @@ export default function UnifiedUserManagement({
                                   </button>
                                   <button
                                     onClick={() => handleToggleActive(item.nim)}
-                                    className="p-1 rounded bg-surface-2 text-on-surface-variant hover:text-neon-rose hover:bg-surface-3 transition-colors"
+                                    className="p-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-600 hover:text-slate-900 border border-slate-200 shadow-sm active:translate-y-0.5 transition-all"
                                     title={item.is_active ? 'Blokir Akun' : 'Aktifkan Akun'}
                                     type="button"
                                   >
-                                    {item.is_active ? <UserX className="w-3.5 h-3.5" /> : <UserCheck className="w-3.5 h-3.5 text-neon-emerald" />}
+                                    {item.is_active ? <UserX className="w-3.5 h-3.5 text-rose-600" /> : <UserCheck className="w-3.5 h-3.5 text-emerald-600" />}
                                   </button>
                                   <button
                                     onClick={() => handleDeleteUser(item.nim)}
-                                    className="p-1 rounded bg-surface-2 text-on-surface-variant hover:text-neon-rose hover:bg-surface-3 transition-colors"
+                                    className="p-1.5 rounded-lg bg-white hover:bg-rose-50 text-slate-600 hover:text-rose-600 border border-slate-200 shadow-sm active:translate-y-0.5 transition-all"
                                     title="Hapus Akun Permanen"
                                     type="button"
                                   >
@@ -935,30 +935,30 @@ export default function UnifiedUserManagement({
                   return (
                     <tr
                       key={`sys-${item.username}`}
-                      className="hover:bg-surface-3/80 transition-colors bg-surface-container-low/30 group"
+                      className="hover:bg-blue-50/40 transition-colors bg-slate-50/30 group"
                     >
                       {/* 1. Akun & Pengguna */}
                       <td className="py-3.5 px-5">
                         <div className="flex items-center gap-3">
-                          <div className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 shadow-sm border ${
+                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 shadow-sm border ${
                             isRiset
-                              ? 'bg-primary-container/20 text-neon-cyan border-neon-cyan/30'
-                              : 'bg-secondary-container/40 text-secondary-fixed border-secondary/30'
+                              ? 'bg-blue-50 text-blue-700 border-blue-200'
+                              : 'bg-indigo-50 text-indigo-700 border-indigo-200'
                           }`}>
                             {isRiset ? <Database className="w-4 h-4" /> : <Server className="w-4 h-4" />}
                           </div>
                           <div className="flex flex-col min-w-0">
-                            <span className="font-semibold text-xs text-text-primary truncate flex items-center gap-2">
+                            <span className="font-bold text-xs text-slate-900 truncate flex items-center gap-2">
                               {item.username}
-                              <span className={`text-[9px] px-1.5 py-0.2 rounded font-mono font-bold  border ${
+                              <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-mono font-bold border ${
                                 isRiset
-                                  ? 'bg-neon-cyan/15 text-neon-cyan border-neon-cyan/30'
-                                  : 'bg-secondary-container text-secondary-fixed border-secondary/30'
+                                  ? 'bg-blue-50 text-blue-700 border-blue-200'
+                                  : 'bg-indigo-50 text-indigo-700 border-indigo-200'
                               }`}>
                                 {isRiset ? 'RISET & SKRIPSI' : 'DOSEN / PELATIHAN'}
                               </span>
                             </span>
-                            <span className="font-mono text-xs text-text-muted truncate">
+                            <span className="font-mono text-xs text-slate-400 truncate">
                               {isRiset ? 'Akun Riset & Skripsi Mahasiswa/Dosen' : 'Akun Dosen & Pelatihan Praktikum'}
                             </span>
                           </div>
@@ -968,18 +968,18 @@ export default function UnifiedUserManagement({
                       {/* 2. Identitas & Status */}
                       <td className="py-3.5 px-4">
                         <div className="flex flex-col gap-0.5">
-                          <span className="font-mono text-xs text-outline font-bold tracking-tight">
+                          <span className="font-mono text-xs text-slate-600 font-bold tracking-tight">
                             {item.username}
                           </span>
                           {isOnline ? (
                             <div className="flex items-center gap-1.5 font-mono text-xs">
-                              <span className="w-1.5 h-1.5 rounded-md bg-neon-emerald animate-pulse"></span>
-                              <span className="text-neon-emerald font-semibold">Online</span>
-                              <span className="text-outline text-[9px]">({item.active_ip || '127.0.0.1'})</span>
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 pulse-dot"></span>
+                              <span className="text-emerald-700 font-bold">Online</span>
+                              <span className="text-slate-400 text-[10px]">({item.active_ip || '127.0.0.1'})</span>
                             </div>
                           ) : (
-                            <div className="flex items-center gap-1.5 font-mono text-xs text-text-muted">
-                              <span className="w-1.5 h-1.5 rounded-md bg-outline"></span>
+                            <div className="flex items-center gap-1.5 font-mono text-xs text-slate-400">
+                              <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
                               <span>⚪ Offline</span>
                             </div>
                           )}
@@ -988,10 +988,10 @@ export default function UnifiedUserManagement({
 
                       {/* 3. Role / Hak Akses */}
                       <td className="py-3.5 px-4">
-                        <span className={`px-2 py-0.5 rounded text-xs font-mono  font-semibold ${
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-mono font-semibold border ${
                           isRiset
-                            ? 'bg-secondary-container text-secondary-fixed'
-                            : 'bg-surface-2 text-on-surface-variant'
+                            ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                            : 'bg-slate-100 text-slate-600 border-slate-200'
                         }`}>
                           {isRiset ? 'Dosen Riset' : 'Batch Service'}
                         </span>
@@ -1001,16 +1001,16 @@ export default function UnifiedUserManagement({
                       <td className="py-3.5 px-4">
                         <div className="flex flex-col gap-0.5">
                           {isRiset ? (
-                            <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary-container/20 text-neon-cyan w-fit shadow-sm border border-neon-cyan/20">
-                              <Zap className="w-3 h-3 text-neon-cyan" />
-                              <span className="font-mono text-xs font-semibold">Level 1 (Priority)</span>
+                            <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 w-fit shadow-sm">
+                              <Zap className="w-3 h-3 text-blue-600" />
+                              <span className="font-mono text-xs font-bold">Level 1 (Priority)</span>
                             </div>
                           ) : (
-                            <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-surface-variant text-on-surface-variant w-fit">
-                              <span className="font-mono text-xs">Level 2 (Standard)</span>
+                            <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 w-fit">
+                              <span className="font-mono text-xs font-medium">Level 2 (Standard)</span>
                             </div>
                           )}
-                          <span className="font-mono text-xs text-outline mt-0.5">
+                          <span className="font-mono text-[10px] text-slate-400 mt-0.5">
                             {isRiset ? 'compute-level1.slice' : 'compute-level2.slice'}
                           </span>
                         </div>
@@ -1019,10 +1019,10 @@ export default function UnifiedUserManagement({
                       {/* 5. Alokasi Hardware & Timer */}
                       <td className="py-3.5 px-4">
                         <div className="flex flex-col gap-0.5">
-                          <span className="font-mono text-xs text-text-primary font-medium">
+                          <span className="font-mono text-xs text-slate-800 font-semibold">
                             {isRiset ? 'GPU 0 (Dedicated) | 20 Cores | 70GB' : 'GPU 1 (Shared Pool) | 2 Cores | 4GB'}
                           </span>
-                          <span className="font-mono text-xs text-outline">
+                          <span className="font-mono text-xs text-slate-400">
                             {isRiset ? 'Riset Dosen Tetap' : 'Batch Job Pipeline'}
                           </span>
                         </div>
@@ -1032,13 +1032,13 @@ export default function UnifiedUserManagement({
                       <td className="py-3.5 px-4">
                         <div className="flex flex-col gap-1 w-28">
                           <div className="flex justify-between font-mono text-xs">
-                            <span className="text-text-primary font-semibold">{ramUsedGb} GB</span>
-                            <span className="text-outline">/ {ramMaxGb} GB</span>
+                            <span className="text-slate-900 font-bold">{ramUsedGb} GB</span>
+                            <span className="text-slate-400">/ {ramMaxGb} GB</span>
                           </div>
-                          <div className="w-full h-1.5 rounded-md bg-surface-variant overflow-hidden">
+                          <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden border border-slate-200/50 shadow-inner">
                             <div
-                              className={`h-full rounded-md transition-all duration-300 ${
-                                ramPct >= 85 ? 'bg-neon-rose' : 'bg-neon-cyan'
+                              className={`h-full rounded-full transition-all duration-300 ${
+                                ramPct >= 85 ? 'bg-rose-500' : 'bg-blue-500'
                               }`}
                               style={{ width: `${ramPct}%` }}
                             />
@@ -1050,27 +1050,27 @@ export default function UnifiedUserManagement({
                       <td className="py-3.5 px-4">
                         <div className="flex flex-col gap-1 w-32">
                           <div className="flex justify-between font-mono text-xs">
-                            <span className={`font-semibold ${item.is_over_quota ? 'text-neon-rose' : 'text-text-primary'}`}>
+                            <span className={`font-bold ${item.is_over_quota ? 'text-rose-600' : 'text-slate-900'}`}>
                               {diskUsedGb} GB
                             </span>
-                            <span className="text-outline">/ {diskQuotaGb} GB</span>
+                            <span className="text-slate-400">/ {diskQuotaGb} GB</span>
                           </div>
-                          <div className="w-full h-1.5 rounded-md bg-surface-variant overflow-hidden">
+                          <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden border border-slate-200/50 shadow-inner">
                             <div
-                              className={`h-full rounded-md transition-all duration-300 ${
+                              className={`h-full rounded-full transition-all duration-300 ${
                                 item.is_over_quota
-                                  ? 'bg-neon-rose shadow-[0_0_8px_rgba(255,180,171,0.8)]'
-                                  : 'bg-neon-cyan'
+                                  ? 'bg-rose-500'
+                                  : 'bg-blue-500'
                               }`}
                               style={{ width: `${diskPct}%` }}
                             />
                           </div>
                           {item.is_over_quota ? (
-                            <div className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-error-container/30 text-neon-rose font-mono text-[9px] w-fit font-bold">
+                            <div className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-rose-50 text-rose-700 font-mono text-[9px] w-fit font-bold border border-rose-200">
                               <span>⚠️ Over Quota</span>
                             </div>
                           ) : (
-                            <span className="font-mono text-[9px] text-neon-emerald">
+                            <span className="font-mono text-[10px] text-emerald-700 font-semibold">
                               Normal ({diskPct}%)
                             </span>
                           )}
@@ -1080,22 +1080,22 @@ export default function UnifiedUserManagement({
                       {/* 8. Aksi Manajemen */}
                       <td className="py-3.5 px-5 text-right">
                         {!isAdmin ? (
-                          <span className="font-mono text-xs text-outline">// SYSTEM_PROTECTED</span>
+                          <span className="font-mono text-xs text-slate-400">// SYSTEM_PROTECTED</span>
                         ) : (
-                          <div className="inline-flex items-center gap-1 opacity-90 group-hover:opacity-100 transition-opacity">
+                          <div className="inline-flex items-center gap-1.5 opacity-90 group-hover:opacity-100 transition-opacity">
                             <button
                               onClick={() => onKillAllUser(item.username)}
                               disabled={!isOnline}
-                              className="p-1 rounded bg-error-container/20 text-neon-rose hover:bg-error-container/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                              className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 shadow-sm active:translate-y-0.5 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                               title="Kill Seluruh Proses Akun"
                               type="button"
                             >
-                              <span className="material-symbols-outlined text-[16px]">stop_circle</span>
+                              <span className="material-symbols-outlined text-[16px] block">stop_circle</span>
                             </button>
                             {isSuperAdmin && (
                               <button
                                 onClick={() => setResetModal({ isOpen: true, username: item.username, newPassword: '', isSubmitting: false })}
-                                className="p-1 rounded bg-surface-2 text-on-surface-variant hover:text-text-primary hover:bg-surface-3 transition-colors"
+                                className="p-1.5 rounded-lg bg-white hover:bg-blue-50 text-slate-600 hover:text-blue-600 border border-slate-200 shadow-sm active:translate-y-0.5 transition-all"
                                 title="Reset Password Akun Sistem"
                                 type="button"
                               >
@@ -1114,23 +1114,23 @@ export default function UnifiedUserManagement({
         </div>
       </div>
 
-      {/* Boost QoS Modal */}
+      {/* Boost QoS Modal with 3D Depth */}
       {boostModal.isOpen && (
-        <div className="fixed inset-0 z-50 bg-[#0f131c]/80  flex items-center justify-center p-4">
-          <div className="bg-[#181b25] border border-[#46455440] rounded-xl shadow-sm p-6 w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between pb-4 border-b border-border-subtle">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-lg bg-neon-cyan/20 border border-neon-cyan/40 flex items-center justify-center text-neon-cyan">
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-[0_20px_50px_rgba(15,23,42,0.15),0_4px_12px_rgba(37,99,235,0.08)] p-6 w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 shadow-sm">
                   <Zap className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm text-[#dfe2ef]">Boost Akses ke GPU 0 (Level 1)</h3>
-                  <p className="text-xs text-[#908fa0] font-mono">NIM: {boostModal.nim} ({boostModal.nama})</p>
+                  <h3 className="font-bold text-sm text-slate-900">Boost Akses ke GPU 0 (Level 1)</h3>
+                  <p className="text-xs text-slate-500 font-mono">NIM: {boostModal.nim} ({boostModal.nama})</p>
                 </div>
               </div>
               <button
                 onClick={() => setBoostModal({ isOpen: false, nim: null, nama: '', hours: 4, reason: '' })}
-                className="text-text-muted hover:text-on-surface p-1"
+                className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition-colors"
                 type="button"
               >
                 <X className="w-4 h-4" />
@@ -1139,7 +1139,7 @@ export default function UnifiedUserManagement({
 
             <form onSubmit={handleBoost} className="mt-5 space-y-4">
               <div>
-                <label className="block text-xs font-mono text-text-muted mb-2">
+                <label className="block text-xs font-mono text-slate-600 font-semibold mb-2">
                   Durasi Hak Akses Dedicated GPU 0:
                 </label>
                 <div className="grid grid-cols-3 gap-2">
@@ -1148,10 +1148,10 @@ export default function UnifiedUserManagement({
                       key={h}
                       type="button"
                       onClick={() => setBoostModal(prev => ({ ...prev, hours: h }))}
-                      className={`py-2 rounded-lg text-xs font-mono transition-all border ${
+                      className={`py-2 rounded-xl text-xs font-mono font-semibold transition-all border ${
                         boostModal.hours === h
-                          ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan font-bold shadow-sm'
-                          : 'bg-surface-3 border-border-base text-text-muted hover:text-on-surface'
+                          ? 'bg-gradient-to-b from-blue-500 to-blue-600 text-white border-blue-700 shadow-[0_2px_0_#1d4ed8,0_2px_4px_rgba(37,99,235,0.2)]'
+                          : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm'
                       }`}
                     >
                       {h} Jam
@@ -1161,7 +1161,7 @@ export default function UnifiedUserManagement({
               </div>
 
               <div>
-                <label className="block text-xs font-mono text-text-muted mb-1.5">
+                <label className="block text-xs font-mono text-slate-600 font-semibold mb-1.5">
                   Alasan / Keterangan Boost:
                 </label>
                 <input
@@ -1169,28 +1169,28 @@ export default function UnifiedUserManagement({
                   placeholder="Misal: Training Model Skripsi ResNet-50"
                   value={boostModal.reason}
                   onChange={(e) => setBoostModal(prev => ({ ...prev, reason: e.target.value }))}
-                  className="w-full bg-surface-3 rounded-lg px-3 py-2 text-xs font-mono text-text-primary border border-border-base focus:outline-none focus:border-neon-cyan"
+                  className="w-full bg-slate-50 rounded-xl px-3.5 py-2.5 text-xs font-mono text-slate-800 border border-slate-200 focus:outline-none focus:border-blue-500 focus:bg-white transition-all shadow-inner"
                 />
               </div>
 
-              <div className="p-3 rounded-lg bg-surface-container text-xs font-mono text-text-muted border border-border-subtle flex flex-col gap-1">
-                <span className="text-neon-cyan font-semibold">Benefit Level 1 QoS:</span>
+              <div className="p-3.5 rounded-xl bg-blue-50/70 text-xs font-mono text-blue-900 border border-blue-200 flex flex-col gap-1">
+                <span className="text-blue-700 font-bold">Benefit Level 1 QoS:</span>
                 <span>• Akses Dedicated GPU 0 (Direct VRAM Mapping)</span>
                 <span>• Jatah RAM Host ditingkatkan hingga 70 GB (Cgroup isolated)</span>
                 <span>• Prioritas CPU Scheduler CFS 20 Cores</span>
               </div>
 
-              <div className="flex gap-2 pt-2">
+              <div className="flex gap-2.5 pt-2">
                 <button
                   type="button"
                   onClick={() => setBoostModal({ isOpen: false, nim: null, nama: '', hours: 4, reason: '' })}
-                  className="flex-1 py-2 rounded-lg bg-surface-3 hover:bg-surface-2 text-text-muted hover:text-on-surface font-mono text-xs transition-colors"
+                  className="flex-1 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 font-mono text-xs font-semibold shadow-sm active:translate-y-0.5 transition-all"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 rounded-lg bg-neon-cyan hover:bg-primary-fixed text-on-primary font-mono text-xs font-bold transition-colors shadow-sm"
+                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-mono text-xs font-bold shadow-[0_2px_0_#1d4ed8,0_4px_10px_rgba(37,99,235,0.25)] active:translate-y-0.5 transition-all"
                 >
                   Konfirmasi Boost
                 </button>
@@ -1202,21 +1202,21 @@ export default function UnifiedUserManagement({
 
       {/* Reset Linux Password Modal */}
       {resetModal.isOpen && (
-        <div className="fixed inset-0 z-50 bg-[#0f131c]/80  flex items-center justify-center p-4">
-          <div className="bg-[#181b25] border border-[#46455440] rounded-xl shadow-sm p-6 w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between pb-4 border-b border-border-subtle">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-lg bg-secondary-container flex items-center justify-center text-secondary-fixed">
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-[0_20px_50px_rgba(15,23,42,0.15),0_4px_12px_rgba(37,99,235,0.08)] p-6 w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600 shadow-sm">
                   <KeyRound className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm text-[#dfe2ef]">Reset Password Linux OS</h3>
-                  <p className="text-xs text-[#908fa0] font-mono">User: {resetModal.username}</p>
+                  <h3 className="font-bold text-sm text-slate-900">Reset Password Linux OS</h3>
+                  <p className="text-xs text-slate-500 font-mono">User: {resetModal.username}</p>
                 </div>
               </div>
               <button
                 onClick={() => setResetModal({ isOpen: false, username: '', newPassword: '', isSubmitting: false })}
-                className="text-text-muted hover:text-on-surface p-1"
+                className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition-colors"
                 type="button"
               >
                 <X className="w-4 h-4" />
@@ -1225,7 +1225,7 @@ export default function UnifiedUserManagement({
 
             <form onSubmit={handleResetPasswordSubmit} className="mt-5 space-y-4">
               <div>
-                <label className="block text-xs font-mono text-text-muted mb-1.5">
+                <label className="block text-xs font-mono text-slate-600 font-semibold mb-1.5">
                   Password Linux Baru:
                 </label>
                 <input
@@ -1234,22 +1234,22 @@ export default function UnifiedUserManagement({
                   value={resetModal.newPassword}
                   onChange={(e) => setResetModal(prev => ({ ...prev, newPassword: e.target.value }))}
                   required
-                  className="w-full bg-surface-3 rounded-lg px-3 py-2 text-xs font-mono text-text-primary border border-border-base focus:outline-none focus:border-secondary"
+                  className="w-full bg-slate-50 rounded-xl px-3.5 py-2.5 text-xs font-mono text-slate-800 border border-slate-200 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all shadow-inner"
                 />
               </div>
 
-              <div className="flex gap-2 pt-2">
+              <div className="flex gap-2.5 pt-2">
                 <button
                   type="button"
                   onClick={() => setResetModal({ isOpen: false, username: '', newPassword: '', isSubmitting: false })}
-                  className="flex-1 py-2 rounded-lg bg-surface-3 hover:bg-surface-2 text-text-muted hover:text-on-surface font-mono text-xs transition-colors"
+                  className="flex-1 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 font-mono text-xs font-semibold shadow-sm active:translate-y-0.5 transition-all"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={resetModal.isSubmitting}
-                  className="flex-1 py-2 rounded-lg bg-secondary hover:bg-secondary-fixed text-surface-dim font-mono text-xs font-bold transition-colors shadow-sm disabled:opacity-50"
+                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-mono text-xs font-bold shadow-[0_2px_0_#4338ca,0_4px_10px_rgba(79,70,229,0.25)] active:translate-y-0.5 transition-all disabled:opacity-50"
                 >
                   {resetModal.isSubmitting ? 'Memproses...' : 'Simpan Password'}
                 </button>

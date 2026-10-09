@@ -315,7 +315,7 @@ def simtik_pre_spawn_hook(spawner):
             logger.warning(f"Cek prioritas gagal untuk {username}: {e}")
 
     if priority:
-        logger.info(f"[QoS] {username} -> LEVEL 1 (20 core, 70G, GPU 0)")
+        logger.info(f"[QoS] {username} -> LEVEL 1 (20 core, 70G, GPU 0 Dedicated)")
         spawner.unit_extra_properties = {"Slice": "compute-level1.slice"}
         spawner.cpu_limit = 20.0
         spawner.mem_limit = "70G"
@@ -324,25 +324,22 @@ def simtik_pre_spawn_hook(spawner):
         spawner.environment.update({
             "OMP_NUM_THREADS": "20",
             "OPENBLAS_NUM_THREADS": "20",
+            "CUDA_DEVICE_ORDER": "PCI_BUS_ID",
             "CUDA_VISIBLE_DEVICES": "0"
         })
     else:
-        logger.info(f"[QoS] {username} -> LEVEL 2 (2 core, 4G, GPU 1)")
+        logger.info(f"[QoS] {username} -> LEVEL 2 (2 core, 4G, GPU 1 Shared)")
         spawner.unit_extra_properties = {"Slice": "compute-level2.slice"}
         spawner.cpu_limit = 2.0
         spawner.mem_limit = "4G"
         if not hasattr(spawner, "environment") or spawner.environment is None:
             spawner.environment = {}
-        env = {
+        spawner.environment.update({
             "OMP_NUM_THREADS": "2",
             "OPENBLAS_NUM_THREADS": "2",
+            "CUDA_DEVICE_ORDER": "PCI_BUS_ID",
             "CUDA_VISIBLE_DEVICES": "1"
-        }
-        # Hanya aktifkan MPS jika socket daemon MPS aktif
-        if os.path.exists("/tmp/nvidia-mps") or os.path.exists("/tmp/nvidia-mps/control"):
-            env["CUDA_MPS_PIPE_DIRECTORY"] = "/tmp/nvidia-mps"
-            env["CUDA_MPS_PINNED_DEVICE_MEM_LIMIT"] = "2048M"
-        spawner.environment.update(env)
+        })
 
 
 def simtik_post_stop_hook(spawner):

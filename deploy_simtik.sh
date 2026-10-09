@@ -96,8 +96,15 @@ MemoryMax=4G
 EOF
 sudo systemctl daemon-reload
 
-# 4.6 Pastikan akses hardware GPU (grup video, render & device permissions)
+# 4.6 Pastikan akses hardware GPU (compute mode DEFAULT, grup video, render & device permissions)
 echo "🎮 Memeriksa & mengonfigurasi izin akses hardware GPU untuk pengguna..."
+if command -v nvidia-smi &>/dev/null; then
+    sudo nvidia-smi -c DEFAULT || true
+fi
+# Matikan daemon MPS jika pernah aktif agar RTX 5060 Ti kembali ke mode sharing normal
+echo quit | nvidia-cuda-mps-control 2>/dev/null || true
+sudo rm -rf /tmp/nvidia-mps /tmp/nvidia-log 2>/dev/null || true
+
 for u in $(cut -d: -f1 /etc/passwd | grep -E '^m[0-9]+'); do
     sudo usermod -aG video,render "$u" 2>/dev/null || true
 done

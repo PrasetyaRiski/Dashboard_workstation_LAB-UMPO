@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { 
-  Folder, File, ArrowUp, Download, Copy, X, Search, User 
+  Folder, File, ArrowUp, Download, Copy, X, Search, User,
+  Trash2, Edit, Scissors, Upload, FolderPlus, Clipboard
 } from 'lucide-react';
 
 export default function AdminFileExplorer({ 
@@ -14,6 +15,16 @@ export default function AdminFileExplorer({
   const [explorerPath, setExplorerPath] = useState('');
   const [explorerFiles, setExplorerFiles] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // New states
+  const [clipboard, setClipboard] = useState({ path: null, type: null }); // type: 'copy' | 'cut'
+  
+  // Modals
+  const [renameModal, setRenameModal] = useState({ isOpen: false, oldPath: '', currentName: '', newName: '' });
+  const [newFolderModal, setNewFolderModal] = useState({ isOpen: false, folderName: '' });
+  const [deleteConfirmModal, setDeleteConfirmModal] = useState({ isOpen: false, path: '', name: '' });
+
+  const fileInputRef = useRef(null);
 
   const getAuthHeaders = useCallback(() => {
     return {
@@ -43,6 +54,10 @@ export default function AdminFileExplorer({
       fetchExplorerFiles(selectedUserForFiles, explorerPath);
     }
   }, [selectedUserForFiles, explorerPath, fetchExplorerFiles]);
+
+  const reloadFiles = () => {
+    if (selectedUserForFiles) fetchExplorerFiles(selectedUserForFiles, explorerPath);
+  };
 
   const handleDownloadFile = async (filepath) => {
     try {
@@ -79,6 +94,125 @@ export default function AdminFileExplorer({
         showToast('Berhasil disalin ke shared', 'success');
       } else {
         showToast(data.detail || 'Gagal menyalin', 'error');
+      }
+    } catch (err) {
+      showToast('Error: ' + err.message, 'error');
+    }
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('path', explorerPath);
+
+    try {
+      const res = await fetch(`/api/users/${selectedUserForFiles}/upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${adminToken || localStorage.getItem('adminToken') || ''}`
+        },
+        body: formData
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast('File berhasil diupload', 'success');
+        reloadFiles();
+      } else {
+        showToast(data.detail || 'Gagal upload file', 'error');
+      }
+    } catch (err) {
+      showToast('Error: ' + err.message, 'error');
+    }
+    // reset input
+    e.target.value = '';
+  };
+
+  const handleCreateFolder = async () => {
+    if (!newFolderModal.folderName) return;
+    try {
+      const res = await fetch(`/api/users/${selectedUserForFiles}/create-folder`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ path: explorerPath, folder_name: newFolderModal.folderName })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast('Folder berhasil dibuat', 'success');
+        setNewFolderModal({ isOpen: false, folderName: '' });
+        reloadFiles();
+      } else {
+        showToast(data.detail || 'Gagal membuat folder', 'error');
+      }
+    } catch (err) {
+      showToast('Error: ' + err.message, 'error');
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      const res = await fetch(`/api/users/${selectedUserForFiles}/delete`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ path: deleteConfirmModal.path })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast('Berhasil dihapus', 'success');
+        setDeleteConfirmModal({ isOpen: false, path: '', name: '' });
+        reloadFiles();
+      } else {
+        showToast(data.detail || 'Gagal menghapus', 'error');
+      }
+    } catch (err) {
+      showToast('Error: ' + err.message, 'error');
+    }
+  };
+
+  const handleRename = async () => {
+    if (!renameModal.newName) return;
+    try {
+      const res = await fetch(`/api/users/${selectedUserForFiles}/rename`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ old_path: renameModal.oldPath, new_name: renameModal.newName })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast('Berhasil di-rename', 'success');
+        setRenameModal({ isOpen: false, oldPath: '', currentName: '', newName: '' });
+        reloadFiles();
+      } else {
+        showToast(data.detail || 'Gagal me-rename', 'error');
+      }
+    } catch (err) {
+      showToast('Error: ' + err.message, 'error');
+    }
+  };
+
+  const handlePaste = async () => {
+    if (!clipboard.path) return;
+    try {
+      const res = await fetch(`/api/users/${selectedUserForFiles}/move`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ 
+          source_path: clipboard.path, 
+          target_dir: explorerPath, 
+          is_copy: clipboard.type === 'copy' 
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast('Paste berhasil', 'success');
+        if (clipboard.type === 'cut') {
+          setClipboard({ path: null, type: null });
+        }
+        reloadFiles();
+      } else {
+        showToast(data.detail || 'Gagal paste', 'error');
       }
     } catch (err) {
       showToast('Error: ' + err.message, 'error');
@@ -125,7 +259,7 @@ export default function AdminFileExplorer({
   }, [searchQuery, students, systemUsers]);
 
   return (
-    <div className="flex h-full min-h-[500px] gap-4 w-full">
+    <div className="flex h-full min-h-[500px] gap-4 w-full relative">
       {/* Left Pane - User List */}
       <div className="w-1/3 min-w-[300px] max-w-sm flex flex-col bg-[#181b25] border border-[#46455430] rounded-2xl shadow-xl overflow-hidden">
         <div className="p-4 border-b border-[#46455430] bg-[#1a1d27]">
@@ -199,12 +333,46 @@ export default function AdminFileExplorer({
                 </div>
               </div>
               <button
-                onClick={() => { setSelectedUserForFiles(null); setExplorerPath(''); setExplorerFiles([]); }}
+                onClick={() => { setSelectedUserForFiles(null); setExplorerPath(''); setExplorerFiles([]); setClipboard({path:null,type:null}); }}
                 className="text-slate-400 hover:text-slate-200 p-2 rounded-lg hover:bg-slate-800 transition-colors"
                 title="Close Explorer"
               >
                 <X className="w-5 h-5" />
               </button>
+            </div>
+            
+            {/* Action Bar */}
+            <div className="px-4 py-3 border-b border-[#46455430] bg-[#1a1d27] flex items-center gap-2">
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 motion-press transition-all text-xs font-mono font-bold"
+              >
+                <Upload className="w-4 h-4" />
+                Upload File
+              </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                onChange={handleFileUpload}
+              />
+              <button
+                onClick={() => setNewFolderModal({ isOpen: true, folderName: '' })}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 motion-press transition-all text-xs font-mono font-bold"
+              >
+                <FolderPlus className="w-4 h-4" />
+                New Folder
+              </button>
+
+              {clipboard.path && (
+                <button
+                  onClick={handlePaste}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30 motion-press transition-all text-xs font-mono font-bold ml-auto"
+                >
+                  <Clipboard className="w-4 h-4" />
+                  Paste ({clipboard.type})
+                </button>
+              )}
             </div>
             
             <div className="flex-1 overflow-auto p-4">
@@ -256,24 +424,63 @@ export default function AdminFileExplorer({
                             {file.mtime ? new Date(file.mtime * 1000).toLocaleString() : '-'}
                           </td>
                           <td className="py-3 px-4 text-right">
-                            {!isDir && (
-                              <div className="inline-flex items-center gap-2">
+                            <div className="inline-flex items-center gap-1">
+                              <button
+                                onClick={(e) => { 
+                                  e.stopPropagation(); 
+                                  setRenameModal({ isOpen: true, oldPath: fullPath, currentName: file.name, newName: file.name });
+                                }}
+                                className="p-1.5 rounded-lg bg-slate-500/10 hover:bg-slate-500/20 text-slate-400 border border-slate-500/30 motion-press active:scale-95 transition-all"
+                                title="Rename"
+                              >
+                                <Edit className="w-3.5 h-3.5" />
+                              </button>
+                              
+                              <button
+                                onClick={(e) => { 
+                                  e.stopPropagation(); 
+                                  setClipboard({ path: fullPath, type: 'copy' }); 
+                                  showToast('Dicopy ke clipboard', 'success');
+                                }}
+                                className="p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 motion-press active:scale-95 transition-all"
+                                title="Copy"
+                              >
+                                <Copy className="w-3.5 h-3.5" />
+                              </button>
+                              
+                              <button
+                                onClick={(e) => { 
+                                  e.stopPropagation(); 
+                                  setClipboard({ path: fullPath, type: 'cut' }); 
+                                  showToast('Di-cut ke clipboard', 'success');
+                                }}
+                                className="p-1.5 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/30 motion-press active:scale-95 transition-all"
+                                title="Cut"
+                              >
+                                <Scissors className="w-3.5 h-3.5" />
+                              </button>
+
+                              {!isDir && (
                                 <button
                                   onClick={(e) => { e.stopPropagation(); handleDownloadFile(fullPath); }}
-                                  className="p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 motion-press active:scale-95 transition-all"
+                                  className="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 motion-press active:scale-95 transition-all"
                                   title="Download File"
                                 >
                                   <Download className="w-3.5 h-3.5" />
                                 </button>
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); handleCopyToShared(fullPath); }}
-                                  className="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 motion-press active:scale-95 transition-all"
-                                  title="Copy to Shared"
-                                >
-                                  <Copy className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
-                            )}
+                              )}
+
+                              <button
+                                onClick={(e) => { 
+                                  e.stopPropagation(); 
+                                  setDeleteConfirmModal({ isOpen: true, path: fullPath, name: file.name });
+                                }}
+                                className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 motion-press active:scale-95 transition-all"
+                                title="Delete"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -290,6 +497,91 @@ export default function AdminFileExplorer({
           </div>
         )}
       </div>
+
+      {/* Modals */}
+      
+      {/* Rename Modal */}
+      {renameModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-[#181b25] border border-[#46455430] p-6 rounded-2xl shadow-xl w-full max-w-sm">
+            <h3 className="text-slate-100 font-bold mb-4">Rename {renameModal.currentName}</h3>
+            <input 
+              type="text" 
+              value={renameModal.newName} 
+              onChange={e => setRenameModal({...renameModal, newName: e.target.value})}
+              className="w-full bg-[#0f111a] border border-[#46455430] rounded-xl px-4 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500/50 mb-4 font-mono"
+            />
+            <div className="flex justify-end gap-2">
+              <button 
+                onClick={() => setRenameModal({isOpen: false, oldPath: '', currentName: '', newName: ''})}
+                className="px-4 py-2 rounded-lg text-slate-400 hover:bg-slate-800 transition-colors text-sm font-bold"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleRename}
+                className="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors text-sm font-bold shadow-lg shadow-blue-500/20"
+              >
+                Rename
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* New Folder Modal */}
+      {newFolderModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-[#181b25] border border-[#46455430] p-6 rounded-2xl shadow-xl w-full max-w-sm">
+            <h3 className="text-slate-100 font-bold mb-4">New Folder</h3>
+            <input 
+              type="text" 
+              placeholder="Folder Name"
+              value={newFolderModal.folderName} 
+              onChange={e => setNewFolderModal({...newFolderModal, folderName: e.target.value})}
+              className="w-full bg-[#0f111a] border border-[#46455430] rounded-xl px-4 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500/50 mb-4 font-mono"
+            />
+            <div className="flex justify-end gap-2">
+              <button 
+                onClick={() => setNewFolderModal({isOpen: false, folderName: ''})}
+                className="px-4 py-2 rounded-lg text-slate-400 hover:bg-slate-800 transition-colors text-sm font-bold"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleCreateFolder}
+                className="px-4 py-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-colors text-sm font-bold shadow-lg shadow-emerald-500/20"
+              >
+                Create
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirm Modal */}
+      {deleteConfirmModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-[#181b25] border border-[#46455430] p-6 rounded-2xl shadow-xl w-full max-w-sm">
+            <h3 className="text-red-400 font-bold mb-2">Confirm Delete</h3>
+            <p className="text-slate-300 text-sm mb-6">Are you sure you want to delete <span className="font-bold font-mono text-slate-200">{deleteConfirmModal.name}</span>?</p>
+            <div className="flex justify-end gap-2">
+              <button 
+                onClick={() => setDeleteConfirmModal({isOpen: false, path: '', name: ''})}
+                className="px-4 py-2 rounded-lg text-slate-400 hover:bg-slate-800 transition-colors text-sm font-bold"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleDelete}
+                className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors text-sm font-bold shadow-lg shadow-red-500/20"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

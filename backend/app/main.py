@@ -10,7 +10,7 @@ from collections import deque, defaultdict
 import psutil
 
 logger = logging.getLogger("panel-lab")
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Request, Depends
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Request, Depends, File, Form, UploadFile
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -722,6 +722,23 @@ from pydantic import BaseModel
 class CopyRequest(BaseModel):
     filepath: str
 
+
+class DeleteRequest(BaseModel):
+    path: str
+
+class RenameRequest(BaseModel):
+    old_path: str
+    new_name: str
+
+class CreateFolderRequest(BaseModel):
+    path: str
+    folder_name: str
+
+class MoveRequest(BaseModel):
+    source_path: str
+    target_dir: str
+    is_copy: bool = False
+
 @app.get("/api/users/{nim}/files")
 def list_user_files(nim: str, path: str = "", session: Dict[str, Any] = Depends(verify_super_admin)):
     import subprocess, os
@@ -820,6 +837,155 @@ def copy_file_to_shared(nim: str, req: CopyRequest, session: Dict[str, Any] = De
     subprocess.run(cmd_chmod, check=False)
     
     return {"success": True, "message": f"Berhasil disalin ke {dest_path}"}
+
+
+@app.post("/api/users/{nim}/delete")
+def delete_file(nim: str, req: DeleteRequest, session: Dict[str, Any] = Depends(verify_super_admin)):
+    import os, subprocess
+    clean_nim = "".join(c for c in nim if c.isalnum() or c in ["_", "-"])
+    home_dir = f"/home/{clean_nim}"
+    if not os.path.exists(home_dir):
+        home_dir = f"/home/m{clean_nim}"
+    
+    target_path = os.path.abspath(os.path.join(home_dir, req.path))
+    if not target_path.startswith(home_dir):
+        raise HTTPException(status_code=400, detail="Invalid path")
+    
+    cmd = ["rm", "-rf", target_path]
+    if os.geteuid() != 0:
+        cmd = ["sudo", "-n"] + cmd
+        
+    res = subprocess.run(cmd, capture_output=True, text=True)
+    if res.returncode != 0:
+        return {"success": False, "detail": res.stderr}
+    return {"success": True}
+
+@app.post("/api/users/{nim}/rename")
+def rename_file(nim: str, req: RenameRequest, session: Dict[str, Any] = Depends(verify_super_admin)):
+    import os, subprocess
+    clean_nim = "".join(c for c in nim if c.isalnum() or c in ["_", "-"])
+    home_dir = f"/home/{clean_nim}"
+    if not os.path.exists(home_dir):
+        home_dir = f"/home/m{clean_nim}"
+    
+    old_path = os.path.abspath(os.path.join(home_dir, req.old_path))
+    if not old_path.startswith(home_dir):
+        raise HTTPException(status_code=400, detail="Invalid path")
+        
+    new_path = os.path.abspath(os.path.join(os.path.dirname(old_path), req.new_name))
+    if not new_path.startswith(home_dir):
+        raise HTTPException(status_code=400, detail="Invalid path")
+        
+    cmd = ["mv", old_path, new_path]
+    if os.geteuid() != 0:
+        cmd = ["sudo", "-n"] + cmd
+        
+    res = subprocess.run(cmd, capture_output=True, text=True)
+    if res.returncode != 0:
+        return {"success": False, "detail": res.stderr}
+    return {"success": True}
+
+@app.post("/api/users/{nim}/create-folder")
+def create_folder(nim: str, req: CreateFolderRequest, session: Dict[str, Any] = Depends(verify_super_admin)):
+    import os, subprocess
+    clean_nim = "".join(c for c in nim if c.isalnum() or c in ["_", "-"])
+    home_dir = f"/home/{clean_nim}"
+    if not os.path.exists(home_dir):
+        home_dir = f"/home/m{clean_nim}"
+    
+    target_path = os.path.abspath(os.path.join(home_dir, req.path, req.folder_name))
+    if not target_path.startswith(home_dir):
+        raise HTTPException(status_code=400, detail="Invalid path")
+        
+    cmd = ["mkdir", target_path]
+    if os.geteuid() != 0:
+        cmd = ["sudo", "-n"] + cmd
+        
+    res = subprocess.run(cmd, capture_output=True, text=True)
+    if res.returncode != 0:
+        return {"success": False, "detail": res.stderr}
+        
+    owner = os.path.basename(home_dir)
+    chown_cmd = ["chown", f"{owner}:{owner}", target_path]
+    if os.geteuid() != 0:
+        chown_cmd = ["sudo", "-n"] + chown_cmd
+    subprocess.run(chown_cmd, check=False)
+    
+    return {"success": True}
+
+@app.post("/api/users/{nim}/upload")
+def upload_file(nim: str, path: str = Form(...), file: UploadFile = File(...), session: Dict[str, Any] = Depends(verify_super_admin)):
+    import os, subprocess, shutil
+    clean_nim = "".join(c for c in nim if c.isalnum() or c in ["_", "-"])
+    home_dir = f"/home/{clean_nim}"
+    if not os.path.exists(home_dir):
+        home_dir = f"/home/m{clean_nim}"
+    
+    target_path = os.path.abspath(os.path.join(home_dir, path, file.filename))
+    if not target_path.startswith(home_dir):
+        raise HTTPException(status_code=400, detail="Invalid path")
+        
+    tmp_path = f"/tmp/{file.filename}_{os.urandom(4).hex()}"
+    try:
+        with open(tmp_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+            
+        cmd = ["cp", tmp_path, target_path]
+        if os.geteuid() != 0:
+            cmd = ["sudo", "-n"] + cmd
+            
+        res = subprocess.run(cmd, capture_output=True, text=True)
+        if res.returncode != 0:
+            return {"success": False, "detail": res.stderr}
+            
+        owner = os.path.basename(home_dir)
+        chown_cmd = ["chown", f"{owner}:{owner}", target_path]
+        if os.geteuid() != 0:
+            chown_cmd = ["sudo", "-n"] + chown_cmd
+        subprocess.run(chown_cmd, check=False)
+    finally:
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
+            
+    return {"success": True}
+
+@app.post("/api/users/{nim}/move")
+def move_file(nim: str, req: MoveRequest, session: Dict[str, Any] = Depends(verify_super_admin)):
+    import os, subprocess
+    clean_nim = "".join(c for c in nim if c.isalnum() or c in ["_", "-"])
+    home_dir = f"/home/{clean_nim}"
+    if not os.path.exists(home_dir):
+        home_dir = f"/home/m{clean_nim}"
+    
+    source_path = os.path.abspath(os.path.join(home_dir, req.source_path))
+    if not source_path.startswith(home_dir):
+        raise HTTPException(status_code=400, detail="Invalid source path")
+        
+    target_path = os.path.abspath(os.path.join(home_dir, req.target_dir, os.path.basename(source_path)))
+    if not target_path.startswith(home_dir):
+        raise HTTPException(status_code=400, detail="Invalid target path")
+        
+    bin_cmd = "cp" if req.is_copy else "mv"
+    cmd = [bin_cmd]
+    if req.is_copy:
+        cmd.append("-r")
+    cmd.extend([source_path, target_path])
+    
+    if os.geteuid() != 0:
+        cmd = ["sudo", "-n"] + cmd
+        
+    res = subprocess.run(cmd, capture_output=True, text=True)
+    if res.returncode != 0:
+        return {"success": False, "detail": res.stderr}
+        
+    if req.is_copy:
+        owner = os.path.basename(home_dir)
+        chown_cmd = ["chown", "-R", f"{owner}:{owner}", target_path]
+        if os.geteuid() != 0:
+            chown_cmd = ["sudo", "-n"] + chown_cmd
+        subprocess.run(chown_cmd, check=False)
+        
+    return {"success": True}
 
 @app.post("/api/users")
 

@@ -1061,7 +1061,7 @@ class UpdateUserNameRequest(BaseModel):
     nama: str
 
 @app.post("/api/users/{nim}/update-name")
-def update_user_name(nim: str, req: UpdateUserNameRequest, request: Request, session: Dict[str, Any] = Depends(verify_super_admin)):
+def update_user_name(nim: str, req: UpdateUserNameRequest, request: Request, session: Dict[str, Any] = Depends(verify_operator_or_admin)):
     clean_nama = req.nama.strip()
     if not clean_nama:
         raise HTTPException(status_code=400, detail="Nama tidak boleh kosong.")

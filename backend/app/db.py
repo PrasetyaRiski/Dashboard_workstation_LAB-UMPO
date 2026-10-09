@@ -235,24 +235,10 @@ def get_or_create_user(nim: str, nama: Optional[str] = None) -> Dict[str, Any]:
             cur.execute(f"SELECT * FROM users WHERE nim = {placeholder}", (nim,))
             row = cur.fetchone()
         else:
-            old_name = row[1] if isinstance(row, tuple) else (row["nama"] if hasattr(row, "__getitem__") else None)
-            clean_new_name = (nama or "").strip()
-            should_update_name = False
-            
-            if clean_new_name and clean_new_name != f"Mahasiswa {nim}":
-                if not old_name or str(old_name).startswith("Mahasiswa ") or str(old_name) != clean_new_name:
-                    should_update_name = True
-
-            if should_update_name:
-                cur.execute(
-                    f"UPDATE users SET last_login = {placeholder}, nama = {placeholder} WHERE nim = {placeholder}",
-                    (now_str, clean_new_name, nim)
-                )
-            else:
-                cur.execute(
-                    f"UPDATE users SET last_login = {placeholder} WHERE nim = {placeholder}",
-                    (now_str, nim)
-                )
+            cur.execute(
+                f"UPDATE users SET last_login = {placeholder} WHERE nim = {placeholder}",
+                (now_str, nim)
+            )
             conn.commit()
             cur.execute(f"SELECT * FROM users WHERE nim = {placeholder}", (nim,))
             row = cur.fetchone()

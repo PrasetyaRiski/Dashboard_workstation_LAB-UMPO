@@ -899,8 +899,8 @@ export default function UnifiedUserManagement({
                                         isSubmitting: false
                                       });
                                     }}
-                                    className="opacity-0 group-hover/name:opacity-100 p-0.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-all"
-                                    title="Ubah / Sesuaikan Nama Mahasiswa"
+                                    className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                                    title="Ubah Nama Mahasiswa"
                                     type="button"
                                   >
                                     <Edit2 className="w-3 h-3" />
@@ -1091,6 +1091,22 @@ export default function UnifiedUserManagement({
                                   </button>
                                 )
                               )}
+
+                              {/* Ubah Nama Mahasiswa */}
+                              <button
+                                onClick={() => setEditNameModal({
+                                  isOpen: true,
+                                  nim: item.nim,
+                                  currentName: item.nama || '',
+                                  newName: item.nama || '',
+                                  isSubmitting: false
+                                })}
+                                className="p-1.5 rounded-lg bg-white hover:bg-blue-50 text-slate-600 hover:text-blue-600 border border-slate-200 shadow-sm active:translate-y-0.5 transition-all"
+                                title="Ubah Nama Lengkap"
+                                type="button"
+                              >
+                                <Edit2 className="w-3.5 h-3.5" />
+                              </button>
 
                               {/* Kill Sesi */}
                               <button

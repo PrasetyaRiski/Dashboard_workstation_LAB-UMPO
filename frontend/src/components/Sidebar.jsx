@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   FolderOpen,
+  Lock,
   RefreshCw,
   LayoutDashboard,
   Users,
@@ -18,13 +19,15 @@ export default function Sidebar({
   isRefreshing,
   auditCount = 0,
   isOpen = true,
-  onToggle
+  onToggle,
+  isAdmin,
+  onOpenLogin
 }) {
   const tabs = [
-    { id: 'overview', label: 'Ringkasan',   icon: LayoutDashboard, shortcut: '1' },
-    { id: 'students', label: 'Pengguna',    icon: Users,           shortcut: '2' },
-    { id: 'files',    label: 'File Explorer', icon: FolderOpen,      shortcut: '4' },
-    { id: 'audit',    label: 'Log Audit',   icon: FileText,        shortcut: '3', badgeCount: auditCount },
+    { id: 'overview', label: 'Ringkasan',     icon: LayoutDashboard, shortcut: '1', requiresAdmin: false },
+    { id: 'students', label: 'Pengguna',      icon: Users,           shortcut: '2', requiresAdmin: false },
+    { id: 'files',    label: 'File Explorer', icon: FolderOpen,      shortcut: '4', requiresAdmin: true },
+    { id: 'audit',    label: 'Log Audit',     icon: FileText,        shortcut: '3', badgeCount: auditCount, requiresAdmin: true },
   ];
 
   return (
@@ -77,10 +80,20 @@ export default function Sidebar({
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
+              const isLocked = tab.requiresAdmin && !isAdmin;
+              
+              const handleClick = () => {
+                if (isLocked) {
+                  onOpenLogin();
+                } else {
+                  onTabChange(tab.id);
+                }
+              };
+              
               return (
                 <button
                   key={tab.id}
-                  onClick={() => onTabChange(tab.id)}
+                  onClick={handleClick}
                   className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left transition-all text-xs font-medium ${
                     isActive
                       ? 'bg-gradient-to-r from-blue-50 to-indigo-50/50 text-blue-700 font-semibold border border-blue-200/90 shadow-[0_2px_4px_rgba(37,99,235,0.06)]'
@@ -91,6 +104,7 @@ export default function Sidebar({
                   <div className="flex items-center gap-2.5 min-w-0">
                     <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
                     <span className="truncate">{tab.label}</span>
+                    {isLocked && <Lock className="w-3.5 h-3.5 ml-1.5 text-rose-400/80 shrink-0" />}
                   </div>
 
                   <div className="flex items-center gap-1.5 shrink-0 ml-2">

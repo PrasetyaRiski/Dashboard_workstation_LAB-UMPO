@@ -98,6 +98,7 @@ export default function App() {
     setAdminToken('');
     setAdminRole('');
     setAdminUser(null);
+    setActiveTab('overview');
     showToast('Logout berhasil. Mode monitoring publik aktif.', 'info');
   };
 
@@ -263,10 +264,10 @@ export default function App() {
           setActiveTab('students');
         } else if (e.key === '4') {
           e.preventDefault();
-          setActiveTab('files');
+          if (isAdmin) setActiveTab('files'); else setLoginModalOpen(true);
         } else if (e.key === '3') {
           e.preventDefault();
-          setActiveTab('audit');
+          if (isAdmin) setActiveTab('audit'); else setLoginModalOpen(true);
         } else if (e.key === '?') {
           e.preventDefault();
           setCommandPaletteOpen(true);
@@ -390,6 +391,8 @@ export default function App() {
         auditCount={data?.audit_logs?.length || 0}
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+        isAdmin={isAdmin}
+        onOpenLogin={() => setLoginModalOpen(true)}
       />
 
       {/* Main Canvas Area */}

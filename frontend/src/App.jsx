@@ -408,14 +408,6 @@ export default function App() {
         >
           {/* Left Brand & Toggle */}
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
-              title="Toggle Sidebar"
-              type="button"
-            >
-              <Menu className="w-4 h-4" />
-            </button>
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-slate-900 tracking-tight">
                 Lab Komputasi AI UMPO

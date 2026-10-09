@@ -1,356 +1,476 @@
-# Buku Panduan Resmi Sistem Komputasi & JupyterHub
+# Buku Panduan Resmi Sistem Web Dashboard & JupyterHub
 ## Laboratorium Artificial Intelligence & Riset Komputasi
 **Program Studi Informatika — Fakultas Teknik — Universitas Muhammadiyah Ponorogo (UMPO)**
 
 ---
 
-* **Judul Dokumen:** Panduan Arsitektur, Konfigurasi, Operasional, & Penggunaan Sistem
-* **Edisi:** Versi 2.1 (Produksi) — Oktober 2026
-* **Penulis / Tim Pengembang:** Tim Asisten Laboratorium & Pengembang Sistem Komputasi AI UMPO
-* **Repositori Kode Sumber:** `https://github.com/PrasetyaRiski/Dashboard_workstation_LAB-UMPO.git`
+* **Judul Dokumen:** Buku Panduan Penggunaan & Operasional Layanan Komputasi Berbasis Web
+* **Edisi:** Versi 2.2 (Web & JupyterHub Focus) — Oktober 2026
+* **Sasaran Pembaca:** Mahasiswa Praktikan, Peneliti / Mahasiswa Tugas Akhir, Asisten Laboratorium, dan Dosen Pembimbing
+* **Akses Layanan:** 
+  * Portal JupyterHub: `http://76.76.76.188:8090` (atau tautan domain resmi kampus)
+  * Web Dashboard Monitoring & Console: `http://76.76.76.188:8888`
 
 ---
 
-## Daftar Isi Ringkas
+## Daftar Isi
 
-1. **Tentang Platform Komputasi Lab AI UMPO**
-2. **BAGIAN I: PANDUAN ADMINISTRATOR & ASISTEN LAB (TECHNICAL MANUAL)**
-   * Bab 1: Arsitektur Sistem, Topologi, & Alur Komunikasi
-   * Bab 2: Konfigurasi Layanan Server & Dynamic QoS
-   * Bab 3: Pengoperasian Web Dashboard (Precision Console)
-   * Bab 4: Pemeliharaan, Keamanan, & Troubleshooting
-3. **BAGIAN II: PANDUAN PENGGUNA (MAHASISWA & PENELITI)**
-   * Bab 5: Panduan Memulai Cepat (Quickstart Login SIMTIK)
-   * Bab 6: Lingkungan Komputasi AI, PyTorch, & Manajemen Kuota Disk
-   * Bab 7: Mode Prioritas Riset & Pengajuan GPU Boost Skripsi
-   * Bab 8: Kebijakan Operasional, Single-Device Lock, & Etika Komputasi
+1. [Bab 1: Pengenalan & Arsitektur Layanan Komputasi](#bab-1-pengenalan--arsitektur-layanan-komputasi)
+   * 1.1 Visi & Tujuan Laboratorium AI UMPO
+   * 1.2 Ekosistem Terintegrasi: Web Dashboard & JupyterHub
+   * 1.3 Alokasi Komputasi Dual GPU (Standard vs Prioritas Skripsi)
+   * 1.4 Integrasi SSO SIMTIK (*Zero-Admin Onboarding*)
+2. [Bab 2: Panduan Pengguna JupyterHub (Mahasiswa & Peneliti)](#bab-2-panduan-pengguna-jupyterhub-mahasiswa--peneliti)
+   * 2.1 Prosedur Masuk (*Login*) Menggunakan Akun SIMTIK
+   * 2.2 Mengenal Antarmuka Kerja JupyterLab
+   * 2.3 Memulai Notebook Python & Memanfaatkan Akselerasi GPU (PyTorch)
+   * 2.4 Mengakses Dataset Bersama (*Shared Datasets*)
+   * 2.5 Menginstal Pustaka (*Package*) Python Tambahan Melalui Notebook
+   * 2.6 Penyimpanan Bobot Model (*Weights*) & Kuota Disk
+   * 2.7 Mengatasi Kendala Notebook (*Kernel Died*, *Out of Memory*, *Idle Timeout*)
+   * 2.8 Kebijakan Sesi Tunggal (*Single-Device Lock*) & Prosedur Logout
+3. [Bab 3: Panduan Web Dashboard (Mode Monitoring Publik)](#bab-3-panduan-web-dashboard-mode-monitoring-publik)
+   * 3.1 Tata Letak & Navigasi Antarmuka Web Dashboard
+   * 3.2 Membaca Telemetri Komputasi Real-Time (GPU, VRAM, RAM, CPU, Disk)
+   * 3.3 Indikator Status Koneksi & Sinkronisasi Waktu Server
+   * 3.4 Memantau Aktivitas Sesi & Slot Prioritas yang Tersedia
+4. [Bab 4: Panduan Administrator & Asisten Lab (Web Console)](#bab-4-panduan-administrator--asisten-lab-web-console)
+   * 4.1 Membuka Mode Akses Administrator (Login PIN Master)
+   * 4.2 Manajemen Pengguna & Alokasi Dynamic QoS
+     * 4.2.1 Filter & Pencarian Pengguna
+     * 4.2.2 Memberikan Akses GPU Boost (Prioritas Level 1)
+     * 4.2.3 Mengembalikan Pengguna ke Mode Standard (*Unboost*)
+     * 4.2.4 Membersihkan Cache Disk Mahasiswa (Ikon Penghapus)
+     * 4.2.5 Menghentikan Sesi Bermasalah (Ikon Stop: *Kill Sesi OS Aktif*)
+   * 4.3 Web File Explorer Terpadu
+     * 4.3.1 Menjelajahi Folder Mahasiswa & Direktori Bersama
+     * 4.3.2 Mengunggah (*Upload*) Berkas & Dataset via Web
+     * 4.3.3 Mengunduh (*Download*) Berkas Pekerjaan Mahasiswa
+     * 4.3.4 Membuat Folder, Mengubah Nama, dan Menghapus Berkas
+     * 4.3.5 Fitur Salin ke Direktori Bersama (*Copy to Shared*)
+     * 4.3.6 Manajemen Papan Klip (*Clipboard*: Copy / Cut / Paste)
+   * 4.4 Pemantauan Log Audit Administratif
+   * 4.5 Pencadangan Database Sekali Klik (*Snapshot Database*)
+5. [Bab 5: Kebijakan Operasional, Etika Komputasi, & Bantuan](#bab-5-kebijakan-operasional-etika-komputasi--bantuan)
+   * 5.1 Etika & Tata Tertib Komputasi Bersama
+   * 5.2 Standar Pelaporan Kendala
+   * 5.3 Kontak Resmi & Informasi Dukungan
 
 ---
 
-# Tentang Platform Komputasi Lab AI UMPO
+# Bab 1: Pengenalan & Arsitektur Layanan Komputasi
 
-Platform ini mentransformasikan workstation server fisik di Laboratorium AI Fakultas Teknik UMPO menjadi **Private Cloud Computing Cluster** yang cerdas, aman, dan efisien. Sistem ini menggabungkan:
-1. **SSO SIMTIK UMPO (*Zero-Admin Onboarding*):** Mahasiswa masuk tanpa perlu registrasi manual; akun diverifikasi langsung ke portal akademik universitas.
-2. **Dynamic QoS (Cgroups v2):** Pembagian alokasi komputasi 2-Tier (Standard Praktikum vs Priority Skripsi) yang menjamin server tidak pernah *hang* atau *freeze*.
-3. **Web Management Console (Stitch Precision Console):** Panel monitoring beban GPU secara *real-time*, manajemen sesi notebook, alokasi kapasitas (*admission control*), dan eksplorasi berkas mahasiswa (*Admin File Explorer*).
-4. **Data Safety & Single-Session Lock:** Pencadangan database otomatis (*hot-backup WAL*) dan perlindungan terhadap *joki praktikum* serta korupsi notebook.
+### 1.1 Visi & Tujuan Laboratorium AI UMPO
+Laboratorium Artificial Intelligence & Riset Komputasi Fakultas Teknik Universitas Muhammadiyah Ponorogo menyediakan infrastruktur komputasi berkinerja tinggi (*High-Performance Computing*) untuk mendukung kegiatan praktikum kecerdasan buatan, pembelajaran mesin (*Machine Learning*), *Deep Learning*, pengolahan citra digital, *Natural Language Processing*, serta riset tugas akhir mahasiswa.
 
----
-
-# BAGIAN I: PANDUAN ADMINISTRATOR & ASISTEN LAB
+Seluruh operasional komputasi dirancang agar dapat diakses sepenuhnya melalui peramban web (*web browser*), sehingga pengguna tidak perlu melakukan konfigurasi driver yang rumit atau menggunakan antarmuka baris perintah (*terminal SSH*) pada perangkat lokal mereka.
 
 ---
 
-## Bab 1: Arsitektur Sistem, Topologi, & Alur Komunikasi
+### 1.2 Ekosistem Terintegrasi: Web Dashboard & JupyterHub
+Sistem komputasi laboratorium AI UMPO terdiri atas dua portal web utama yang saling terhubung:
 
-### 1.1. Topologi Jaringan & Pemetaan Port
-
-Server workstation terhubung ke jaringan kampus dan tunnel jarak jauh dengan alokasi port utama:
-
-| Port | Layanan | Deskripsi | Akses |
-|---|---|---|---|
-| **`8888`** | **FastAPI Dashboard Console** | Antarmuka monitoring, kontrol sesi, telemetri WebSocket, dan File Explorer | Aslab & Admin |
-| **`8090`** | **JupyterHub Portal** | Pintu gerbang login mahasiswa praktikan dan lingkungan notebook interaktif | Publik / Mahasiswa |
-| **`5432`** | **PostgreSQL (Opsional)** | Backend database relasional (fallback otomatis ke SQLite WAL lokal) | Internal Server |
-| **`22`** | **OpenSSH Server** | Akses terminal konsol administratif server | Khusus Sysadmin |
-
-### 1.2. Alur Kerja Sistem Terintegrasi
-
-```mermaid
-flowchart TB
-    subgraph Klien["Pengguna & Perangkat"]
-        MHS["Mahasiswa Praktikan / Peneliti<br/>(Browser)"]
-        ADM["Asisten Lab / Admin<br/>(Browser)"]
-    end
-
-    subgraph Akses["Gerbang Layanan Server"]
-        JH["JupyterHub Service (:8090)<br/>Custom Spawner & Auth Hook"]
-        DASH["FastAPI Dashboard (:8888)<br/>Uvicorn + WebSocket Telemetry"]
-    end
-
-    subgraph Eksternal["Portal Kampus"]
-        SIMTIK["Portal SIMTIK UMPO<br/>(simtik.umpo.ac.id)"]
-    end
-
-    subgraph Kernel["Linux Kernel & Hardware"]
-        CG1["Cgroups Level 1 (GPU 0 Dedicated)<br/>20 Core, 70G RAM"]
-        CG2["Cgroups Level 2 (GPU 1 Pool)<br/>2 Core, 3G RAM"]
-        NV["NVIDIA NVML & Driver<br/>Dual RTX GPU"]
-    end
-
-    subgraph Data["Penyimpanan Data"]
-        DB[("Database SQLite WAL<br/>/home/public/web/data/lab_users.db")]
-        DISK["Home Folders /home/m<NIM><br/>Dataset Shared"]
-    end
-
-    MHS -->|Login NIM & Password| JH
-    ADM -->|Kelola Sesi & Hardware| DASH
-
-    JH -->|Verifikasi Kredensial| SIMTIK
-    JH <-->|Periksa Sesi & Role| DB
-    JH -->|Spawn Notebook Priority| CG1
-    JH -->|Spawn Notebook Standard| CG2
-
-    DASH <-->|Audit Log & Kuota| DB
-    DASH -->|Baca Suhu, VRAM, Daya| NV
-    DASH -->|Kelola File Mahasiswa| DISK
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          PENGGUNA (WEB BROWSER)                         │
+└───────────────────┬─────────────────────────────────┬───────────────────┘
+                    │                                 │
+     PORTAL JUPYTERHUB (:8090)             WEB DASHBOARD CONSOLE (:8888)
+┌───────────────────────────────────────┐ ┌───────────────────────────────┐
+│ • Lingkungan Notebook Interaktif      │ │ • Telemetri GPU, CPU, RAM     │
+│ • Login SSO Akun SIMTIK Mahasiswa     │ │ • Manajemen Kuota & Pengguna  │
+│ • Akselerasi PyTorch CUDA             │ │ • Pemberian Slot GPU Boost    │
+│ • Akses Direktori /home/m<NIM>        │ │ • Web File Explorer & Unduhan │
+│ • Akses Dataset Bersama               │ │ • Audit Trail & Backup Web    │
+└───────────────────────────────────────┘ └───────────────────────────────┘
+                    ▲                                 ▲
+                    │                                 │
+┌───────────────────┴─────────────────────────────────┴───────────────────┐
+│                  KERNEL SERVER & DUAL GPU ACCELERATOR                   │
+│         [GPU 0: Dedicated Riset]   │   [GPU 1: Pool Praktikum]          │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 1.3. Mekanisme Otentikasi Terbalik (*Reverse Auth*) SIMTIK UMPO
-* Modul [`simtik_auth.py`](file:///home/kiki/panel-lab%20%282%29/backend/app/simtik_auth.py) melakukan simulasi jabat tangan terenkripsi (*TLS handshake*) ke portal `https://simtik.umpo.ac.id/apps/action/login.user.php`.
-* Jika portal SIMTIK mengonfirmasi kecocokan NIM dan sandi, JupyterHub otomatis membuat akun lokal Unix (`m<NIM>`) dan folder `/home/m<NIM>` dengan hak akses `0700`.
-* **Privasi:** Password mahasiswa **tidak pernah disimpan** di penyimpanan lokal server lab.
+1. **JupyterHub Portal (Port 8090):** Portal kerja utama bagi mahasiswa dan peneliti untuk menulis kode Python, memuat model AI, melatih dataset, dan menjalankan eksperimen ilmiah dalam bentuk antarmuka JupyterLab.
+2. **Web Dashboard Console (Port 8888):** Panel kontrol dan pemantauan grafis modern (*Precision Console*) untuk memantau beban fisik kartu grafis secara langsung, mengelola kuota pengguna, memberikan izin prioritas GPU, serta mengelola berkas secara visual.
 
 ---
 
-## Bab 2: Konfigurasi Layanan Server & Dynamic QoS
+### 1.3 Alokasi Komputasi Dual GPU (Standard vs Prioritas Skripsi)
+Server laboratorium dilengkapi dengan akselerator kartu grafis ganda (*Dual NVIDIA RTX 5060 Ti*) yang dibagi menjadi dua tingkat (*tier*) layanan secara cerdas:
 
-### 2.1. File Konfigurasi Lingkungan (`.env`)
-Berkas konfigurasi terletak di direktori root backend (`/home/public/web/panel-lab/backend/.env`):
-
-```bash
-# PIN Master Super Admin Dashboard
-ADMIN_PIN=labrisetai26
-
-# Lokasi Berkas Database Bersama (Digunakan oleh Dashboard dan JupyterHub)
-LAB_DB_PATH=/home/public/web/data/lab_users.db
-
-# Database PostgreSQL (Opsional, jika tidak diset otomatis memakai SQLite WAL)
-POSTGRES_HOST=127.0.0.1
-POSTGRES_PORT=5432
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-POSTGRES_DB=lab_ai_umpo
-```
-
-> [!IMPORTANT]
-> Pastikan variabel `LAB_DB_PATH` mengarah ke direktori yang dapat dibaca dan ditulis oleh user `jupyterhub` maupun user eksekusi dashboard FastAPI. Format SQLite menggunakan mode **WAL (Write-Ahead Logging)** untuk menjamin konkurensi data.
-
-### 2.2. Matriks Alokasi Sumber Daya (*Dynamic QoS Slices*)
-
-Server membagi hardware menjadi 2 tingkat alokasi menggunakan **Linux Cgroups v2**:
-
-| Parameter Spesifikasi | Mode Standard (Praktikum) | Mode Prioritas (Skripsi & Riset) |
+| Parameter Karakteristik | Mode Standard (Praktikum Reguler) | Mode Prioritas (Skripsi & Riset) |
 |---|---|---|
-| **Target Pengguna** | Mahasiswa praktikum reguler & akun `training1`-`10` | Mahasiswa Skripsi (di-boost) & akun `labriset` |
-| **Alokasi GPU** | **GPU 1** (Shared Compute Pool) | **GPU 0** (Dedicated 100% Khusus Riset) |
-| **Batas Memori RAM** | **3 GB** (`MemoryMax=3G`) | **70 GB** (`MemoryMax=70G`) |
-| **Batas Kuota CPU** | **2 Core** (`CPUQuota=200%`) | **20 Core** (`CPUQuota=2000%`) |
-| **Batas Thread Library** | `OMP_NUM_THREADS=2`, `OPENBLAS=2` | `OMP_NUM_THREADS=20`, `OPENBLAS=20` |
-| **Kuota Penyimpanan** | **10 GB** (Soft Quota) | **50 GB** (Soft Quota) |
-| **Masa Berlaku Kuota** | Permanen selama masa studi | **1 – 24 Jam** (Auto-expire mundur otomatis) |
+| **Peruntukan Akun** | Mahasiswa praktikum reguler & akun kelas | Mahasiswa Tugas Akhir (di-boost) & Riset Dosen |
+| **Akselerator Grafis** | **GPU 1** (Shared Compute Pool) | **GPU 0** (Dedicated 100% Khusus Riset) |
+| **Batas Memori RAM** | **3 GB RAM** per sesi pengguna | **70 GB RAM** berkecepatan tinggi |
+| **Batas Unit Prosesor** | **2 Core CPU** | **20 Core CPU** komputasi paralel |
+| **Kuota Penyimpanan** | **10 GB** ruang direktori pribadi | **50 GB** ruang direktori diperbesar |
+| **Masa Berlaku Akses** | Berlaku penuh selama semester praktikum | **1 – 24 Jam** (Hitung mundur otomatis) |
 
-### 2.3. Konfigurasi JupyterHub (`/opt/jupyterhub/etc/jupyterhub_config.py`)
-
-Kutipan konfigurasi penting yang dipasang oleh `simtik.sh`:
-* **Spawner Hook:** Mengarahkan lingkungan ke cgroup slice yang sesuai (`compute-level1.slice` jika `is_priority=1`, atau `compute-level2.slice` jika standar).
-* **Single-Device Session Policy:** Memeriksa apakah `jupyter-m<NIM>-singleuser.service` sedang aktif di IP lain. Jika aktif, login di perangkat baru ditolak (HTTP 403) untuk mencegah bentrok penulisan file dan joki praktikum.
-* **Idle Culler:** Menjalankan pembersihan otomatis notebook yang tidak aktif selama 60 menit (`--timeout=3600`).
+* **Prinsip Keadilan:** Mahasiswa praktikum reguler berbagi kapasitas di GPU 1 tanpa khawatir server mengalami crash.
+* **Jaminan Bebas Gangguan:** Mahasiswa skripsi yang mendapatkan izin GPU 0 berjalan secara terisolasi tanpa terganggu oleh komputasi mahasiswa praktikum lainnya.
 
 ---
 
-## Bab 3: Pengoperasian Web Dashboard (Precision Console)
-
-### 3.1. Hak Akses Tiga Tingkat (Role-Based Access Control)
-1. **Public Monitoring View (Mahasiswa / Tamu):**
-   * Mode *read-only*. Dapat melihat grafik utilisasi GPU/CPU/RAM dan antrean aktivitas tanpa tombol tindakan modifikasi.
-2. **Operator Mode (Asisten Lab / Aslab):**
-   * Login menggunakan NIM & Password SIMTIK (akun bertipe `role: aslab`).
-   * Berwenang: Membersihkan disk cache mahasiswa, menghentikan sesi OS mahasiswa yang bermasalah (*Kill Sesi OS Aktif*), memicu backup database.
-3. **Super Admin Mode:**
-   * Login menggunakan **PIN Master** atau akun NIM bertipe `role: admin`.
-   * Berwenang penuh: Memberikan GPU Boost Level 1, mengubah peran akun (Mahasiswa/Aslab/Admin), memblokir/mengaktifkan akun, serta mengelola berkas melalui *Admin File Explorer*.
-
-### 3.2. Prosedur Pemberian GPU Boost (Admission Control)
-1. Buka Tab **Pengguna** di Dashboard.
-2. Cari NIM mahasiswa skripsi yang mengajukan riset.
-3. Klik ikon petir (**⚡ Boost**).
-4. Pilih durasi komputasi yang diizinkan (misal: 4 Jam atau 8 Jam).
-5. Sistem memeriksa kapasitas: Jika slot GPU 0 sedang penuh (1/1 terpakai), tombol boost dicegah agar GPU tidak oversubscribed.
-6. Begitu boost aktif, sesi lama mahasiswa dihentikan sejenak; spawn berikutnya otomatis dialokasikan ke **GPU 0 + 20 Core CPU + 70 GB RAM**. Hitung mundur otomatis berjalan di tabel dashboard.
-
-### 3.3. Mengoperasikan Admin File Explorer
-Tersedia menu **File Explorer** mandiri di navigasi sidebar:
-* **Pemilihan Direktori Pengguna:** Panel kiri menampilkan daftar mahasiswa aktif dan folder dataset bersama (`dataset_shared`).
-* **Navigasi Berkas:** Klik dua kali pada folder untuk masuk, tombol panah atas untuk kembali ke folder induk.
-* **Unggah Berkas (Upload):** Klik tombol *Upload File* untuk mengirim berkas dataset/notebook langsung ke home mahasiswa.
-* **Unduh & Salin ke Shared:** Admin dapat mengunduh berkas mahasiswa atau menyalinnya ke `/home/dataset_shared/` untuk keperluan praktikum kelas.
-* **Operasi Hapus & Ganti Nama:** Dilengkapi konfirmasi aman agar terhindar dari salah klik.
+### 1.4 Integrasi SSO SIMTIK (*Zero-Admin Onboarding*)
+Sistem menggunakan integrasi otentikasi terpusat ke portal akademik universitas (**SIMTIK UMPO**).
+* Mahasiswa **tidak perlu mendaftarkan akun baru** secara manual ke asisten lab.
+* Cukup gunakan NIM dan kata sandi SIMTIK yang valid.
+* Saat login pertama kali berhasil, sistem web otomatis menyiapkan direktori penyimpanan pribadi mahasiswa (`/home/m<NIM>`) secara instan.
+* Sandi mahasiswa tidak disimpan di database server lokal laboratorium, menjamin keamanan privasi data akun mahasiswa.
 
 ---
 
-## Bab 4: Pemeliharaan, Keamanan, & Troubleshooting
+# Bab 2: Panduan Pengguna JupyterHub (Mahasiswa & Peneliti)
 
-### 4.1. Alur Pembaruan Kode Otomatis (`simtik.sh`)
-Untuk menerapkan perbaikan terbaru dari repositori GitHub ke server produksi:
-
-```bash
-# Jalankan skrip pembaharuan otomatis sebagai root
-sudo bash simtik.sh
-```
-
-Skrip ini akan secara otomatis:
-1. Menarik commit terbaru dari branch `main` GitHub.
-2. Mengompilasi frontend React Vite menjadi asset statis di `frontend/dist/`.
-3. Memperbarui dependensi Python di virtual environment (`python-multipart`, `psutil`, dll.).
-4. Memeriksa konfigurasi Cgroups v2 dan perizinan mode GPU NVIDIA.
-5. Memulai ulang layanan FastAPI Dashboard (`nohup` pada port `8888`) dan `jupyterhub.service`.
-
-### 4.2. Panduan Mengatasi Kendala (Troubleshooting FAQ)
-
-#### Kasus A: "Port 8888 belum merespons / Connection Refused"
-* **Penyebab:** Python FastAPI mengalami crash saat startup (misal: dependensi paket belum terinstall atau berkas database terkunci).
-* **Solusi:**
-  ```bash
-  # Periksa isi log backend
-  tail -n 50 /home/public/web/panel-lab/backend/dashboard.log
-
-  # Tes jalankan manual untuk melihat traceback error:
-  cd /home/public/web/panel-lab/backend
-  ../venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8888
-  ```
-
-#### Kasus B: GPU Out-of-Memory (OOM) atau Server Lambat
-* **Penyebab:** Mahasiswa memuat model LLM / Vision yang melebihi kapasitas VRAM atau CPU RAM.
-* **Solusi:**
-  1. Buka Tab **Ringkasan** dan Tab **Pengguna** di Dashboard.
-  2. Urutkan berdasarkan kolom **VRAM (MB)** atau **RAM (MB)**.
-  3. Klik ikon stop (**Kill Sesi OS Aktif**) untuk membersihkan seluruh proses pengguna tersebut.
-  4. Sesi kernel Linux mahasiswa bersangkutan akan dilepas tanpa memengaruhi kestabilan kernel server.
-
-#### Kasus C: Kuota Disk Penuh (`⚠️ Over Quota`)
-* **Penyebab:** Folder cache PIP (`~/.cache/pip`) atau checkpoint model PyTorch menumpuk di home direktori.
-* **Solusi:**
-  1. Klik ikon penghapus (**Bersihkan Cache Disk**) pada baris mahasiswa bersangkutan di Dashboard.
-  2. Sistem otomatis mengeksekusi penghapusan `~/.cache/pip` dan `.ipynb_checkpoints` secara aman.
-
-### 4.3. Prosedur Pemulihan Database (*Restore Backup*)
-Database dicadangkan otomatis setiap hari pukul 02:00 WIB ke `/home/public/web/data/backups/`.
-Jika terjadi kerusakan database:
-
-```bash
-# 1. Hentikan sementara layanan
-sudo systemctl stop jupyterhub
-pkill -f "uvicorn.*8888"
-
-# 2. Salin snapshot cadangan terbaru menggantikan database aktif
-cp /home/public/web/data/backups/lab_users_backup_YYYYMMDD_HHMMSS.db /home/public/web/data/lab_users.db
-chmod 664 /home/public/web/data/lab_users.db
-
-# 3. Jalankan kembali layanan
-sudo systemctl start jupyterhub
-cd /home/public/web/panel-lab/backend && nohup ../venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8888 > dashboard.log 2>&1 &
-```
-
----
-
-# BAGIAN II: PANDUAN PENGGUNA (MAHASISWA & PENELITI)
-
----
-
-## Bab 5: Panduan Memulai Cepat (Quickstart Mahasiswa)
-
-### 5.1. Alamat Akses Laboratorium
-Mahasiswa dapat mengakses portal komputasi interaktif melalui web browser di:
-* **JupyterHub Lab:** `http://76.76.76.188:8090` *(atau via domain tunnel kampus)*
-* **Dashboard Monitoring Publik:** `http://76.76.76.188:8888`
-
-### 5.2. Cara Masuk (Login)
-1. Buka tautan JupyterHub di browser Anda.
-2. Masukkan **NIM** Anda pada kolom *Username*.
-3. Masukkan **Password Akun SIMTIK UMPO** Anda pada kolom *Password*.
+### 2.1 Prosedur Masuk (*Login*) Menggunakan Akun SIMTIK
+Untuk memulai sesi praktikum atau penelitian:
+1. Buka peramban web (disarankan Google Chrome, Microsoft Edge, atau Mozilla Firefox terbaru).
+2. Kunjungi alamat JupyterHub: `http://76.76.76.188:8090`.
+3. Pada halaman login:
+   * **Username:** Masukkan Nomor Induk Mahasiswa Anda (contoh: `22533001`).
+   * **Password:** Masukkan kata sandi portal SIMTIK UMPO Anda.
 4. Klik tombol **Sign In**.
-5. Server akan memvalidasi akun Anda ke sistem kampus secara instan. Direktori kerja pribadi Anda (`/home/m<NIM>`) akan disiapkan dalam hitungan detik.
-
-> [!NOTE]
-> Anda tidak perlu mendaftar akun baru ke petugas lab. Selama akun SIMTIK Anda aktif sebagai mahasiswa Universitas Muhammadiyah Ponorogo, Anda langsung memiliki hak akses komputasi lab.
+5. Sistem akan melakukan verifikasi ke portal SIMTIK kampus. Dalam 2–5 detik, antarmuka kerja JupyterLab akan terbuka di layar Anda.
 
 ---
 
-## Bab 6: Lingkungan Komputasi AI, PyTorch, & Manajemen Kuota Disk
+### 2.2 Mengenal Antarmuka Kerja JupyterLab
+Setelah login berhasil, Anda akan disambut oleh antarmuka modern JupyterLab:
+* **Bilah Sisi Kiri (File Browser):** Menampilkan struktur berkas dan folder pribadi Anda. Anda dapat mengunggah berkas kecil, membuat folder baru, mengganti nama, atau mengunduh notebook dari panel ini.
+* **Halaman Peluncur (*Launcher*):**
+  * Klik ikon **Python 3 (ipykernel)** di bawah kategori *Notebook* untuk membuat lembar kerja komputasi baru (.ipynb).
+  * Opsi *Console* untuk interaksi baris perintah berbasis Python.
+  * Opsi *Text File* atau *Markdown File* untuk menulis dokumen teks dan dokumentasi.
+* **Bilah Menu Atas:** Berisi menu pengoperasian (*File*, *Edit*, *View*, *Run*, *Kernel*, *Settings*, *Help*).
 
-### 6.1. Menggunakan Akselerator GPU di Python (PyTorch)
-Setiap sesi mahasiswa terhubung ke kartu grafis NVIDIA RTX. Untuk memverifikasi dan menggunakan GPU di notebook Anda:
+---
+
+### 2.3 Memulai Notebook Python & Memanfaatkan Akselerasi GPU (PyTorch)
+Setiap notebook yang dibuka secara otomatis terhubung dengan driver komputasi NVIDIA CUDA.
+
+#### Menguji Ketersediaan GPU di Notebook:
+Ketik dan jalankan kode berikut pada sel (*cell*) notebook pertama Anda:
 
 ```python
 import torch
 
-# Memeriksa ketersediaan GPU
-if torch.cuda.is_available():
-    print(f"✅ GPU Terdeteksi: {torch.cuda.get_device_name(0)}")
+# Memeriksa ketersediaan kartu grafis GPU
+gpu_tersedia = torch.cuda.is_available()
+print(f"Status Ketersediaan GPU: {gpu_tersedia}")
+
+if gpu_tersedia:
+    nama_gpu = torch.cuda.get_device_name(0)
+    jumlah_gpu = torch.cuda.device_count()
+    print(f"Nama Akselerator : {nama_gpu}")
+    print(f"Jumlah Perangkat : {jumlah_gpu}")
+    
+    # Menetapkan perangkat komputasi aktif
     device = torch.device("cuda:0")
+    
+    # Pengujian alokasi tensor sederhana di VRAM GPU
+    tensor_uji = torch.randn(2000, 2000, device=device)
+    vram_terpakai = torch.cuda.memory_allocated() / (1024 ** 2)
+    print(f"VRAM Terpakai Saat Ini: {vram_terpakai:.2f} MB")
 else:
-    print("⚠️ Berjalan pada mode CPU")
-    device = torch.device("cpu")
-
-# Contoh memindahkan model/tensor ke GPU
-x = torch.randn(1000, 1000, device=device)
-print(f"Alokasi Memori VRAM Saat Ini: {torch.cuda.memory_allocated() / 1e6:.2f} MB")
+    print("Peringatan: Komputasi berjalan pada mode CPU.")
 ```
 
-### 6.2. Menginstal Pustaka (Library) Tambahan
-Gunakan opsi `--user` agar paket Python terpasang ke direktori pribadi Anda:
-
-```bash
-# Jalankan di Terminal Jupyter atau cell notebook dengan tanda seru (!)
-pip install --user scikit-learn seaborn transformers
-```
-
-### 6.3. Mematuhi Kuota Penyimpanan (Maksimal 10 GB)
-* Setiap mahasiswa diberikan kuota penyimpanan sebesar **10 GB**.
-* Jika kapasitas terpakai melebihi 10 GB, status akun Anda di dashboard akan bertanda kuning/merah **Over Quota**.
-* **Cara Membersihkan File Sampah Mandiri:**
-  ```bash
-  # Hapus cache download library PIP yang tidak terpakai
-  rm -rf ~/.cache/pip
-  
-  # Hapus berkas checkpoint notebook otomatis
-  find ~ -name ".ipynb_checkpoints" -type d -exec rm -rf {} +
+#### Tips Pelatihan Model AI:
+* Selalu pastikan model dan data gambar/teks Anda dialihkan ke GPU menggunakan perintah `.to(device)`.
+* Setelah proses kalkulasi atau evaluasi selesai, Anda dapat membebaskan sisa memori VRAM yang tidak lagi terpakai dengan menjalankan:
+  ```python
+  import torch
+  torch.cuda.empty_cache()
   ```
 
 ---
 
-## Bab 7: Mode Prioritas Riset & Pengajuan GPU Boost Skripsi
+### 2.4 Mengakses Dataset Bersama (*Shared Datasets*)
+Untuk menghemat ruang kuota penyimpanan dan memangkas waktu pengunduhan dataset besar (seperti ImageNet, COCO, MNIST, atau dataset lokal penelitian), laboratorium menyediakan direktori bersama:
+* **Lokasi Folder:** `/home/dataset_shared/`
 
-### 7.1. Fasilitas Mode Prioritas Level 1
-Bagi mahasiswa yang sedang menempuh mata kuliah **Tugas Akhir / Skripsi** dengan beban komputasi *Deep Learning* berat (misalnya pelatihan model YOLO, CNN, Transformer berukuran besar), Laboratorium AI UMPO menyediakan alokasi **Priority Tier (Level 1)**:
-* **GPU 0 Dedicated:** Akses kartu grafis mandiri tanpa berbagi antrean dengan praktikan lain.
-* **20 Core CPU vCPU & 70 GB RAM:** Mencegah notebook mengalami *Kernel Died / Out of Memory*.
-* **50 GB Kuota Disk:** Kapasitas lebih lega untuk menyimpan dataset gambar/suara berukuran besar.
+Anda dapat membaca data langsung di notebook tanpa perlu menyalin atau mendownload ulang ke folder pribadi Anda.
 
-### 7.2. Prosedur Mengajukan GPU Boost
-1. Hubungi Asisten Laboratorium atau Dosen Pembimbing Riset Anda.
-2. Sampaikan NIM, judul penelitian, dan estimasi waktu komputasi yang dibutuhkan (misal: 4 jam atau 8 jam).
-3. Aslab akan mengaktifkan slot prioritas Anda melalui Dashboard Admin.
-4. Begitu disetujui, buka kembali notebook Anda; beban komputasi otomatis berjalan di atas hardware Level 1.
+Contoh membaca dataset CSV menggunakan pustaka Pandas di notebook:
+```python
+import pandas as pd
 
----
+# Contoh membaca berkas dataset bersama secara langsung
+jalur_data = '/home/dataset_shared/dataset_contoh.csv'
+df = pd.read_csv(jalur_data)
+print(df.head())
+```
 
-## Bab 8: Kebijakan Operasional, Single-Device Lock, & Etika Komputasi
+Contoh membaca direktori citra gambar untuk PyTorch ImageFolder:
+```python
+from torchvision import datasets, transforms
 
-### 8.1. Kebijakan Kunci Sesi Tunggal (*Single-Device Policy*)
-* Akun Anda hanya boleh dibuka pada **1 perangkat dalam satu waktu**.
-* Jika Anda membuka sesi di Laptop A lalu mencoba login di Laptop B, sistem secara otomatis menolak login di Laptop B:
-  > *"Akses Ditolak: Akun sedang aktif digunakan di perangkat lain. Silakan logout dari perangkat sebelumnya."*
-* **Tujuan:** Mencegah kerusakan data akibat penulisan berkas notebook secara bersamaan, serta mencegah praktik *joki komputasi*.
-* Jika Anda berpindah perangkat, pastikan selalu menekan tombol **File -> Log Out** pada antarmuka JupyterLab di perangkat lama Anda.
-
-### 8.2. Kebijakan *Idle-Timeout* (Pemadaman Otomatis)
-* Server dilengkapi sistem *Idle Culler*.
-* Jika notebook Anda tidak menjalankan kalkulasi dan tidak ada interaksi di browser selama **60 menit**, server notebook Anda akan dimatikan otomatis untuk membebaskan VRAM bagi rekan praktikan lain.
-* Berkas pekerjaan Anda tetap tersimpan aman di direktori home Anda.
-
-### 8.3. Etika Komputasi Bersama
-1. **Dilarang Menambang Kripto (*Cryptomining*):** Aktivitas penambangan koin atau komputasi non-akademik akan dideteksi oleh sistem audit dan akun akan diblokir permanen.
-2. **Dataset Bersama:** Manfaatkan folder `/home/dataset_shared/` untuk membaca dataset standar praktikum tanpa perlu mendownload ulang dataset yang sama berkali-kali ke folder pribadi Anda.
-3. **Pembersihan Berkas Temporer:** Hapus file checkpoint bobot model (*weights*) yang sudah tidak terpakai agar server tetap bersih dan responsif.
+transformasi = transforms.Compose([transforms.Resize((224, 224)), transforms.ToTensor()])
+dataset = datasets.ImageFolder('/home/dataset_shared/citra_klasifikasi/', transform=transformasi)
+print(f"Total Sampel Gambar: {len(dataset)}")
+```
 
 ---
 
-## Lembar Pengesahan & Kontak Laboratorium
+### 2.5 Menginstal Pustaka (*Package*) Python Tambahan Melalui Notebook
+Lingkungan server laboratorium telah dilengkapi pustaka standar kecerdasan buatan (PyTorch, Torchvision, Scikit-Learn, Pandas, NumPy, OpenCV, Matplotlib). Jika modul yang Anda butuhkan belum tersedia, Anda dapat menginstalnya secara mandiri langsung dari sel notebook menggunakan perintah sihir (*magic command*) `%pip`:
 
-Dokumen ini disusun untuk menjamin kelancaran praktikum, penelitian, dan kegiatan akademik di Laboratorium Artificial Intelligence Fakultas Teknik Universitas Muhammadiyah Ponorogo.
+```python
+# Jalankan di sel notebook untuk menginstal pustaka tambahan ke direktori pribadi
+%pip install seaborn transformers albumentations
+```
 
-* **Alamat Laboratorium:** Laboratorium Komputasi AI, Gedung Fakultas Teknik, Universitas Muhammadiyah Ponorogo.
-* **Email Dukungan Teknis:** `lab.ai@umpo.ac.id` / Hubungi Asisten Laboratorium yang bertugas.
-* **Status Dokumen:** Terverifikasi & Diterapkan pada Sistem Produksi (Oktober 2026).
+> [!NOTE]
+> Pustaka yang diinstal melalui sel notebook otomatis tersimpan di folder pengguna Anda, sehingga paket tersebut akan tetap tersedia setiap kali Anda masuk kembali.
+
+---
+
+### 2.6 Penyimpanan Bobot Model (*Weights*) & Kuota Disk
+Setiap akun mahasiswa diberikan kuota penyimpanan bawaan sebesar **10 GB** (atau **50 GB** saat mode prioritas aktif).
+* Berkas notebook (`.ipynb`), skrip (`.py`), dan model tersimpan (*checkpoint* `.pt` atau `.pth`) berada di direktori pribadi Anda.
+* **Menyimpan Model Pelatihan:**
+  ```python
+  # Simpan model di direktori kerja
+  torch.save(model.state_dict(), 'model_terbaik.pth')
+  print("Model berhasil disimpan!")
+  ```
+* **Mengunduh Berkas Hasil:**
+  1. Pada File Browser di bilah kiri JupyterLab, klik kanan pada berkas `model_terbaik.pth`.
+  2. Pilih opsi **Download**.
+  3. Berkas akan terunduh langsung ke komputer/laptop pribadi Anda.
+* **Memantau Status Kuota:**
+  Jika penyimpanan Anda mendekati batas 10 GB, status akun di Web Dashboard akan menandai peringatan kuning/merah. Segera bersihkan berkas duplikat atau mintalah asisten lab untuk menekan tombol pembersihan cache.
+
+---
+
+### 2.7 Mengatasi Kendala Notebook (*Kernel Died*, *Out of Memory*, *Idle Timeout*)
+
+#### 1. Pesan *Kernel Died* / *Out of Memory (OOM)*:
+* **Penyebab:** Ukuran *batch size* pelatihan terlalu besar atau dataset yang dimuat melebihi alokasi memori RAM/VRAM yang ditentukan.
+* **Solusi di JupyterLab:**
+  1. Klik menu **Kernel** pada bilah menu atas JupyterLab.
+  2. Pilih **Restart Kernel and Clear All Outputs**.
+  3. Kurangi nilai `batch_size` pada skrip kode Anda (misalnya turunkan dari `64` ke `16` atau `8`).
+  4. Jalankan kembali sel kode dari awal.
+
+#### 2. Penutupan Otomatis Akibat *Idle-Timeout*:
+* Server menerapkan fitur *Idle Culler*.
+* Jika notebook Anda tidak menjalankan perhitungan dan tab peramban ditutup selama lebih dari **60 menit**, sesi komputasi akan diputus otomatis agar alokasi VRAM tidak tersandera.
+* Seluruh berkas notebook yang sudah tersimpan tetap aman dan tidak akan hilang. Anda cukup membuka kembali portal JupyterHub untuk melanjutkan aktivitas.
+
+---
+
+### 2.8 Kebijakan Sesi Tunggal (*Single-Device Lock*) & Prosedur Logout
+Laboratorium AI UMPO menerapkan kebijakan ketat **1 Akun = 1 Perangkat Aktif**.
+
+#### Mengapa Ada Single-Device Lock?
+1. Menghindari kerusakan file notebook akibat penulisan konkuren dari dua jendela berbeda.
+2. Mencegah praktik joki praktikum dan penyalahgunaan akun mahasiswa oleh pihak tidak berwenang.
+
+#### Gejala Saat Terkunci:
+Jika Anda membuka JupyterHub di Laptop A, lalu mencoba login menggunakan Laptop B tanpa logout terlebih dahulu, layar akan memunculkan penolakan:
+> *"Akses Ditolak (HTTP 403): Akun Anda sedang aktif digunakan di perangkat lain. Harap lakukan logout dari perangkat sebelumnya."*
+
+#### Cara Logout yang Benar:
+* Jangan hanya menutup tab peramban!
+* Klik menu **File** di pojok kiri atas JupyterLab.
+* Pilih opsi **Log Out**.
+* Sesi komputasi Anda akan dilepaskan secara bersih dan Anda dapat login kembali dari perangkat lain dengan lancar.
+
+---
+
+# Bab 3: Panduan Web Dashboard (Mode Monitoring Publik)
+
+Web Dashboard Laboratorium AI UMPO dapat diakses bebas oleh seluruh mahasiswa dan pengunjung di tautan:
+* **Alamat Dashboard:** `http://76.76.76.188:8888`
+
+---
+
+### 3.1 Tata Letak & Navigasi Antarmuka Web Dashboard
+Antarmuka Web Dashboard mengusung konsep visual modern (*Precision Console / Stitch UI*) dengan tata letak bersih dan responsif:
+1. **Bilah Navigasi Sisi Kiri (*Sidebar*):**
+   * **Ringkasan:** Tampilan ringkasan metrik beban server, status memori, dan kartu telemetri GPU.
+   * **Pengguna:** Tabel pemantauan seluruh akun mahasiswa, status online, kuota disk, dan pengelolaan prioritas.
+   * **File Explorer:** Antarmuka pengelola berkas berbasis web (terkunci dengan hak akses admin).
+   * **Log Audit:** Riwayat catatan aktivitas administratif dan keamanan server (terkunci dengan hak akses admin).
+   * **Buku Panduan:** Dokumentasi resmi panduan sistem yang terintegrasi langsung di aplikasi web.
+2. **Indikator Status Bawah:**
+   * Menampilkan status koneksi telemetri (**ONLINE / OFFLINE**) secara langsung.
+   * Jam real-time Waktu Indonesia Barat (WIB).
+   * Tombol muat ulang telemetri manual (*Refresh*).
+3. **Bilah Header Atas:**
+   * Informasi identitas laboratorium dan mode kerja aktif (*Public Monitoring View* atau *Administrator Mode*).
+   * Tombol **Login Admin** untuk masuk ke mode kendali asisten laboratorium.
+
+---
+
+### 3.2 Membaca Telemetri Komputasi Real-Time
+Pada tab **Ringkasan**, terdapat 4 kartu metrik utama dan panel pemantau GPU ganda:
+
+1. **Host CPU & RAM:**
+   * Memperlihatkan persentase beban prosesor pusat dan konsumsi memori utama server (RAM) dalam satuan gigabyte.
+2. **Penyimpanan `/home`:**
+   * Menampilkan kapasitas terpakai dan sisa ruang kosong pada partisi utama direktori kerja mahasiswa.
+3. **VRAM Quota Cluster (Dual GPU):**
+   * Menampilkan agregasi total memori grafis (VRAM) yang sedang digunakan di seluruh cluster server.
+4. **Keamanan & Backup:**
+   * Menampilkan status integritas basis data SQLite Write-Ahead Logging (WAL) dan riwayat tanggal snapshot pencadangan terakhir.
+5. **Kartu Grafis GPU 0 & GPU 1:**
+   * Setiap kartu GPU menampilkan indikator suhu operasional (°C), utilisasi komputasi grafis (%), alokasi VRAM terpakai (GB), kecepatan putaran kipas (*Fan Speed*), dan konsumsi daya listrik (*Power Wattage*).
+
+---
+
+### 3.3 Indikator Status Koneksi & Sinkronisasi Waktu Server
+* Di pojok kiri bawah bilah navigasi, terdapat lingkaran indikator berkedip hijau (**ONLINE**). Telemetri diperbarui secara otomatis setiap beberapa detik melalui saluran data real-time.
+* Jika koneksi jaringan kampus terputus atau server sedang dalam pemeliharaan, indikator berubah menjadi merah (**OFFLINE**).
+* Anda dapat menekan tombol ikon putar di samping jam untuk meminta pembaruan data telemetri seketika.
+
+---
+
+### 3.4 Memantau Aktivitas Sesi & Slot Prioritas yang Tersedia
+Pada tab **Pengguna**, pengguna mode publik dapat melihat:
+* Jumlah akun mahasiswa yang sedang aktif (*Online Sessions*).
+* Status slot komputasi Level 1: Menampilkan apakah slot GPU 0 sedang kosong atau sedang digunakan oleh mahasiswa skripsi.
+* Daftar mahasiswa yang sedang menjalankan tugas komputasi beserta waktu mulai sesi.
+
+---
+
+# Bab 4: Panduan Administrator & Asisten Lab (Web Console)
+
+Bagian ini ditujukan bagi Asisten Laboratorium dan Dosen Pengelola yang bertugas menjaga kelancaran praktikum dan riset.
+
+---
+
+### 4.1 Membuka Mode Akses Administrator (Login PIN Master)
+Untuk mengakses fungsi administratif pada Web Dashboard:
+1. Klik tombol **Login Admin** di pojok kanan atas bilah navigasi dashboard.
+2. Jendela sembul (*modal dialog*) otentikasi akan muncul.
+3. Masukkan **PIN Master Administrator** laboratorium yang telah ditetapkan.
+4. Tekan tombol **Masuk**.
+5. Setelah terverifikasi, label mode di bilah atas akan berubah menjadi **Super Admin Mode**, dan seluruh tombol operasional (Boost, Clear Cache, Kill Sesi, File Explorer, Log Audit, Snapshot) akan aktif secara otomatis.
+
+---
+
+### 4.2 Manajemen Pengguna & Alokasi Dynamic QoS
+Buka tab **Pengguna** di bilah navigasi kiri untuk mengakses dasbor manajemen pengguna.
+
+#### 4.2.1 Filter & Pencarian Pengguna:
+* Gunakan kolom pencarian di bagian atas tabel untuk mencari mahasiswa secara cepat berdasarkan **NIM** atau **Nama Lengkap**.
+* Gunakan tombol saringan tab:
+  * **Semua:** Menampilkan seluruh akun yang terdaftar.
+  * **Mahasiswa SIMTIK:** Khusus menyaring akun mahasiswa praktikan dan skripsi.
+  * **Akun Sistem:** Menyaring akun riset khusus (`labriset`, `training1`-`10`).
+
+#### 4.2.2 Memberikan Akses GPU Boost (Prioritas Level 1):
+Ketika seorang mahasiswa skripsi mengajukan permohonan komputasi untuk pelatihan model besar:
+1. Cari baris mahasiswa bersangkutan pada tabel.
+2. Klik tombol **⚡ Boost** (berwarna biru gradien).
+3. Jendela pengaturan alokasi akan muncul:
+   * Pilih durasi waktu komputasi yang diizinkan (**1 Jam, 2 Jam, 4 Jam, 8 Jam, 12 Jam, atau 24 Jam**).
+   * Isi kolom keterangan/alasan (misalnya: *Training Model Skripsi YOLOv8 Deteksi Kanker Kulit*).
+4. Klik **Konfirmasi Boost**.
+5. Sistem otomatis memeriksa ketersediaan slot GPU 0. Jika tersedia, status akun langsung ditingkatkan ke **Level 1 (GPU 0 Dedicated)**.
+6. Hitung mundur waktu aktif (*Live Countdown*) akan langsung berjalan secara real-time pada kolom tabel mahasiswa tersebut.
+
+#### 4.2.3 Mengembalikan Pengguna ke Mode Standard (*Unboost*):
+* Jika masa durasi boost habis, sistem akan secara otomatis mengembalikan akun ke tingkat Standard Level 2.
+* Jika asisten lab ingin mengembalikan alokasi lebih awal secara manual:
+  1. Klik tombol **Kembalikan ke Mode Standard** pada baris mahasiswa bersangkutan.
+  2. Konfirmasi tindakan. Akun akan kembali dialokasikan ke GPU 1 dan slot GPU 0 kembali terbuka bagi peneliti lain.
+
+#### 4.2.4 Membersihkan Cache Disk Mahasiswa (Ikon Penghapus):
+Jika kapasitas penyimpanan mahasiswa bertanda kuning/merah (*Over Quota*):
+1. Klik tombol **ikon penghapus** (*Bersihkan Cache Disk*) pada baris mahasiswa tersebut.
+2. Konfirmasi tindakan pada dialog peringatan.
+3. Sistem web akan secara aman memusnahkan direktori sampah unduhan cache PIP (`~/.cache/pip`) dan riwayat checkpoint notebook (`.ipynb_checkpoints`) tanpa menghapus naskah kode atau dataset utama mahasiswa.
+4. Kapasitas penyimpanan mahasiswa akan langsung berkurang dan normal kembali.
+
+#### 4.2.5 Menghentikan Sesi Bermasalah (Ikon Stop: *Kill Sesi OS Aktif*):
+Jika mahasiswa mengalami kendala perulangan tanpa henti (*infinite loop*), kebocoran memori, atau kernel tidak merespons:
+1. Temukan nama mahasiswa pada tabel.
+2. Klik tombol **ikon stop** berwarna merah (*Kill Sesi OS Aktif*).
+3. Konfirmasi jendela pemutusan sesi.
+4. Sistem web akan mematikan proses notebook pengguna tersebut dan membebaskan alokasi VRAM pada kartu grafis secara seketika tanpa perlu me-restart server secara keseluruhan.
+
+---
+
+### 4.3 Web File Explorer Terpadu
+Menu **File Explorer** pada bilah navigasi kiri menyediakan antarmuka visual lengkap untuk mengelola berkas di server laboratorium tanpa perlu menggunakan aplikasi pihak ketiga seperti FileZilla atau WinSCP.
+
+#### 4.3.1 Menjelajahi Folder Mahasiswa & Direktori Bersama:
+* **Panel Kiri:** Berisi daftar seluruh direktori mahasiswa yang terdaftar (`/home/m<NIM>`) serta folder publik bersama (`dataset_shared`).
+* **Panel Kanan:** Menampilkan isi direktori aktif beserta nama berkas, tipe (folder/file), ukuran file, dan tanggal modifikasi terakhir.
+* **Navigasi Hirarki:** Klik pada nama folder untuk masuk ke subdirektori, atau klik tombol **Panah Atas (..)** pada bilah jalur (*breadcrumb*) untuk kembali ke folder induk.
+
+#### 4.3.2 Mengunggah (*Upload*) Berkas & Dataset via Web:
+1. Pilih direktori tujuan pada panel File Explorer.
+2. Klik tombol **Upload File** pada bilah tindakan atas.
+3. Pilih berkas dari komputer Anda (dataset .zip/.csv, notebook .ipynb, modul .py, dsb.).
+4. Berkas akan terunggah secara otomatis langsung ke direktori tujuan dengan kepemilikan hak akses pengguna yang sesuai.
+
+#### 4.3.3 Mengunduh (*Download*) Berkas Pekerjaan Mahasiswa:
+1. Pada baris berkas yang diinginkan, klik tombol **ikon unduh** (*Download*).
+2. Peramban web Anda akan langsung mengunduh berkas tersebut ke penyimpanan lokal Anda.
+
+#### 4.3.4 Membuat Folder, Mengubah Nama, dan Menghapus Berkas:
+* **Buat Folder Baru:** Klik tombol **New Folder**, ketikkan nama folder, lalu simpan.
+* **Ganti Nama (*Rename*):** Klik tombol **ikon pensil** (*Edit/Rename*) pada baris berkas, masukkan nama baru, lalu konfirmasi.
+* **Hapus Berkas (*Delete*):** Klik tombol **ikon tempat sampah** (*Delete*), konfirmasi penghapusan pada modal dialog keamanan.
+
+#### 4.3.5 Fitur Salin ke Direktori Bersama (*Copy to Shared*):
+Jika mahasiswa menghasilkan dataset atau materi praktikum yang bermanfaat untuk dibagikan ke seluruh kelas:
+1. Klik tombol **Copy to Shared** pada baris berkas terkait.
+2. Berkas tersebut otomatis disalin ke `/home/dataset_shared/` dengan izin baca bagi seluruh praktikan.
+
+#### 4.3.6 Manajemen Papan Klip (*Clipboard*: Copy / Cut / Paste):
+* Klik ikon **Copy** (Salin) atau **Cut** (Potong) pada berkas tertentu.
+* Arahkan navigasi ke folder tujuan yang diinginkan.
+* Tombol **Paste** (Tempel) akan muncul pada bilah tindakan atas. Klik tombol tersebut untuk menyelesaikan proses pemindahan berkas.
+
+---
+
+### 4.4 Pemantauan Log Audit Administratif
+Buka tab **Log Audit** untuk melihat rekaman jejak audit (*audit trail*) keamanan:
+* Setiap tindakan krusial (pemberian boost GPU, pencabutan boost, pembersihan cache, pemutusan sesi pengguna, penggantian nama berkas, dan penghapusan data) tercatat secara permanen.
+* Informasi yang dicatat mencakup: **Waktu Aksi**, **Admin/Pelaksana**, **Jenis Aksi**, **Target Mahasiswa/NIM**, dan **Keterangan Rinci**.
+* Fitur ini menjamin akuntabilitas seluruh aktivitas pengelolaan laboratorium.
+
+---
+
+### 4.5 Pencadangan Database Sekali Klik (*Snapshot Database*)
+Pada tab **Ringkasan**, di kartu metrik *Keamanan & Backup*:
+* Asisten lab dapat menekan tombol **Snapshot Database**.
+* Sistem web akan membuat salinan instan (*point-in-time snapshot*) basis data pengguna dan kuota ke direktori penyimpanan cadangan lokal secara aman tanpa menghentikan layanan yang sedang berjalan.
+
+---
+
+# Bab 5: Kebijakan Operasional, Etika Komputasi, & Bantuan
+
+### 5.1 Etika & Tata Tertib Komputasi Bersama
+Untuk menjaga kenyamanan seluruh sivitas akademika Universitas Muhammadiyah Ponorogo:
+1. **Peruntukan Akademik & Penelitian:** Sumber daya komputasi laboratorium AI UMPO hanya diizinkan untuk keperluan praktikum perkuliahan, riset skripsi, publikasi ilmiah, dan proyek inovasi yang disetujui program studi.
+2. **Larangan Penambangan Kripto (*Cryptomining*):** Dilarang keras menggunakan GPU atau CPU laboratorium untuk aktivitas *mining cryptocurrency*. Sistem audit akan mendeteksi beban komputasi anomali secara otomatis dan akun bersangkutan akan diblokir permanen.
+3. **Efisiensi Memori Grafis:** Segera lakukan *Restart Kernel* atau panggil `torch.cuda.empty_cache()` jika proses komputasi telah selesai agar alokasi VRAM dapat dimanfaatkan oleh rekan mahasiswa lainnya.
+4. **Kebersihan Ruang Penyimpanan:** Hapus berkas checkpoint bobot model yang gagal atau tidak terpakai agar tidak membebani ruang penyimpanan server.
+
+---
+
+### 5.2 Standar Pelaporan Kendala
+Jika mahasiswa atau peneliti menemui kendala teknis:
+1. **Langkah Pertama:** Periksa Web Dashboard publik di port `8888` untuk memastikan apakah server dalam status normal atau sedang mengalami beban puncak.
+2. **Langkah Kedua:** Buka buku panduan ini melalui tab **Buku Panduan** di Web Dashboard untuk memeriksa solusi mandiri (*Troubleshooting Guide*).
+3. **Langkah Ketiga:** Jika kendala berlanjut (misalnya akun terkunci di perangkat lain atau kuota disk penuh), hubungi Asisten Laboratorium yang bertugas dengan menyertakan NIM dan tangkapan layar (*screenshot*) pesan error yang tampil.
+
+---
+
+### 5.3 Kontak Resmi & Informasi Dukungan
+* **Laboratorium:** Laboratorium Artificial Intelligence & Komputasi Riset
+* **Institusi:** Program Studi Teknik Informatika, Fakultas Teknik, Universitas Muhammadiyah Ponorogo
+* **Lokasi:** Gedung Laboratorium Fakultas Teknik UMPO, Ponorogo, Jawa Timur
+* **Kanal Dukungan:** Asisten Laboratorium Komputasi AI yang bertugas pada jam kerja operasional kampus.
+
+---
+
+*Buku Panduan ini berlaku efektif sejak tanggal diterbitkan dan menjadi acuan operasional resmi Laboratorium AI Fakultas Teknik Universitas Muhammadiyah Ponorogo.*

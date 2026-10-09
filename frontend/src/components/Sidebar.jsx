@@ -94,10 +94,10 @@ export default function Sidebar({
                 <button
                   key={tab.id}
                   onClick={handleClick}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left transition-all text-xs font-medium ${
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left transition-all duration-200 text-xs font-medium motion-press ${
                     isActive
-                      ? 'bg-gradient-to-r from-blue-50 to-indigo-50/50 text-blue-700 font-semibold border border-blue-200/90 shadow-[0_2px_4px_rgba(37,99,235,0.06)]'
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent'
+                      ? 'bg-gradient-to-r from-blue-50 to-indigo-50/50 text-blue-700 font-semibold border border-blue-200/90 shadow-[0_2px_4px_rgba(37,99,235,0.06)] translate-x-1'
+                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent hover:translate-x-0.5'
                   }`}
                   type="button"
                 >

@@ -140,6 +140,91 @@
 }
 
 /* ─────────────────────────────────────────────────────────────────
+   MOTION.md SYSTEM ANIMATIONS & TRANSITIONS (Strix Polish)
+   ───────────────────────────────────────────────────────────────── */
+@keyframes viewEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes modalPop {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes backdropFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: backdropFade var(--duration-fast) var(--ease-out-soft) forwards;
+}
+
+.motion-view-enter {
+  animation: viewEnter var(--duration-base) var(--ease-out-soft) forwards;
+}
+
+.motion-modal-pop {
+  animation: modalPop var(--duration-base) var(--ease-out-soft) forwards;
+}
+
+.motion-backdrop {
+  animation: backdropFade var(--duration-fast) var(--ease-out-soft) forwards;
+}
+
+/* Strix-like subtle 3D card tilt & hover lift */
+.motion-card {
+  transition: transform var(--duration-base) var(--ease-out-soft),
+              box-shadow var(--duration-base) var(--ease-out-soft),
+              border-color var(--duration-fast) var(--ease-out-soft);
+}
+
+.motion-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -4px rgba(37, 99, 235, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+}
+
+/* Tactile button feedback */
+.motion-press {
+  transition: transform var(--duration-fast) var(--ease-out-soft),
+              box-shadow var(--duration-fast) var(--ease-out-soft),
+              background-color var(--duration-fast) var(--ease-out-soft);
+}
+
+.motion-press:active {
+  transform: translateY(1.5px) scale(0.985);
+}
+
+/* Functional data progress bar smooth transitions */
+.motion-bar {
+  transition: width var(--duration-slow) var(--ease-out-soft),
+              background-color var(--duration-base) var(--ease-out-soft);
+}
+
+/* Table row interactive transition */
+.motion-row {
+  transition: background-color var(--duration-fast) var(--ease-out-soft),
+              transform var(--duration-fast) var(--ease-out-soft);
+}
+
+.motion-row:hover {
+  transform: translateX(2px);
+}
+
+/* ─────────────────────────────────────────────────────────────────
    BASE LAYER & ANTI-JITTER TABULAR NUMBERS
    ───────────────────────────────────────────────────────────────── */
 @layer base {

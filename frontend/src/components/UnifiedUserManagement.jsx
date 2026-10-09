@@ -867,7 +867,7 @@ export default function UnifiedUserManagement({
                     return (
                       <tr
                         key={`std-${item.nim}`}
-                        className={`hover:bg-blue-50/40 transition-colors group ${
+                        className={`hover:bg-blue-50/40 motion-row group ${
                           item.is_priority ? 'bg-blue-50/20' : 'bg-white'
                         }`}
                       >
@@ -1132,7 +1132,7 @@ export default function UnifiedUserManagement({
                   return (
                     <tr
                       key={`sys-${item.username}`}
-                      className="hover:bg-blue-50/40 transition-colors bg-slate-50/30 group"
+                      className="hover:bg-blue-50/40 motion-row bg-slate-50/30 group"
                     >
                       {/* 1. Akun & Pengguna */}
                       <td className="py-3.5 px-5">

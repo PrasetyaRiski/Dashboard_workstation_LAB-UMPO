@@ -507,68 +507,76 @@ export default function App() {
         {/* Main Content View Container */}
         <main className="flex-1 pt-18 px-5 lg:px-7 pb-12 w-full max-w-[1600px] mx-auto">
           {activeTab === 'overview' && (
-            <ErrorBoundary title="Kendala Modul Ringkasan Sistem">
-              <div className="flex flex-col gap-6">
-                <SystemOverview
-                  system={data?.system}
-                  gpus={data?.gpus}
-                  onTriggerBackup={handleTriggerBackup}
-                  isBackingUp={isBackingUp}
-                  backups={backups}
-                  isAdmin={isAdmin && !isDataStale}
-                />
-                <Gpu3dIsometricScene gpus={data?.gpus} />
-                <LiveChart history={data?.history} />
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                  <GpuCard
-                    gpu={data?.gpus?.[0]}
+            <div key="overview" className="motion-view-enter">
+              <ErrorBoundary title="Kendala Modul Ringkasan Sistem">
+                <div className="flex flex-col gap-6">
+                  <SystemOverview
+                    system={data?.system}
+                    gpus={data?.gpus}
+                    onTriggerBackup={handleTriggerBackup}
+                    isBackingUp={isBackingUp}
+                    backups={backups}
                     isAdmin={isAdmin && !isDataStale}
-                    onOpenKillModal={handleOpenKillModal}
                   />
-                  <GpuCard
-                    gpu={data?.gpus?.[1]}
-                    isAdmin={isAdmin && !isDataStale}
-                    onOpenKillModal={handleOpenKillModal}
-                  />
+                  <Gpu3dIsometricScene gpus={data?.gpus} />
+                  <LiveChart history={data?.history} />
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                    <GpuCard
+                      gpu={data?.gpus?.[0]}
+                      isAdmin={isAdmin && !isDataStale}
+                      onOpenKillModal={handleOpenKillModal}
+                    />
+                    <GpuCard
+                      gpu={data?.gpus?.[1]}
+                      isAdmin={isAdmin && !isDataStale}
+                      onOpenKillModal={handleOpenKillModal}
+                    />
+                  </div>
                 </div>
-              </div>
-            </ErrorBoundary>
+              </ErrorBoundary>
+            </div>
           )}
 
           {activeTab === 'students' && (
-            <ErrorBoundary title="Kendala Modul Manajemen Pengguna">
-              <UnifiedUserManagement
-                isAdmin={isAdmin && !isDataStale}
-                adminRole={adminRole}
-                adminUser={adminUser}
-                students={students}
-                systemUsers={data?.users || []}
-                gpus={data?.gpus || []}
-                onOpenKillModal={handleOpenKillModal}
-                onResetPassword={handleResetPassword}
-                onKillAllUser={handleKillAllUser}
-                fetchStudents={fetchStudents}
-                showToast={showToast}
-              />
-            </ErrorBoundary>
+            <div key="students" className="motion-view-enter">
+              <ErrorBoundary title="Kendala Modul Manajemen Pengguna">
+                <UnifiedUserManagement
+                  isAdmin={isAdmin && !isDataStale}
+                  adminRole={adminRole}
+                  adminUser={adminUser}
+                  students={students}
+                  systemUsers={data?.users || []}
+                  gpus={data?.gpus || []}
+                  onOpenKillModal={handleOpenKillModal}
+                  onResetPassword={handleResetPassword}
+                  onKillAllUser={handleKillAllUser}
+                  fetchStudents={fetchStudents}
+                  showToast={showToast}
+                />
+              </ErrorBoundary>
+            </div>
           )}
 
           {activeTab === 'files' && (
-            <ErrorBoundary title="Kendala File Explorer">
-              <AdminFileExplorer
-                isAdmin={isAdmin}
-                adminToken={adminToken}
-                students={students}
-                systemUsers={data?.users || []}
-                showToast={showToast}
-              />
-            </ErrorBoundary>
+            <div key="files" className="motion-view-enter">
+              <ErrorBoundary title="Kendala File Explorer">
+                <AdminFileExplorer
+                  isAdmin={isAdmin}
+                  adminToken={adminToken}
+                  students={students}
+                  systemUsers={data?.users || []}
+                  showToast={showToast}
+                />
+              </ErrorBoundary>
+            </div>
           )}
 
           {activeTab === 'audit' && (
-            <ErrorBoundary title="Kendala Modul Log Audit">
-              <AuditLogView logs={data?.audit_logs || []} />
-            </ErrorBoundary>
+            <div key="audit" className="motion-view-enter">
+              <ErrorBoundary title="Kendala Modul Log Audit">
+                <AuditLogView logs={data?.audit_logs || []} />
+              </ErrorBoundary>
+            </div>
           )}
         </main>
       </div>

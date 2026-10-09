@@ -60,7 +60,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
   }
 
   return (
-    <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] flex flex-col gap-5">
+    <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] motion-card flex flex-col gap-5">
       
       {/* Header Info */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
@@ -112,7 +112,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
           </div>
           <div className="w-full bg-slate-200/70 h-2 rounded-full overflow-hidden border border-slate-200/60 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]">
             <div 
-              className={`h-full rounded-full transition-all duration-300 ${
+              className={`h-full rounded-full motion-bar ${
                 computePct >= 90 ? 'bg-gradient-to-r from-rose-500 to-rose-600' : 
                 computePct >= 75 ? 'bg-gradient-to-r from-amber-500 to-amber-600' : 
                 'bg-gradient-to-r from-blue-500 to-blue-600'
@@ -132,7 +132,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
           </div>
           <div className="w-full bg-slate-200/70 h-2 rounded-full overflow-hidden border border-slate-200/60 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]">
             <div 
-              className={`h-full rounded-full transition-all duration-300 ${
+              className={`h-full rounded-full motion-bar ${
                 vramPct >= 90 ? 'bg-gradient-to-r from-rose-500 to-rose-600' : 
                 vramPct >= 75 ? 'bg-gradient-to-r from-amber-500 to-amber-600' : 
                 'bg-gradient-to-r from-sky-500 to-blue-600'
@@ -164,12 +164,12 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
                   key={index}
                   onMouseEnter={() => setHoveredBlock(block)}
                   onMouseLeave={() => setHoveredBlock(null)}
-                  className={`h-6 rounded-md transition-all cursor-pointer ${
+                  className={`h-6 rounded-md transition-all duration-150 cursor-pointer ${
                     occupied
                       ? isResearch
-                        ? 'bg-gradient-to-b from-indigo-500 to-indigo-600 border border-indigo-700 shadow-[0_2px_4px_rgba(79,70,229,0.3)] hover:scale-105'
-                        : 'bg-gradient-to-b from-blue-500 to-blue-600 border border-blue-700 shadow-[0_2px_4px_rgba(37,99,235,0.3)] hover:scale-105'
-                      : 'bg-white border border-slate-200/80 hover:border-blue-400 shadow-[0_1px_2px_rgba(0,0,0,0.03)]'
+                        ? 'bg-gradient-to-b from-indigo-500 to-indigo-600 border border-indigo-700 shadow-[0_2px_4px_rgba(79,70,229,0.3)] hover:scale-110 active:scale-95'
+                        : 'bg-gradient-to-b from-blue-500 to-blue-600 border border-blue-700 shadow-[0_2px_4px_rgba(37,99,235,0.3)] hover:scale-110 active:scale-95'
+                      : 'bg-white border border-slate-200/80 hover:border-blue-400 hover:scale-105 shadow-[0_1px_2px_rgba(0,0,0,0.03)]'
                   }`}
                   title={occupied ? `PID ${proc?.pid} (${proc?.username}) · ${proc?.vram_mb} MB` : `Blok ${index + 1} Kosong`}
                 />
@@ -248,7 +248,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
                   const isProtected = proc.is_system || !proc.is_killable;
                   const isResearch = proc.username === 'labriset' || proc.username?.includes('riset');
                   return (
-                    <tr key={proc.pid} className="hover:bg-blue-50/40 transition-colors">
+                    <tr key={proc.pid} className="hover:bg-blue-50/40 motion-row">
                       {/* User with dot indicator */}
                       <td className="px-3.5 py-2.5 text-slate-900 font-medium">
                         <div className="flex items-center gap-1.5">

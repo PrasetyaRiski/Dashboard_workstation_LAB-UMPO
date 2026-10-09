@@ -57,8 +57,8 @@ export default function AdminPinModal({ isOpen, onSuccess, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fade-in">
-      <div className="w-full max-w-md bg-white border border-slate-200/90 rounded-2xl shadow-[0_20px_50px_rgba(15,23,42,0.15),0_0_0_1px_rgba(255,255,255,0.8)] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm motion-backdrop">
+      <div className="w-full max-w-md bg-white border border-slate-200/90 rounded-2xl shadow-[0_20px_50px_rgba(15,23,42,0.15),0_0_0_1px_rgba(255,255,255,0.8)] overflow-hidden flex flex-col motion-modal-pop">
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-gradient-to-b from-slate-50 to-white">
           <div className="flex items-center gap-3.5">

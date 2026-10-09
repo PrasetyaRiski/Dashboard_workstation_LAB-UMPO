@@ -146,9 +146,9 @@ export default function CommandPalette({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 bg-slate-900/40 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 bg-slate-900/40 backdrop-blur-sm motion-backdrop">
       <div 
-        className="w-full max-w-xl bg-white border border-slate-200/90 rounded-2xl shadow-[0_25px_60px_rgba(15,23,42,0.18)] overflow-hidden flex flex-col"
+        className="w-full max-w-xl bg-white border border-slate-200/90 rounded-2xl shadow-[0_25px_60px_rgba(15,23,42,0.18)] overflow-hidden flex flex-col motion-modal-pop"
         onKeyDown={handleKeyDown}
       >
         {/* Search Input Bar */}

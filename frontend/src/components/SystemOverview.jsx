@@ -49,7 +49,7 @@ function SystemOverview({ system = {}, gpus = [], onTriggerBackup, isBackingUp, 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* Metric 1: Beban Komputasi CPU & RAM */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_10px_28px_-4px_rgba(37,99,235,0.12)] hover:-translate-y-0.5 transition-all flex flex-col justify-between">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] motion-card flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-500 mb-3">
             <span className="text-xs font-semibold text-slate-900 flex items-center gap-2">
               <Cpu className="w-4 h-4 text-blue-600" /> Beban Komputasi
@@ -67,7 +67,7 @@ function SystemOverview({ system = {}, gpus = [], onTriggerBackup, isBackingUp, 
               </div>
               <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200/60 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]">
                 <div 
-                  className={`h-full rounded-full transition-all duration-300 ${
+                  className={`h-full rounded-full motion-bar ${
                     cpuPercent >= 90 ? 'bg-gradient-to-r from-rose-500 to-rose-600' : 
                     cpuPercent >= 75 ? 'bg-gradient-to-r from-amber-500 to-amber-600' : 
                     'bg-gradient-to-r from-blue-500 to-blue-600'
@@ -84,7 +84,7 @@ function SystemOverview({ system = {}, gpus = [], onTriggerBackup, isBackingUp, 
               </div>
               <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200/60 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]">
                 <div 
-                  className={`h-full rounded-full transition-all duration-300 ${
+                  className={`h-full rounded-full motion-bar ${
                     memoryPercent >= 90 ? 'bg-gradient-to-r from-rose-500 to-rose-600' : 
                     memoryPercent >= 75 ? 'bg-gradient-to-r from-amber-500 to-amber-600' : 
                     'bg-gradient-to-r from-emerald-500 to-emerald-600'
@@ -97,7 +97,7 @@ function SystemOverview({ system = {}, gpus = [], onTriggerBackup, isBackingUp, 
         </div>
 
         {/* Metric 2: Penyimpanan /home */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_10px_28px_-4px_rgba(37,99,235,0.12)] hover:-translate-y-0.5 transition-all flex flex-col justify-between">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] motion-card flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-xs font-semibold text-slate-900 flex items-center gap-2">
               <HardDrive className="w-4 h-4 text-indigo-600" /> Penyimpanan /home
@@ -115,7 +115,7 @@ function SystemOverview({ system = {}, gpus = [], onTriggerBackup, isBackingUp, 
 
             <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200/60 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] mb-2">
               <div 
-                className={`h-full rounded-full transition-all duration-300 ${
+                className={`h-full rounded-full motion-bar ${
                   !isStorageSafe ? 'bg-gradient-to-r from-rose-500 to-rose-600' : 'bg-gradient-to-r from-indigo-500 to-indigo-600'
                 }`}
                 style={{ width: `${homeDisk.percent || 0}%` }}
@@ -131,7 +131,7 @@ function SystemOverview({ system = {}, gpus = [], onTriggerBackup, isBackingUp, 
         </div>
 
         {/* Metric 3: VRAM Quota Cluster (Dual GPU) */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_10px_28px_-4px_rgba(37,99,235,0.12)] hover:-translate-y-0.5 transition-all flex flex-col justify-between">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] motion-card flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-xs font-semibold text-slate-900 flex items-center gap-2">
               <Layers className="w-4 h-4 text-sky-600" /> VRAM Quota Cluster
@@ -151,7 +151,7 @@ function SystemOverview({ system = {}, gpus = [], onTriggerBackup, isBackingUp, 
 
             <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200/60 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] mb-2">
               <div 
-                className={`h-full rounded-full transition-all duration-300 ${
+                className={`h-full rounded-full motion-bar ${
                   vramPct >= 90 ? 'bg-gradient-to-r from-rose-500 to-rose-600' : 
                   vramPct >= 75 ? 'bg-gradient-to-r from-amber-500 to-amber-600' : 
                   'bg-gradient-to-r from-sky-500 to-blue-600'
@@ -167,7 +167,7 @@ function SystemOverview({ system = {}, gpus = [], onTriggerBackup, isBackingUp, 
         </div>
 
         {/* Metric 4: Keamanan & Status Backup */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_10px_28px_-4px_rgba(37,99,235,0.12)] hover:-translate-y-0.5 transition-all flex flex-col justify-between">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] motion-card flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between text-slate-500 mb-2">
               <span className="text-xs font-semibold text-slate-900 flex items-center gap-2">
@@ -194,7 +194,7 @@ function SystemOverview({ system = {}, gpus = [], onTriggerBackup, isBackingUp, 
             <button
               onClick={onTriggerBackup}
               disabled={isBackingUp}
-              className="w-full mt-2 py-2 px-3 bg-white hover:bg-slate-50 border border-slate-200 hover:border-blue-300 text-slate-700 hover:text-blue-700 rounded-xl text-xs font-semibold shadow-[0_2px_0_#cbd5e1,0_2px_4px_rgba(0,0,0,0.03)] active:translate-y-0.5 active:shadow-none transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full mt-2 py-2 px-3 bg-white hover:bg-slate-50 border border-slate-200 hover:border-blue-300 text-slate-700 hover:text-blue-700 rounded-xl text-xs font-semibold shadow-[0_2px_0_#cbd5e1,0_2px_4px_rgba(0,0,0,0.03)] motion-press transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               type="button"
             >
               {isBackingUp ? (

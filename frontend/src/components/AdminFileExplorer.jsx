@@ -155,9 +155,9 @@ export default function AdminFileExplorer({
                   setSelectedUserForFiles(identifier);
                   setExplorerPath('');
                 }}
-                className={`w-full text-left flex flex-col p-3 rounded-xl transition-colors ${
+                className={`w-full text-left flex flex-col p-3 rounded-xl transition-all duration-150 motion-press hover:translate-x-1 ${
                   isSelected 
-                    ? 'bg-blue-500/10 border-blue-500/30 border' 
+                    ? 'bg-blue-500/10 border-blue-500/30 border shadow-sm' 
                     : 'hover:bg-slate-800/50 border border-transparent'
                 }`}
               >
@@ -242,7 +242,7 @@ export default function AdminFileExplorer({
                       const isDir = file.is_dir;
                       const fullPath = explorerPath ? `${explorerPath}/${file.name}` : file.name;
                       return (
-                        <tr key={idx} className={`hover:bg-slate-800/50 transition-colors ${isDir ? 'cursor-pointer' : ''}`} onClick={() => {
+                        <tr key={idx} className={`hover:bg-slate-800/50 motion-row ${isDir ? 'cursor-pointer' : ''}`} onClick={() => {
                           if (isDir) {
                             setExplorerPath(fullPath);
                           }
@@ -260,14 +260,14 @@ export default function AdminFileExplorer({
                               <div className="inline-flex items-center gap-2">
                                 <button
                                   onClick={(e) => { e.stopPropagation(); handleDownloadFile(fullPath); }}
-                                  className="p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 transition-all"
+                                  className="p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 motion-press active:scale-95 transition-all"
                                   title="Download File"
                                 >
                                   <Download className="w-3.5 h-3.5" />
                                 </button>
                                 <button
                                   onClick={(e) => { e.stopPropagation(); handleCopyToShared(fullPath); }}
-                                  className="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition-all"
+                                  className="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 motion-press active:scale-95 transition-all"
                                   title="Copy to Shared"
                                 >
                                   <Copy className="w-3.5 h-3.5" />

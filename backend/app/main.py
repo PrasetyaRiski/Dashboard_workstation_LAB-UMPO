@@ -752,7 +752,7 @@ def list_user_files(nim: str, path: str = "", session: Dict[str, Any] = Depends(
     
     target_path = os.path.abspath(os.path.join(home_dir, path))
     if not target_path.startswith(home_dir):
-        raise HTTPException(status_code=400, detail="Invalid path")
+        raise HTTPException(status_code=400, detail="Jalur direktori tidak valid atau di luar batas akses.")
     
     cmd = ["find", target_path, "-maxdepth", "1", "-printf", "%f|%y|%s|%T@\n"]
     if os.geteuid() != 0:
@@ -778,7 +778,7 @@ def list_user_files(nim: str, path: str = "", session: Dict[str, Any] = Depends(
                 })
         return {"success": True, "files": sorted(files, key=lambda x: (not x['is_dir'], x['name'].lower()))}
     except Exception as e:
-        return {"success": False, "detail": str(e)}
+        return {"success": False, "detail": "Terjadi kesalahan internal: " + str(e)[:100]}
 
 from fastapi.responses import Response
 import mimetypes
@@ -793,7 +793,7 @@ def download_user_file(nim: str, filepath: str, session: Dict[str, Any] = Depend
 
     target_path = os.path.abspath(os.path.join(home_dir, filepath))
     if not target_path.startswith(home_dir):
-        raise HTTPException(status_code=400, detail="Invalid path")
+        raise HTTPException(status_code=400, detail="Jalur direktori tidak valid atau di luar batas akses.")
         
     cmd = ["cat", target_path]
     if os.geteuid() != 0:
@@ -818,7 +818,7 @@ def copy_file_to_shared(nim: str, req: CopyRequest, session: Dict[str, Any] = De
 
     target_path = os.path.abspath(os.path.join(home_dir, filepath))
     if not target_path.startswith(home_dir):
-        raise HTTPException(status_code=400, detail="Invalid path")
+        raise HTTPException(status_code=400, detail="Jalur direktori tidak valid atau di luar batas akses.")
         
     shared_dir = "/home/dataset_shared"
     dest_path = os.path.join(shared_dir, os.path.basename(target_path))
@@ -829,7 +829,7 @@ def copy_file_to_shared(nim: str, req: CopyRequest, session: Dict[str, Any] = De
         
     res = subprocess.run(cmd, capture_output=True, text=True)
     if res.returncode != 0:
-        return {"success": False, "detail": res.stderr}
+        return {"success": False, "detail": "Sistem gagal memproses permintaan ini. (Detail: " + res.stderr.strip()[:100] + ")" if res.stderr else "Sistem gagal memproses permintaan ini."}
         
     cmd_chmod = ["chmod", "-R", "755", dest_path]
     if os.geteuid() != 0:
@@ -849,7 +849,7 @@ def delete_file(nim: str, req: DeleteRequest, session: Dict[str, Any] = Depends(
     
     target_path = os.path.abspath(os.path.join(home_dir, req.path))
     if not target_path.startswith(home_dir):
-        raise HTTPException(status_code=400, detail="Invalid path")
+        raise HTTPException(status_code=400, detail="Jalur direktori tidak valid atau di luar batas akses.")
     
     cmd = ["rm", "-rf", target_path]
     if os.geteuid() != 0:
@@ -857,7 +857,7 @@ def delete_file(nim: str, req: DeleteRequest, session: Dict[str, Any] = Depends(
         
     res = subprocess.run(cmd, capture_output=True, text=True)
     if res.returncode != 0:
-        return {"success": False, "detail": res.stderr}
+        return {"success": False, "detail": "Sistem gagal memproses permintaan ini. (Detail: " + res.stderr.strip()[:100] + ")" if res.stderr else "Sistem gagal memproses permintaan ini."}
     return {"success": True}
 
 @app.post("/api/users/{nim}/rename")
@@ -870,11 +870,11 @@ def rename_file(nim: str, req: RenameRequest, session: Dict[str, Any] = Depends(
     
     old_path = os.path.abspath(os.path.join(home_dir, req.old_path))
     if not old_path.startswith(home_dir):
-        raise HTTPException(status_code=400, detail="Invalid path")
+        raise HTTPException(status_code=400, detail="Jalur direktori tidak valid atau di luar batas akses.")
         
     new_path = os.path.abspath(os.path.join(os.path.dirname(old_path), req.new_name))
     if not new_path.startswith(home_dir):
-        raise HTTPException(status_code=400, detail="Invalid path")
+        raise HTTPException(status_code=400, detail="Jalur direktori tidak valid atau di luar batas akses.")
         
     if os.path.exists(new_path):
         return {"success": False, "detail": f"Nama '{req.new_name}' sudah digunakan oleh file/folder lain."}
@@ -885,7 +885,7 @@ def rename_file(nim: str, req: RenameRequest, session: Dict[str, Any] = Depends(
         
     res = subprocess.run(cmd, capture_output=True, text=True)
     if res.returncode != 0:
-        return {"success": False, "detail": res.stderr}
+        return {"success": False, "detail": "Sistem gagal memproses permintaan ini. (Detail: " + res.stderr.strip()[:100] + ")" if res.stderr else "Sistem gagal memproses permintaan ini."}
     return {"success": True}
 
 @app.post("/api/users/{nim}/create-folder")
@@ -898,7 +898,7 @@ def create_folder(nim: str, req: CreateFolderRequest, session: Dict[str, Any] = 
     
     target_path = os.path.abspath(os.path.join(home_dir, req.path, req.folder_name))
     if not target_path.startswith(home_dir):
-        raise HTTPException(status_code=400, detail="Invalid path")
+        raise HTTPException(status_code=400, detail="Jalur direktori tidak valid atau di luar batas akses.")
         
     if os.path.exists(target_path):
         return {"success": False, "detail": f"Folder atau file dengan nama '{req.folder_name}' sudah ada."}
@@ -909,7 +909,7 @@ def create_folder(nim: str, req: CreateFolderRequest, session: Dict[str, Any] = 
         
     res = subprocess.run(cmd, capture_output=True, text=True)
     if res.returncode != 0:
-        return {"success": False, "detail": res.stderr}
+        return {"success": False, "detail": "Sistem gagal memproses permintaan ini. (Detail: " + res.stderr.strip()[:100] + ")" if res.stderr else "Sistem gagal memproses permintaan ini."}
         
     owner = os.path.basename(home_dir)
     chown_cmd = ["chown", f"{owner}:{owner}", target_path]
@@ -929,7 +929,7 @@ def upload_file(nim: str, path: str = Form(...), file: UploadFile = File(...), s
     
     target_path = os.path.abspath(os.path.join(home_dir, path, file.filename))
     if not target_path.startswith(home_dir):
-        raise HTTPException(status_code=400, detail="Invalid path")
+        raise HTTPException(status_code=400, detail="Jalur direktori tidak valid atau di luar batas akses.")
         
     tmp_path = f"/tmp/{file.filename}_{os.urandom(4).hex()}"
     try:
@@ -942,7 +942,7 @@ def upload_file(nim: str, path: str = Form(...), file: UploadFile = File(...), s
             
         res = subprocess.run(cmd, capture_output=True, text=True)
         if res.returncode != 0:
-            return {"success": False, "detail": res.stderr}
+            return {"success": False, "detail": "Sistem gagal memproses permintaan ini. (Detail: " + res.stderr.strip()[:100] + ")" if res.stderr else "Sistem gagal memproses permintaan ini."}
             
         owner = os.path.basename(home_dir)
         chown_cmd = ["chown", f"{owner}:{owner}", target_path]
@@ -982,7 +982,7 @@ def move_file(nim: str, req: MoveRequest, session: Dict[str, Any] = Depends(veri
         
     res = subprocess.run(cmd, capture_output=True, text=True)
     if res.returncode != 0:
-        return {"success": False, "detail": res.stderr}
+        return {"success": False, "detail": "Sistem gagal memproses permintaan ini. (Detail: " + res.stderr.strip()[:100] + ")" if res.stderr else "Sistem gagal memproses permintaan ini."}
         
     if req.is_copy:
         owner = os.path.basename(home_dir)

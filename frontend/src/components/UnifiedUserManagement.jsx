@@ -45,6 +45,7 @@ export default function UnifiedUserManagement({
   adminUser,
   students = [],
   systemUsers = [],
+  gpus = [],
   onOpenKillModal,
   onResetPassword,
   onKillAllUser,
@@ -58,6 +59,103 @@ export default function UnifiedUserManagement({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCohort, setSelectedCohort] = useState('all'); // 'all' | '21' | '22' | '23' dll
   const [capacity, setCapacity] = useState({ used_slots: 0, total_slots: 1 });
+
+  // Map per-user GPU telemetry (GPU index, VRAM used, VRAM total, active processes)
+  const userGpuMap = useMemo(() => {
+    const map = {};
+    (gpus || []).forEach(gpu => {
+      const gpuIdx = gpu.index ?? 0;
+      const totalMb = gpu.vram_total_mb || gpu.memory?.total_mb || 16384;
+      (gpu.processes || []).forEach(proc => {
+        const u = proc.username || '';
+        if (!u) return;
+        if (!map[u]) {
+          map[u] = {
+            vramMb: 0,
+            gpuIndex: gpuIdx,
+            gpuTotalMb: totalMb,
+            processCount: 0,
+            processes: []
+          };
+        }
+        map[u].vramMb += (proc.vram_mb || proc.gpu_mem_mb || 0);
+        map[u].processCount += 1;
+        map[u].processes.push(proc);
+      });
+    });
+    return map;
+  }, [gpus]);
+
+  // Helper render 3D tactile mini-bar for per-user GPU/VRAM load
+  const renderGpuVramCell = (item) => {
+    const vramMb = item.vram_used_mb || 0;
+    const gpuIdx = item.gpu_index ?? (item.is_priority || item.username === 'labriset' ? 0 : 1);
+    const gpuTotalMb = item.gpu_total_mb || 16384;
+    const vramUsedGb = (vramMb / 1024).toFixed(1);
+    const vramTotalGb = (gpuTotalMb / 1024).toFixed(0);
+    const vramPct = gpuTotalMb > 0 ? Math.min(100, Math.round((vramMb / gpuTotalMb) * 100)) : 0;
+    const procCount = item.gpu_process_count || 0;
+    const procs = item.gpu_processes || [];
+    const procTitle = procs.length > 0
+      ? procs.map(p => `PID ${p.pid}: ${p.name || 'process'} (${Math.round(p.vram_mb || 0)} MB)`).join('\n')
+      : '';
+
+    if (vramMb > 0) {
+      return (
+        <div className="flex flex-col gap-1 w-32" title={procTitle || undefined}>
+          <div className="flex justify-between items-center font-mono text-xs">
+            <span className="font-bold text-slate-900 flex items-center gap-1">
+              <span className={`px-1 py-0.2 rounded border text-[9px] font-bold ${
+                gpuIdx === 0
+                  ? 'bg-blue-50 text-blue-700 border-blue-200'
+                  : 'bg-indigo-50 text-indigo-700 border-indigo-200'
+              }`}>
+                GPU {gpuIdx}
+              </span>
+              <span>{vramUsedGb} GB</span>
+            </span>
+            <span className="text-slate-400 text-[11px]">/ {vramTotalGb} GB</span>
+          </div>
+          <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden border border-slate-200/50 shadow-inner">
+            <div
+              className={`h-full rounded-full transition-all duration-300 ${
+                vramPct >= 50
+                  ? 'bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.4)]'
+                  : vramPct >= 25
+                  ? 'bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.4)]'
+                  : 'bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.3)]'
+              }`}
+              style={{ width: `${Math.max(vramPct, 3)}%` }}
+            />
+          </div>
+          <div className="flex items-center justify-between font-mono text-[10px]">
+            <span className={`font-semibold ${
+              vramPct >= 50 ? 'text-rose-600' : vramPct >= 25 ? 'text-amber-600' : 'text-blue-600'
+            }`}>
+              {vramPct}% VRAM
+            </span>
+            {procCount > 0 && (
+              <span className="text-slate-400 text-[9px]">
+                {procCount} {procCount === 1 ? 'proc' : 'procs'}
+              </span>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex flex-col gap-0.5 w-32">
+        <div className="flex items-center gap-1.5 font-mono text-xs text-slate-400">
+          <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
+          <span className="text-slate-500 font-medium">Idle (0 MB)</span>
+        </div>
+        <span className="font-mono text-[10px] text-slate-400">
+          GPU {gpuIdx} · Standby
+        </span>
+      </div>
+    );
+  };
 
   // Modals state
   const [boostModal, setBoostModal] = useState({ isOpen: false, nim: null, nama: '', hours: 4, reason: '' });
@@ -96,7 +194,7 @@ export default function UnifiedUserManagement({
 
   const handleExportCSV = () => {
     // Determine which data to export based on current view (unifiedList)
-    const headers = ['NIM/Username', 'Nama', 'Tipe', 'Role', 'Status', 'Prioritas', 'Sisa Waktu Prioritas', 'Kuota Disk MB', 'IP Sesi Aktif'];
+    const headers = ['NIM/Username', 'Nama', 'Tipe', 'Role', 'Status', 'Prioritas', 'Sisa Waktu Prioritas', 'GPU', 'VRAM MB', 'Persen VRAM', 'RAM MB', 'Kuota Disk MB', 'IP Sesi Aktif'];
     const rows = filteredData.map(u => {
       const isSystem = u.type === 'system';
       const uname = isSystem ? u.username : u.nim;
@@ -105,9 +203,13 @@ export default function UnifiedUserManagement({
       const status = u.active_ip ? 'ONLINE' : (u.is_active ? 'OFFLINE' : 'BLOCKED');
       const prio = isSystem ? (u.username === 'labriset' ? 'Dedicated GPU 0' : 'Shared GPU 1') : (u.is_priority ? 'Prioritas' : 'Standar');
       const exp = u.priority_expires_at ? new Date(u.priority_expires_at).toLocaleString('id-ID') : '-';
-      const disk = u.disk_usage_mb || 0;
+      const gpuIdx = u.gpu_index ?? (u.is_priority || uname === 'labriset' ? 0 : 1);
+      const vramMb = u.vram_used_mb || 0;
+      const vramPct = `${u.vram_percent || 0}%`;
+      const ram = u.ram_used_mb || 0;
+      const disk = u.disk_used_mb || u.disk_usage_mb || 0;
       const ip = u.active_ip || '-';
-      return [uname, `"${nama}"`, u.type, role, status, prio, `"${exp}"`, disk, ip].join(',');
+      return [uname, `"${nama}"`, u.type, role, status, prio, `"${exp}"`, `GPU ${gpuIdx}`, vramMb, `"${vramPct}"`, ram, disk, ip].join(',');
     });
     
     const csvContent = [headers.join(','), ...rows].join('\n');
@@ -277,6 +379,14 @@ export default function UnifiedUserManagement({
       const diskQuotaMb = diskQuotaGb * 1024;
       const diskPercent = su.disk_percent ?? (diskQuotaMb > 0 ? Math.round((diskUsedMb / diskQuotaMb) * 100) : 0);
       const isOverQuota = su.is_over_quota ?? (diskUsedMb > diskQuotaMb);
+
+      const gpuData = userGpuMap[su.username];
+      const defaultGpuIdx = isRiset ? 0 : 1;
+      const vramUsedMb = gpuData ? gpuData.vramMb : (su.vram_used_mb || 0);
+      const gpuIndex = gpuData ? gpuData.gpuIndex : (su.gpu_index ?? defaultGpuIdx);
+      const gpuTotalMb = gpuData ? gpuData.gpuTotalMb : ((gpus && gpus[gpuIndex]?.vram_total_mb) || 16384);
+      const vramPct = gpuTotalMb > 0 ? Math.min(100, Math.round((vramUsedMb / gpuTotalMb) * 100)) : 0;
+
       list.push({
         ...su,
         type: 'system',
@@ -284,7 +394,13 @@ export default function UnifiedUserManagement({
         disk_quota_gb: diskQuotaGb,
         disk_quota_mb: diskQuotaMb,
         disk_percent: diskPercent,
-        is_over_quota: isOverQuota
+        is_over_quota: isOverQuota,
+        gpu_index: gpuIndex,
+        gpu_total_mb: gpuTotalMb,
+        vram_used_mb: vramUsedMb,
+        vram_percent: vramPct,
+        gpu_process_count: gpuData ? gpuData.processCount : 0,
+        gpu_processes: gpuData ? gpuData.processes : []
       });
     });
 
@@ -307,6 +423,15 @@ export default function UnifiedUserManagement({
       const diskQuotaMb = diskQuotaGb * 1024;
       const diskPercent = st.disk_percent ?? (diskQuotaMb > 0 ? Math.round((diskUsedMb / diskQuotaMb) * 100) : 0);
       const isOverQuota = st.is_over_quota ?? (diskUsedMb > diskQuotaMb);
+
+      const studentLinuxUser = `m${nimStr}`;
+      const gpuData = userGpuMap[studentLinuxUser] || userGpuMap[nimStr];
+      const defaultGpuIdx = st.is_priority ? 0 : 1;
+      const vramUsedMb = gpuData ? gpuData.vramMb : (osUser?.vram_used_mb || 0);
+      const gpuIndex = gpuData ? gpuData.gpuIndex : (osUser?.gpu_index ?? defaultGpuIdx);
+      const gpuTotalMb = gpuData ? gpuData.gpuTotalMb : ((gpus && gpus[gpuIndex]?.vram_total_mb) || 16384);
+      const vramPct = gpuTotalMb > 0 ? Math.min(100, Math.round((vramUsedMb / gpuTotalMb) * 100)) : 0;
+
       list.push({
         ...st,
         nim: nimStr,
@@ -315,7 +440,12 @@ export default function UnifiedUserManagement({
         os_user: osUser || null,
         ram_used_mb: osUser?.ram_used_mb || 0,
         ram_max_mb: osUser?.ram_max_mb || (st.is_priority ? 71680 : 4096),
-        vram_used_mb: osUser?.vram_used_mb || 0,
+        gpu_index: gpuIndex,
+        gpu_total_mb: gpuTotalMb,
+        vram_used_mb: vramUsedMb,
+        vram_percent: vramPct,
+        gpu_process_count: gpuData ? gpuData.processCount : (osUser?.processes?.filter(p => p.vram_mb > 0)?.length || 0),
+        gpu_processes: gpuData ? gpuData.processes : [],
         cpu_percent: osUser?.cpu_percent || 0,
         active_ip: st.active_ip || osUser?.active_ip || null,
         processes: osUser?.processes || [],
@@ -328,7 +458,7 @@ export default function UnifiedUserManagement({
     });
 
     return list;
-  }, [systemUsers, students]);
+  }, [systemUsers, students, userGpuMap, gpus]);
 
   // Counts & Metrics
   const totalStudents = students?.length || 0;
@@ -346,6 +476,21 @@ export default function UnifiedUserManagement({
   const slotUtilPct = totalSlots > 0 ? Math.min(100, Math.round((usedSlots / totalSlots) * 100)) : 0;
 
   const overQuotaCount = useMemo(() => unifiedList.filter(u => u.is_over_quota).length, [unifiedList]);
+
+  // Cluster GPU Telemetry Metrics
+  const totalActiveGpuUsers = useMemo(() => {
+    return unifiedList.filter(u => (u.vram_used_mb || 0) > 0).length;
+  }, [unifiedList]);
+
+  const totalVramUsedMb = useMemo(() => {
+    return (gpus || []).reduce((acc, g) => acc + (g.vram_used_mb || 0), 0);
+  }, [gpus]);
+
+  const totalVramMaxMb = useMemo(() => {
+    return (gpus || []).reduce((acc, g) => acc + (g.vram_total_mb || 16384), 0);
+  }, [gpus]);
+
+  const totalVramPct = totalVramMaxMb > 0 ? Math.min(100, Math.round((totalVramUsedMb / totalVramMaxMb) * 100)) : 0;
 
   // Ekstrak angkatan yang tersedia secara dinamis dari data mahasiswa
   const availableCohorts = useMemo(() => {
@@ -437,8 +582,8 @@ export default function UnifiedUserManagement({
         </div>
       )}
 
-      {/* 3 High-Density 3D KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* 4 High-Density 3D KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
         {/* Card 1: Total Akun Terdaftar */}
         <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_10px_28px_-4px_rgba(37,99,235,0.12)] hover:-translate-y-0.5 transition-all flex flex-col justify-between">
@@ -510,7 +655,50 @@ export default function UnifiedUserManagement({
           </div>
         </div>
 
-        {/* Card 3: Peringatan Storage (Over Quota) */}
+        {/* Card 3: Beban Komputasi GPU */}
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_10px_28px_-4px_rgba(37,99,235,0.12)] hover:-translate-y-0.5 transition-all flex flex-col justify-between">
+          <div className="flex items-start justify-between mb-2">
+            <div>
+              <span className="text-xs font-bold text-slate-900">Beban Komputasi GPU</span>
+              <p className="text-[11px] text-slate-500">2x RTX 5060 Ti (32 GB)</p>
+            </div>
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center border shadow-sm ${
+              totalActiveGpuUsers > 0
+                ? 'bg-blue-50 text-blue-600 border-blue-200'
+                : 'bg-slate-50 text-slate-500 border-slate-200'
+            }`}>
+              <Cpu className="w-4.5 h-4.5" />
+            </div>
+          </div>
+          <div className="flex flex-col gap-2 mt-1">
+            <div className="flex items-baseline justify-between">
+              <span className="font-mono tabular-nums text-2xl font-bold text-slate-900">
+                {totalActiveGpuUsers} <span className="text-slate-400 text-xs font-normal">Sesi Aktif</span>
+              </span>
+              <span className="font-mono text-[11px] font-semibold text-blue-700 px-2 py-0.5 rounded-full bg-blue-50 border border-blue-200">
+                {(totalVramUsedMb / 1024).toFixed(1)} GB ({totalVramPct}%)
+              </span>
+            </div>
+            <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden border border-slate-200/60 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]">
+              <div
+                className={`h-full transition-all duration-500 ${
+                  totalVramPct >= 75
+                    ? 'bg-gradient-to-r from-rose-500 to-rose-600'
+                    : totalVramPct >= 40
+                    ? 'bg-gradient-to-r from-amber-500 to-amber-600'
+                    : 'bg-gradient-to-r from-blue-500 to-blue-600'
+                }`}
+                style={{ width: `${Math.max(totalVramPct, totalActiveGpuUsers > 0 ? 5 : 0)}%` }}
+              />
+            </div>
+            <div className="flex items-center justify-between text-slate-500 font-mono text-[11px]">
+              <span>GPU 0: {((gpus?.[0]?.vram_used_mb || 0) / 1024).toFixed(1)}G</span>
+              <span>GPU 1: {((gpus?.[1]?.vram_used_mb || 0) / 1024).toFixed(1)}G</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 4: Peringatan Storage (Over Quota) */}
         <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_10px_28px_-4px_rgba(37,99,235,0.12)] hover:-translate-y-0.5 transition-all flex flex-col justify-between">
           <div className="flex items-start justify-between mb-2">
             <div>
@@ -630,10 +818,10 @@ export default function UnifiedUserManagement({
         </div>
       </div>
 
-      {/* Precision 8-Column Data Table Container */}
+      {/* Precision 9-Column Data Table Container */}
       <div className="bg-white rounded-2xl shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] overflow-hidden border border-slate-200/90">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[1240px]">
+          <table className="w-full text-left border-collapse min-w-[1360px]">
             <thead>
               <tr className="bg-slate-50/90 text-slate-600 font-mono text-xs font-semibold border-b border-slate-200">
                 <th className="py-3.5 px-5" scope="col">Akun & Pengguna</th>
@@ -642,6 +830,7 @@ export default function UnifiedUserManagement({
                 <th className="py-3.5 px-4" scope="col">QoS & Cgroup Slice</th>
                 <th className="py-3.5 px-4" scope="col">Alokasi Hardware & Timer</th>
                 <th className="py-3.5 px-4" scope="col">Penggunaan RAM</th>
+                <th className="py-3.5 px-4" scope="col">Beban GPU (VRAM)</th>
                 <th className="py-3.5 px-4" scope="col">Storage & Quota</th>
                 <th className="py-3.5 px-5 text-right" scope="col">Aksi Manajemen</th>
               </tr>
@@ -649,7 +838,7 @@ export default function UnifiedUserManagement({
             <tbody className="divide-y divide-slate-100 font-mono text-xs">
               {filteredData.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="py-12 text-center text-slate-400 font-mono">
+                  <td colSpan="9" className="py-12 text-center text-slate-400 font-mono">
                     Tidak ada akun yang sesuai dengan filter atau kata kunci pencarian.
                   </td>
                 </tr>
@@ -809,7 +998,12 @@ export default function UnifiedUserManagement({
                           </div>
                         </td>
 
-                        {/* 7. Storage & Quota */}
+                        {/* 7. Beban GPU (VRAM) */}
+                        <td className="py-3.5 px-4">
+                          {renderGpuVramCell(item)}
+                        </td>
+
+                        {/* 8. Storage & Quota */}
                         <td className="py-3.5 px-4">
                           <div className="flex flex-col gap-1 w-32">
                             <div className="flex justify-between font-mono text-xs">
@@ -1044,7 +1238,12 @@ export default function UnifiedUserManagement({
                         </div>
                       </td>
 
-                      {/* 7. Storage & Quota */}
+                      {/* 7. Beban GPU (VRAM) */}
+                      <td className="py-3.5 px-4">
+                        {renderGpuVramCell(item)}
+                      </td>
+
+                      {/* 8. Storage & Quota */}
                       <td className="py-3.5 px-4">
                         <div className="flex flex-col gap-1 w-32">
                           <div className="flex justify-between font-mono text-xs">

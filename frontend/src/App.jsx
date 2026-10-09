@@ -534,6 +534,7 @@ export default function App() {
                 adminUser={adminUser}
                 students={students}
                 systemUsers={data?.users || []}
+                gpus={data?.gpus || []}
                 onOpenKillModal={handleOpenKillModal}
                 onResetPassword={handleResetPassword}
                 onKillAllUser={handleKillAllUser}

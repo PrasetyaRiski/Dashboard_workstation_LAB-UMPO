@@ -95,13 +95,7 @@ MODAL_HTML_SNIPPET = '''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
     var btn = document.getElementById('btn-dismiss-lab-popup');
     if (!overlay || !btn) return;
 
-    // Cek apakah mahasiswa sudah menutup pesan di sesi browser ini
-    try {
-      if (sessionStorage.getItem('lab_ai_notice_closed') === 'true') {
-        return;
-      }
-    } catch(e) {}
-
+    // Tampilkan modal setiap kali halaman JupyterLab dibuka / login baru
     // Berikan delay halus 1.2 detik agar UI JupyterLab selesai loading di layar
     setTimeout(function() {
       overlay.style.display = 'flex';
@@ -109,9 +103,6 @@ MODAL_HTML_SNIPPET = '''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
 
     btn.onclick = function() {
       overlay.style.display = 'none';
-      try {
-        sessionStorage.setItem('lab_ai_notice_closed', 'true');
-      } catch(e) {}
     };
   }
 
@@ -140,6 +131,8 @@ def find_candidate_html_files():
     candidates.update(glob.glob("/usr/share/jupyter/lab/static/index.html"))
     candidates.update(glob.glob("/usr/local/lib/**/jupyterlab/static/index.html", recursive=True))
     candidates.update(glob.glob("/usr/lib/**/jupyterlab/static/index.html", recursive=True))
+    candidates.update(glob.glob("/usr/local/lib/**/jupyter_server/templates/page.html", recursive=True))
+    candidates.update(glob.glob("/usr/lib/**/jupyter_server/templates/page.html", recursive=True))
 
     # 3. Lokasi Python environment aktif
     prefix = sys.prefix
@@ -148,11 +141,14 @@ def find_candidate_html_files():
     candidates.update(glob.glob(f"{prefix}/lib/**/jupyterlab/static/index.html", recursive=True))
     candidates.update(glob.glob(f"{prefix}/lib/**/jupyter_server/templates/page.html", recursive=True))
 
-    # 4. Cari via path traversal spesifik di /opt dan /etc
-    for p in ["/opt", "/usr/local", "/etc/jupyter"]:
-        if os.path.exists(p):
-            for match in glob.glob(f"{p}/**/lab/static/index.html", recursive=True):
-                candidates.add(match)
+    # 4. Pencarian dinamis di direktori server
+    for root in ["/opt", "/usr/local", "/etc/jupyter", "/home/public"]:
+        if os.path.exists(root):
+            for dirpath, _, filenames in os.walk(root):
+                if "index.html" in filenames and ("lab/static" in dirpath or "jupyterlab" in dirpath):
+                    candidates.add(os.path.join(dirpath, "index.html"))
+                if "page.html" in filenames and ("templates" in dirpath and ("jupyter" in dirpath or "lab" in dirpath)):
+                    candidates.add(os.path.join(dirpath, "page.html"))
 
     return [c for c in candidates if os.path.isfile(c)]
 

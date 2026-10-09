@@ -245,7 +245,7 @@ df = pd.read_csv('/home/dataset_shared/dataset.csv')
                     <tr>
                       <td className="p-3 font-semibold text-slate-900">Standard (Level 2)</td>
                       <td className="p-3">GPU 1 (Shared Pool)</td>
-                      <td className="p-3">2 Core CPU &bull; 3 GB RAM</td>
+                      <td className="p-3">2 Core CPU &bull; 4 GB RAM</td>
                       <td className="p-3">10 GB</td>
                       <td className="p-3 text-slate-500">Praktikum perkuliahan rutin</td>
                     </tr>

@@ -103,7 +103,7 @@ Server laboratorium dilengkapi dengan akselerator kartu grafis ganda (*Dual NVID
 |---|---|---|
 | **Peruntukan Akun** | Mahasiswa praktikum reguler & akun kelas | Mahasiswa Tugas Akhir (di-boost) & Riset Dosen |
 | **Akselerator Grafis** | **GPU 1** (Shared Compute Pool) | **GPU 0** (Dedicated 100% Khusus Riset) |
-| **Batas Memori RAM** | **3 GB RAM** per sesi pengguna | **70 GB RAM** berkecepatan tinggi |
+| **Batas Memori RAM** | **4 GB RAM** per sesi pengguna | **70 GB RAM** berkecepatan tinggi |
 | **Batas Unit Prosesor** | **2 Core CPU** | **20 Core CPU** komputasi paralel |
 | **Kuota Penyimpanan** | **10 GB** ruang direktori pribadi | **50 GB** ruang direktori diperbesar |
 | **Masa Berlaku Akses** | Berlaku penuh selama semester praktikum | **1 – 24 Jam** (Hitung mundur otomatis) |

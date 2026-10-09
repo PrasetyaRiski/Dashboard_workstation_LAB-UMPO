@@ -1057,8 +1057,39 @@ def move_file(nim: str, req: MoveRequest, session: Dict[str, Any] = Depends(veri
         
     return {"success": True}
 
-@app.post("/api/users")
+class UpdateUserNameRequest(BaseModel):
+    nama: str
 
+@app.post("/api/users/{nim}/update-name")
+def update_user_name(nim: str, req: UpdateUserNameRequest, request: Request, session: Dict[str, Any] = Depends(verify_super_admin)):
+    clean_nama = req.nama.strip()
+    if not clean_nama:
+        raise HTTPException(status_code=400, detail="Nama tidak boleh kosong.")
+    
+    clean_nim = str(nim).strip()
+    conn, engine = get_connection()
+    cur = conn.cursor()
+    try:
+        placeholder = "%s" if engine == "postgres" else "?"
+        cur.execute(f"SELECT nim FROM users WHERE nim = {placeholder}", (clean_nim,))
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Mahasiswa tidak ditemukan.")
+
+        cur.execute(f"UPDATE users SET nama = {placeholder} WHERE nim = {placeholder}", (clean_nama, clean_nim))
+        conn.commit()
+    finally:
+        cur.close()
+        conn.close()
+
+    record_audit(
+        target=f"NIM {clean_nim}",
+        action="UPDATE_USER_NAME",
+        detail=f"Admin {session.get('nama')} memperbarui nama mahasiswa NIM {clean_nim} menjadi '{clean_nama}'.",
+        log_type="info"
+    )
+    return {"success": True, "message": f"Nama untuk NIM {clean_nim} berhasil diperbarui menjadi {clean_nama}."}
+
+@app.post("/api/users")
 def add_user(req: AddUserRequest, request: Request, session: Dict[str, Any] = Depends(verify_super_admin)):
     conn, engine = get_connection()
     cur = conn.cursor()

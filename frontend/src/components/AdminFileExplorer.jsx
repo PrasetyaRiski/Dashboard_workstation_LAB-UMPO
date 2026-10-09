@@ -7,6 +7,7 @@ export default function AdminFileExplorer({
   isAdmin, 
   adminToken, 
   students, 
+  systemUsers,
   showToast 
 }) {
   const [selectedUserForFiles, setSelectedUserForFiles] = useState(null);
@@ -86,13 +87,42 @@ export default function AdminFileExplorer({
 
   const filteredUsers = useMemo(() => {
     const q = searchQuery.toLowerCase();
-    return (students || []).filter(u => {
+    
+    const allUsers = [];
+    
+    (students || []).forEach(s => allUsers.push({
+      id: s.nim,
+      nama: s.nama,
+      nim: s.nim,
+      type: 'student'
+    }));
+
+    (systemUsers || []).forEach(s => {
+      if (!allUsers.find(u => u.nim === s.username || `m${u.nim}` === s.username)) {
+         allUsers.push({
+           id: s.username,
+           nama: s.username,
+           nim: s.username,
+           type: 'system'
+         });
+      }
+    });
+
+    if (!allUsers.find(u => u.id === 'dataset_shared')) {
+      allUsers.push({
+        id: 'dataset_shared',
+        nama: 'Dataset Shared',
+        nim: 'dataset_shared',
+        type: 'system'
+      });
+    }
+
+    return allUsers.filter(u => {
       const name = (u.nama || '').toLowerCase();
       const nim = (u.nim || '').toLowerCase();
-      const username = (u.username || '').toLowerCase();
-      return name.includes(q) || nim.includes(q) || username.includes(q);
+      return name.includes(q) || nim.includes(q);
     });
-  }, [searchQuery, students]);
+  }, [searchQuery, students, systemUsers]);
 
   return (
     <div className="flex h-full min-h-[500px] gap-4 w-full">

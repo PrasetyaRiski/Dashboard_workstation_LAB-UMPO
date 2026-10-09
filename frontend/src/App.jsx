@@ -557,6 +557,7 @@ export default function App() {
                 isAdmin={isAdmin}
                 adminToken={adminToken}
                 students={students}
+                systemUsers={data?.users || []}
                 showToast={showToast}
               />
             </ErrorBoundary>

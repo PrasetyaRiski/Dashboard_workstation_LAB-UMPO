@@ -1,110 +1,102 @@
 import React, { useState } from 'react';
 import {
   ShieldAlert, KeyRound, AlertTriangle, Info, Search, Clock,
-  XCircle, Zap, RotateCcw, UserX, UserCheck, ShieldCheck, Shield
+  XCircle, Zap, RotateCcw, UserX, UserCheck, ShieldCheck
 } from 'lucide-react';
 
 const ACTION_META = {
   BOOST_PRIORITY: {
     icon: Zap,
-    color: 'text-neon-cyan',
-    bg: 'bg-primary-container/15',
-    border: 'border-neon-cyan/30',
-    label: 'Boost Priority Level 1',
+    color: 'text-[#38bdf8]',
+    badgeBg: 'bg-[#0ea5e9]/10',
+    badgeBorder: 'border-[#0ea5e9]/25',
+    label: 'Boost Prioritas GPU',
   },
   UNBOOST_PRIORITY: {
     icon: RotateCcw,
-    color: 'text-secondary-fixed',
-    bg: 'bg-secondary-container/20',
-    border: 'border-secondary/30',
-    label: 'Revert Standard Level 2',
+    color: 'text-[#818cf8]',
+    badgeBg: 'bg-[#6366f1]/10',
+    badgeBorder: 'border-[#6366f1]/25',
+    label: 'Kembali Standar',
   },
   AUTO_EXPIRE_BOOST: {
     icon: Clock,
-    color: 'text-neon-amber',
-    bg: 'bg-amber-500/10',
-    border: 'border-amber-500/30',
-    label: 'Auto Expire Boost',
+    color: 'text-[#fbbf24]',
+    badgeBg: 'bg-[#f59e0b]/10',
+    badgeBorder: 'border-[#f59e0b]/25',
+    label: 'Prioritas Kadaluarsa',
   },
   KILL_PROCESS: {
     icon: XCircle,
-    color: 'text-neon-rose',
-    bg: 'bg-error-container/20',
-    border: 'border-neon-rose/30',
-    label: 'Kill Single Process',
+    color: 'text-[#fb7185]',
+    badgeBg: 'bg-[#f43f5e]/10',
+    badgeBorder: 'border-[#f43f5e]/25',
+    label: 'Hentikan Proses (Kill)',
   },
   KILL_USER_ALL: {
     icon: ShieldAlert,
-    color: 'text-neon-rose',
-    bg: 'bg-error-container/20',
-    border: 'border-neon-rose/30',
-    label: 'Kill All User Sessions',
+    color: 'text-[#fb7185]',
+    badgeBg: 'bg-[#f43f5e]/10',
+    badgeBorder: 'border-[#f43f5e]/25',
+    label: 'Hentikan Sesi User',
   },
   BLOCK_USER: {
     icon: UserX,
-    color: 'text-neon-rose',
-    bg: 'bg-error-container/20',
-    border: 'border-neon-rose/30',
-    label: 'Block Account',
+    color: 'text-[#fb7185]',
+    badgeBg: 'bg-[#f43f5e]/10',
+    badgeBorder: 'border-[#f43f5e]/25',
+    label: 'Kunci Akun (Block)',
   },
   UNBLOCK_USER: {
     icon: UserCheck,
-    color: 'text-neon-emerald',
-    bg: 'bg-emerald-500/10',
-    border: 'border-emerald-500/30',
-    label: 'Unblock Account',
+    color: 'text-[#34d399]',
+    badgeBg: 'bg-[#10b981]/10',
+    badgeBorder: 'border-[#10b981]/25',
+    label: 'Buka Kunci Akun',
   },
   RESET_PASSWORD: {
     icon: KeyRound,
-    color: 'text-neon-amber',
-    bg: 'bg-amber-500/10',
-    border: 'border-amber-500/30',
-    label: 'Reset Linux Password',
+    color: 'text-[#fbbf24]',
+    badgeBg: 'bg-[#f59e0b]/10',
+    badgeBorder: 'border-[#f59e0b]/25',
+    label: 'Reset Password Linux',
   },
   SET_ROLE: {
     icon: ShieldCheck,
-    color: 'text-secondary-fixed',
-    bg: 'bg-secondary-container/20',
-    border: 'border-secondary/30',
+    color: 'text-[#818cf8]',
+    badgeBg: 'bg-[#6366f1]/10',
+    badgeBorder: 'border-[#6366f1]/25',
     label: 'Ubah Role Pengguna',
   },
   LOGIN_DASHBOARD: {
     icon: UserCheck,
-    color: 'text-neon-cyan',
-    bg: 'bg-primary-container/15',
-    border: 'border-neon-cyan/30',
-    label: 'Login Admin',
+    color: 'text-[#38bdf8]',
+    badgeBg: 'bg-[#0ea5e9]/10',
+    badgeBorder: 'border-[#0ea5e9]/25',
+    label: 'Otentikasi Admin',
   },
   OVER_QUOTA: {
     icon: AlertTriangle,
-    color: 'text-neon-rose',
-    bg: 'bg-error-container/20',
-    border: 'border-neon-rose/30',
-    label: 'Storage Over Quota',
-    pulse: true,
+    color: 'text-[#fb7185]',
+    badgeBg: 'bg-[#f43f5e]/10',
+    badgeBorder: 'border-[#f43f5e]/25',
+    label: 'Storage Melebihi Kuota',
   },
   BACKUP_DATABASE: {
     icon: ShieldCheck,
-    color: 'text-secondary-fixed',
-    bg: 'bg-secondary-container/20',
-    border: 'border-secondary/30',
-    label: 'Backup Database SQLite',
-  },
-  SIMULATION_START: {
-    icon: Info,
-    color: 'text-neon-cyan',
-    bg: 'bg-primary-container/15',
-    border: 'border-neon-cyan/30',
-    label: 'Run Simulation PyTorch',
+    color: 'text-[#818cf8]',
+    badgeBg: 'bg-[#6366f1]/10',
+    badgeBorder: 'border-[#6366f1]/25',
+    label: 'Snapshot Backup DB',
   },
 };
 
 function getActionMeta(action) {
   return ACTION_META[action] || {
     icon: Info,
-    color: 'text-primary-fixed',
-    bg: 'bg-surface-3',
-    border: 'border-border-base',
+    color: 'text-[#a1a1aa]',
+    badgeBg: 'bg-[#27272a]',
+    badgeBorder: 'border-[rgba(255,255,255,0.08)]',
     label: action,
   };
 }
@@ -129,56 +121,53 @@ export default function AuditLogView({ logs = [] }) {
 
   const filterChips = [
     { id: 'ALL',            label: `Semua (${logs.length})` },
-    { id: 'BOOST_PRIORITY', label: 'Boost Priority' },
-    { id: 'KILL_PROCESS',   label: 'Kill Process' },
+    { id: 'BOOST_PRIORITY', label: 'Boost' },
+    { id: 'KILL_PROCESS',   label: 'Kill Proses' },
     { id: 'RESET_PASSWORD', label: 'Reset PW' },
     { id: 'OVER_QUOTA',     label: 'Over Quota' },
   ];
 
   return (
-    <div className="flex flex-col w-full gap-6">
-      {/* Security & Integrity Compliance Banner — Stitch Style */}
-      <div className="relative overflow-hidden rounded-xl bg-surface-1 p-5 shadow-md border border-border-subtle">
-        <div className="absolute -right-10 -bottom-10 w-44 h-44 rounded-md bg-neon-cyan/5 blur-3xl pointer-events-none"></div>
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative z-10">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary-fixed shrink-0 border border-border-base shadow-inner">
-              <ShieldCheck className="w-5 h-5 text-neon-cyan" />
-            </div>
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-headline-md text-sm font-bold text-text-primary tracking-tight">
-                  Immutable Append-Only Audit Trail
-                </span>
-                <span className="px-2 py-0.5 rounded-md bg-secondary-container font-mono text-[9px] text-secondary-fixed font-semibold ">
-                  Audit Ready
-                </span>
-              </div>
-              <p className="text-xs text-text-muted mt-0.5">
-                Pencatatan real-time kernel & level aplikasi. Setiap aksi administratif (Boost, Kill Process, Password Reset, Status Quota) tercatat ke disk SQLite WAL secara persisten.
-              </p>
-            </div>
+    <div className="flex flex-col gap-5">
+      {/* Integrity Compliance Info Bar */}
+      <div className="bg-[#111114] rounded-xl p-4 border border-[rgba(255,255,255,0.08)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-[#18181b] border border-[rgba(255,255,255,0.08)] flex items-center justify-center text-[#34d399] shrink-0">
+            <ShieldCheck className="w-4 h-4" />
           </div>
-          <div className="flex items-center gap-2 font-mono text-xs text-neon-emerald bg-surface-2 px-3 py-1.5 rounded-lg border border-border-base shrink-0">
-            <span className="w-2 h-2 rounded-md bg-neon-emerald animate-pulse"></span>
-            <span>{logs.length} Catatan Terverifikasi</span>
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-[#fafafa] tracking-tight">
+                Log Audit Operasional (Immutable Audit Trail)
+              </h2>
+              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#18181b] text-[#34d399] border border-[#10b981]/20">
+                SQLite WAL
+              </span>
+            </div>
+            <p className="text-xs text-[#a1a1aa] mt-0.5">
+              Pencatatan persisten aktivitas administratif level kernel & aplikasi.
+            </p>
           </div>
+        </div>
+
+        <div className="flex items-center gap-2 font-mono text-xs text-[#a1a1aa]">
+          <span>{logs.length} Peristiwa Terekam</span>
         </div>
       </div>
 
-      {/* Main Container */}
-      <div className="bg-surface-2 rounded-xl border border-border-subtle overflow-hidden shadow-sm flex flex-col">
-        {/* Filter Bar & Search */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-b border-border-subtle bg-surface-1">
-          <div className="flex gap-1.5 p-1 bg-surface-container-lowest rounded-lg border border-border-subtle w-full sm:w-auto overflow-x-auto">
-            {filterChips.map(chip => (
+      {/* Main Table / Stream Container */}
+      <div className="bg-[#111114] rounded-xl border border-[rgba(255,255,255,0.08)] overflow-hidden flex flex-col">
+        {/* Filters and Search Bar */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3 border-b border-[rgba(255,255,255,0.08)] bg-[#18181b]">
+          <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto">
+            {filterChips.map((chip) => (
               <button
                 key={chip.id}
                 onClick={() => setFilter(chip.id)}
-                className={`px-3 py-1.5 text-xs font-mono font-medium rounded transition-all whitespace-nowrap ${
+                className={`px-2.5 py-1 text-xs font-mono rounded-md transition-colors whitespace-nowrap ${
                   filter === chip.id
-                    ? 'bg-surface-3 text-neon-cyan border border-neon-cyan/30 shadow-sm font-bold'
-                    : 'text-text-muted hover:text-text-primary'
+                    ? 'bg-[#27272a] text-[#fafafa] font-semibold border border-[rgba(255,255,255,0.14)]'
+                    : 'text-[#a1a1aa] hover:text-[#fafafa]'
                 }`}
                 type="button"
               >
@@ -187,67 +176,60 @@ export default function AuditLogView({ logs = [] }) {
             ))}
           </div>
 
-          <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-outline" />
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#71717a]" />
             <input
               type="text"
               value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Cari user, aksi, atau detail..."
-              className="w-full bg-surface-3 border border-border-base rounded-lg py-1.5 pl-9 pr-3 text-xs font-mono text-text-primary placeholder:text-text-muted focus:outline-none focus:bg-surface-container-high transition-all"
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Cari aksi, user, target…"
+              className="w-full bg-[#111114] border border-[rgba(255,255,255,0.08)] focus:border-[#38bdf8] rounded-md py-1 pl-8 pr-3 text-xs font-mono text-[#fafafa] placeholder:text-[#71717a] outline-none transition-colors"
             />
           </div>
         </div>
 
-        {/* Log Entries Stream */}
-        <div className="flex-1 overflow-y-auto max-h-[600px]">
+        {/* Entries */}
+        <div className="max-h-[550px] overflow-y-auto divide-y divide-[rgba(255,255,255,0.04)] font-mono text-xs">
           {filteredLogs.length === 0 ? (
-            <div className="text-center py-16">
-              <Clock className="w-8 h-8 text-outline mx-auto mb-2 opacity-50" />
-              <p className="text-xs font-mono text-text-muted">Tidak ada riwayat aktivitas yang sesuai filter.</p>
+            <div className="py-12 text-center text-[#71717a]">
+              <Clock className="w-6 h-6 mx-auto mb-2 opacity-40" />
+              <p>Tidak ada catatan audit yang cocok dengan kriteria filter.</p>
             </div>
           ) : (
-            <div className="divide-y divide-border-subtle">
-              {filteredLogs.map((log, idx) => {
-                const meta = getActionMeta(log.action);
-                const Icon = meta.icon;
-                return (
-                  <div key={idx} className="flex items-start gap-4 p-4 hover:bg-surface-3 transition-colors group">
-                    {/* Action Icon */}
-                    <div className={`flex items-center justify-center rounded-xl shrink-0 w-9 h-9 ${meta.bg} border ${meta.border} shadow-sm`}>
-                      <Icon className={`w-4 h-4 ${meta.color} ${meta.pulse ? 'animate-pulse' : ''}`} />
+            filteredLogs.map((log, idx) => {
+              const meta = getActionMeta(log.action);
+              const Icon = meta.icon;
+              return (
+                <div key={idx} className="flex items-start justify-between gap-4 p-3 hover:bg-[#18181b] transition-colors">
+                  <div className="flex items-start gap-3 min-w-0">
+                    <div className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${meta.badgeBg} border ${meta.badgeBorder} ${meta.color} mt-0.5`}>
+                      <Icon className="w-3.5 h-3.5" />
                     </div>
 
-                    {/* Details */}
-                    <div className="flex-1 min-w-0 pt-0.5">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <span className={`text-xs font-bold font-mono tracking-tight ${meta.color}`}>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                        <span className={`font-semibold ${meta.color}`}>
                           {meta.label}
                         </span>
-                        <span className="text-outline text-xs">•</span>
-                        <span className="text-xs font-mono font-bold text-text-primary bg-surface-1 px-2 py-0.5 rounded border border-border-base">
+                        <span className="text-[#71717a]">·</span>
+                        <span className="text-[#fafafa] font-bold bg-[#18181b] px-1.5 py-0.2 rounded border border-[rgba(255,255,255,0.06)]">
                           {log.target || log.nim || 'System'}
                         </span>
                       </div>
-                      <p className="text-xs text-text-muted leading-relaxed">
+                      <p className="text-[#a1a1aa] text-[11px] font-sans leading-relaxed">
                         {log.detail || '—'}
                       </p>
                     </div>
-
-                    {/* Timestamp */}
-                    <div className="shrink-0 flex flex-col items-end gap-1 pt-0.5 font-mono">
-                      <span className="text-xs text-text-primary px-2 py-0.5 bg-surface-1 rounded border border-border-base">
-                        {log.time || log.created_at || 'Baru Saja'}
-                      </span>
-                      <span className="text-[9px]   text-neon-emerald flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="w-1.5 h-1.5 rounded-md bg-neon-emerald"></span>
-                        Terekam
-                      </span>
-                    </div>
                   </div>
-                );
-              })}
-            </div>
+
+                  <div className="shrink-0 text-right">
+                    <span className="text-[#71717a] text-[11px] tabular-nums">
+                      {log.time || log.created_at || 'Baru Saja'}
+                    </span>
+                  </div>
+                </div>
+              );
+            })
           )}
         </div>
       </div>

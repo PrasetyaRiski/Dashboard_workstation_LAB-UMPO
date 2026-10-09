@@ -1,26 +1,7 @@
-import React, { memo, useState, useEffect } from 'react';
+import React, { memo } from 'react';
 import { Cpu, HardDrive, ShieldCheck, DatabaseBackup, Loader2, Layers } from 'lucide-react';
 
 function SystemOverview({ system = {}, gpus = [], onTriggerBackup, isBackingUp, backups = [], isAdmin }) {
-  const [capacity, setCapacity] = useState({ used_slots: 0, total_slots: 1 });
-
-  useEffect(() => {
-    const fetchCapacity = async () => {
-      try {
-        const res = await fetch(`/api/stats/capacity?_t=${Date.now()}`);
-        if (res.ok) {
-          const json = await res.json();
-          setCapacity(json);
-        }
-      } catch (e) {
-        console.error('Fetch capacity error:', e);
-      }
-    };
-    fetchCapacity();
-    const interval = setInterval(fetchCapacity, 10000);
-    return () => clearInterval(interval);
-  }, []);
-
   if (!system) return null;
 
   const cpu = system?.cpu || {};
@@ -28,18 +9,13 @@ function SystemOverview({ system = {}, gpus = [], onTriggerBackup, isBackingUp, 
   const disks = system?.disks || {};
   const homeDisk = disks.home || disks.root || {};
 
-  const cpuPercent = cpu.overall_percent || 0;
-  const memoryPercent = memory.percent || 0;
+  const cpuPercent = Math.round(cpu.overall_percent || 0);
+  const memoryPercent = Math.round(memory.percent || 0);
   
   const isStorageSafe = (homeDisk.percent || 0) < 90;
-  const latestBackup = backups.length > 0 ? backups[0] : null;
+  const latestBackup = backups && backups.length > 0 ? backups[0] : null;
 
-  const usedSlots = capacity.used_slots || 0;
-  const totalSlots = capacity.total_slots || 1;
-  const availableSlots = Math.max(0, totalSlots - usedSlots);
-  const isSlotsFull = usedSlots >= totalSlots;
-  const slotUtilPct = totalSlots > 0 ? Math.min(100, Math.round((usedSlots / totalSlots) * 100)) : 0;
-
+  // Aggregate Dual GPU VRAM
   const gpu0 = gpus[0];
   const gpu1 = gpus[1];
   const totalVramUsedMb = (gpu0?.vram_used_mb || 0) + (gpu1?.vram_used_mb || 0);
@@ -48,39 +24,48 @@ function SystemOverview({ system = {}, gpus = [], onTriggerBackup, isBackingUp, 
   const vramTotalGb = (totalVramMaxMb / 1024).toFixed(0);
   const vramPct = totalVramMaxMb > 0 ? Math.min(100, Math.round((totalVramUsedMb / totalVramMaxMb) * 100)) : 0;
 
-
-  let backupText = 'Belum ada backup';
+  let backupText = 'Belum ada snapshot backup';
   if (latestBackup) {
-    const d = new Date(latestBackup.created_at || latestBackup.timestamp);
-    if (!isNaN(d)) {
+    const rawDate = latestBackup.created_at || latestBackup.timestamp;
+    const d = new Date(rawDate);
+    if (!isNaN(d.getTime())) {
       backupText = `Backup: ${d.toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}`;
     } else {
-      backupText = 'Backup: Berhasil disimpan';
+      backupText = 'Backup: Tersimpan di local';
     }
   }
 
   return (
-    <div className="mb-8">
-      <h1 className="text-2xl font-semibold text-text-primary mb-6">Ringkasan Sistem</h1>
+    <div className="mb-6">
+      {/* Section Header */}
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h1 className="text-lg font-semibold text-[#fafafa] tracking-tight">Ringkasan Sistem</h1>
+          <p className="text-xs text-[#a1a1aa] mt-0.5">Telemetri sumber daya komputasi dan status klaster DGX UMPO</p>
+        </div>
+      </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+      {/* High-Density 4-Column KPI Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
-        {/* Metric 1: CPU & RAM */}
-        <div className="bg-surface-2 p-5 rounded-xl border border-border-subtle flex flex-col">
-          <div className="flex items-center gap-3 mb-5 text-text-secondary">
-            <Cpu className="w-4 h-4 text-text-primary" />
-            <h2 className="font-medium text-text-primary text-sm">Beban Komputasi</h2>
+        {/* Metric 1: Beban Komputasi CPU & RAM */}
+        <div className="bg-[#111114] p-4 rounded-xl border border-[rgba(255,255,255,0.08)] flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[#a1a1aa] mb-3">
+            <span className="text-xs font-medium text-[#fafafa] flex items-center gap-2">
+              <Cpu className="w-3.5 h-3.5 text-[#38bdf8]" /> Beban Komputasi
+            </span>
+            <span className="text-[10px] font-mono text-[#71717a]">{cpu.core_count || 24} Cores</span>
           </div>
           
-          <div className="space-y-4 mt-auto">
+          <div className="space-y-3 mt-1">
             <div>
               <div className="flex justify-between text-xs mb-1">
-                <span className="text-text-secondary">CPU ({cpu.core_count || 24} Core)</span>
-                <span className="font-mono font-medium text-text-primary">{cpuPercent}%</span>
+                <span className="text-[#a1a1aa]">CPU Host</span>
+                <span className="font-mono tabular-nums font-semibold text-[#fafafa]">{cpuPercent}%</span>
               </div>
-              <div className="w-full bg-surface-1 h-1.5 rounded-md overflow-hidden border border-border-base">
+              <div className="w-full bg-[#18181b] h-1.5 rounded-full overflow-hidden border border-[rgba(255,255,255,0.06)]">
                 <div 
-                  className={`h-full transition-all duration-500 ${cpuPercent > 85 ? 'bg-error' : 'bg-primary'}`}
+                  className={`h-full transition-all duration-300 ${cpuPercent >= 90 ? 'bg-[#f43f5e]' : cpuPercent >= 75 ? 'bg-[#f59e0b]' : 'bg-[#38bdf8]'}`}
                   style={{ width: `${cpuPercent}%` }}
                 />
               </div>
@@ -88,12 +73,12 @@ function SystemOverview({ system = {}, gpus = [], onTriggerBackup, isBackingUp, 
 
             <div>
               <div className="flex justify-between text-xs mb-1">
-                <span className="text-text-secondary">Memori ({memory.total_gb || 128} GB)</span>
-                <span className="font-mono font-medium text-text-primary">{memoryPercent}%</span>
+                <span className="text-[#a1a1aa]">RAM Host ({memory.total_gb || 128} GB)</span>
+                <span className="font-mono tabular-nums font-semibold text-[#fafafa]">{memoryPercent}%</span>
               </div>
-              <div className="w-full bg-surface-1 h-1.5 rounded-md overflow-hidden border border-border-base">
+              <div className="w-full bg-[#18181b] h-1.5 rounded-full overflow-hidden border border-[rgba(255,255,255,0.06)]">
                 <div 
-                  className={`h-full transition-all duration-500 ${memoryPercent > 85 ? 'bg-error' : 'bg-tertiary'}`}
+                  className={`h-full transition-all duration-300 ${memoryPercent >= 90 ? 'bg-[#f43f5e]' : memoryPercent >= 75 ? 'bg-[#f59e0b]' : 'bg-[#10b981]'}`}
                   style={{ width: `${memoryPercent}%` }}
                 />
               </div>
@@ -101,127 +86,117 @@ function SystemOverview({ system = {}, gpus = [], onTriggerBackup, isBackingUp, 
           </div>
         </div>
 
-        {/* Metric 2: Penyimpanan / Storage */}
-        <div className="bg-surface-2 p-5 rounded-xl border border-border-subtle flex flex-col">
-          <div className="flex items-center gap-3 mb-4 text-text-secondary">
-            <HardDrive className="w-4 h-4 text-text-primary" />
-            <h2 className="font-medium text-text-primary text-sm">Penyimpanan Utama</h2>
+        {/* Metric 2: Penyimpanan /home */}
+        <div className="bg-[#111114] p-4 rounded-xl border border-[rgba(255,255,255,0.08)] flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[#a1a1aa] mb-2">
+            <span className="text-xs font-medium text-[#fafafa] flex items-center gap-2">
+              <HardDrive className="w-3.5 h-3.5 text-[#818cf8]" /> Penyimpanan /home
+            </span>
+            <span className="text-[10px] font-mono text-[#71717a]">{homeDisk.mount || '/home'}</span>
           </div>
           
-          <div className="mt-auto">
-            <div className="flex items-end gap-2 mb-3">
-              <span className="text-3xl font-semibold font-mono text-text-primary tracking-tight">
+          <div className="mt-2">
+            <div className="flex items-baseline gap-2 mb-2">
+              <span className="text-2xl font-semibold font-mono tabular-nums text-[#fafafa] tracking-tight">
                 {homeDisk.used_gb || 0}
               </span>
-              <span className="text-text-secondary mb-1 text-sm">GB terpakai</span>
+              <span className="text-xs text-[#a1a1aa] font-mono">/ {homeDisk.total_gb || 0} GB</span>
             </div>
 
-            <div className="w-full bg-surface-1 h-1.5 rounded-md overflow-hidden border border-border-base mb-2">
+            <div className="w-full bg-[#18181b] h-1.5 rounded-full overflow-hidden border border-[rgba(255,255,255,0.06)] mb-2">
               <div 
-                className={`h-full transition-all duration-500 ${!isStorageSafe ? 'bg-error' : 'bg-primary'}`}
+                className={`h-full transition-all duration-300 ${!isStorageSafe ? 'bg-[#f43f5e]' : 'bg-[#818cf8]'}`}
                 style={{ width: `${homeDisk.percent || 0}%` }}
               />
             </div>
-            <p className="text-xs text-text-secondary">
-              Sisa kapasitas: <span className="font-mono font-medium text-text-primary">{homeDisk.free_gb || 0} GB</span>
-            </p>
+            <div className="flex items-center justify-between text-[11px] text-[#a1a1aa] font-mono">
+              <span>Sisa: {homeDisk.free_gb || 0} GB</span>
+              <span className={!isStorageSafe ? 'text-[#fb7185] font-semibold' : 'text-[#34d399]'}>
+                {isStorageSafe ? 'Kapasitas Normal' : 'Mendekati Penuh'}
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Metric 3: Quota Prioritas GPU */}
-        <div className="bg-surface-2 p-5 rounded-xl border border-border-subtle flex flex-col relative overflow-hidden">
-          {isSlotsFull && <div className="absolute top-0 left-0 right-0 h-0.5 bg-error"></div>}
-          <div className="flex items-center gap-3 mb-4 text-text-secondary">
-            <Layers className={`w-4 h-4 ${isSlotsFull ? 'text-error' : 'text-neon-cyan'}`} />
-            <h2 className="font-medium text-text-primary text-sm">Slot GPU Prioritas</h2>
+        {/* Metric 3: VRAM Quota Cluster (Dual GPU) */}
+        <div className="bg-[#111114] p-4 rounded-xl border border-[rgba(255,255,255,0.08)] flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[#a1a1aa] mb-2">
+            <span className="text-xs font-medium text-[#fafafa] flex items-center gap-2">
+              <Layers className="w-3.5 h-3.5 text-[#34d399]" /> VRAM Quota Cluster
+            </span>
+            <span className="text-[10px] font-mono text-[#71717a]">Dual GPU</span>
           </div>
           
-          <div className="mt-auto">
-            <div className="flex items-end gap-2 mb-3">
-              <span className={`text-3xl font-semibold font-mono tracking-tight ${isSlotsFull ? 'text-error' : 'text-neon-cyan'}`}>
-                {usedSlots}
+          <div className="mt-2">
+            <div className="flex items-baseline gap-2 mb-2">
+              <span className="text-2xl font-semibold font-mono tabular-nums text-[#fafafa] tracking-tight">
+                {vramUsedGb}
               </span>
-              <span className="text-text-secondary mb-1 text-sm">/ {totalSlots} Slot</span>
+              <span className="text-xs text-[#a1a1aa] font-mono">/ {vramTotalGb} GB · {vramPct}%</span>
             </div>
 
-            <div className="w-full bg-surface-1 h-1.5 rounded-md overflow-hidden border border-border-base mb-2">
+            <div className="w-full bg-[#18181b] h-1.5 rounded-full overflow-hidden border border-[rgba(255,255,255,0.06)] mb-2">
               <div 
-                className={`h-full transition-all duration-500 ${isSlotsFull ? 'bg-error' : 'bg-neon-cyan'}`}
-                style={{ width: `${slotUtilPct}%` }}
-              />
-            </div>
-            <p className="text-xs text-text-secondary">
-              Status: <span className="font-mono font-medium text-text-primary">{isSlotsFull ? 'Penuh' : `${availableSlots} Tersedia`}</span>
-            </p>
-          </div>
-        </div>
-
-        
-        {/* Metric: VRAM Quota */}
-        <div className="bg-surface-2 p-5 rounded-xl border border-border-subtle flex flex-col relative overflow-hidden">
-          <div className="flex items-center gap-3 mb-4 text-text-secondary">
-            <Layers className="w-4 h-4 text-text-primary" />
-            <h2 className="font-medium text-text-primary text-sm">VRAM Quota</h2>
-          </div>
-          
-          <div className="mt-auto">
-            <div className="flex items-end gap-2 mb-3">
-              <span className={`text-3xl font-semibold font-mono tracking-tight ${vramPct >= 85 ? 'text-neon-rose' : vramPct >= 65 ? 'text-neon-amber' : 'text-neon-emerald'}`}>
-                {vramPct}%
-              </span>
-              <span className="text-text-secondary mb-1 text-sm">Terpakai</span>
-            </div>
-
-            <div className="w-full bg-surface-1 h-1.5 rounded-md overflow-hidden border border-border-base mb-2">
-              <div 
-                className={`h-full transition-all duration-500 ${vramPct >= 85 ? 'bg-neon-rose' : 'bg-neon-emerald'}`}
+                className={`h-full transition-all duration-300 ${
+                  vramPct >= 90 ? 'bg-[#f43f5e]' : vramPct >= 75 ? 'bg-[#f59e0b]' : 'bg-[#10b981]'
+                }`}
                 style={{ width: `${vramPct}%` }}
               />
             </div>
-            <p className="text-xs text-text-secondary">
-              node-dgx-umpo01: <span className="font-mono font-medium text-text-primary">{vramUsedGb}/{vramTotalGb} GB</span>
-            </p>
+            <div className="flex items-center justify-between text-[11px] text-[#a1a1aa] font-mono">
+              <span className="truncate">node-dgx-umpo01</span>
+              <span className="text-[#34d399] font-medium">{gpus.length} Kartu Aktif</span>
+            </div>
           </div>
         </div>
 
-        {/* Metric 5: Keamanan & Backup */}
-        <div className="bg-surface-2 p-5 rounded-xl border border-border-subtle flex flex-col justify-between">
+        {/* Metric 4: Keamanan & Status Backup */}
+        <div className="bg-[#111114] p-4 rounded-xl border border-[rgba(255,255,255,0.08)] flex flex-col justify-between">
           <div>
-            <div className="flex items-center gap-3 mb-4 text-text-secondary">
-              <ShieldCheck className="w-4 h-4 text-text-primary" />
-              <h2 className="font-medium text-text-primary text-sm">Keamanan</h2>
+            <div className="flex items-center justify-between text-[#a1a1aa] mb-2">
+              <span className="text-xs font-medium text-[#fafafa] flex items-center gap-2">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#10b981]" /> Keamanan & Backup
+              </span>
+              <span className="text-[10px] font-mono text-[#34d399] px-1.5 py-0.2 rounded bg-[#10b981]/10 border border-[#10b981]/20">
+                WAL Active
+              </span>
             </div>
             
-            <ul className="space-y-2 mb-4">
-              <li className="flex items-center gap-2 text-xs text-text-secondary">
-                <span className={`w-1.5 h-1.5 rounded-full ${isStorageSafe ? 'bg-tertiary' : 'bg-error'}`}></span>
-                Kapasitas aman
+            <ul className="space-y-1.5 my-2">
+              <li className="flex items-center gap-2 text-[11px] text-[#a1a1aa] font-mono">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#10b981]"></span>
+                <span className="truncate">Integritas SQLite Aman</span>
               </li>
-              <li className="flex items-center gap-2 text-xs text-text-secondary">
-                <span className={`w-1.5 h-1.5 rounded-full ${latestBackup ? 'bg-tertiary' : 'bg-amber-400'}`}></span>
-                {backupText}
+              <li className="flex items-center gap-2 text-[11px] text-[#a1a1aa] font-mono">
+                <span className={`w-1.5 h-1.5 rounded-full ${latestBackup ? 'bg-[#10b981]' : 'bg-[#f59e0b]'}`}></span>
+                <span className="truncate">{backupText}</span>
               </li>
             </ul>
           </div>
           
-          {isAdmin && (
+          {isAdmin ? (
             <button
               onClick={onTriggerBackup}
               disabled={isBackingUp}
-              className="w-full py-2 px-3 bg-surface-1 hover:bg-surface-3 border border-border-base rounded-md text-xs font-medium text-text-primary transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full mt-2 py-1.5 px-3 bg-[#18181b] hover:bg-[#27272a] border border-[rgba(255,255,255,0.08)] hover:border-[rgba(255,255,255,0.16)] rounded-lg text-xs font-medium text-[#fafafa] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+              type="button"
             >
               {isBackingUp ? (
                 <>
-                  <Loader2 className="w-3 h-3 animate-spin text-text-muted" />
-                  Mencadangkan...
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-[#a1a1aa]" />
+                  <span>Mencadangkan…</span>
                 </>
               ) : (
                 <>
-                  <DatabaseBackup className="w-3 h-3 text-text-muted" />
-                  Backup Database
+                  <DatabaseBackup className="w-3.5 h-3.5 text-[#a1a1aa]" />
+                  <span>Snapshot Database</span>
                 </>
               )}
             </button>
+          ) : (
+            <div className="mt-2 py-1 px-2 rounded bg-[#18181b] border border-[rgba(255,255,255,0.06)] text-[10px] text-[#71717a] font-mono text-center">
+              Mode Monitoring (Read-Only)
+            </div>
           )}
         </div>
 

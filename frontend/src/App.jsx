@@ -7,11 +7,13 @@ import AuditLogView from './components/AuditLogView';
 import KillConfirmModal from './components/KillConfirmModal';
 import UnifiedUserManagement from './components/UnifiedUserManagement';
 import AdminPinModal from './components/AdminPinModal';
+import CommandPalette from './components/CommandPalette';
 import ErrorBoundary from './components/ErrorBoundary';
 
 import {
   WifiOff, RefreshCw, Layers, ShieldCheck,
-  CheckCircle2, AlertCircle, Info, Menu, Database, Archive, HardDrive, Cpu, Terminal
+  CheckCircle2, AlertCircle, Info, Menu, LogOut,
+  Search, ShieldAlert
 } from 'lucide-react';
 
 export default function App() {
@@ -31,18 +33,22 @@ export default function App() {
   const isSuperAdmin = Boolean(adminToken && adminRole === 'admin');
   const isOperator = Boolean(adminToken && adminRole === 'aslab');
 
-  const [loginModalOpen, setLoginModalOpen] = useState(false);
-  const [students, setStudents]             = useState([]);
-  const [isConnected, setIsConnected]       = useState(false);
-  const [isRefreshing, setIsRefreshing]     = useState(false);
-  const [toast, setToast]                   = useState(null);
-  const [activeTab, setActiveTab]           = useState('overview');
-  const [isSidebarOpen, setIsSidebarOpen]   = useState(true);
-  const [isSimulating, setIsSimulating]     = useState(false);
+  const [loginModalOpen, setLoginModalOpen]       = useState(false);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [students, setStudents]                   = useState([]);
+  const [isConnected, setIsConnected]             = useState(false);
+  const [isRefreshing, setIsRefreshing]           = useState(false);
+  const [toast, setToast]                         = useState(null);
+  const [activeTab, setActiveTab]                 = useState('overview');
+  const [isSidebarOpen, setIsSidebarOpen]         = useState(true);
+
+  // Stale Telemetry Detection (> 15 seconds)
+  const [lastDataTimestamp, setLastDataTimestamp] = useState(Date.now());
+  const [staleSeconds, setStaleSeconds]           = useState(0);
 
   // Database Backup States
-  const [backups, setBackups]               = useState([]);
-  const [isBackingUp, setIsBackingUp]       = useState(false);
+  const [backups, setBackups]                     = useState([]);
+  const [isBackingUp, setIsBackingUp]             = useState(false);
 
   // Kill Modal
   const [killModal, setKillModal] = useState({
@@ -91,7 +97,7 @@ export default function App() {
     setAdminToken('');
     setAdminRole('');
     setAdminUser(null);
-    showToast('Logout berhasil', 'info');
+    showToast('Logout berhasil. Mode monitoring publik aktif.', 'info');
   };
 
   const fetchStudents = useCallback(async () => {
@@ -123,6 +129,7 @@ export default function App() {
       if (res.ok) {
         const json = await res.json();
         setData(json);
+        setLastDataTimestamp(Date.now());
       }
     } catch (e) {
       console.error('Fetch status error:', e);
@@ -183,6 +190,15 @@ export default function App() {
     }
   };
 
+  // Check Stale Telemetry every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const diffSec = Math.floor((Date.now() - lastDataTimestamp) / 1000);
+      setStaleSeconds(diffSec);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [lastDataTimestamp]);
+
   // WebSocket Telemetry Stream
   useEffect(() => {
     let ws;
@@ -200,6 +216,7 @@ export default function App() {
         try {
           const payload = JSON.parse(event.data);
           setData(payload);
+          setLastDataTimestamp(Date.now());
         } catch (err) {
           console.error('Error parsing WS data:', err);
         }
@@ -223,12 +240,53 @@ export default function App() {
 
   useEffect(() => { fetchStatus(); }, [fetchStatus]);
 
+  // Global Keyboard Shortcuts (Section 6.G)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      const isInputFocused = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName);
+
+      // Ctrl + K or Cmd + K: Command Palette
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setCommandPaletteOpen(prev => !prev);
+        return;
+      }
+
+      // Single-key shortcuts only active when NOT typing in input
+      if (!isInputFocused) {
+        if (e.key === '1') {
+          e.preventDefault();
+          setActiveTab('overview');
+        } else if (e.key === '2') {
+          e.preventDefault();
+          setActiveTab('students');
+        } else if (e.key === '3') {
+          e.preventDefault();
+          setActiveTab('audit');
+        } else if (e.key === '?') {
+          e.preventDefault();
+          setCommandPaletteOpen(true);
+        } else if (e.key === 'r' || e.key === 'R') {
+          e.preventDefault();
+          fetchStatus();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [fetchStatus]);
+
   const getAuthHeaders = () => ({
     'Content-Type': 'application/json',
     ...(adminToken ? { 'Authorization': `Bearer ${adminToken}` } : {})
   });
 
   const handleOpenKillModal = (proc) => {
+    if (staleSeconds > 15) {
+      showToast('Aksi dinonaktifkan: Data telemetri basi (>15 detik). Sambungkan ulang server.', 'error');
+      return;
+    }
     setKillModal({ isOpen: true, processInfo: proc, isSubmitting: false });
   };
 
@@ -259,7 +317,6 @@ export default function App() {
     }
   };
 
-  // Reset Password
   const handleResetPassword = async (username, newPassword) => {
     try {
       const res = await fetch('/api/reset-password', {
@@ -279,8 +336,11 @@ export default function App() {
     }
   };
 
-  // Kill All User Jobs / Active Sessions
   const handleKillAllUser = async (username) => {
+    if (staleSeconds > 15) {
+      showToast('Aksi dinonaktifkan: Data telemetri basi (>15 detik).', 'error');
+      return;
+    }
     const userProcs = (data?.all_processes || []).filter((p) => p.username === username);
     const confirmMsg = userProcs.length > 0
       ? `Hentikan seluruh (${userProcs.length}) proses komputasi dan sesi milik ${username}?`
@@ -306,147 +366,153 @@ export default function App() {
     }
   };
 
-  // Stop Simulation
-  const handleStopSimulation = async () => {
-    showToast('Membersihkan proses simulasi...', 'info');
-    try {
-      const res = await fetch('/api/stop-simulation', {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({}),
-      });
-      const result = await res.json();
-      if (res.ok && result.success) { showToast(result.message, 'success'); fetchStatus(); }
-      else showToast(result.detail || 'Gagal menghentikan simulasi', 'error');
-    } catch (e) {
-      showToast('Error: ' + e.message, 'error');
-    }
-  };
+  // Collect all running processes across GPUs for command palette search
+  const allGpuProcesses = (data?.gpus || []).flatMap(g => 
+    (g.processes || []).map(p => ({ ...p, gpu_index: g.index }))
+  );
+
+  const isDataStale = staleSeconds > 15;
 
   return (
-    <div className="dark min-h-screen bg-bg-void text-on-surface font-body-md antialiased selection:bg-neon-cyan/20 selection:text-neon-cyan">
-      {/* Sidebar */}
+    <div className="dark min-h-screen bg-[#09090b] text-[#fafafa] font-sans antialiased selection:bg-[#38bdf8]/20 selection:text-[#38bdf8]">
+      {/* Sidebar Navigation */}
       <Sidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
-        isConnected={isConnected}
+        isConnected={isConnected && !isDataStale}
         timeStr={data?.time_str}
         onManualRefresh={fetchStatus}
         isRefreshing={isRefreshing}
-        isAdmin={isAdmin}
         auditCount={data?.audit_logs?.length || 0}
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-        gpus={data?.gpus || []}
       />
 
-      {/* Main App Container */}
+      {/* Main Canvas Area */}
       <div
-        className="flex flex-col min-h-screen transition-all duration-300"
+        className="flex flex-col min-h-screen transition-all duration-200"
         style={{ paddingLeft: isSidebarOpen ? '16rem' : '0' }}
       >
-        {/* Fixed Header — Google Stitch Design */}
+        {/* Sticky Obsidian Header (Section 5) */}
         <header
-          className="fixed top-0 right-0 h-16 bg-surface-1/80  border-b border-border-subtle z-40 flex items-center justify-between px-6 shadow-sm transition-all duration-300"
+          className="fixed top-0 right-0 h-14 bg-[#111114] border-b border-[rgba(255,255,255,0.08)] z-40 flex items-center justify-between px-5 transition-all duration-200"
           style={{ left: isSidebarOpen ? '16rem' : '0' }}
         >
-          {/* Left Title & Breadcrumbs */}
-          <div className="flex items-center gap-4">
+          {/* Left Brand & Toggle */}
+          <div className="flex items-center gap-3">
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors"
+              className="p-1 rounded-md text-[#a1a1aa] hover:text-[#fafafa] hover:bg-[#18181b] transition-colors"
               title="Toggle Sidebar"
               type="button"
             >
-              <Menu className="w-5 h-5" />
+              <Menu className="w-4 h-4" />
             </button>
-            <div className="flex items-center gap-2.5">
-              <span className="font-headline-md text-label-lg text-on-surface font-bold tracking-tight">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-[#fafafa] tracking-tight">
                 Lab Komputasi AI UMPO
+              </span>
+              <span className="text-[#71717a] text-xs">/</span>
+              <span className="text-xs text-[#a1a1aa] capitalize">
+                {activeTab === 'overview' ? 'Ringkasan' : activeTab === 'students' ? 'Pengguna' : 'Log Audit'}
               </span>
             </div>
           </div>
 
-          {/* Center / Telemetry Ping Pill */}
-          <div className="hidden md:flex items-center">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-surface-container-lowest border border-border-subtle">
-              <span className="relative flex h-2 w-2">
-                {isConnected ? (
-                  <>
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-md bg-neon-emerald opacity-75"></span>
-                    <span className="relative inline-flex rounded-md h-2 w-2 bg-neon-emerald"></span>
-                  </>
-                ) : (
-                  <span className="relative inline-flex rounded-md h-2 w-2 bg-neon-rose"></span>
-                )}
-              </span>
-              <span className="font-mono-code-xs text-mono-code-xs text-on-surface-variant">
-                {isConnected ? 'WebSocket Live (12ms)' : 'Koneksi Offline'}
-              </span>
-            </div>
+          {/* Center Search / Command Palette trigger */}
+          <div className="hidden sm:flex items-center">
+            <button
+              onClick={() => setCommandPaletteOpen(true)}
+              className="flex items-center gap-2.5 px-3 py-1 rounded-md bg-[#18181b] hover:bg-[#27272a] border border-[rgba(255,255,255,0.08)] text-xs text-[#a1a1aa] transition-colors"
+              type="button"
+            >
+              <Search className="w-3.5 h-3.5 text-[#71717a]" />
+              <span>Cari perintah atau proses…</span>
+              <kbd className="px-1.5 py-0.2 rounded text-[10px] font-mono bg-[#111114] text-[#71717a] border border-[rgba(255,255,255,0.08)]">
+                Ctrl K
+              </kbd>
+            </button>
           </div>
 
           {/* Right Mode Pill, Clock, and Auth Action */}
-          <div className="flex items-center gap-3">
-            {/* RBAC Mode Pill */}
+          <div className="flex items-center gap-2.5">
+            {/* Status Telemetri Pill */}
+            {isDataStale ? (
+              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[rgba(244,63,94,0.12)] border border-[rgba(244,63,94,0.25)] text-[#fb7185] text-xs font-mono">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#f43f5e]" />
+                <span>Data Basi · {staleSeconds}s</span>
+              </div>
+            ) : isConnected ? (
+              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[#18181b] border border-[rgba(255,255,255,0.08)] text-xs font-mono text-[#a1a1aa]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] pulse-dot" />
+                <span className="text-[#34d399] font-medium">Live</span>
+              </div>
+            ) : (
+              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[rgba(245,158,11,0.12)] border border-[rgba(245,158,11,0.25)] text-[#fbbf24] text-xs font-mono">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]" />
+                <span>Menyambung ulang…</span>
+              </div>
+            )}
+
+            {/* Role Badge */}
             {!isAdmin ? (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-surface-2 text-text-muted border border-border-subtle text-xs font-mono">
-                <Info className="w-3.5 h-3.5 text-secondary-fixed" />
-                <span>Public Monitoring</span>
+              <div className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#18181b] text-[#a1a1aa] border border-[rgba(255,255,255,0.08)] text-xs font-mono">
+                <Info className="w-3 h-3 text-[#71717a]" />
+                <span>Public View</span>
               </div>
             ) : isOperator ? (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-neon-cyan/15 text-neon-cyan border border-neon-cyan/30 text-xs font-mono">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[rgba(14,165,233,0.1)] text-[#38bdf8] border border-[rgba(14,165,233,0.25)] text-xs font-mono">
                 <ShieldCheck className="w-3.5 h-3.5" />
                 <span>Operator: {adminUser?.nama ? adminUser.nama.split(' ')[0] : 'Aslab'}</span>
               </div>
             ) : (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-secondary-container text-secondary-fixed text-xs font-mono shadow-sm">
-                <span className="material-symbols-outlined text-[16px] text-neon-amber">bolt</span>
-                <span>Super Admin{adminUser?.nama ? `: ${adminUser.nama.split(' ')[0]}` : ''}</span>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[rgba(99,102,241,0.12)] text-[#818cf8] border border-[rgba(99,102,241,0.25)] text-xs font-mono">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Super Admin</span>
               </div>
             )}
 
             {/* WIB Clock */}
-            <div className="hidden lg:flex items-center px-3 py-1 rounded-lg bg-surface-2 font-mono-code-sm text-mono-code-sm text-primary-fixed-dim border border-border-subtle">
-              <span className="text-outline mr-1.5">WIB:</span>
+            <div className="hidden lg:flex items-center px-2.5 py-1 rounded-md bg-[#18181b] font-mono text-xs text-[#fafafa] border border-[rgba(255,255,255,0.08)] tabular-nums">
+              <span className="text-[#71717a] mr-1">WIB:</span>
               {data?.time_str || '--:--:--'}
             </div>
 
-            {/* Login / Logout Button */}
+            {/* Login / Logout Action */}
             {!isAdmin ? (
               <button
                 onClick={() => setLoginModalOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-3 text-primary-fixed text-xs font-medium border border-border-base transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#18181b] hover:bg-[#27272a] text-[#fafafa] text-xs font-medium border border-[rgba(255,255,255,0.1)] transition-colors"
                 title="Login Operator / Admin"
                 type="button"
               >
-                <ShieldCheck className="w-3.5 h-3.5 text-neon-cyan" />
+                <ShieldCheck className="w-3.5 h-3.5 text-[#38bdf8]" />
                 <span>Login Admin</span>
               </button>
             ) : (
               <button
                 onClick={handleLogout}
-                className="p-1.5 rounded-lg text-on-surface-variant hover:text-error hover:bg-error-container/20 transition-colors"
+                className="p-1.5 rounded-md text-[#a1a1aa] hover:text-[#fb7185] hover:bg-[#18181b] border border-[rgba(255,255,255,0.06)] transition-colors"
                 title="Keluar dari Konsol"
                 type="button"
               >
-                <span className="material-symbols-outlined text-[20px]">logout</span>
+                <LogOut className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
         </header>
 
-        {/* Floating Disconnect Alert Banner */}
+        {/* Persistent Warning Banner (Manifesto Section 7.C) */}
         {!isConnected && (
-          <div className="pt-20 px-6">
-            <div className="flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-error-container/20 border border-error-container/40 text-neon-rose text-xs font-mono shadow-sm">
+          <div className="pt-16 px-6">
+            <div className="flex items-center justify-between gap-3 px-4 py-2 rounded-lg bg-[rgba(244,63,94,0.1)] border border-[rgba(244,63,94,0.25)] text-[#fb7185] text-xs font-mono">
               <div className="flex items-center gap-2">
-                <WifiOff className="w-4 h-4 animate-pulse shrink-0" />
+                <WifiOff className="w-4 h-4 shrink-0" />
                 <span>Koneksi telemetri WebSocket terputus — mencoba menghubungkan kembali secara otomatis…</span>
               </div>
               <button
                 onClick={fetchStatus}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-error-container/40 text-neon-rose hover:bg-error-container/60 font-semibold transition-colors"
+                className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[rgba(244,63,94,0.2)] hover:bg-[rgba(244,63,94,0.3)] font-semibold transition-colors"
                 type="button"
               >
                 <RefreshCw className="w-3 h-3" />
@@ -456,25 +522,30 @@ export default function App() {
           </div>
         )}
 
-        {/* Scrollable Main Content Canvas */}
-        <main className="flex-1 pt-20 px-6 lg:px-8 pb-12 w-full max-w-[1600px] mx-auto">
+        {/* Main Content View Container */}
+        <main className="flex-1 pt-18 px-5 lg:px-7 pb-12 w-full max-w-[1600px] mx-auto">
           {activeTab === 'overview' && (
             <ErrorBoundary title="Kendala Modul Ringkasan Sistem">
-              <div className="flex flex-col gap-6 fade-in-up">
-                <SystemOverview system={data?.system} gpus={data?.gpus} onTriggerBackup={handleTriggerBackup} isBackingUp={isBackingUp} backups={backups} isAdmin={isAdmin} />
-                <LiveChart history={data?.history} theme="dark" />
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="flex flex-col gap-6">
+                <SystemOverview
+                  system={data?.system}
+                  gpus={data?.gpus}
+                  onTriggerBackup={handleTriggerBackup}
+                  isBackingUp={isBackingUp}
+                  backups={backups}
+                  isAdmin={isAdmin && !isDataStale}
+                />
+                <LiveChart history={data?.history} />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                   <GpuCard
                     gpu={data?.gpus?.[0]}
-                    isAdmin={isAdmin}
+                    isAdmin={isAdmin && !isDataStale}
                     onOpenKillModal={handleOpenKillModal}
-                    sparkHistory={data?.history || []}
                   />
                   <GpuCard
                     gpu={data?.gpus?.[1]}
-                    isAdmin={isAdmin}
+                    isAdmin={isAdmin && !isDataStale}
                     onOpenKillModal={handleOpenKillModal}
-                    sparkHistory={data?.history || []}
                   />
                 </div>
               </div>
@@ -482,49 +553,45 @@ export default function App() {
           )}
 
           {activeTab === 'students' && (
-            <ErrorBoundary title="Kendala Modul Manajemen User">
-              <div className="fade-in-up">
-                <UnifiedUserManagement
-                  isAdmin={isAdmin}
-                  adminRole={adminRole}
-                  adminUser={adminUser}
-                  students={students}
-                  systemUsers={data?.users || []}
-                  onOpenKillModal={handleOpenKillModal}
-                  onResetPassword={handleResetPassword}
-                  onKillAllUser={handleKillAllUser}
-                  fetchStudents={fetchStudents}
-                  showToast={showToast}
-                />
-              </div>
+            <ErrorBoundary title="Kendala Modul Manajemen Pengguna">
+              <UnifiedUserManagement
+                isAdmin={isAdmin && !isDataStale}
+                adminRole={adminRole}
+                adminUser={adminUser}
+                students={students}
+                systemUsers={data?.users || []}
+                onOpenKillModal={handleOpenKillModal}
+                onResetPassword={handleResetPassword}
+                onKillAllUser={handleKillAllUser}
+                fetchStudents={fetchStudents}
+                showToast={showToast}
+              />
             </ErrorBoundary>
           )}
 
           {activeTab === 'audit' && (
-            <ErrorBoundary title="Kendala Modul Audit Log">
-              <div className="fade-in-up">
-                <AuditLogView logs={data?.audit_logs || []} />
-              </div>
+            <ErrorBoundary title="Kendala Modul Log Audit">
+              <AuditLogView logs={data?.audit_logs || []} />
             </ErrorBoundary>
           )}
         </main>
       </div>
 
-      {/* Toast Notification — Google Stitch Floating Style */}
+      {/* Floating Toast Notification (Manifesto Section 7.C) */}
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 animate-in slide-in- duration-300">
-          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-2 border border-border-base shadow-sm text-xs font-mono text-on-surface">
+        <div className="fixed bottom-5 right-5 z-50">
+          <div className="flex items-center gap-3 px-3.5 py-2.5 rounded-lg bg-[#18181b] border border-[rgba(255,255,255,0.14)] shadow-[0_8px_24px_rgba(0,0,0,0.45)] text-xs font-mono text-[#fafafa]">
             {toast.type === 'success' ? (
-              <CheckCircle2 className="w-4 h-4 text-neon-emerald shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-[#34d399] shrink-0" />
             ) : toast.type === 'error' ? (
-              <AlertCircle className="w-4 h-4 text-neon-rose shrink-0" />
+              <AlertCircle className="w-4 h-4 text-[#fb7185] shrink-0" />
             ) : (
-              <Info className="w-4 h-4 text-neon-cyan shrink-0" />
+              <Info className="w-4 h-4 text-[#38bdf8] shrink-0" />
             )}
             <span className="font-medium">{toast.message}</span>
             <button
               onClick={() => setToast(null)}
-              className="ml-2 text-text-muted hover:text-on-surface transition-colors"
+              className="ml-2 text-[#71717a] hover:text-[#fafafa] transition-colors"
               type="button"
             >
               ✕
@@ -532,6 +599,20 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* Global Command Palette */}
+      <CommandPalette
+        isOpen={commandPaletteOpen}
+        onClose={() => setCommandPaletteOpen(false)}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        isAdmin={isAdmin}
+        onOpenLogin={() => setLoginModalOpen(true)}
+        onLogout={handleLogout}
+        onTriggerBackup={handleTriggerBackup}
+        onRefreshTelemetry={fetchStatus}
+        processes={allGpuProcesses}
+      />
 
       {/* Modals */}
       <AdminPinModal

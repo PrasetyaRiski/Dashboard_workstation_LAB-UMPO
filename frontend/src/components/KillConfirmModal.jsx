@@ -6,71 +6,78 @@ export default function KillConfirmModal({ isOpen, processInfo, onConfirm, onClo
   const { pid, username, procName, cmdline, vramMb, is_system } = processInfo;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black ">
-      <div className={`w-full max-w-md overflow-hidden bg-[#181b25] border ${is_system ? 'border-amber-500/30' : 'border-rose-500/30'} rounded-xl shadow-sm animate-in fade-in zoom-in-95 duration-200`}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75">
+      <div className={`w-full max-w-md bg-[#18181b] border ${
+        is_system ? 'border-[rgba(245,158,11,0.3)]' : 'border-[rgba(244,63,94,0.3)]'
+      } rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.45)] overflow-hidden flex flex-col`}>
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-slate-700/50">
+        <div className="flex items-center justify-between p-4 border-b border-[rgba(255,255,255,0.08)] bg-[#111114]">
           <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 flex items-center justify-center rounded-xl shrink-0 ${is_system ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' : 'bg-rose-500/10 border-rose-500/20 text-rose-500'}`}>
-              {is_system
-                ? <Shield className="w-5 h-5" />
-                : <ShieldAlert className="w-5 h-5" />
-              }
+            <div className={`w-8 h-8 flex items-center justify-center rounded-lg shrink-0 ${
+              is_system 
+                ? 'bg-[rgba(245,158,11,0.12)] text-[#fbbf24]' 
+                : 'bg-[rgba(244,63,94,0.12)] text-[#fb7185]'
+            }`}>
+              {is_system ? <Shield className="w-4 h-4" /> : <ShieldAlert className="w-4 h-4" />}
             </div>
             <div>
-              <h3 className="font-bold text-sm text-[#dfe2ef] tracking-tight">
+              <h3 className="font-semibold text-sm text-[#fafafa] tracking-tight">
                 {is_system ? 'Proses Sistem Terproteksi' : 'Konfirmasi Hentikan Proses'}
               </h3>
-              <p className={`text-[11px] mt-0.5 ${is_system ? 'text-amber-500' : 'text-rose-500'}`}>
-                {is_system
-                  ? 'Proteksi Keamanan Inti Server'
-                  : 'SIGTERM / SIGKILL — Tindakan Administratif'
-                }
+              <p className={`text-[11px] font-mono mt-0.5 ${is_system ? 'text-[#fbbf24]' : 'text-[#fb7185]'}`}>
+                {is_system ? 'Proteksi Keamanan Inti Server' : 'SIGTERM / SIGKILL Aksi Administratif'}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#1c1f29] border border-[#46455430] text-[#908fa0] hover:text-[#dfe2ef] hover:border-slate-600 transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded-md bg-[#27272a] text-[#a1a1aa] hover:text-[#fafafa] transition-colors"
+            type="button"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3.5 h-3.5" />
           </button>
         </div>
 
         {/* Body */}
-        <div className="p-5 flex flex-col gap-5">
+        <div className="p-5 flex flex-col gap-4">
           {is_system ? (
-            <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
-              <Shield className="w-5 h-5 shrink-0 mt-0.5 text-amber-500" />
-              <p className="text-xs text-[#c7c4d7] leading-relaxed">
-                <strong className="text-amber-500 font-bold">Dilarang:</strong> Proses ini adalah layanan/proses sistem yang penting bagi stabilitas klaster server. Tindakan mematikan proses ini diblokir demi keamanan.
+            <div className="p-3 rounded-lg bg-[rgba(245,158,11,0.1)] border border-[rgba(245,158,11,0.2)] text-xs text-[#fafafa] flex items-start gap-2.5">
+              <Shield className="w-4 h-4 text-[#fbbf24] shrink-0 mt-0.5" />
+              <p className="leading-relaxed">
+                <strong className="text-[#fbbf24]">Aksi Diblokir:</strong> Proses ini adalah layanan sistem penting bagi stabilitas server dan tidak diizinkan untuk dimatikan.
               </p>
             </div>
           ) : (
-            <p className="text-xs text-[#908fa0] leading-relaxed">
-              Apakah Anda yakin ingin mematikan paksa proses komputasi ini? Pekerjaan pelatihan model AI yang sedang berjalan akan terhenti seketika dan tidak dapat dikembalikan.
+            <p className="text-xs text-[#a1a1aa] leading-relaxed">
+              Tindakan ini akan menghentikan eksekusi pelatihan model secara paksa. Seluruh checkpoint atau data dalam memori yang belum disimpan akan hilang.
             </p>
           )}
 
-          {/* Process info panel */}
-          <div className="bg-[#0a0e17] rounded-xl border border-[#46455430] overflow-hidden">
-            {[
-              { label: 'Pemilik Proses', value: username, valueClass: 'text-indigo-400' },
-              { label: 'PID',            value: pid,      valueClass: 'text-[#dfe2ef]' },
-              { label: 'Nama Eksekusi',  value: procName, valueClass: 'text-[#4edea3]' },
-              ...(vramMb !== undefined
-                ? [{ label: 'Konsumsi VRAM', value: `${vramMb} MB`, valueClass: 'text-amber-400' }]
-                : []),
-            ].map(({ label, value, valueClass }) => (
-              <div key={label} className="flex justify-between items-center p-3 border-b border-[#46455430] last:border-b-0">
-                <span className="text-xs text-[#908fa0] font-mono uppercase tracking-wider">{label}</span>
-                <span className={`text-xs font-bold font-mono ${valueClass}`}>{value}</span>
+          {/* Process Metadata Details Panel */}
+          <div className="bg-[#111114] rounded-lg border border-[rgba(255,255,255,0.08)] overflow-hidden font-mono text-xs">
+            <div className="flex justify-between items-center px-3 py-2 border-b border-[rgba(255,255,255,0.06)]">
+              <span className="text-[#71717a] text-[11px] uppercase tracking-wider">Pemilik Sesi</span>
+              <span className="text-[#818cf8] font-semibold">{username}</span>
+            </div>
+            <div className="flex justify-between items-center px-3 py-2 border-b border-[rgba(255,255,255,0.06)]">
+              <span className="text-[#71717a] text-[11px] uppercase tracking-wider">PID Proses</span>
+              <span className="text-[#fafafa] font-bold tabular-nums">{pid}</span>
+            </div>
+            <div className="flex justify-between items-center px-3 py-2 border-b border-[rgba(255,255,255,0.06)]">
+              <span className="text-[#71717a] text-[11px] uppercase tracking-wider">Nama Eksekusi</span>
+              <span className="text-[#38bdf8] font-medium">{procName}</span>
+            </div>
+            {vramMb !== undefined && (
+              <div className="flex justify-between items-center px-3 py-2">
+                <span className="text-[#71717a] text-[11px] uppercase tracking-wider">VRAM Dibebaskan</span>
+                <span className="text-[#34d399] font-bold tabular-nums">{vramMb} MB</span>
               </div>
-            ))}
+            )}
+
             {cmdline && (
-              <div className="p-3 bg-[#1c1f29]/50 border-t border-[#46455430]">
-                <p className="text-[10px] text-[#908fa0] font-mono uppercase tracking-wider mb-1.5">Command Line</p>
-                <code className="block text-[11px] text-[#c7c4d7] font-mono break-all p-2 bg-[#0a0e17] rounded-lg border border-[#46455420]">
+              <div className="p-3 bg-[#09090b] border-t border-[rgba(255,255,255,0.08)]">
+                <p className="text-[10px] text-[#71717a] uppercase tracking-wider mb-1">Perintah Lengkap</p>
+                <code className="block text-[11px] text-[#a1a1aa] break-all p-2 bg-[#18181b] rounded border border-[rgba(255,255,255,0.06)]">
                   {cmdline}
                 </code>
               </div>
@@ -78,13 +85,13 @@ export default function KillConfirmModal({ isOpen, processInfo, onConfirm, onClo
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-5 py-4 border-t border-slate-700/50 bg-[#181b25]/80">
+        {/* Footer Actions */}
+        <div className="flex items-center justify-end gap-2.5 px-4 py-3 border-t border-[rgba(255,255,255,0.08)] bg-[#111114]">
           <button
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="px-4 py-2 rounded-xl bg-[#1c1f29] border border-[#46455430] text-xs font-semibold text-[#908fa0] hover:text-[#dfe2ef] hover:border-slate-600 transition-colors disabled:opacity-50"
+            className="px-3.5 py-1.5 rounded-lg bg-[#27272a] hover:bg-[#3f3f46] text-xs font-medium text-[#a1a1aa] hover:text-[#fafafa] transition-colors disabled:opacity-50"
           >
             {is_system ? 'Tutup' : 'Batal'}
           </button>
@@ -93,14 +100,14 @@ export default function KillConfirmModal({ isOpen, processInfo, onConfirm, onClo
               type="button"
               onClick={onConfirm}
               disabled={isSubmitting}
-              className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 disabled:bg-rose-800 disabled:text-rose-400 border border-transparent text-white text-xs font-bold transition-colors flex items-center gap-2"
+              className="px-4 py-1.5 rounded-lg bg-[#f43f5e] hover:bg-[#e11d48] disabled:opacity-50 text-white text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-sm"
             >
               {isSubmitting ? (
                 'Memproses…'
               ) : (
                 <>
-                  <AlertTriangle className="w-4 h-4" />
-                  Hentikan Proses
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  <span>Hentikan Proses {pid}</span>
                 </>
               )}
             </button>

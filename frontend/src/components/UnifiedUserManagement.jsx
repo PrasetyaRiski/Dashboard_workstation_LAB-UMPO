@@ -318,35 +318,24 @@ export default function UnifiedUserManagement({
 
   return (
     <div className="flex flex-col w-full gap-6">
-      {/* Section Header Zone — Stitch Style */}
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 relative z-10">
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded bg-surface-container font-mono text-xs text-primary-fixed-dim   border border-border-base">
-              HPC-NODE-01
-            </span>
-            <span className="text-outline text-xs">/</span>
-            <span className="font-mono text-xs text-text-muted">SLURM-CGROUP-ORCHESTRATOR</span>
-            <span className="w-1.5 h-1.5 rounded-md bg-neon-emerald animate-ping ml-1"></span>
-          </div>
-          <div className="flex items-baseline gap-3 flex-wrap">
-            <h1 className="font-headline-xl text-2xl lg:text-3xl font-bold text-text-primary tracking-tight">
-              Manajemen User Terpadu
-            </h1>
-            <span className="font-mono text-xs text-neon-cyan px-2.5 py-0.5 rounded-md bg-surface-container-high/80 border border-neon-cyan/20">
-              v4.2
-            </span>
-          </div>
-          
+      {/* Section Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-lg font-semibold text-[#fafafa] tracking-tight">
+            Manajemen Pengguna Terpadu
+          </h1>
+          <p className="text-xs text-[#a1a1aa] mt-0.5">
+            Manajemen akun Linux OS, integrasi SSO SIMTIK, dan isolasi kuota komputasi
+          </p>
         </div>
 
-        <div className="flex items-center gap-2 self-start lg:self-auto">
+        <div className="flex items-center gap-2">
           <button
             onClick={() => { fetchStudents(); fetchCapacity(); }}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-2 text-text-primary hover:bg-surface-3 transition-colors border border-border-base text-xs font-medium"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#18181b] hover:bg-[#27272a] text-[#fafafa] transition-colors border border-[rgba(255,255,255,0.08)] text-xs font-medium"
             type="button"
           >
-            <RefreshCw className="w-3.5 h-3.5 text-neon-cyan" />
+            <RefreshCw className="w-3.5 h-3.5 text-[#38bdf8]" />
             <span>Sinkronisasi SIMTIK</span>
           </button>
         </div>
@@ -354,146 +343,125 @@ export default function UnifiedUserManagement({
 
       {/* Operator Mode Banner (If logged in as Operator/Aslab) */}
       {isOperator && (
-        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan text-xs font-mono">
+        <div className="flex items-center gap-3 px-3.5 py-2.5 rounded-lg bg-[rgba(14,165,233,0.1)] border border-[rgba(14,165,233,0.25)] text-[#38bdf8] text-xs font-mono">
           <ShieldCheck className="w-4 h-4 shrink-0" />
           <span>
-            <strong>Mode Operator Aslab ({adminUser?.nama || 'Asisten'}):</strong> Akses pemantauan dan Kill Sesi aktif. Hak akses super admin dibatasi.
+            <strong>Mode Operator Aslab ({adminUser?.nama || 'Asisten'}):</strong> Akses monitoring dan penghentian sesi aktif.
           </span>
         </div>
       )}
 
-      {/* Bento Metric Summary Cards (Top Tier - 4 Cards) */}
+      {/* 3 High-Density KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-        {/* Card 2: Total Akun Terdaftar */}
-        <div className="bg-surface-container-low rounded-xl p-5 border border-border-subtle shadow-md flex flex-col justify-between">
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex flex-col">
-              <span className="text-sm font-medium text-text-secondary">
-                Tenant Directory
-              </span>
-              <span className="font-headline-md text-sm font-semibold text-text-primary mt-1">
-                Total Akun Terdaftar
-              </span>
+        {/* Card 1: Total Akun Terdaftar */}
+        <div className="bg-[#111114] rounded-xl p-4 border border-[rgba(255,255,255,0.08)] flex flex-col justify-between">
+          <div className="flex items-start justify-between mb-2">
+            <div>
+              <span className="text-xs font-medium text-[#fafafa]">Total Akun Terdaftar</span>
+              <p className="text-[11px] text-[#a1a1aa]">Tenant Directory</p>
             </div>
-            <div className="w-9 h-9 rounded-lg bg-surface-3 flex items-center justify-center text-secondary border border-secondary/20">
-              <Users className="w-5 h-5" />
+            <div className="w-8 h-8 rounded-lg bg-[#18181b] border border-[rgba(255,255,255,0.08)] flex items-center justify-center text-[#818cf8]">
+              <Users className="w-4 h-4" />
             </div>
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 mt-1">
             <div className="flex items-baseline justify-between">
-              <span className="font-mono text-xl font-bold text-text-primary">
-                {unifiedList.length} <span className="text-outline text-xs font-normal">Akun</span>
+              <span className="font-mono tabular-nums text-2xl font-bold text-[#fafafa]">
+                {unifiedList.length} <span className="text-[#71717a] text-xs font-normal">Akun</span>
               </span>
-              <span className="font-mono text-xs text-secondary-fixed-dim px-2 py-0.5 rounded bg-secondary-container/40">
-                Active SIMTIK
+              <span className="font-mono text-[11px] text-[#818cf8] px-1.5 py-0.2 rounded bg-[#6366f1]/10 border border-[#6366f1]/20">
+                SIMTIK & OS
               </span>
             </div>
-            <div className="w-full h-1.5 rounded-md bg-surface-variant overflow-hidden flex">
+            <div className="w-full h-1.5 rounded-full bg-[#18181b] overflow-hidden flex border border-[rgba(255,255,255,0.06)]">
               <div
-                className="h-full bg-secondary rounded-l-full"
+                className="h-full bg-[#38bdf8]"
                 style={{ width: `${Math.round((totalStudents / (unifiedList.length || 1)) * 100)}%` }}
               />
               <div
-                className="h-full bg-outline rounded-r-full"
+                className="h-full bg-[#818cf8]"
                 style={{ width: `${Math.round((pureSystemCount / (unifiedList.length || 1)) * 100)}%` }}
               />
             </div>
-            <div className="flex items-center justify-between text-on-surface-variant font-mono text-sm mt-1">
+            <div className="flex items-center justify-between text-[#a1a1aa] font-mono text-[11px]">
               <span>{totalStudents} Mhs SIMTIK</span>
-              <span className="text-outline">•</span>
               <span>{pureSystemCount} Dosen & Lab</span>
             </div>
           </div>
         </div>
 
-        {/* Card 3: Akun Riset & Prioritas Aktif */}
-        <div className="bg-surface-container-low rounded-xl p-5 border border-border-subtle shadow-md flex flex-col justify-between">
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex flex-col">
-              <span className="text-sm font-medium text-text-secondary">
-                QoS Level 1 Active
-              </span>
-              <span className="font-headline-md text-sm font-semibold text-text-primary mt-1">
-                Akun Riset & Prioritas
-              </span>
+        {/* Card 2: Akun Riset & Prioritas Aktif */}
+        <div className="bg-[#111114] rounded-xl p-4 border border-[rgba(255,255,255,0.08)] flex flex-col justify-between">
+          <div className="flex items-start justify-between mb-2">
+            <div>
+              <span className="text-xs font-medium text-[#fafafa]">Akun Riset & Prioritas</span>
+              <p className="text-[11px] text-[#a1a1aa]">QoS Dedicated GPU</p>
             </div>
-            <div className="w-9 h-9 rounded-lg bg-surface-3 flex items-center justify-center text-neon-amber border border-neon-amber/20">
-              <Zap className="w-5 h-5" />
+            <div className="w-8 h-8 rounded-lg bg-[#18181b] border border-[rgba(255,255,255,0.08)] flex items-center justify-center text-[#fbbf24]">
+              <Zap className="w-4 h-4" />
             </div>
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 mt-1">
             <div className="flex items-baseline justify-between">
-              <span className="font-mono text-xl font-bold text-neon-amber">
-                {boostedStudents} <span className="text-outline text-xs font-normal">Akun</span>
+              <span className="font-mono tabular-nums text-2xl font-bold text-[#fbbf24]">
+                {boostedStudents} <span className="text-[#71717a] text-xs font-normal">Akun</span>
               </span>
-              <span className="font-mono text-xs bg-tertiary-container/20 text-neon-emerald px-2 py-0.5 rounded font-semibold">
-                Full Boosted
+              <span className="font-mono text-[11px] text-[#34d399] px-1.5 py-0.2 rounded bg-[#10b981]/10 border border-[#10b981]/20">
+                Level 1 QoS
               </span>
             </div>
-            <div className="w-full h-1.5 rounded-md bg-surface-variant overflow-hidden">
+            <div className="w-full h-1.5 rounded-full bg-[#18181b] overflow-hidden border border-[rgba(255,255,255,0.06)]">
               <div
-                className="h-full bg-neon-amber rounded-md shadow-[0_0_8px_rgba(251,191,36,0.6)]"
+                className="h-full bg-[#fbbf24]"
                 style={{ width: `${slotUtilPct}%` }}
               />
             </div>
-            <div className="flex items-center gap-1.5 mt-1 text-sm font-mono text-on-surface-variant">
-              <Layers className="w-3.5 h-3.5 text-neon-cyan" />
-              <span className="truncate">Hak Akses Dedicated <code className="text-primary-fixed">compute-level1</code></span>
+            <div className="flex items-center gap-1.5 text-[11px] font-mono text-[#a1a1aa]">
+              <Layers className="w-3 h-3 text-[#38bdf8]" />
+              <span className="truncate">Hak Akses Dedicated <code className="text-[#38bdf8]">compute-level1</code></span>
             </div>
           </div>
         </div>
 
-        {/* Card 4: Peringatan Storage (Over Quota) */}
-        <div className="bg-surface-container-low rounded-xl p-5 border border-border-subtle shadow-md flex flex-col justify-between relative overflow-hidden">
-          {overQuotaCount > 0 && (
-            <div className="absolute top-0 left-0 right-0 h-1 bg-neon-rose shadow-[0_0_12px_rgba(255,180,171,0.8)]"></div>
-          )}
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex flex-col">
-              <span className="text-sm font-medium text-text-secondary">
-                Disk Limit Breached
-              </span>
-              <span className="font-headline-md text-sm font-semibold text-text-primary mt-1">
-                Peringatan Storage
-              </span>
+        {/* Card 3: Peringatan Storage (Over Quota) */}
+        <div className="bg-[#111114] rounded-xl p-4 border border-[rgba(255,255,255,0.08)] flex flex-col justify-between">
+          <div className="flex items-start justify-between mb-2">
+            <div>
+              <span className="text-xs font-medium text-[#fafafa]">Peringatan Storage</span>
+              <p className="text-[11px] text-[#a1a1aa]">Disk Limit Policy</p>
             </div>
-            <div className={`w-9 h-9 rounded-lg flex items-center justify-center border ${
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center border ${
               overQuotaCount > 0
-                ? 'bg-error-container/30 text-neon-rose border-error-container/50 animate-pulse'
-                : 'bg-surface-3 text-neon-emerald border-border-base'
+                ? 'bg-[rgba(244,63,94,0.12)] text-[#fb7185] border-[rgba(244,63,94,0.25)]'
+                : 'bg-[#18181b] text-[#34d399] border-[rgba(255,255,255,0.08)]'
             }`}>
-              <AlertTriangle className="w-5 h-5" />
+              <AlertTriangle className="w-4 h-4" />
             </div>
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 mt-1">
             <div className="flex items-baseline justify-between">
-              <span className={`font-mono text-xl font-bold ${overQuotaCount > 0 ? 'text-neon-rose' : 'text-text-primary'}`}>
-                {overQuotaCount} <span className="text-outline text-xs font-normal">Akun</span>
+              <span className={`font-mono tabular-nums text-2xl font-bold ${overQuotaCount > 0 ? 'text-[#fb7185]' : 'text-[#fafafa]'}`}>
+                {overQuotaCount} <span className="text-[#71717a] text-xs font-normal">Akun</span>
               </span>
               {overQuotaCount > 0 ? (
-                <span className="inline-flex items-center gap-1 font-mono text-xs text-neon-rose bg-error-container/40 px-2 py-0.5 rounded-md shadow-[0_0_8px_rgba(255,180,171,0.3)]">
-                  <span className="w-1.5 h-1.5 rounded-md bg-neon-rose animate-ping"></span>
+                <span className="font-mono text-[11px] text-[#fb7185] bg-[rgba(244,63,94,0.12)] px-1.5 py-0.2 rounded border border-[rgba(244,63,94,0.25)]">
                   Over Quota
                 </span>
               ) : (
-                <span className="font-mono text-xs text-neon-emerald bg-surface-3 px-2 py-0.5 rounded">
-                  Semua Normal
+                <span className="font-mono text-[11px] text-[#34d399] bg-[#10b981]/10 px-1.5 py-0.2 rounded border border-[#10b981]/20">
+                  Normal
                 </span>
               )}
             </div>
-            <div className="w-full h-1.5 rounded-md bg-surface-variant overflow-hidden">
+            <div className="w-full h-1.5 rounded-full bg-[#18181b] overflow-hidden border border-[rgba(255,255,255,0.06)]">
               <div
-                className={`h-full rounded-md ${
-                  overQuotaCount > 0
-                    ? 'bg-neon-rose shadow-[0_0_8px_rgba(255,180,171,0.8)]'
-                    : 'bg-neon-emerald'
-                }`}
+                className={`h-full ${overQuotaCount > 0 ? 'bg-[#f43f5e]' : 'bg-[#10b981]'}`}
                 style={{ width: overQuotaCount > 0 ? '100%' : '15%' }}
               />
             </div>
-            <div className={`flex items-center gap-1.5 mt-1 text-sm font-mono ${overQuotaCount > 0 ? 'text-neon-rose' : 'text-on-surface-variant'}`}>
-              <HardDrive className="w-3.5 h-3.5" />
+            <div className={`flex items-center gap-1.5 text-[11px] font-mono ${overQuotaCount > 0 ? 'text-[#fb7185]' : 'text-[#a1a1aa]'}`}>
+              <HardDrive className="w-3 h-3" />
               <span>{overQuotaCount > 0 ? 'Batas soft quota terlampaui' : 'Semua kuota aman terisolasi'}</span>
             </div>
           </div>
@@ -501,75 +469,65 @@ export default function UnifiedUserManagement({
       </div>
 
       {/* Filter Bar & Search Module */}
-      <div className="bg-surface-1 rounded-xl p-3 border border-border-subtle shadow-sm flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
-        {/* Segmented Pill Controls */}
-        <div className="flex flex-wrap items-center gap-1.5 bg-surface-container-lowest/80 p-1 rounded-lg border border-border-subtle">
+      <div className="bg-[#111114] rounded-xl p-3 border border-[rgba(255,255,255,0.08)] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        {/* Segmented Controls */}
+        <div className="flex flex-wrap items-center gap-1 bg-[#18181b] p-1 rounded-lg border border-[rgba(255,255,255,0.06)] font-mono text-xs">
           <button
             onClick={() => setFilterType('all')}
-            className={`px-3 py-1.5 rounded text-xs font-mono font-medium transition-all ${
+            className={`px-2.5 py-1 rounded transition-colors ${
               filterType === 'all'
-                ? 'bg-surface-3 text-primary-fixed shadow-sm font-bold border border-neon-cyan/30'
-                : 'text-on-surface-variant hover:text-text-primary hover:bg-surface-2'
+                ? 'bg-[#27272a] text-[#fafafa] font-semibold border border-[rgba(255,255,255,0.12)]'
+                : 'text-[#a1a1aa] hover:text-[#fafafa]'
             }`}
             type="button"
           >
-            Semua Akun <span className="text-neon-cyan ml-1 font-bold">{unifiedList.length}</span>
+            Semua ({unifiedList.length})
           </button>
           <button
             onClick={() => setFilterType('mhs')}
-            className={`px-3 py-1.5 rounded text-xs font-mono font-medium transition-all ${
+            className={`px-2.5 py-1 rounded transition-colors ${
               filterType === 'mhs'
-                ? 'bg-surface-3 text-primary-fixed shadow-sm font-bold border border-neon-cyan/30'
-                : 'text-on-surface-variant hover:text-text-primary hover:bg-surface-2'
+                ? 'bg-[#27272a] text-[#fafafa] font-semibold border border-[rgba(255,255,255,0.12)]'
+                : 'text-[#a1a1aa] hover:text-[#fafafa]'
             }`}
             type="button"
           >
-            Mahasiswa SIMTIK <span className="text-outline ml-1">{totalStudents}</span>
+            Mahasiswa ({totalStudents})
           </button>
           <button
             onClick={() => setFilterType('dosen')}
-            className={`px-3 py-1.5 rounded text-xs font-mono font-medium transition-all ${
+            className={`px-2.5 py-1 rounded transition-colors ${
               filterType === 'dosen'
-                ? 'bg-surface-3 text-primary-fixed shadow-sm font-bold border border-neon-cyan/30'
-                : 'text-on-surface-variant hover:text-text-primary hover:bg-surface-2'
+                ? 'bg-[#27272a] text-[#fafafa] font-semibold border border-[rgba(255,255,255,0.12)]'
+                : 'text-[#a1a1aa] hover:text-[#fafafa]'
             }`}
             type="button"
           >
-            Dosen & Riset <span className="text-outline ml-1">{pureSystemCount}</span>
+            Dosen & Riset ({pureSystemCount})
           </button>
           <button
             onClick={() => setFilterType('overquota')}
-            className={`px-3 py-1.5 rounded text-xs font-mono font-medium transition-all flex items-center gap-1.5 ${
+            className={`px-2.5 py-1 rounded transition-colors ${
               filterType === 'overquota'
-                ? 'bg-error-container/40 text-neon-rose shadow-[0_0_12px_rgba(255,180,171,0.3)] font-bold border border-error-container'
-                : overQuotaCount > 0
-                ? 'text-neon-rose bg-error-container/20 hover:bg-error-container/40 shadow-sm'
-                : 'text-on-surface-variant hover:text-text-primary hover:bg-surface-2'
+                ? 'bg-[#27272a] text-[#fb7185] font-semibold border border-[rgba(244,63,94,0.3)]'
+                : 'text-[#a1a1aa] hover:text-[#fafafa]'
             }`}
             type="button"
           >
-            <span>⚠️ Over Quota</span>
-            <span className="px-1.5 py-0.2 rounded-md bg-neon-rose text-surface-container-lowest font-mono font-bold text-xs">
-              {overQuotaCount}
-            </span>
+            Over Quota ({overQuotaCount})
           </button>
         </div>
 
-        {/* Search Input & Quick Controls */}
-        <div className="flex items-center gap-2 flex-1 max-w-md">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-outline" />
-            <input
-              type="text"
-              placeholder="Cari berdasarkan NIM, Nama, atau Akun..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-surface-3 rounded-lg pl-9 pr-10 py-2 font-mono text-xs text-text-primary placeholder:text-text-muted focus:outline-none focus:bg-surface-container-high transition-all border border-border-base"
-            />
-            <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:inline-block font-mono text-xs text-outline px-1.5 py-0.5 rounded bg-surface-container-low border border-border-subtle">
-              ⌘K
-            </kbd>
-          </div>
+        {/* Search */}
+        <div className="relative w-full sm:w-64">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#71717a]" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Cari NIM, nama, atau IP…"
+            className="w-full bg-[#18181b] border border-[rgba(255,255,255,0.08)] focus:border-[#38bdf8] rounded-md py-1 pl-8 pr-3 text-xs font-mono text-[#fafafa] placeholder:text-[#71717a] outline-none transition-colors"
+          />
         </div>
       </div>
 

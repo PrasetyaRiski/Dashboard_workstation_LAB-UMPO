@@ -317,12 +317,12 @@ def simtik_pre_spawn_hook(spawner):
         spawner.environment = {"OMP_NUM_THREADS": "20", "OPENBLAS_NUM_THREADS": "20",
                                "CUDA_VISIBLE_DEVICES": "0"}
     else:
-        logger.info(f"[QoS] {username} -> LEVEL 2 (2 core, 3G, GPU 1)")
+        logger.info(f"[QoS] {username} -> LEVEL 2 (2 core, 4G, GPU 1, MPS 2GB)")
         spawner.unit_extra_properties = {"Slice": "compute-level2.slice"}
         spawner.cpu_limit = 2.0
-        spawner.mem_limit = "3G"
+        spawner.mem_limit = "4G"
         spawner.environment = {"OMP_NUM_THREADS": "2", "OPENBLAS_NUM_THREADS": "2",
-                               "CUDA_VISIBLE_DEVICES": "1"}
+                               "CUDA_VISIBLE_DEVICES": "1", "CUDA_MPS_PINNED_DEVICE_MEM_LIMIT": "2048M"}
 
 
 def simtik_post_stop_hook(spawner):

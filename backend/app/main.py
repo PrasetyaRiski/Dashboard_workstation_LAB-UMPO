@@ -630,6 +630,50 @@ class AddUserRequest(BaseModel):
     nama: str
     is_admin: bool = False
 
+@app.post("/api/users/clear-cache")
+def clear_user_cache(req: UserActionRequest, request: Request, session: Dict[str, Any] = Depends(verify_operator_or_admin)):
+    import subprocess
+    import shutil
+    try:
+        user_record = db.get_user(req.nim)
+        if not user_record:
+            raise HTTPException(status_code=404, detail="User not found.")
+        
+        username = db.nim_to_username(req.nim)
+        home_dir = f"/home/{username}"
+        cache_dir = f"{home_dir}/.cache"
+        
+        # We only remove ~/.cache/pip and any .ipynb_checkpoints safely
+        deleted_items = []
+        pip_cache = f"{cache_dir}/pip"
+        if os.path.exists(pip_cache):
+            shutil.rmtree(pip_cache, ignore_errors=True)
+            deleted_items.append("Cache PIP")
+        
+        try:
+            # Safely find and delete .ipynb_checkpoints
+            subprocess.run(["find", home_dir, "-name", ".ipynb_checkpoints", "-type", "d", "-exec", "rm", "-rf", "{}", "+"], check=False)
+            deleted_items.append("Checkpoints Notebook")
+        except Exception:
+            pass
+            
+        operator = session.get("nama", session.get("nim", "Admin"))
+        action_desc = f"Disk Cache Cleared ({', '.join(deleted_items) if deleted_items else 'No cache found'})"
+        record_audit(req.nim, "CLEAR_CACHE", action_desc)
+        
+        # Trigger disk usage re-check immediately
+        try:
+            db.update_user_disk_usage(req.nim, home_dir)
+        except Exception:
+            pass
+            
+        return {"success": True, "message": "Cache berhasil dibersihkan."}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error clear cache {req.nim}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/api/users")
 def add_user(req: AddUserRequest, request: Request, session: Dict[str, Any] = Depends(verify_super_admin)):
     conn, engine = get_connection()

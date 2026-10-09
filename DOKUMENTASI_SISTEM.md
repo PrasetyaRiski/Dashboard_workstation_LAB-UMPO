@@ -252,3 +252,12 @@ python3 /home/public/web/panel-lab/backup_db.py
 1. Buka Dashboard Admin: `http://76.76.76.188:8888`
 2. Masuk ke tab **Manajemen Akun**.
 3. Cari NIM mahasiswa yang bersangkutan, lalu klik tombol merah **Kill Sesi**. Sesi dan proses notebook mahasiswa tersebut akan langsung dihentikan dan kuncinya dilepaskan.
+
+### 5. Mengaktifkan NVIDIA MPS (Multi-Process Service)
+Untuk mengoptimalkan penggunaan VRAM pada GPU 1 (Shared Pool) bagi mahasiswa Level 2, sistem telah mendukung konfigurasi NVIDIA MPS.
+1. Jalankan skrip setup yang telah disediakan dengan hak akses root:
+```bash
+sudo bash /home/public/web/panel-lab/setup_mps_gpu1.sh
+```
+2. Skrip ini akan mengonfigurasi Compute Mode `EXCLUSIVE_PROCESS` dan menjalankan daemon `nvidia-cuda-mps-control`.
+3. Mahasiswa Level 2 otomatis akan dibatasi memori VRAM-nya sesuai variabel `CUDA_MPS_PINNED_DEVICE_MEM_LIMIT` (di-set 2GB via JupyterHub Spawner).

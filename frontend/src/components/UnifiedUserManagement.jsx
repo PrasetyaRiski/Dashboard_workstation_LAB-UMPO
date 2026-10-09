@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Users, Zap, ShieldCheck, Search, CheckCircle2,
   AlertCircle, AlertTriangle, Clock, UserCheck, UserX, KeyRound, RefreshCw,
-  Cpu, Trash2, X, HardDrive, Layers, Database, Server
+  Cpu, Trash2, X, HardDrive, Layers, Database, Server, Download, Eraser
 } from 'lucide-react';
 
 /* ── Live Countdown Timer Component ── */
@@ -56,6 +56,7 @@ export default function UnifiedUserManagement({
 
   const [filterType, setFilterType] = useState('all'); // 'all' | 'mhs' | 'dosen' | 'overquota'
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCohort, setSelectedCohort] = useState('all'); // 'all' | '21' | '22' | '23' dll
   const [capacity, setCapacity] = useState({ used_slots: 0, total_slots: 1 });
 
   // Modals state
@@ -66,6 +67,53 @@ export default function UnifiedUserManagement({
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${localStorage.getItem('adminToken') || ''}`
   });
+
+  const handleClearCache = async (nim) => {
+    if (!confirm(`Bersihkan cache disk (PIP & Checkpoints) untuk NIM ${nim}?`)) return;
+    try {
+      const res = await fetch('/api/users/clear-cache', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ nim })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast(data.message || `Cache NIM ${nim} berhasil dibersihkan.`, 'success');
+        fetchStudents();
+      } else {
+        showToast(data.detail || 'Gagal membersihkan cache', 'error');
+      }
+    } catch (err) {
+      showToast('Error: ' + err.message, 'error');
+    }
+  };
+
+  const handleExportCSV = () => {
+    // Determine which data to export based on current view (unifiedList)
+    const headers = ['NIM/Username', 'Nama', 'Tipe', 'Role', 'Status', 'Prioritas', 'Sisa Waktu Prioritas', 'Kuota Disk MB', 'IP Sesi Aktif'];
+    const rows = filteredData.map(u => {
+      const isSystem = u.type === 'system';
+      const uname = isSystem ? u.username : u.nim;
+      const nama = isSystem ? (u.username === 'labriset' ? 'Lab Riset / Dosen' : 'Pelatihan Dasar') : (u.nama || '');
+      const role = isSystem ? 'System' : (u.role === 'admin' ? 'Super Admin' : u.role === 'aslab' ? 'Aslab' : 'Mahasiswa');
+      const status = u.active_ip ? 'ONLINE' : (u.is_active ? 'OFFLINE' : 'BLOCKED');
+      const prio = isSystem ? (u.username === 'labriset' ? 'Dedicated GPU 0' : 'Shared GPU 1') : (u.is_priority ? 'Prioritas' : 'Standar');
+      const exp = u.priority_expires_at ? new Date(u.priority_expires_at).toLocaleString('id-ID') : '-';
+      const disk = u.disk_usage_mb || 0;
+      const ip = u.active_ip || '-';
+      return [uname, `"${nama}"`, u.type, role, status, prio, `"${exp}"`, disk, ip].join(',');
+    });
+    
+    const csvContent = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Rekap_Lab_AI_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   // Fetch Admission Capacity
   const fetchCapacity = useCallback(async () => {
@@ -299,6 +347,12 @@ export default function UnifiedUserManagement({
       if (filterType === 'dosen' && item.type !== 'system') return false;
       if (filterType === 'mhs' && item.type !== 'student') return false;
       if (filterType === 'overquota' && !item.is_over_quota) return false;
+
+      if (selectedCohort !== 'all' && item.type === 'student') {
+        const nimStr = String(item.nim || '');
+        if (!nimStr.startsWith(selectedCohort)) return false;
+      }
+
       const q = searchQuery.toLowerCase().trim();
       if (!q) return true;
 
@@ -330,6 +384,16 @@ export default function UnifiedUserManagement({
         </div>
 
         <div className="flex items-center gap-2">
+          {isAdmin && (
+            <button
+              onClick={handleExportCSV}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#18181b] hover:bg-[#27272a] text-[#fafafa] transition-colors border border-[rgba(255,255,255,0.08)] text-xs font-medium"
+              type="button"
+            >
+              <Download className="w-3.5 h-3.5 text-neon-emerald" />
+              <span>Export CSV</span>
+            </button>
+          )}
           <button
             onClick={() => { fetchStudents(); fetchCapacity(); }}
             className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#18181b] hover:bg-[#27272a] text-[#fafafa] transition-colors border border-[rgba(255,255,255,0.08)] text-xs font-medium"
@@ -518,16 +582,31 @@ export default function UnifiedUserManagement({
           </button>
         </div>
 
-        {/* Search */}
-        <div className="relative w-full sm:w-64">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#71717a]" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cari NIM, nama, atau IP…"
-            className="w-full bg-[#18181b] border border-[rgba(255,255,255,0.08)] focus:border-[#38bdf8] rounded-md py-1 pl-8 pr-3 text-xs font-mono text-[#fafafa] placeholder:text-[#71717a] outline-none transition-colors"
-          />
+        {/* Cohort & Search */}
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <select
+            value={selectedCohort}
+            onChange={(e) => setSelectedCohort(e.target.value)}
+            className="bg-[#18181b] border border-[rgba(255,255,255,0.08)] text-[#fafafa] text-xs font-mono rounded-md py-1 px-2 focus:outline-none focus:border-[#38bdf8] transition-colors"
+          >
+            <option value="all">Semua Angkatan</option>
+            <option value="20">Angkatan 2020</option>
+            <option value="21">Angkatan 2021</option>
+            <option value="22">Angkatan 2022</option>
+            <option value="23">Angkatan 2023</option>
+            <option value="24">Angkatan 2024</option>
+          </select>
+
+          <div className="relative flex-1 sm:w-56">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#71717a]" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Cari NIM, nama, atau IP…"
+              className="w-full bg-[#18181b] border border-[rgba(255,255,255,0.08)] focus:border-[#38bdf8] rounded-md py-1 pl-8 pr-3 text-xs font-mono text-[#fafafa] placeholder:text-[#71717a] outline-none transition-colors"
+            />
+          </div>
         </div>
       </div>
 
@@ -786,6 +865,14 @@ export default function UnifiedUserManagement({
                               {/* Super Admin Advanced Actions */}
                               {isSuperAdmin && (
                                 <>
+                                  <button
+                                    onClick={() => handleClearCache(item.nim)}
+                                    className="p-1 rounded bg-surface-2 text-on-surface-variant hover:text-neon-amber hover:bg-surface-3 transition-colors"
+                                    title="Bersihkan Cache Disk"
+                                    type="button"
+                                  >
+                                    <Eraser className="w-3.5 h-3.5" />
+                                  </button>
                                   <button
                                     onClick={() => setResetModal({ isOpen: true, username: `m${item.nim}`, newPassword: '', isSubmitting: false })}
                                     className="p-1 rounded bg-surface-2 text-on-surface-variant hover:text-text-primary hover:bg-surface-3 transition-colors"

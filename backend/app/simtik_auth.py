@@ -41,71 +41,111 @@ def is_valid_name(candidate: str) -> bool:
     return True
 
 
-def extract_student_name(resp_text: str, session: requests.Session = None, timeout: int = 5) -> str:
+def extract_student_name(resp_text: str, session: requests.Session = None, nim: str = "", timeout: int = 5) -> str:
     """
     Mengekstrak nama lengkap mahasiswa dari respon SweetAlert login atau
     dari halaman profil/dashboard SIMTIK UMPO.
     """
+    import urllib.parse
     nama = ""
 
     # 1. Coba ekstrak dari teks respon login (SweetAlert / JSON / HTML)
     if resp_text:
-        # Pola SweetAlert: text: 'Selamat Datang, [NAMA]!' atau title: 'Selamat Datang, [NAMA]'
-        swal_match = re.search(r"(?:text|title):\s*['\"][^'\"]*Selamat\s+Datang[,\s]+([^!'\"<>\r\n]+)", resp_text, re.IGNORECASE)
-        if swal_match and is_valid_name(swal_match.group(1)):
-            nama = swal_match.group(1).strip("!.,-:;'\" ")
+        # Periksa atribut 'text' pada SweetAlert
+        text_match = re.search(r"text:\s*['\"]([^'\"]+)['\"]", resp_text)
+        if text_match:
+            raw_text = text_match.group(1).strip()
+            # Bersihkan prefix sapaan seperti 'Selamat Datang, ' atau 'Halo, '
+            cleaned = re.sub(r"^(?:selamat\s+datang|halo|hai|welcome)[,\s-]*", "", raw_text, flags=re.IGNORECASE).strip("!.,-:;'\" ")
+            if is_valid_name(cleaned):
+                nama = cleaned
+            elif is_valid_name(raw_text):
+                nama = raw_text
 
-        # Pola SweetAlert umum: Halo / Hai [NAMA]
+        # Periksa atribut 'title' pada SweetAlert jika text belum membuahkan hasil
         if not nama:
-            halo_match = re.search(r"(?:text|title):\s*['\"][^'\"]*(?:Halo|Hai)[,\s]+([^!'\"<>\r\n]+)", resp_text, re.IGNORECASE)
-            if halo_match and is_valid_name(halo_match.group(1)):
-                nama = halo_match.group(1).strip("!.,-:;'\" ")
+            title_match = re.search(r"title:\s*['\"]([^'\"]+)['\"]", resp_text)
+            if title_match:
+                raw_title = title_match.group(1).strip()
+                cleaned_title = re.sub(r"^(?:selamat\s+datang|halo|hai|welcome|login\s+berhasil)[,\s-]*", "", raw_title, flags=re.IGNORECASE).strip("!.,-:;'\" ")
+                if is_valid_name(cleaned_title):
+                    nama = cleaned_title
 
-        # Pola greeting umum di HTML
+        # Periksa pola greeting umum di HTML
         if not nama:
-            greet_match = re.search(r"Selamat\s+Datang[,\s]+(?:<b>|<strong>)?([A-Za-z\s.,'\-]+)(?:</b>|</strong>)?", resp_text, re.IGNORECASE)
+            greet_match = re.search(r"(?:selamat\s+datang|halo|hai)[,\s]+(?:<b>|<strong>)?([A-Za-z\s.,'\-]+)(?:</b>|</strong>)?", resp_text, re.IGNORECASE)
             if greet_match and is_valid_name(greet_match.group(1)):
                 nama = greet_match.group(1).strip("!.,-:;'\" ")
 
-    # 2. Jika nama belum ditemukan dan session aktif tersedia, coba akses halaman dashboard portal SIMTIK
+    # 2. Jika nama belum ditemukan dan session aktif tersedia, coba akses halaman tujuan redirect portal SIMTIK
     if not nama and session:
-        try:
-            # Akses halaman apps/ atau apps/index.php dengan session cookie PHPSESSID yang sudah login
-            dash_resp = session.get(f"{SIMTIK_BASE_URL}/apps/", verify=False, timeout=timeout, allow_redirects=True)
-            if dash_resp.status_code == 200:
-                dash_html = dash_resp.text
+        urls_to_try = []
 
-                # Cek greeting di dashboard
-                m = re.search(r"Selamat\s+Datang[,\s]+(?:<b>|<strong>)?([A-Za-z\s.,'\-]+)(?:</b>|</strong>)?", dash_html, re.IGNORECASE)
-                if m and is_valid_name(m.group(1)):
-                    nama = m.group(1).strip("!.,-:;'\" ")
+        # Deteksi URL redirect dari window.location.href (misal window.location.href='../index.php')
+        if resp_text:
+            loc_match = re.search(r"(?:window\.)?location(?:\.href)?\s*=\s*['\"]([^'\"]+)['\"]", resp_text)
+            if loc_match:
+                target_rel = loc_match.group(1).strip()
+                resolved = urllib.parse.urljoin(SIMTIK_LOGIN_ACTION, target_rel)
+                urls_to_try.append(resolved)
 
-                # Cek elemen profil di header / navbar / sidebar
-                # Contoh: <span class="user-name">Nama Mahasiswa</span> atau <span class="hidden-xs">Nama Mahasiswa</span>
-                if not nama:
+        # Fallback URL dashboard standar portal SIMTIK
+        urls_to_try.extend([
+            f"{SIMTIK_BASE_URL}/apps/index.php",
+            f"{SIMTIK_BASE_URL}/apps/",
+            f"{SIMTIK_BASE_URL}/apps/home.php"
+        ])
+
+        for target_url in urls_to_try:
+            if nama:
+                break
+            try:
+                dash_resp = session.get(target_url, verify=False, timeout=timeout, allow_redirects=True)
+                if dash_resp.status_code == 200:
+                    dash_html = dash_resp.text
+
+                    # A. Cek pasangan NIM dengan Nama (misal "Budi Santoso - 21533045" atau "21533045 / Budi Santoso")
+                    if nim:
+                        clean_nim_esc = re.escape(str(nim).strip())
+                        m_nim1 = re.search(r"([A-Za-z\s.,'-]{3,50})\s*[-–/|]\s*" + clean_nim_esc, dash_html)
+                        if m_nim1 and is_valid_name(m_nim1.group(1)):
+                            nama = m_nim1.group(1).strip("!.,-:;'\" ")
+                            break
+
+                        m_nim2 = re.search(clean_nim_esc + r"\s*[-–/|]\s*([A-Za-z\s.,'-]{3,50})", dash_html)
+                        if m_nim2 and is_valid_name(m_nim2.group(1)):
+                            nama = m_nim2.group(1).strip("!.,-:;'\" ")
+                            break
+
+                        m_nim3 = re.search(r"([A-Za-z\s.,'-]{3,50})\s*\(\s*" + clean_nim_esc + r"\s*\)", dash_html)
+                        if m_nim3 and is_valid_name(m_nim3.group(1)):
+                            nama = m_nim3.group(1).strip("!.,-:;'\" ")
+                            break
+
+                    # B. Cek label profil "Nama" / "Nama Mahasiswa" / "Nama Lengkap"
+                    m_label = re.search(r"(?:nama\s+lengkap|nama\s+mahasiswa|nama)\s*[:=]\s*([A-Za-z\s.,'-]{3,50})", dash_html, re.IGNORECASE)
+                    if m_label and is_valid_name(m_label.group(1)):
+                        nama = m_label.group(1).strip("!.,-:;'\" ")
+                        break
+
+                    m_tbl = re.search(r">(?:nama\s+lengkap|nama\s+mahasiswa|nama)<[^>]*>[^<]*<[^>]*>\s*([A-Za-z\s.,'-]{3,50})\s*<", dash_html, re.IGNORECASE)
+                    if m_tbl and is_valid_name(m_tbl.group(1)):
+                        nama = m_tbl.group(1).strip("!.,-:;'\" ")
+                        break
+
+                    # C. Cek greeting di dashboard
+                    m = re.search(r"(?:selamat\s+datang|halo|hai)[,\s]+(?:<b>|<strong>)?([A-Za-z\s.,'\-]+)(?:</b>|</strong>)?", dash_html, re.IGNORECASE)
+                    if m and is_valid_name(m.group(1)):
+                        nama = m.group(1).strip("!.,-:;'\" ")
+                        break
+
+                    # D. Cek elemen profil di header / navbar / sidebar
                     user_tag_match = re.search(r"class=[\"'][^\"']*(?:user-name|profile-name|user_name|hidden-xs|username)[^\"']*[\"'][^>]*>\s*([A-Za-z\s.,'\-]+)\s*<", dash_html, re.IGNORECASE)
                     if user_tag_match and is_valid_name(user_tag_match.group(1)):
                         nama = user_tag_match.group(1).strip("!.,-:;'\" ")
-
-                # Cek elemen profil dalam panel pengguna (AdminLTE / Tailwind template)
-                if not nama:
-                    panel_match = re.search(r"class=[\"'][^\"']*(?:user-panel|profile-details|user-info)[^\"']*[\"'][^>]*>[\s\S]*?<[p|span|b][^>]*>\s*([A-Za-z\s.,'\-]+)\s*<\/[p|span|b]>", dash_html, re.IGNORECASE)
-                    if panel_match and is_valid_name(panel_match.group(1)):
-                        nama = panel_match.group(1).strip("!.,-:;'\" ")
-
-                # Cek tabel profil mahasiswa jika ada kolom "Nama" / "Nama Mahasiswa"
-                if not nama:
-                    table_match = re.search(r"(?:Nama|Nama Mahasiswa)\s*<\/td>\s*<td[^>]*>:?<\/td>\s*<td[^>]*>\s*([A-Za-z\s.,'\-]+)\s*<\/td>", dash_html, re.IGNORECASE)
-                    if table_match and is_valid_name(table_match.group(1)):
-                        nama = table_match.group(1).strip("!.,-:;'\" ")
-
-                # Cek heading h3-h6 dengan class user/profile
-                if not nama:
-                    h_match = re.search(r"<h[3-6][^>]*class=[\"'][^\"']*(?:name|profile|user)[^\"']*[\"'][^>]*>\s*([A-Za-z\s.,'\-]+)\s*<\/h[3-6]>", dash_html, re.IGNORECASE)
-                    if h_match and is_valid_name(h_match.group(1)):
-                        nama = h_match.group(1).strip("!.,-:;'\" ")
-        except Exception as e:
-            logger.debug(f"Pengecekan profil dashboard SIMTIK gagal/timeout: {e}")
+                        break
+            except Exception as e:
+                logger.debug(f"Pengecekan profil dashboard SIMTIK di {target_url} gagal/timeout: {e}")
 
     # 3. Sanitasi akhir
     if nama:
@@ -182,8 +222,9 @@ def verify_simtik_credentials(nim: str, password: str, timeout: int = 10) -> tup
                 is_success = True
 
         if is_success:
+            logger.info(f"[SIMTIK AUTH] Respon otentikasi NIM {nim}: {repr(resp_text[:250])}")
             # Ekstrak nama asli mahasiswa dari SIMTIK
-            extracted_name = extract_student_name(resp_text, session=session, timeout=timeout)
+            extracted_name = extract_student_name(resp_text, session=session, nim=nim, timeout=timeout)
             if extracted_name:
                 logger.info(f"[SIMTIK AUTH] Login sukses NIM {nim} - Nama terdeteksi: '{extracted_name}'")
                 final_nama = extracted_name

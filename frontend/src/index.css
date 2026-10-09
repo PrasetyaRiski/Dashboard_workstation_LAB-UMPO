@@ -123,8 +123,20 @@
 
   /* Transitions */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-soft: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
   --duration-fast: 150ms;
   --duration-normal: 200ms;
+  --duration-base: 250ms;
+  --duration-slow: 600ms;
+}
+
+@keyframes data-flash {
+  from { background-color: rgba(37, 99, 235, 0.16); }
+  to   { background-color: transparent; }
+}
+.is-updated {
+  animation: data-flash 900ms var(--ease-out-soft);
 }
 
 /* ─────────────────────────────────────────────────────────────────

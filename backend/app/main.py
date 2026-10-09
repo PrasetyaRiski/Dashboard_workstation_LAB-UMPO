@@ -876,6 +876,9 @@ def rename_file(nim: str, req: RenameRequest, session: Dict[str, Any] = Depends(
     if not new_path.startswith(home_dir):
         raise HTTPException(status_code=400, detail="Invalid path")
         
+    if os.path.exists(new_path):
+        return {"success": False, "detail": f"Nama '{req.new_name}' sudah digunakan oleh file/folder lain."}
+        
     cmd = ["mv", old_path, new_path]
     if os.geteuid() != 0:
         cmd = ["sudo", "-n"] + cmd
@@ -896,6 +899,9 @@ def create_folder(nim: str, req: CreateFolderRequest, session: Dict[str, Any] = 
     target_path = os.path.abspath(os.path.join(home_dir, req.path, req.folder_name))
     if not target_path.startswith(home_dir):
         raise HTTPException(status_code=400, detail="Invalid path")
+        
+    if os.path.exists(target_path):
+        return {"success": False, "detail": f"Folder atau file dengan nama '{req.folder_name}' sudah ada."}
         
     cmd = ["mkdir", target_path]
     if os.geteuid() != 0:

@@ -209,9 +209,17 @@ c.JupyterHub.load_roles = [
         'services': ['idle-culler'],
     }
 ]
+
+# Announcement Banner resmi JupyterHub
+c.JupyterHub.announcement = '<div style="padding:10px 16px;text-align:center;font-weight:600;font-size:12px;background:#1e3a8a;color:#ffffff;border-bottom:1px solid #3b82f6;">📢 Pemberitahuan Lab AI UMPO: Jika mengalami kendala teknis (Kernel Died, Kuota, atau Sesi Terkunci), segera laporkan ke Asisten Laboratorium yang bertugas di Gedung FT.</div>'
 # === END SIMTIK & QoS CONFIG ===
 EOF
     echo "✅ Konfigurasi JupyterHub & Idle Culler berhasil diperbarui."
+
+    # 5.3 Tanamkan Pop-up Modal Pusat Bantuan ke antarmuka JupyterLab
+    echo "📢 Menanamkan Pop-Up Modal Bantuan Lab AI ke JupyterLab..."
+    chmod +x inject_jupyter_modal.py 2>/dev/null || true
+    sudo python3 inject_jupyter_modal.py 2>/dev/null || python3 inject_jupyter_modal.py 2>/dev/null || true
 
     # 6. Restart JupyterHub Service
     echo "🔄 Merestart service JupyterHub..."

@@ -144,6 +144,7 @@ Setelah login berhasil, Anda akan disambut oleh antarmuka modern JupyterLab:
   * Opsi *Console* untuk interaksi baris perintah berbasis Python.
   * Opsi *Text File* atau *Markdown File* untuk menulis dokumen teks dan dokumentasi.
 * **Bilah Menu Atas:** Berisi menu pengoperasian (*File*, *Edit*, *View*, *Run*, *Kernel*, *Settings*, *Help*).
+* **Pop-Up Modal Pemberitahuan & Bantuan:** Saat halaman JupyterLab terbuka, jendela sembul modern otomatis menyapa mahasiswa dengan panduan penanganan kendala cepat (Kernel Died, Kuota, atau Sesi Terkunci) dan instruksi untuk segera melapor ke Asisten Laboratorium jika menemui masalah. Mahasiswa cukup menekan tombol *"Saya Mengerti"* untuk mulai bekerja.
 
 ---
 

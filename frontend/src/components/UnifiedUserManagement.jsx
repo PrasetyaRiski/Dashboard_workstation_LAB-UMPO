@@ -888,14 +888,6 @@ export default function UnifiedUserManagement({
                                     <Eraser className="w-3.5 h-3.5" />
                                   </button>
                                   <button
-                                    onClick={() => setResetModal({ isOpen: true, username: `m${item.nim}`, newPassword: '', isSubmitting: false })}
-                                    className="p-1.5 rounded-lg bg-white hover:bg-blue-50 text-slate-600 hover:text-blue-600 border border-slate-200 shadow-sm active:translate-y-0.5 transition-all"
-                                    title="Reset Password Linux"
-                                    type="button"
-                                  >
-                                    <KeyRound className="w-3.5 h-3.5" />
-                                  </button>
-                                  <button
                                     onClick={() => handleToggleActive(item.nim)}
                                     className="p-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-600 hover:text-slate-900 border border-slate-200 shadow-sm active:translate-y-0.5 transition-all"
                                     title={item.is_active ? 'Blokir Akun' : 'Aktifkan Akun'}

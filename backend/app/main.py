@@ -635,39 +635,71 @@ def clear_user_cache(req: UserActionRequest, request: Request, session: Dict[str
     import subprocess
     import shutil
     try:
-        user_record = db.get_user(req.nim)
+        clean_nim = str(req.nim).strip()
+        user_record = db.get_user(clean_nim)
         if not user_record:
-            raise HTTPException(status_code=404, detail="User not found.")
+            raise HTTPException(status_code=404, detail=f"Mahasiswa dengan NIM {clean_nim} tidak ditemukan di database.")
         
-        username = db.nim_to_username(req.nim)
-        home_dir = f"/home/{username}"
-        cache_dir = f"{home_dir}/.cache"
+        # Cari username OS & direktori home (biasanya m<nim> atau <nim>)
+        possible_unames = [f"m{clean_nim}", clean_nim]
+        username = f"m{clean_nim}"
+        home_dir = f"/home/m{clean_nim}"
+        for u in possible_unames:
+            h = f"/home/{u}"
+            if os.path.exists(h):
+                username = u
+                home_dir = h
+                break
         
-        # We only remove ~/.cache/pip and any .ipynb_checkpoints safely
+        if not os.path.exists(home_dir):
+            return {
+                "success": True,
+                "message": f"Direktori kerja /home/{username} belum dibuat (mahasiswa belum pernah membuka sesi notebook)."
+            }
+        
         deleted_items = []
-        pip_cache = f"{cache_dir}/pip"
+        
+        # 1. Hapus cache PIP: ~/.cache/pip
+        pip_cache = f"{home_dir}/.cache/pip"
         if os.path.exists(pip_cache):
-            shutil.rmtree(pip_cache, ignore_errors=True)
+            cmd = ["rm", "-rf", pip_cache]
+            if os.geteuid() != 0:
+                cmd = ["sudo", "-n"] + cmd
+            subprocess.run(cmd, check=False)
             deleted_items.append("Cache PIP")
         
-        try:
-            # Safely find and delete .ipynb_checkpoints
-            subprocess.run(["find", home_dir, "-name", ".ipynb_checkpoints", "-type", "d", "-exec", "rm", "-rf", "{}", "+"], check=False)
-            deleted_items.append("Checkpoints Notebook")
-        except Exception:
-            pass
-            
-        operator = session.get("nama", session.get("nim", "Admin"))
-        action_desc = f"Disk Cache Cleared ({', '.join(deleted_items) if deleted_items else 'No cache found'})"
-        record_audit(req.nim, "CLEAR_CACHE", action_desc)
+        # 2. Hapus .ipynb_checkpoints di seluruh direktori user
+        cmd_find = ["find", home_dir, "-name", ".ipynb_checkpoints", "-type", "d", "-exec", "rm", "-rf", "{}", "+"]
+        if os.geteuid() != 0:
+            cmd_find = ["sudo", "-n"] + cmd_find
+        subprocess.run(cmd_find, check=False)
+        deleted_items.append("Checkpoints Notebook")
         
-        # Trigger disk usage re-check immediately
+        # 3. Hapus cache Torch & HuggingFace jika ada
+        for sub_cache in ["torch", "huggingface"]:
+            p = f"{home_dir}/.cache/{sub_cache}"
+            if os.path.exists(p):
+                cmd_c = ["rm", "-rf", p]
+                if os.geteuid() != 0:
+                    cmd_c = ["sudo", "-n"] + cmd_c
+                subprocess.run(cmd_c, check=False)
+                deleted_items.append(f"Cache {sub_cache.capitalize()}")
+        
+        operator = session.get("nama") or session.get("nim") or "Admin"
+        items_desc = ", ".join(deleted_items) if deleted_items else "Cache sudah bersih"
+        action_desc = f"Disk Cache Cleared ({items_desc}) oleh {operator}"
+        record_audit(clean_nim, "CLEAR_CACHE", action_desc)
+        
+        # Refresh metrik disk secara asinkron
         try:
-            db.update_user_disk_usage(req.nim, home_dir)
+            update_all_user_disk_usage([username])
         except Exception:
             pass
             
-        return {"success": True, "message": "Cache berhasil dibersihkan."}
+        return {
+            "success": True,
+            "message": f"Pembersihan cache NIM {clean_nim} selesai ({items_desc})."
+        }
     except HTTPException:
         raise
     except Exception as e:

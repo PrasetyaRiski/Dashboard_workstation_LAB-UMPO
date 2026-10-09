@@ -176,6 +176,14 @@ def init_db():
         conn.close()
 
 
+def nim_to_username(nim: str) -> str:
+    """Mengembalikan username sistem operasi untuk NIM tertentu (default: m<nim>)"""
+    clean = str(nim).strip()
+    if os.path.exists(f"/home/{clean}"):
+        return clean
+    return f"m{clean}"
+
+
 def get_or_create_user(nim: str, nama: Optional[str] = None) -> Dict[str, Any]:
     conn, engine = get_connection()
     cur = conn.cursor()

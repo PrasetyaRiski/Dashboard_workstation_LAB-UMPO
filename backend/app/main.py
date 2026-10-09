@@ -90,9 +90,21 @@ class SetRoleRequest(BaseModel):
     nim: str
     role: str
 
+def get_client_ip(request: Request) -> str:
+    """Mendapatkan alamat IP klien nyata dengan dukungan Reverse Proxy / Tunnels"""
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        first_ip = forwarded.split(",")[0].strip()
+        if first_ip:
+            return first_ip
+    cf_ip = request.headers.get("cf-connecting-ip")
+    if cf_ip:
+        return cf_ip.strip()
+    return request.client.host if request.client else "unknown"
+
 @app.post("/api/admin/login")
 def admin_login(req: LoginRequest, request: Request):
-    client_ip = request.client.host if request.client else "unknown"
+    client_ip = get_client_ip(request)
     now_ts = time.time()
 
     # Rate limiting: Maksimal 5 kali kegagalan per IP dalam jendela 5 menit
@@ -257,7 +269,7 @@ def record_audit(target: str, action: str, detail: str, log_type: str = "info"):
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -667,7 +679,7 @@ def clear_user_cache(req: UserActionRequest, request: Request, session: Dict[str
         # 1. Hapus cache PIP: ~/.cache/pip
         pip_cache = f"{home_dir}/.cache/pip"
         if os.path.exists(pip_cache):
-            cmd = ["rm", "-rf", pip_cache]
+            cmd = ["rm", "-rf", "--", pip_cache]
             if os.geteuid() != 0:
                 cmd = ["sudo", "-n"] + cmd
             subprocess.run(cmd, check=False)
@@ -684,7 +696,7 @@ def clear_user_cache(req: UserActionRequest, request: Request, session: Dict[str
         for sub_cache in ["torch", "huggingface"]:
             p = f"{home_dir}/.cache/{sub_cache}"
             if os.path.exists(p):
-                cmd_c = ["rm", "-rf", p]
+                cmd_c = ["rm", "-rf", "--", p]
                 if os.geteuid() != 0:
                     cmd_c = ["sudo", "-n"] + cmd_c
                 subprocess.run(cmd_c, check=False)
@@ -739,20 +751,87 @@ class MoveRequest(BaseModel):
     target_dir: str
     is_copy: bool = False
 
+def sanitize_filename(name: str) -> str:
+    """Memastikan nama file atau folder aman dari path traversal dan argument injection."""
+    if not name or not isinstance(name, str):
+        raise HTTPException(status_code=400, detail="Nama file atau folder tidak valid.")
+    clean = os.path.basename(name.strip())
+    if not clean or clean in [".", ".."] or "/" in name or "\\" in name:
+        raise HTTPException(status_code=400, detail="Nama file atau folder tidak valid.")
+    if clean.startswith("-"):
+        raise HTTPException(status_code=400, detail="Nama file atau folder tidak boleh diawali dengan tanda hubung (-).")
+    if "\x00" in clean:
+        raise HTTPException(status_code=400, detail="Karakter null-byte terdeteksi.")
+    return clean
+
+def resolve_safe_user_path(nim: str, relative_path: str = "", allow_home_root: bool = False) -> tuple[str, str]:
+    """
+    Validasi keamanan ketat untuk akses file/folder pengguna:
+    1. Memastikan clean_nim tidak kosong.
+    2. Menemukan direktori home yang valid (/home/<clean_nim> atau /home/m<clean_nim>).
+    3. Memastikan direktori home bukan root / atau /home atau direktori sistem.
+    4. Menggunakan realpath/resolve untuk mencegah symlink traversal ke luar direktori home.
+    5. Menghindari prefix mismatch bug (contoh: /home/user2 vs /home/user).
+    6. Mencegah manipulasi root home jika allow_home_root=False.
+    """
+    clean_nim = "".join(c for c in str(nim) if c.isalnum() or c in ["_", "-"]).strip()
+    if not clean_nim:
+        raise HTTPException(status_code=400, detail="Identitas pengguna (NIM) tidak valid.")
+
+    possible_dirs = [f"/home/{clean_nim}", f"/home/m{clean_nim}"]
+    home_dir = None
+    for d in possible_dirs:
+        if os.path.isdir(d):
+            home_dir = os.path.realpath(d)
+            break
+            
+    if not home_dir:
+        home_dir = os.path.realpath(f"/home/m{clean_nim}")
+
+    # Pastikan home_dir aman dan bukan direktori sistem
+    if home_dir in ["/", "/home", "/root", "/var", "/tmp", "/etc", "/opt", "/usr"]:
+        raise HTTPException(status_code=403, detail="Akses ke direktori sistem ditolak.")
+
+    raw_path = (relative_path or "").strip()
+    if "\x00" in raw_path:
+        raise HTTPException(status_code=400, detail="Karakter null-byte terdeteksi.")
+
+    # Jika dikirim jalur absolut (dimulai dengan /), tolak jika di luar batas direktori home
+    if raw_path.startswith("/") and raw_path != "/":
+        home_dir_sep = home_dir.rstrip(os.sep) + os.sep
+        if raw_path != home_dir and not raw_path.startswith(home_dir_sep):
+            raise HTTPException(status_code=400, detail="Jalur direktori absolut di luar batas akses tidak diizinkan.")
+        safe_rel_path = raw_path[len(home_dir):].lstrip("/")
+    else:
+        safe_rel_path = raw_path.lstrip("/")
+
+    joined = os.path.abspath(os.path.join(home_dir, safe_rel_path))
+    
+    # Path traversal check: pastikan joined berada di dalam home_dir
+    # Menggunakan trailing slash untuk mencegah prefix collision
+    home_dir_sep = home_dir.rstrip(os.sep) + os.sep
+    if joined != home_dir and not joined.startswith(home_dir_sep):
+        raise HTTPException(status_code=400, detail="Jalur direktori tidak valid atau di luar batas akses pengguna.")
+
+    # Symlink traversal check jika target sudah ada di filesystem
+    if os.path.exists(joined):
+        real_target = os.path.realpath(joined)
+        if real_target != home_dir and not real_target.startswith(home_dir_sep):
+            raise HTTPException(status_code=403, detail="Akses ditolak: Symbolic link mengarah ke luar direktori aman.")
+            
+    if not allow_home_root and joined == home_dir:
+        raise HTTPException(status_code=400, detail="Operasi tidak diizinkan pada direktori utama pengguna (home root).")
+
+    return home_dir, joined
+
 @app.get("/api/users/{nim}/files")
 def list_user_files(nim: str, path: str = "", session: Dict[str, Any] = Depends(verify_super_admin)):
     import subprocess, os
-    clean_nim = "".join(c for c in nim if c.isalnum() or c in ["_", "-"])
-    home_dir = f"/home/{clean_nim}"
+    home_dir, target_path = resolve_safe_user_path(nim, path, allow_home_root=True)
     if not os.path.exists(home_dir):
-        home_dir = f"/home/m{clean_nim}"
-
-    if not os.path.exists(home_dir):
+        return {"success": False, "files": [], "detail": "Direktori pengguna belum dibuat."}
+    if not os.path.exists(target_path):
         return {"success": False, "files": [], "detail": "Direktori tidak ditemukan."}
-    
-    target_path = os.path.abspath(os.path.join(home_dir, path))
-    if not target_path.startswith(home_dir):
-        raise HTTPException(status_code=400, detail="Jalur direktori tidak valid atau di luar batas akses.")
     
     cmd = ["find", target_path, "-maxdepth", "1", "-printf", "%f|%y|%s|%T@\n"]
     if os.geteuid() != 0:
@@ -786,22 +865,17 @@ import mimetypes
 @app.get("/api/users/{nim}/download")
 def download_user_file(nim: str, filepath: str, session: Dict[str, Any] = Depends(verify_super_admin)):
     import subprocess, os
-    clean_nim = "".join(c for c in nim if c.isalnum() or c in ["_", "-"])
-    home_dir = f"/home/{clean_nim}"
-    if not os.path.exists(home_dir):
-        home_dir = f"/home/m{clean_nim}"
-
-    target_path = os.path.abspath(os.path.join(home_dir, filepath))
-    if not target_path.startswith(home_dir):
-        raise HTTPException(status_code=400, detail="Jalur direktori tidak valid atau di luar batas akses.")
+    home_dir, target_path = resolve_safe_user_path(nim, filepath, allow_home_root=False)
+    if not os.path.isfile(target_path):
+        raise HTTPException(status_code=404, detail="File tidak ditemukan atau berupa direktori.")
         
-    cmd = ["cat", target_path]
+    cmd = ["cat", "--", target_path]
     if os.geteuid() != 0:
         cmd = ["sudo", "-n"] + cmd
     
     res = subprocess.run(cmd, capture_output=True)
     if res.returncode != 0:
-        raise HTTPException(status_code=404, detail="File not found or unreadable")
+        raise HTTPException(status_code=404, detail="File tidak ditemukan atau tidak dapat dibaca.")
         
     mime, _ = mimetypes.guess_type(target_path)
     filename = os.path.basename(target_path)
@@ -810,20 +884,15 @@ def download_user_file(nim: str, filepath: str, session: Dict[str, Any] = Depend
 @app.post("/api/users/{nim}/copy-to-shared")
 def copy_file_to_shared(nim: str, req: CopyRequest, session: Dict[str, Any] = Depends(verify_super_admin)):
     import subprocess, os
-    filepath = req.filepath
-    clean_nim = "".join(c for c in nim if c.isalnum() or c in ["_", "-"])
-    home_dir = f"/home/{clean_nim}"
-    if not os.path.exists(home_dir):
-        home_dir = f"/home/m{clean_nim}"
-
-    target_path = os.path.abspath(os.path.join(home_dir, filepath))
-    if not target_path.startswith(home_dir):
-        raise HTTPException(status_code=400, detail="Jalur direktori tidak valid atau di luar batas akses.")
+    home_dir, target_path = resolve_safe_user_path(nim, req.filepath, allow_home_root=False)
+    if not os.path.exists(target_path):
+        raise HTTPException(status_code=404, detail="File atau direktori sumber tidak ditemukan.")
         
     shared_dir = "/home/dataset_shared"
+    os.makedirs(shared_dir, exist_ok=True)
     dest_path = os.path.join(shared_dir, os.path.basename(target_path))
     
-    cmd = ["cp", "-r", target_path, dest_path]
+    cmd = ["cp", "-r", "--", target_path, dest_path]
     if os.geteuid() != 0:
         cmd = ["sudo", "-n"] + cmd
         
@@ -831,7 +900,7 @@ def copy_file_to_shared(nim: str, req: CopyRequest, session: Dict[str, Any] = De
     if res.returncode != 0:
         return {"success": False, "detail": "Sistem gagal memproses permintaan ini. (Detail: " + res.stderr.strip()[:100] + ")" if res.stderr else "Sistem gagal memproses permintaan ini."}
         
-    cmd_chmod = ["chmod", "-R", "755", dest_path]
+    cmd_chmod = ["chmod", "-R", "755", "--", dest_path]
     if os.geteuid() != 0:
         cmd_chmod = ["sudo", "-n"] + cmd_chmod
     subprocess.run(cmd_chmod, check=False)
@@ -842,16 +911,11 @@ def copy_file_to_shared(nim: str, req: CopyRequest, session: Dict[str, Any] = De
 @app.post("/api/users/{nim}/delete")
 def delete_file(nim: str, req: DeleteRequest, session: Dict[str, Any] = Depends(verify_super_admin)):
     import os, subprocess
-    clean_nim = "".join(c for c in nim if c.isalnum() or c in ["_", "-"])
-    home_dir = f"/home/{clean_nim}"
-    if not os.path.exists(home_dir):
-        home_dir = f"/home/m{clean_nim}"
+    home_dir, target_path = resolve_safe_user_path(nim, req.path, allow_home_root=False)
+    if not os.path.exists(target_path):
+        return {"success": True, "message": "File atau direktori sudah tidak ada."}
     
-    target_path = os.path.abspath(os.path.join(home_dir, req.path))
-    if not target_path.startswith(home_dir):
-        raise HTTPException(status_code=400, detail="Jalur direktori tidak valid atau di luar batas akses.")
-    
-    cmd = ["rm", "-rf", target_path]
+    cmd = ["rm", "-rf", "--", target_path]
     if os.geteuid() != 0:
         cmd = ["sudo", "-n"] + cmd
         
@@ -863,23 +927,20 @@ def delete_file(nim: str, req: DeleteRequest, session: Dict[str, Any] = Depends(
 @app.post("/api/users/{nim}/rename")
 def rename_file(nim: str, req: RenameRequest, session: Dict[str, Any] = Depends(verify_super_admin)):
     import os, subprocess
-    clean_nim = "".join(c for c in nim if c.isalnum() or c in ["_", "-"])
-    home_dir = f"/home/{clean_nim}"
-    if not os.path.exists(home_dir):
-        home_dir = f"/home/m{clean_nim}"
-    
-    old_path = os.path.abspath(os.path.join(home_dir, req.old_path))
-    if not old_path.startswith(home_dir):
-        raise HTTPException(status_code=400, detail="Jalur direktori tidak valid atau di luar batas akses.")
+    home_dir, old_path = resolve_safe_user_path(nim, req.old_path, allow_home_root=False)
+    if not os.path.exists(old_path):
+        raise HTTPException(status_code=404, detail="File atau direktori tidak ditemukan.")
         
-    new_path = os.path.abspath(os.path.join(os.path.dirname(old_path), req.new_name))
-    if not new_path.startswith(home_dir):
+    clean_new_name = sanitize_filename(req.new_name)
+    new_path = os.path.join(os.path.dirname(old_path), clean_new_name)
+    home_dir_sep = home_dir.rstrip(os.sep) + os.sep
+    if new_path != home_dir and not new_path.startswith(home_dir_sep):
         raise HTTPException(status_code=400, detail="Jalur direktori tidak valid atau di luar batas akses.")
         
     if os.path.exists(new_path):
-        return {"success": False, "detail": f"Nama '{req.new_name}' sudah digunakan oleh file/folder lain."}
+        return {"success": False, "detail": f"Nama '{clean_new_name}' sudah digunakan oleh file/folder lain."}
         
-    cmd = ["mv", old_path, new_path]
+    cmd = ["mv", "--", old_path, new_path]
     if os.geteuid() != 0:
         cmd = ["sudo", "-n"] + cmd
         
@@ -891,19 +952,17 @@ def rename_file(nim: str, req: RenameRequest, session: Dict[str, Any] = Depends(
 @app.post("/api/users/{nim}/create-folder")
 def create_folder(nim: str, req: CreateFolderRequest, session: Dict[str, Any] = Depends(verify_super_admin)):
     import os, subprocess
-    clean_nim = "".join(c for c in nim if c.isalnum() or c in ["_", "-"])
-    home_dir = f"/home/{clean_nim}"
-    if not os.path.exists(home_dir):
-        home_dir = f"/home/m{clean_nim}"
-    
-    target_path = os.path.abspath(os.path.join(home_dir, req.path, req.folder_name))
-    if not target_path.startswith(home_dir):
-        raise HTTPException(status_code=400, detail="Jalur direktori tidak valid atau di luar batas akses.")
+    home_dir, parent_dir = resolve_safe_user_path(nim, req.path, allow_home_root=True)
+    if not os.path.exists(parent_dir):
+        raise HTTPException(status_code=404, detail="Direktori induk tidak ditemukan.")
+        
+    clean_folder = sanitize_filename(req.folder_name)
+    target_path = os.path.join(parent_dir, clean_folder)
         
     if os.path.exists(target_path):
-        return {"success": False, "detail": f"Folder atau file dengan nama '{req.folder_name}' sudah ada."}
+        return {"success": False, "detail": f"Folder atau file dengan nama '{clean_folder}' sudah ada."}
         
-    cmd = ["mkdir", target_path]
+    cmd = ["mkdir", "--", target_path]
     if os.geteuid() != 0:
         cmd = ["sudo", "-n"] + cmd
         
@@ -912,7 +971,7 @@ def create_folder(nim: str, req: CreateFolderRequest, session: Dict[str, Any] = 
         return {"success": False, "detail": "Sistem gagal memproses permintaan ini. (Detail: " + res.stderr.strip()[:100] + ")" if res.stderr else "Sistem gagal memproses permintaan ini."}
         
     owner = os.path.basename(home_dir)
-    chown_cmd = ["chown", f"{owner}:{owner}", target_path]
+    chown_cmd = ["chown", f"{owner}:{owner}", "--", target_path]
     if os.geteuid() != 0:
         chown_cmd = ["sudo", "-n"] + chown_cmd
     subprocess.run(chown_cmd, check=False)
@@ -922,21 +981,19 @@ def create_folder(nim: str, req: CreateFolderRequest, session: Dict[str, Any] = 
 @app.post("/api/users/{nim}/upload")
 def upload_file(nim: str, path: str = Form(...), file: UploadFile = File(...), session: Dict[str, Any] = Depends(verify_super_admin)):
     import os, subprocess, shutil
-    clean_nim = "".join(c for c in nim if c.isalnum() or c in ["_", "-"])
-    home_dir = f"/home/{clean_nim}"
-    if not os.path.exists(home_dir):
-        home_dir = f"/home/m{clean_nim}"
-    
-    target_path = os.path.abspath(os.path.join(home_dir, path, file.filename))
-    if not target_path.startswith(home_dir):
-        raise HTTPException(status_code=400, detail="Jalur direktori tidak valid atau di luar batas akses.")
+    home_dir, parent_dir = resolve_safe_user_path(nim, path, allow_home_root=True)
+    if not os.path.exists(parent_dir):
+        raise HTTPException(status_code=404, detail="Direktori tujuan tidak ditemukan.")
         
-    tmp_path = f"/tmp/{file.filename}_{os.urandom(4).hex()}"
+    clean_filename = sanitize_filename(file.filename or "uploaded_file")
+    target_path = os.path.join(parent_dir, clean_filename)
+        
+    tmp_path = f"/tmp/upload_{secrets.token_hex(16)}.tmp"
     try:
         with open(tmp_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
             
-        cmd = ["cp", tmp_path, target_path]
+        cmd = ["cp", "--", tmp_path, target_path]
         if os.geteuid() != 0:
             cmd = ["sudo", "-n"] + cmd
             
@@ -945,7 +1002,7 @@ def upload_file(nim: str, path: str = Form(...), file: UploadFile = File(...), s
             return {"success": False, "detail": "Sistem gagal memproses permintaan ini. (Detail: " + res.stderr.strip()[:100] + ")" if res.stderr else "Sistem gagal memproses permintaan ini."}
             
         owner = os.path.basename(home_dir)
-        chown_cmd = ["chown", f"{owner}:{owner}", target_path]
+        chown_cmd = ["chown", f"{owner}:{owner}", "--", target_path]
         if os.geteuid() != 0:
             chown_cmd = ["sudo", "-n"] + chown_cmd
         subprocess.run(chown_cmd, check=False)
@@ -958,24 +1015,21 @@ def upload_file(nim: str, path: str = Form(...), file: UploadFile = File(...), s
 @app.post("/api/users/{nim}/move")
 def move_file(nim: str, req: MoveRequest, session: Dict[str, Any] = Depends(verify_super_admin)):
     import os, subprocess
-    clean_nim = "".join(c for c in nim if c.isalnum() or c in ["_", "-"])
-    home_dir = f"/home/{clean_nim}"
-    if not os.path.exists(home_dir):
-        home_dir = f"/home/m{clean_nim}"
-    
-    source_path = os.path.abspath(os.path.join(home_dir, req.source_path))
-    if not source_path.startswith(home_dir):
-        raise HTTPException(status_code=400, detail="Invalid source path")
+    home_dir, source_path = resolve_safe_user_path(nim, req.source_path, allow_home_root=False)
+    if not os.path.exists(source_path):
+        raise HTTPException(status_code=404, detail="File atau direktori sumber tidak ditemukan.")
         
-    target_path = os.path.abspath(os.path.join(home_dir, req.target_dir, os.path.basename(source_path)))
-    if not target_path.startswith(home_dir):
-        raise HTTPException(status_code=400, detail="Invalid target path")
+    home_dir_target, target_parent = resolve_safe_user_path(nim, req.target_dir, allow_home_root=True)
+    if not os.path.exists(target_parent):
+        raise HTTPException(status_code=404, detail="Direktori tujuan tidak ditemukan.")
+        
+    target_path = os.path.join(target_parent, os.path.basename(source_path))
         
     bin_cmd = "cp" if req.is_copy else "mv"
     cmd = [bin_cmd]
     if req.is_copy:
         cmd.append("-r")
-    cmd.extend([source_path, target_path])
+    cmd.extend(["--", source_path, target_path])
     
     if os.geteuid() != 0:
         cmd = ["sudo", "-n"] + cmd
@@ -986,7 +1040,7 @@ def move_file(nim: str, req: MoveRequest, session: Dict[str, Any] = Depends(veri
         
     if req.is_copy:
         owner = os.path.basename(home_dir)
-        chown_cmd = ["chown", "-R", f"{owner}:{owner}", target_path]
+        chown_cmd = ["chown", "-R", f"{owner}:{owner}", "--", target_path]
         if os.geteuid() != 0:
             chown_cmd = ["sudo", "-n"] + chown_cmd
         subprocess.run(chown_cmd, check=False)
@@ -1174,10 +1228,11 @@ if os.path.exists(FRONTEND_DIST):
     async def serve_frontend(full_path: str):
         if full_path.startswith("api/") or full_path.startswith("ws/"):
             raise HTTPException(status_code=404)
-        base_dir = os.path.abspath(FRONTEND_DIST)
-        target_path = os.path.abspath(os.path.join(base_dir, full_path))
+        base_dir = os.path.realpath(FRONTEND_DIST)
+        base_dir_sep = base_dir.rstrip(os.sep) + os.sep
+        target_path = os.path.realpath(os.path.join(base_dir, full_path.lstrip("/")))
         # Cegah Arbitrary File Read / Path Traversal di luar FRONTEND_DIST
-        if not target_path.startswith(base_dir):
+        if target_path != base_dir and not target_path.startswith(base_dir_sep):
             raise HTTPException(status_code=403, detail="Akses ditolak: Percobaan path traversal terdeteksi.")
         if os.path.isfile(target_path):
             return FileResponse(target_path)

@@ -308,7 +308,7 @@ export default function UnifiedUserManagement({
         is_online: isOnline,
         os_user: osUser || null,
         ram_used_mb: osUser?.ram_used_mb || 0,
-        ram_max_mb: osUser?.ram_max_mb || (st.is_priority ? 71680 : 3072),
+        ram_max_mb: osUser?.ram_max_mb || (st.is_priority ? 71680 : 4096),
         vram_used_mb: osUser?.vram_used_mb || 0,
         cpu_percent: osUser?.cpu_percent || 0,
         active_ip: st.active_ip || osUser?.active_ip || null,
@@ -650,7 +650,7 @@ export default function UnifiedUserManagement({
               ) : (
                 filteredData.map((item) => {
                   if (item.type === 'student') {
-                    const ramMaxMb = item.is_priority ? 71680 : 3072;
+                    const ramMaxMb = item.is_priority ? 71680 : (item.ram_max_mb || 4096);
                     const ramUsedGb = ((item.ram_used_mb || 0) / 1024).toFixed(1);
                     const ramMaxGb = (ramMaxMb / 1024).toFixed(0);
                     const ramPct = item.is_online ? Math.min(100, Math.round(((item.ram_used_mb || 0) / ramMaxMb) * 100)) : 0;
@@ -770,7 +770,7 @@ export default function UnifiedUserManagement({
                         <td className="py-3.5 px-4">
                           <div className="flex flex-col gap-0.5">
                             <span className="font-mono text-xs text-text-primary font-medium">
-                              {item.is_priority ? 'GPU 0 (Dedicated) | 20 Cores | 70GB' : 'GPU 1 (Shared Pool) | 2 Cores | 3GB'}
+                              {item.is_priority ? 'GPU 0 (Dedicated) | 20 Cores | 70GB' : 'GPU 1 (Shared Pool) | 2 Cores | 4GB'}
                             </span>
                             {item.is_priority && item.priority_expires_at ? (
                               <div className="inline-flex items-center gap-1 text-neon-amber font-mono text-sm font-bold">
@@ -923,7 +923,7 @@ export default function UnifiedUserManagement({
                   // System Users (training1-10, labriset)
                   const isRiset = item.username === 'labriset';
                   const isOnline = item.is_online || (item.total_process_count > 0);
-                  const ramMaxMb = isRiset ? 71680 : 3072;
+                  const ramMaxMb = isRiset ? 71680 : (item.ram_max_mb || 4096);
                   const ramUsedGb = ((item.ram_used_mb || 0) / 1024).toFixed(1);
                   const ramMaxGb = (ramMaxMb / 1024).toFixed(0);
                   const ramPct = isOnline ? Math.min(100, Math.round(((item.ram_used_mb || 0) / ramMaxMb) * 100)) : 0;
@@ -1020,7 +1020,7 @@ export default function UnifiedUserManagement({
                       <td className="py-3.5 px-4">
                         <div className="flex flex-col gap-0.5">
                           <span className="font-mono text-xs text-text-primary font-medium">
-                            {isRiset ? 'GPU 0 (Dedicated) | 20 Cores | 70GB' : 'GPU 1 (Shared Pool) | 2 Cores | 3GB'}
+                            {isRiset ? 'GPU 0 (Dedicated) | 20 Cores | 70GB' : 'GPU 1 (Shared Pool) | 2 Cores | 4GB'}
                           </span>
                           <span className="font-mono text-xs text-outline">
                             {isRiset ? 'Riset Dosen Tetap' : 'Batch Job Pipeline'}

@@ -49,7 +49,7 @@ flowchart TB
     subgraph OSKernel["Kernel Linux & Cgroups v2"]
         PAM["Linux PAM Auth<br/>(Akun training1-10, labriset)"]
         L1["compute-level1.slice<br/>(Dedicated GPU 0, 20 Core, 70GB)"]
-        L2["compute-level2.slice<br/>(Shared GPU 1, 2 Core, 3GB)"]
+        L2["compute-level2.slice<br/>(Shared GPU 1, 2 Core, 4GB)"]
         NVML["NVIDIA Driver & NVML<br/>(RTX 3090 / A-Series)"]
     end
 
@@ -85,7 +85,7 @@ Resource server dialokasikan secara adil dan terisolasi menggunakan **Linux Cgro
 |---|---|---|
 | **Sasaran Pengguna** | Mahasiswa praktikum reguler & akun kelas `training1`–`training10` | Mahasiswa Skripsi/Riset yang di-boost admin & akun `labriset` |
 | **Alokasi CPU** | **2 Core** (`CPUQuota=200%`) | **20 Core** (`CPUQuota=2000%`) |
-| **Batas RAM** | **3 GB** (`MemoryMax=3G`) | **70 GB** (`MemoryMax=70G`) |
+| **Batas RAM** | **4 GB** (`MemoryMax=4G`) | **70 GB** (`MemoryMax=70G`) |
 | **Alokasi GPU** | **GPU 1 (Shared Pool)** | **GPU 0 (Dedicated)** |
 | **Cgroup Slice** | `compute-level2.slice` | `compute-level1.slice` |
 | **Threading Library** | `OMP_NUM_THREADS=2`, `OPENBLAS_NUM_THREADS=2` | `OMP_NUM_THREADS=20`, `OPENBLAS_NUM_THREADS=20` |

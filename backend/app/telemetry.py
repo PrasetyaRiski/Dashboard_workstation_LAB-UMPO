@@ -372,7 +372,7 @@ def get_per_user_gpu_metrics(gpus: List[Dict[str, Any]]) -> List[Dict[str, Any]]
         mem_max_bytes = read_cgroup_file(f"{slice_dir}/memory.max")
         ram_used_bytes = max(mem_curr_bytes, user_rss_bytes.get(uname, 0))
         ram_used_mb = round(ram_used_bytes / (1024 ** 2), 1)
-        ram_max_mb = round(mem_max_bytes / (1024 ** 2), 1) if mem_max_bytes > 0 else (71680.0 if is_priority_user else 3072.0)
+        ram_max_mb = round(mem_max_bytes / (1024 ** 2), 1) if mem_max_bytes > 0 else (71680.0 if is_priority_user else 4096.0)
 
         # CPU Metrics & Core Allocations
         # Core limits: 20 Cores for Level 1 Priority / Riset, 2 Cores for Level 2 Standard

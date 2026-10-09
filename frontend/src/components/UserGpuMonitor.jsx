@@ -112,7 +112,7 @@ function UserCard({ user, isAdmin, onOpenKillModal, onKillAllUser, onOpenReset }
               className="badge badge-neutral"
               style={{ fontSize: '0.5rem', color: 'var(--accent-blue)' }}
             >
-              Limit {isRiset ? '70 GB' : '3 GB'} RAM
+              Limit {isRiset ? '70 GB' : '4 GB'} RAM
             </span>
           </div>
         </div>
@@ -138,7 +138,7 @@ function UserCard({ user, isAdmin, onOpenKillModal, onKillAllUser, onOpenReset }
           },
           {
             label: 'RAM',
-            value: `${user.ram_used_mb || 0} MB / ${user.ram_max_mb || (isRiset ? 71680 : 3072)} MB (${ramPct}%)`,
+            value: `${user.ram_used_mb || 0} MB / ${user.ram_max_mb || (isRiset ? 71680 : 4096)} MB (${ramPct}%)`,
             percent: ramPct,
             barColor: ramPct > 85 ? 'var(--accent-rose)' : ramPct > 65 ? 'var(--accent-amber)' : 'var(--accent-blue)',
           },

@@ -96,6 +96,13 @@ MemoryMax=4G
 EOF
 sudo systemctl daemon-reload
 
+# 4.6 Pastikan akses hardware GPU (grup video, render & device permissions)
+echo "🎮 Memeriksa & mengonfigurasi izin akses hardware GPU untuk pengguna..."
+for u in $(cut -d: -f1 /etc/passwd | grep -E '^m[0-9]+'); do
+    sudo usermod -aG video,render "$u" 2>/dev/null || true
+done
+sudo chmod 666 /dev/nvidia* /dev/nvidia-uvm* 2>/dev/null || true
+
 # 5. Konfigurasi JupyterHub & Idle Culler
 JH_CONFIG="/opt/jupyterhub/etc/jupyterhub_config.py"
 if [ ! -f "$JH_CONFIG" ]; then

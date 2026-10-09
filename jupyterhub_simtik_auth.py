@@ -162,11 +162,16 @@ def username_to_nim(username: str) -> str:
 def ensure_linux_user(username: str) -> bool:
     try:
         pwd.getpwnam(username)
+        # Pastikan user yang sudah ada memiliki akses hardware GPU (grup video & render)
+        cmd_group = ["usermod", "-aG", "video,render", username]
+        if os.geteuid() != 0:
+            cmd_group = ["sudo", "-n"] + cmd_group
+        subprocess.run(cmd_group, check=False)
         return True
     except KeyError:
         pass
-    # useradd tanpa hak sudo
-    cmd = ["useradd", "-m", "-s", "/bin/bash", username]
+    # useradd dengan group video dan render untuk akses hardware GPU
+    cmd = ["useradd", "-m", "-s", "/bin/bash", "-G", "video,render", username]
     if os.geteuid() != 0:
         cmd = ["sudo", "-n"] + cmd
     res = subprocess.run(cmd, capture_output=True, text=True)
@@ -178,7 +183,7 @@ def ensure_linux_user(username: str) -> bool:
     if os.geteuid() != 0:
         chmod_cmd = ["sudo", "-n"] + chmod_cmd
     subprocess.run(chmod_cmd)
-    logger.info(f"User Linux {username} berhasil dibuat dengan akses terbatas.")
+    logger.info(f"User Linux {username} berhasil dibuat dengan akses GPU (group video, render).")
     return True
 
 
@@ -314,15 +319,30 @@ def simtik_pre_spawn_hook(spawner):
         spawner.unit_extra_properties = {"Slice": "compute-level1.slice"}
         spawner.cpu_limit = 20.0
         spawner.mem_limit = "70G"
-        spawner.environment = {"OMP_NUM_THREADS": "20", "OPENBLAS_NUM_THREADS": "20",
-                               "CUDA_VISIBLE_DEVICES": "0"}
+        if not hasattr(spawner, "environment") or spawner.environment is None:
+            spawner.environment = {}
+        spawner.environment.update({
+            "OMP_NUM_THREADS": "20",
+            "OPENBLAS_NUM_THREADS": "20",
+            "CUDA_VISIBLE_DEVICES": "0"
+        })
     else:
-        logger.info(f"[QoS] {username} -> LEVEL 2 (2 core, 4G, GPU 1, MPS 2GB)")
+        logger.info(f"[QoS] {username} -> LEVEL 2 (2 core, 4G, GPU 1)")
         spawner.unit_extra_properties = {"Slice": "compute-level2.slice"}
         spawner.cpu_limit = 2.0
         spawner.mem_limit = "4G"
-        spawner.environment = {"OMP_NUM_THREADS": "2", "OPENBLAS_NUM_THREADS": "2",
-                               "CUDA_VISIBLE_DEVICES": "1", "CUDA_MPS_PINNED_DEVICE_MEM_LIMIT": "2048M"}
+        if not hasattr(spawner, "environment") or spawner.environment is None:
+            spawner.environment = {}
+        env = {
+            "OMP_NUM_THREADS": "2",
+            "OPENBLAS_NUM_THREADS": "2",
+            "CUDA_VISIBLE_DEVICES": "1"
+        }
+        # Hanya aktifkan MPS jika socket daemon MPS aktif
+        if os.path.exists("/tmp/nvidia-mps") or os.path.exists("/tmp/nvidia-mps/control"):
+            env["CUDA_MPS_PIPE_DIRECTORY"] = "/tmp/nvidia-mps"
+            env["CUDA_MPS_PINNED_DEVICE_MEM_LIMIT"] = "2048M"
+        spawner.environment.update(env)
 
 
 def simtik_post_stop_hook(spawner):

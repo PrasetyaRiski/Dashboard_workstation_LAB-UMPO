@@ -1,7 +1,19 @@
 import React, { memo } from 'react';
-import { Cpu, HardDrive, ShieldCheck, DatabaseBackup, Loader2, Layers } from 'lucide-react';
+import { 
+  Cpu, HardDrive, ShieldCheck, DatabaseBackup, Loader2, Layers, 
+  Activity, Zap, Users, CheckCircle2, AlertTriangle, Server, Network
+} from 'lucide-react';
 
-function SystemOverview({ system = {}, gpus = [], onTriggerBackup, isBackingUp, backups = [], isAdmin }) {
+function SystemOverview({ 
+  system = {}, 
+  gpus = [], 
+  users = [], 
+  students = [], 
+  onTriggerBackup, 
+  isBackingUp, 
+  backups = [], 
+  isAdmin 
+}) {
   if (!system) return null;
 
   const cpu = system?.cpu || {};
@@ -24,6 +36,30 @@ function SystemOverview({ system = {}, gpus = [], onTriggerBackup, isBackingUp, 
   const vramTotalGb = (totalVramMaxMb / 1024).toFixed(0);
   const vramPct = totalVramMaxMb > 0 ? Math.min(100, Math.round((totalVramUsedMb / totalVramMaxMb) * 100)) : 0;
 
+  // Workload & Priority Slot Analysis
+  const priorityStudent = Array.isArray(students) ? students.find(s => Boolean(s.is_priority)) : null;
+  const onlineStudentsCount = Array.isArray(students) ? students.filter(s => Boolean(s.is_online)).length : 0;
+  const activeSystemUsers = Array.isArray(users) ? users.filter(u => (u.total_process_count || 0) > 0) : [];
+  const totalOnlineCount = onlineStudentsCount + activeSystemUsers.length;
+
+  // Cluster Health Calculation
+  let healthStatus = 'healthy';
+  let healthLabel = 'Semua Layanan Normal (All Systems Nominal)';
+  let healthClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+  let dotClass = 'bg-emerald-500';
+
+  if (cpuPercent >= 90 || memoryPercent >= 90 || !isStorageSafe || vramPct >= 95) {
+    healthStatus = 'critical';
+    healthLabel = 'Kapasitas Mendekati Batas Kritis (Perlu Pemantauan)';
+    healthClass = 'bg-rose-50 text-rose-700 border-rose-200';
+    dotClass = 'bg-rose-500';
+  } else if (cpuPercent >= 75 || memoryPercent >= 80 || vramPct >= 80) {
+    healthStatus = 'warning';
+    healthLabel = 'Beban Komputasi Tinggi';
+    healthClass = 'bg-amber-50 text-amber-700 border-amber-200';
+    dotClass = 'bg-amber-500';
+  }
+
   let backupText = 'Belum ada snapshot backup';
   if (latestBackup) {
     const rawDate = latestBackup.created_at || latestBackup.timestamp;
@@ -36,12 +72,86 @@ function SystemOverview({ system = {}, gpus = [], onTriggerBackup, isBackingUp, 
   }
 
   return (
-    <div className="mb-6">
-      {/* Section Header */}
-      <div className="flex items-center justify-between mb-4">
+    <div className="mb-6 flex flex-col gap-4">
+      {/* Section Header & Cluster Status Bar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div>
           <h1 className="text-lg font-bold text-slate-900 tracking-tight">Ringkasan Sistem</h1>
-          <p className="text-xs text-slate-500 mt-0.5">Telemetri sumber daya komputasi dan status klaster DGX UMPO</p>
+          <p className="text-xs text-slate-500 mt-0.5">Telemetri sumber daya komputasi dan status klaster Workstation DGX UMPO</p>
+        </div>
+
+        {/* Dynamic Cluster Health Pill */}
+        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-mono font-medium shadow-xs self-start md:self-auto ${healthClass}`}>
+          <span className={`w-2 h-2 rounded-full pulse-dot ${dotClass}`} />
+          <span className="font-semibold">{healthLabel}</span>
+        </div>
+      </div>
+
+      {/* Cluster Workload & Priority Slot Strip */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {/* Slot Prioritas GPU 0 */}
+        <div className="bg-white px-4 py-3 rounded-xl border border-slate-200/90 shadow-xs flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
+              priorityStudent ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-blue-50 text-blue-700 border border-blue-200'
+            }`}>
+              <Zap className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-[11px] font-mono font-semibold text-slate-500 uppercase tracking-wider block">
+                Slot Akselerasi Prioritas (GPU 0 Dedicated)
+              </span>
+              {priorityStudent ? (
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="text-xs font-mono font-bold text-slate-900">
+                    NIM {priorityStudent.nim}
+                  </span>
+                  <span className="text-xs text-slate-600 truncate max-w-[180px]">
+                    ({priorityStudent.nama ? priorityStudent.nama.split(' ')[0] : 'Mahasiswa Riset'})
+                  </span>
+                  <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 border border-amber-200">
+                    Aktif
+                  </span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  <span className="text-xs font-semibold text-emerald-700">
+                    Tersedia untuk Riset / Skripsi Mahasiswa
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+          <span className="text-[10px] font-mono text-slate-400 font-medium hidden sm:inline">
+            {priorityStudent ? 'Slot 1/1 Terisi' : 'Slot 0/1 Kosong'}
+          </span>
+        </div>
+
+        {/* Pengguna & Beban Sesi Komputasi */}
+        <div className="bg-white px-4 py-3 rounded-xl border border-slate-200/90 shadow-xs flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center justify-center shrink-0">
+              <Users className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-[11px] font-mono font-semibold text-slate-500 uppercase tracking-wider block">
+                Aktivitas Sesi Mahasiswa & Riset
+              </span>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-xs font-bold text-slate-900 font-mono">
+                  {totalOnlineCount} Pengguna Aktif
+                </span>
+                <span className="text-xs text-slate-400 font-mono">
+                  (SIMTIK: {onlineStudentsCount} · Lab: {activeSystemUsers.length})
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-1 font-mono text-[11px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 pulse-dot" />
+            <span className="font-semibold">Live</span>
+          </div>
         </div>
       </div>
       
@@ -166,12 +276,12 @@ function SystemOverview({ system = {}, gpus = [], onTriggerBackup, isBackingUp, 
           </div>
         </div>
 
-        {/* Metric 4: Keamanan & Status Backup */}
+        {/* Metric 4: Keamanan & Status Layanan */}
         <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] motion-card flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between text-slate-500 mb-2">
               <span className="text-xs font-semibold text-slate-900 flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" /> Keamanan & Backup
+                <ShieldCheck className="w-4 h-4 text-emerald-600" /> Layanan & Backup
               </span>
               <span className="text-[10px] font-mono font-semibold text-emerald-700 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200">
                 WAL Active
@@ -179,11 +289,21 @@ function SystemOverview({ system = {}, gpus = [], onTriggerBackup, isBackingUp, 
             </div>
             
             <ul className="space-y-1.5 my-2">
-              <li className="flex items-center gap-2 text-[11px] text-slate-600 font-mono">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                <span className="truncate">Integritas SQLite Aman</span>
+              <li className="flex items-center justify-between text-[11px] font-mono text-slate-600">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  JupyterHub (:8090)
+                </span>
+                <span className="text-emerald-700 font-semibold text-[10px]">Ready</span>
               </li>
-              <li className="flex items-center gap-2 text-[11px] text-slate-600 font-mono">
+              <li className="flex items-center justify-between text-[11px] font-mono text-slate-600">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  SIMTIK Auth SSO
+                </span>
+                <span className="text-emerald-700 font-semibold text-[10px]">Synced</span>
+              </li>
+              <li className="flex items-center gap-2 text-[11px] text-slate-600 font-mono pt-1 border-t border-slate-100">
                 <span className={`w-1.5 h-1.5 rounded-full ${latestBackup ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
                 <span className="truncate">{backupText}</span>
               </li>

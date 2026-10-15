@@ -49,6 +49,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 function LiveChart({ history = [] }) {
   const [range, setRange] = useState(60);
+  const [metricFilter, setMetricFilter] = useState('ALL');
   const [isPaused, setIsPaused] = useState(false);
   const [pausedSnapshot, setPausedSnapshot] = useState(null);
 
@@ -77,6 +78,14 @@ function LiveChart({ history = [] }) {
       gpu1_vram: Number(item.gpu1_vram || 0),
     }));
   }, [dataSource, range]);
+
+  const visibleSeries = React.useMemo(() => {
+    return SERIES.filter((s) => {
+      if (metricFilter === 'GPU') return s.key.startsWith('gpu');
+      if (metricFilter === 'HOST') return s.key === 'cpu' || s.key === 'ram';
+      return true;
+    });
+  }, [metricFilter]);
 
   const latest = formattedData[formattedData.length - 1];
 
@@ -118,6 +127,43 @@ function LiveChart({ history = [] }) {
             </div>
           )}
 
+          {/* Metric Filter Segmented Control */}
+          <div className="flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200 font-mono text-xs">
+            <button
+              onClick={() => setMetricFilter('ALL')}
+              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
+                metricFilter === 'ALL'
+                  ? 'bg-white text-blue-700 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-900'
+              }`}
+              type="button"
+            >
+              Semua
+            </button>
+            <button
+              onClick={() => setMetricFilter('GPU')}
+              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
+                metricFilter === 'GPU'
+                  ? 'bg-white text-blue-700 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-900'
+              }`}
+              type="button"
+            >
+              Dual GPU
+            </button>
+            <button
+              onClick={() => setMetricFilter('HOST')}
+              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
+                metricFilter === 'HOST'
+                  ? 'bg-white text-blue-700 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-900'
+              }`}
+              type="button"
+            >
+              CPU & RAM
+            </button>
+          </div>
+
           {/* Pause Button */}
           <button
             onClick={togglePause}
@@ -130,7 +176,7 @@ function LiveChart({ history = [] }) {
             type="button"
           >
             {isPaused ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
-            <span>{isPaused ? 'BEKU (PAUSED)' : 'LIVE'}</span>
+            <span>{isPaused ? 'BEKU' : 'LIVE'}</span>
           </button>
 
           {/* Segmented Range Control */}
@@ -139,7 +185,7 @@ function LiveChart({ history = [] }) {
               <button
                 key={opt.value}
                 onClick={() => setRange(opt.value)}
-                className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
+                className={`px-2 py-1 rounded-md text-[11px] font-semibold transition-all ${
                   range === opt.value
                     ? 'bg-white text-blue-700 shadow-sm'
                     : 'text-slate-500 hover:text-slate-900'
@@ -176,46 +222,19 @@ function LiveChart({ history = [] }) {
               tickFormatter={(v) => `${v}%`}
             />
             <Tooltip content={<CustomTooltip />} />
-            <Area
-              type="monotone"
-              dataKey="gpu0_compute"
-              name="GPU 0 Compute"
-              stroke="#2563eb"
-              strokeWidth={2}
-              fill="#2563eb"
-              fillOpacity={0.12}
-              isAnimationActive={false}
-            />
-            <Area
-              type="monotone"
-              dataKey="gpu1_compute"
-              name="GPU 1 Compute"
-              stroke="#4f46e5"
-              strokeWidth={2}
-              fill="#4f46e5"
-              fillOpacity={0.10}
-              isAnimationActive={false}
-            />
-            <Area
-              type="monotone"
-              dataKey="cpu"
-              name="CPU Host"
-              stroke="#0284c7"
-              strokeWidth={1.5}
-              fill="#0284c7"
-              fillOpacity={0.08}
-              isAnimationActive={false}
-            />
-            <Area
-              type="monotone"
-              dataKey="ram"
-              name="RAM Host"
-              stroke="#059669"
-              strokeWidth={1.5}
-              fill="#059669"
-              fillOpacity={0.08}
-              isAnimationActive={false}
-            />
+            {visibleSeries.map((s) => (
+              <Area
+                key={s.key}
+                type="monotone"
+                dataKey={s.key}
+                name={s.name}
+                stroke={s.color}
+                strokeWidth={s.key.includes('gpu') ? 2 : 1.5}
+                fill={s.color}
+                fillOpacity={s.key === 'gpu0_compute' ? 0.12 : s.key === 'gpu1_compute' ? 0.10 : 0.08}
+                isAnimationActive={false}
+              />
+            ))}
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -223,7 +242,7 @@ function LiveChart({ history = [] }) {
       {/* Legend Footer */}
       <div className="flex items-center justify-between px-1 font-mono text-[11px] text-slate-500">
         <div className="flex items-center gap-4 flex-wrap">
-          {SERIES.map((s) => (
+          {visibleSeries.map((s) => (
             <div key={s.key} className="flex items-center gap-1.5">
               <span className="w-3 h-1.5 rounded-full shadow-sm" style={{ background: s.color }} />
               <span className="font-medium text-slate-700">{s.name}</span>

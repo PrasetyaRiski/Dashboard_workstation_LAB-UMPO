@@ -529,6 +529,8 @@ export default function App() {
                   <SystemOverview
                     system={data?.system}
                     gpus={data?.gpus}
+                    users={data?.users || []}
+                    students={students || []}
                     onTriggerBackup={handleTriggerBackup}
                     isBackingUp={isBackingUp}
                     backups={backups}

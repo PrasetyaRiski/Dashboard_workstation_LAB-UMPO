@@ -288,23 +288,23 @@ class SimtikAuthenticator(Authenticator):
                 active_ip = session_info.get("active_ip") if session_info else None
                 is_running = is_user_process_running(handler, linux_user)
 
-                # Jika ada sesi notebook yang sedang aktif -> TOLAK LOGIN PERANGKAT KEDUA (403)
-                if is_running:
+                # Jika ada sesi notebook yang sedang aktif dari IP BERBEDA -> TOLAK LOGIN PERANGKAT KEDUA (403)
+                if is_running and active_ip and client_ip != active_ip:
                     logger.warning(
                         f"[SingleSession] Penolakan login baru (Opsi 2): NIM {nim} ({linux_user}) "
-                        f"sudah memiliki sesi notebook aktif (IP sebelumnya: {active_ip}). "
+                        f"sudah memiliki sesi notebook aktif di perangkat lain (IP aktif: {active_ip}). "
                         f"Akses login baru dari IP {client_ip} ditolak."
                     )
                     raise tornado.web.HTTPError(
                         403,
-                        f"Akses Ditolak: Akun NIM {nim} sedang aktif digunakan di perangkat lain ({active_ip or 'sesi aktif'}). "
+                        f"Akses Ditolak: Akun NIM {nim} sedang aktif digunakan di perangkat lain ({active_ip}). "
                         f"Selesaikan sesi di perangkat tersebut terlebih dahulu, atau hubungi Asisten Lab untuk mereset sesi Anda.",
                         reason=f"Akun NIM {nim} sedang aktif di perangkat lain"
                     )
 
-                # Jika tidak ada sesi yang berjalan: catat sesi aktif perangkat baru
+                # Jika IP sama atau sesi baru: perbarui rekaman sesi aktif perangkat
                 set_user_active_session(nim, client_ip)
-                logger.info(f"[SingleSession] Sesi aktif tercatat untuk NIM {nim} (IP: {client_ip})")
+                logger.info(f"[SingleSession] Sesi aktif tercatat untuk NIM {nim} (IP: {client_ip}, running: {is_running})")
             except tornado.web.HTTPError:
                 raise
             except Exception as e:

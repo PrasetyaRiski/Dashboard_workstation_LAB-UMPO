@@ -14,7 +14,9 @@ echo "=========================================================="
 # Memastikan repositori terisolasi di dalam folder panel-lab agar rapi
 sudo mkdir -p /home/public/web/panel-lab
 sudo mkdir -p /home/public/web/data
-sudo chmod 777 /home/public/web/data 2>/dev/null || true
+# Amankan direktori database: hanya root & admin/service yang boleh akses (blokir akses world-writeable mahasiswa)
+sudo chmod 770 /home/public/web/data 2>/dev/null || true
+sudo chmod 660 /home/public/web/data/*.db 2>/dev/null || true
 cd /home/public/web/panel-lab
 
 # 2. Sinkronkan dengan GitHub
@@ -275,6 +277,17 @@ EOF
     sudo pkill -f 'jupyterhub-singleuser' 2>/dev/null || true
 else
     echo "⚠️ File jupyterhub_config.py tidak ditemukan di path default. Silakan cek lokasinya."
+fi
+
+# 6. Perbarui konfigurasi Nginx Reverse Proxy jika Nginx terpasang
+if command -v nginx &>/dev/null && [ -f "nginx/labai_local.conf" ]; then
+    echo "🌐 Memperbarui konfigurasi Nginx Reverse Proxy..."
+    sudo cp nginx/labai_local.conf /etc/nginx/sites-available/labai.conf 2>/dev/null || true
+    sudo ln -sf /etc/nginx/sites-available/labai.conf /etc/nginx/sites-enabled/labai.conf 2>/dev/null || true
+    if sudo nginx -t 2>/dev/null; then
+        sudo systemctl reload nginx 2>/dev/null || true
+        echo "✅ Nginx Reverse Proxy berhasil dimuat ulang."
+    fi
 fi
 
 # 7. Penjadwalan Crontab Auto-Backup Database (Setiap jam 02:00 pagi)

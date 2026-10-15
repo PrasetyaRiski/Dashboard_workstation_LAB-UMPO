@@ -257,9 +257,9 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
     function updateTelemetry() {
       var u = detectUsername();
       var host = window.location.hostname || '76.76.76.188';
-      var url = window.location.protocol + '//' + host + ':8888/api/user-telemetry/' + u;
 
-      fetch(url)
+      // 1. Coba path relatif (/api/user-telemetry/...) via reverse proxy Nginx (Port 80/443, bebas CORS & Mixed Content)
+      fetch('/api/user-telemetry/' + u)
         .then(function(res) {
           if (!res.ok) throw new Error(res.status);
           return res.json();
@@ -267,8 +267,21 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
         .then(function(data) {
           applyTelemetry(data);
         })
-        .catch(function(err) {
-          fallbackJupyterMetrics();
+        .catch(function() {
+          // 2. Fallback: coba akses langsung ke port 8888 jika tanpa Nginx
+          var directUrl = window.location.protocol + '//' + host + ':8888/api/user-telemetry/' + u;
+          fetch(directUrl)
+            .then(function(res) {
+              if (!res.ok) throw new Error(res.status);
+              return res.json();
+            })
+            .then(function(data) {
+              applyTelemetry(data);
+            })
+            .catch(function() {
+              // 3. Fallback: baca metrik internal JupyterLab
+              fallbackJupyterMetrics();
+            });
         });
     }
 

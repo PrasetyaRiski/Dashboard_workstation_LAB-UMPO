@@ -504,7 +504,9 @@ def get_audit_logs(limit: int = 100) -> List[Dict[str, Any]]:
     conn, engine = get_connection()
     cur = conn.cursor()
     try:
-        cur.execute(f"SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT {limit}")
+        placeholder = "%s" if engine == "postgres" else "?"
+        safe_limit = max(1, min(int(limit), 1000))
+        cur.execute(f"SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT {placeholder}", (safe_limit,))
         rows = cur.fetchall()
         results = []
         for r in rows:

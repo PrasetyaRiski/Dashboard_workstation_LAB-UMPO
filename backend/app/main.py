@@ -47,7 +47,32 @@ except Exception:
 app = FastAPI(title="AI Lab Compute Dashboard", version="2.1.0")
 
 security = HTTPBearer(auto_error=False)
-ADMIN_PIN = os.getenv("ADMIN_PIN", "labrisetai26")
+ADMIN_PIN = os.getenv("ADMIN_PIN")
+if not ADMIN_PIN:
+    _env_candidates = [
+        os.path.join(_PROJ_ROOT, ".env"),
+        os.path.join(os.path.dirname(_CURR_DIR), ".env"),
+        os.path.join(_CURR_DIR, ".env"),
+        "/home/public/web/panel-lab/.env",
+        "/home/public/web/.env"
+    ]
+    for _ec in _env_candidates:
+        if os.path.isfile(_ec):
+            try:
+                with open(_ec, "r") as _ef:
+                    for _line in _ef:
+                        _line = _line.strip()
+                        if _line.startswith("ADMIN_PIN="):
+                            ADMIN_PIN = _line.split("=", 1)[1].strip().strip('"').strip("'")
+                            break
+            except Exception:
+                pass
+            if ADMIN_PIN:
+                break
+
+if not ADMIN_PIN:
+    logger.warning("PENTING: ADMIN_PIN belum dikonfigurasi di .env. Menggunakan kunci acak sementara.")
+    ADMIN_PIN = secrets.token_hex(16)
 ACTIVE_SESSIONS: Dict[str, Dict[str, Any]] = {}
 FAILED_LOGIN_ATTEMPTS: Dict[str, List[float]] = defaultdict(list)
 SESSION_MAX_AGE_SECONDS = 12 * 3600  # Maksimal 12 jam
@@ -221,9 +246,10 @@ def get_capacity():
     return {"success": True, "total_slots": 1, "used_slots": active_boosts}
 
 @app.get("/api/audit-logs")
-def get_audit_logs_api(limit: int = 100):
+def get_audit_logs_api(limit: int = 100, session: Dict[str, Any] = Depends(verify_operator_or_admin)):
     from app.db import get_audit_logs
-    return {"success": True, "logs": get_audit_logs(limit)}
+    safe_limit = max(1, min(int(limit), 1000))
+    return {"success": True, "logs": get_audit_logs(safe_limit)}
 
 
 # Default Admin PIN (dapat diubah via Environment Variable LAB_ADMIN_PIN)
@@ -480,9 +506,7 @@ def get_user_telemetry(username: str):
 
     return target
 
-@app.post("/api/verify-pin")
-def verify_pin(req: VerifyPinRequest):
-    return {"success": True, "message": "Mode Admin (PIN dihapus)."}
+
 
 @app.get("/api/export-telemetry")
 def export_telemetry():
@@ -633,13 +657,23 @@ async def auth_simtik(req: SimtikLoginRequest):
     }
 
 @app.get("/api/users/students")
-def get_students():
+def get_students(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)):
     """Mengambil daftar seluruh mahasiswa terdaftar beserta status mode prioritas dan kuota storage"""
+    is_authenticated_admin = False
+    if credentials and credentials.credentials:
+        token = credentials.credentials
+        session = ACTIVE_SESSIONS.get(token)
+        if session and session.get("role") in ["admin", "aslab"]:
+            is_authenticated_admin = True
+
     users = list_users()
     for u in users:
         uname = f"m{u['nim']}"
         disk_info = get_user_disk_metrics(uname, is_priority=bool(u.get("is_priority")))
         u.update(disk_info)
+        # Sembunyikan IP perangkat jika bukan admin/aslab terotentikasi demi privasi
+        if not is_authenticated_admin and "active_ip" in u:
+            u["active_ip"] = None
     return {"success": True, "users": users}
 
 @app.post("/api/users/boost")
@@ -973,7 +1007,7 @@ def list_user_files(nim: str, path: str = "", session: Dict[str, Any] = Depends(
     except Exception as e:
         return {"success": False, "detail": "Terjadi kesalahan internal: " + str(e)[:100]}
 
-from fastapi.responses import Response
+from fastapi.responses import Response, FileResponse, StreamingResponse
 import mimetypes
 
 @app.get("/api/users/{nim}/download")
@@ -983,17 +1017,41 @@ def download_user_file(nim: str, filepath: str, session: Dict[str, Any] = Depend
     if not os.path.isfile(target_path):
         raise HTTPException(status_code=404, detail="File tidak ditemukan atau berupa direktori.")
         
+    mime, _ = mimetypes.guess_type(target_path)
+    filename = os.path.basename(target_path)
+
+    # 1. Jika file dapat dibaca langsung oleh proses backend, gunakan FileResponse bawaan kernel (zero-copy)
+    if os.access(target_path, os.R_OK):
+        return FileResponse(
+            path=target_path,
+            filename=filename,
+            media_type=mime or "application/octet-stream"
+        )
+
+    # 2. Jika memerlukan privilege escalation (sudo -n), gunakan streaming iterator tanpa memuat seluruh file ke RAM
     cmd = ["cat", "--", target_path]
     if os.geteuid() != 0:
         cmd = ["sudo", "-n"] + cmd
     
-    res = subprocess.run(cmd, capture_output=True)
-    if res.returncode != 0:
-        raise HTTPException(status_code=404, detail="File tidak ditemukan atau tidak dapat dibaca.")
-        
-    mime, _ = mimetypes.guess_type(target_path)
-    filename = os.path.basename(target_path)
-    return Response(content=res.stdout, media_type=mime or "application/octet-stream", headers={"Content-Disposition": f'attachment; filename="{filename}"'})
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    def iterfile():
+        try:
+            while True:
+                chunk = proc.stdout.read(64 * 1024)  # 64KB per chunk
+                if not chunk:
+                    break
+                yield chunk
+        finally:
+            if proc.stdout:
+                proc.stdout.close()
+            proc.wait()
+
+    return StreamingResponse(
+        iterfile(),
+        media_type=mime or "application/octet-stream",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+    )
 
 @app.post("/api/users/{nim}/copy-to-shared")
 def copy_file_to_shared(nim: str, req: CopyRequest, session: Dict[str, Any] = Depends(verify_super_admin)):

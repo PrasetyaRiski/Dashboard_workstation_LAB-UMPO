@@ -367,6 +367,17 @@ def get_full_snapshot():
                     detail=f"Penggunaan VRAM ({u.get('vram_used_mb')} MB) melebihi ambang batas praktikum (30%)",
                     log_type="warning"
                 )
+        if u.get("is_over_quota"):
+            uname = u.get("username")
+            recent_keys_disk = [f"{log.get('target')}_{log.get('time')[:5]}" for log in audit_logs if log.get('action') == "OVER_QUOTA_STORAGE"]
+            if f"{uname}_{now_m}" not in recent_keys_disk:
+                used_gb = round(u.get('disk_used_mb', 0) / 1024, 2)
+                record_audit(
+                    target=uname,
+                    action="OVER_QUOTA_STORAGE",
+                    detail=f"Penggunaan Storage ({used_gb} GB) melebihi kuota ({u.get('disk_quota_gb', 10)} GB). Peringatan backup segera dikirimkan ke layar mahasiswa.",
+                    log_type="danger"
+                )
     from app.db import get_audit_logs
     s["audit_logs"] = get_audit_logs(60)
     s["admin_pin_required"] = False
@@ -440,6 +451,33 @@ def get_user_telemetry(username: str):
     target["gpu_temperature"] = gpu_obj.get("temperature", 0)
     target["gpu_total_vram_mb"] = gpu_obj.get("total_vram_mb", 16384)
     target["server_time"] = time.strftime("%H:%M:%S")
+
+    # Informasi Peringatan Overquota & Instruksi Backup
+    used_gb = round(disk_info["disk_used_mb"] / 1024, 2)
+    quota_gb = disk_info["disk_quota_gb"]
+    if disk_info.get("is_over_quota"):
+        target["over_quota_warning"] = {
+            "is_over_quota": True,
+            "title": "🚨 PERINGATAN KRITIS: PENYIMPANAN MELEBIHI KUOTA",
+            "message": f"Kapasitas penyimpanan akun Anda telah mencapai {used_gb} GB dari batas kuota {quota_gb} GB ({disk_info['disk_percent']}%). Segera lakukan BACKUP (Download) berkas penting Anda ke komputer lokal dalam waktu dekat. Berkas besar dan cache yang tidak dibersihkan berisiko DIHAPUS OTOMATIS OLEH ADMIN LAB untuk mencegah gangguan server.",
+            "used_gb": used_gb,
+            "quota_gb": quota_gb,
+            "percent": disk_info["disk_percent"],
+            "urgency": "danger"
+        }
+    elif disk_info.get("disk_percent", 0) >= 85.0:
+        target["over_quota_warning"] = {
+            "is_over_quota": False,
+            "title": "⚠️ PERINGATAN: PENYIMPANAN HAMPIR PENUH",
+            "message": f"Kapasitas penyimpanan akun Anda telah terpakai {disk_info['disk_percent']}% ({used_gb} GB / {quota_gb} GB). Segera cadangkan berkas dan bersihkan file yang tidak digunakan.",
+            "used_gb": used_gb,
+            "quota_gb": quota_gb,
+            "percent": disk_info["disk_percent"],
+            "urgency": "warning"
+        }
+    else:
+        target["over_quota_warning"] = None
+
     return target
 
 @app.post("/api/verify-pin")

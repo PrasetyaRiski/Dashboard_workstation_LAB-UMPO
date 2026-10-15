@@ -39,6 +39,42 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
     <!-- Modal Content Body -->
     <div style="padding:20px 22px; font-size:12.5px; line-height:1.5; color:#cbd5e1; max-height:80vh; overflow-y:auto;">
       
+      <!-- Alert Box: Kritis Overquota & Instruksi Backup -->
+      <div id="overquota-alert-box" style="display:none; background:linear-gradient(135deg, rgba(239,68,68,0.22) 0%, rgba(185,28,28,0.3) 100%); border:2px solid #ef4444; border-radius:16px; padding:16px; margin-bottom:14px; box-shadow:0 0 25px rgba(239,68,68,0.4); animation:labPulseBorder 2s infinite alternate;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+          <span style="font-size:24px; line-height:1;">🚨</span>
+          <div>
+            <strong id="oq-box-title" style="color:#fca5a5; font-size:13px; text-transform:uppercase; letter-spacing:0.04em; display:block;">
+              Peringatan Kritis: Penyimpanan Melebihi Kuota (Overquota)
+            </strong>
+            <span style="font-size:11px; color:#fecaca;">Batas Maksimal Penyimpanan Akun Anda Telah Terlampaui</span>
+          </div>
+        </div>
+        
+        <p style="margin:8px 0 10px; font-size:12px; line-height:1.55; color:#ffffff; background:rgba(0,0,0,0.4); padding:10px 12px; border-radius:10px; border:1px solid rgba(239,68,68,0.35);">
+          Penyimpanan Anda saat ini telah mencapai <strong id="oq-used-val" style="color:#ef4444; font-size:13px;">-- GB</strong> dari batas kuota <strong id="oq-quota-val">10 GB</strong> (<span id="oq-pct-val" style="color:#fca5a5; font-weight:700;">--%</span>).
+        </p>
+
+        <div style="background:rgba(15,23,42,0.85); border:1px solid rgba(239,68,68,0.4); border-radius:12px; padding:12px; margin-bottom:10px; font-size:11.5px; color:#f8fafc; line-height:1.6;">
+          <div style="font-weight:700; color:#fca5a5; margin-bottom:4px; display:flex; align-items:center; gap:6px;">
+            <span>⚠️</span> TINDAKAN SEGERA YANG HARUS DILAKUKAN:
+          </div>
+          <ol style="margin:0; padding-left:18px; display:flex; flex-direction:column; gap:4px;">
+            <li>
+              <strong>Segera Cadangkan (Download Berkas):</strong> Klik kanan file notebook (<code>.ipynb</code>), dataset, atau script penting Anda di File Browser sebelah kiri &rarr; pilih <em>Download</em> ke komputer lokal Anda sekarang juga.
+            </li>
+            <li>
+              <strong>Hapus Berkas Sampah:</strong> Hapus file checkpoint model (<code>.pt</code>, <code>.pth</code>, <code>.ckpt</code>), folder cache (<code>.cache</code>), atau dataset duplikat yang tidak lagi digunakan.
+            </li>
+          </ol>
+        </div>
+
+        <div style="font-size:11px; color:#fecaca; background:rgba(239,68,68,0.25); padding:8px 12px; border-radius:8px; border-left:4px solid #ef4444; line-height:1.5;">
+          ⏳ <strong>PEMBERITAHUAN KEBIJAKAN ADMINISTRATOR:</strong><br/>
+          Sesuai SOP Lab AI FT UMPO, jika berkas tidak segera dibackup dan kuota tidak dirapikan dalam waktu dekat, <strong>Admin Lab akan menghapus berkas-berkas berukuran besar secara otomatis</strong> untuk menjaga kestabilan sistem server.
+        </div>
+      </div>
+
       <!-- Real-Time Hardware Performance Gauges -->
       <div style="background:#1e293b; border:1px solid #334155; border-radius:16px; padding:14px; margin-bottom:14px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
@@ -177,6 +213,10 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
   70% { transform: scale(1.15); box-shadow: 0 0 0 5px rgba(16, 185, 129, 0); }
   100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
 }
+@keyframes labPulseBorder {
+  0% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.3); border-color: #ef4444; }
+  100% { box-shadow: 0 0 25px rgba(239, 68, 68, 0.7); border-color: #f87171; }
+}
 .lab-ai-pulse-dot {
   animation: labPulseDot 2s infinite ease-in-out;
 }
@@ -312,6 +352,45 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
 
       var syncTime = document.getElementById('modal-sync-time');
       if (syncTime) syncTime.innerText = 'Sinkron: ' + (d.server_time || new Date().toLocaleTimeString());
+
+      // 3. Logika Overquota & Notifikasi Kritis Segera Backup
+      var oqBox = document.getElementById('overquota-alert-box');
+      var oqUsed = document.getElementById('oq-used-val');
+      var oqQuota = document.getElementById('oq-quota-val');
+      var oqPct = document.getElementById('oq-pct-val');
+
+      var isOverQuota = d.is_over_quota || (d.over_quota_warning && d.over_quota_warning.is_over_quota) || (diskPct >= 100);
+      if (isOverQuota) {
+        if (oqBox) oqBox.style.display = 'block';
+        if (oqUsed) oqUsed.innerText = (diskUsedMB / 1024).toFixed(2) + ' GB';
+        if (oqQuota) oqQuota.innerText = diskQuotaGB + ' GB';
+        if (oqPct) oqPct.innerText = diskPct + '%';
+
+        // Auto buka modal alert saat pertama kali overquota terdeteksi
+        if (!window._labHasAlertedOverquota) {
+          window._labHasAlertedOverquota = true;
+          if (overlay) overlay.style.display = 'flex';
+        }
+
+        // Pill pojok kanan bawah berubah menyala merah darurat
+        if (pill) {
+          pill.style.border = '1.5px solid #ef4444';
+          pill.style.boxShadow = '0 0 22px rgba(239, 68, 68, 0.65)';
+          pill.style.background = 'linear-gradient(135deg, rgba(127,29,29,0.95), rgba(185,28,28,0.95))';
+        }
+        if (pillDisk) {
+          pillDisk.parentElement.style.background = 'rgba(239,68,68,0.45)';
+          pillDisk.parentElement.style.border = '1px solid #ef4444';
+          pillDisk.innerHTML = '<strong style="color:#ffffff;">🚨 OVERQUOTA: ' + (diskUsedMB/1024).toFixed(1) + '/' + diskQuotaGB + 'G (BACKUP SEGERA!)</strong>';
+        }
+      } else {
+        if (oqBox) oqBox.style.display = 'none';
+        if (pill) {
+          pill.style.border = '1px solid rgba(59,130,246,0.4)';
+          pill.style.boxShadow = '0 8px 24px rgba(0,0,0,0.4)';
+          pill.style.background = 'rgba(15,23,42,0.92)';
+        }
+      }
     }
 
     function fallbackJupyterMetrics() {

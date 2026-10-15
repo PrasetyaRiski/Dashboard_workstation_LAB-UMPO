@@ -206,6 +206,7 @@ EOF_RES
     sudo sed -i '/c.JupyterHub.shutdown_on_logout = True/d' "$JH_CONFIG" 2>/dev/null || true
     sudo sed -i '/jupyterhub_idle_culler/d' "$JH_CONFIG" 2>/dev/null || true
     sudo sed -i "/'name': 'idle-culler'/d" "$JH_CONFIG" 2>/dev/null || true
+    sudo sed -i '/c.JupyterHub.announcement/d' "$JH_CONFIG" 2>/dev/null || true
     
     echo "📝 Menambahkan hook SIMTIK, Single-Device Policy, & Idle Culler ke $JH_CONFIG..."
     sudo tee -a "$JH_CONFIG" > /dev/null << 'EOF'
@@ -251,16 +252,14 @@ c.JupyterHub.load_roles = [
     }
 ]
 
-# Announcement Banner resmi JupyterHub
-c.JupyterHub.announcement = '<div style="padding:10px 16px;text-align:center;font-weight:600;font-size:12px;background:#1e3a8a;color:#ffffff;border-bottom:1px solid #3b82f6;">📢 Pemberitahuan Lab AI UMPO: Jika mengalami kendala teknis (Kernel Died, Kuota, atau Sesi Terkunci), segera laporkan ke Asisten Laboratorium yang bertugas di Gedung FT.</div>'
 # === END SIMTIK & QoS CONFIG ===
 EOF
     echo "✅ Konfigurasi JupyterHub & Idle Culler berhasil diperbarui."
 
-    # 5.3 Tanamkan Pop-up Modal Pusat Bantuan ke antarmuka JupyterLab
-    echo "📢 Menanamkan Pop-Up Modal Bantuan Lab AI ke JupyterLab..."
+    # 5.3 Bersihkan template login & tanamkan Pop-up Modal Resource Monitor ke antarmuka JupyterLab workspace
+    echo "📢 Menjalankan sanitasi template login & konfigurasi Workstation Monitor..."
     chmod +x inject_jupyter_modal.py 2>/dev/null || true
-    sudo python3 inject_jupyter_modal.py 2>/dev/null || python3 inject_jupyter_modal.py 2>/dev/null || true
+    sudo python3 inject_jupyter_modal.py || python3 inject_jupyter_modal.py || true
 
     # 6. Restart JupyterHub Service
     echo "🔄 Merestart service JupyterHub..."

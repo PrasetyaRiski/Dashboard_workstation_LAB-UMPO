@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """
 inject_jupyter_modal.py
-Skrip otomatis untuk menanamkan Pop-Up Modal pemberitahuan dan pusat bantuan
-ke dalam antarmuka JupyterLab Laboratorium AI UMPO (Hanya muncul saat pengguna sudah login).
+Skrip otomatis untuk:
+1. Membersihkan secara tuntas segala pop-up / modal dari seluruh template halaman login JupyterHub.
+2. Menanamkan Resource Monitor Modal HANYA pada antarmuka berkas statis JupyterLab workspace (index.html),
+   sehingga pop-up 100% TIDAK PERNAH muncul di menu login dan HANYA aktif saat mahasiswa sudah login.
 """
 
 import os
@@ -236,7 +238,7 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
     var path = window.location.pathname || '';
 
     // 1. Jika masih berada di menu login /hub/login atau form login terdeteksi
-    if (path.indexOf('/hub/login') !== -1 || path.indexOf('/login') !== -1) {
+    if (path.indexOf('/hub/login') !== -1 || path.indexOf('/login') !== -1 || path === '/' || path === '/hub' || path === '/hub/') {
       return null;
     }
     if (document.querySelector('form[action*="login"]') || document.getElementById('login_submit_btn')) {
@@ -503,84 +505,94 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
 <!-- === END LAB AI UMPO MODAL ANNOUNCEMENT === -->'''
 
 
-def is_hub_login_template(filepath: str) -> bool:
-    """Mengecek apakah berkas merupakan template login / portal hub JupyterHub."""
-    fp = filepath.replace("\\", "/").lower()
-    return "jupyterhub/templates" in fp or "hub/templates" in fp or fp.endswith("/login.html")
+def clean_all_login_and_hub_templates():
+    """
+    Membersihkan secara tuntas injeksi modal dari SEMUA template HTML JupyterHub (login.html, page.html, dll).
+    Template halaman Hub TIDAK BOLEH mengandung kode modal.
+    """
+    pattern = re.compile(
+        r"<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->.*?<!-- === END LAB AI UMPO MODAL ANNOUNCEMENT === -->",
+        re.DOTALL
+    )
 
+    # Daftar pencarian terfokus direktori template di server
+    hub_template_dirs = [
+        "/opt/jupyterhub/share/jupyterhub/templates",
+        "/usr/local/share/jupyterhub/templates",
+        "/usr/share/jupyterhub/templates",
+        "/etc/jupyterhub/templates",
+        f"{sys.prefix}/share/jupyterhub/templates",
+        "/opt/jupyterhub/share/jupyter/lab/templates",
+        "/usr/local/share/jupyter/lab/templates",
+        "/usr/share/jupyter/lab/templates",
+        f"{sys.prefix}/share/jupyter/lab/templates",
+    ]
 
-def clean_hub_templates():
-    """Membersihkan sisa injection modal dari template login / hub JupyterHub jika sebelumnya pernah tersisip."""
-    hub_candidates = set()
-    for root in ["/opt/jupyterhub", "/usr/local", "/usr", sys.prefix]:
-        if os.path.exists(root):
-            for dirpath, _, filenames in os.walk(root):
-                dp = dirpath.replace("\\", "/").lower()
-                if "jupyterhub" in dp and "templates" in dp:
-                    for fn in filenames:
-                        if fn.endswith(".html"):
-                            hub_candidates.add(os.path.join(dirpath, fn))
+    # Tambahkan pencarian glob untuk site-packages / dist-packages
+    candidate_files = set()
+    for d in hub_template_dirs:
+        if os.path.exists(d):
+            candidate_files.update(glob.glob(f"{d}/*.html"))
+            candidate_files.update(glob.glob(f"{d}/**/*.html", recursive=True))
 
-    pattern = re.compile(r"<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->.*?<!-- === END LAB AI UMPO MODAL ANNOUNCEMENT === -->", re.DOTALL)
+    for p in ["/opt/jupyterhub", "/usr/local/lib", "/usr/lib", sys.prefix]:
+        if os.path.exists(p):
+            candidate_files.update(glob.glob(f"{p}/**/jupyterhub/templates/*.html", recursive=True))
+            candidate_files.update(glob.glob(f"{p}/**/jupyter_server/templates/page.html", recursive=True))
+
     cleaned_count = 0
-    for hf in hub_candidates:
+    for fpath in candidate_files:
         try:
-            with open(hf, "r", encoding="utf-8") as f:
-                c = f.read()
-            if "BEGIN LAB AI UMPO MODAL ANNOUNCEMENT" in c:
-                new_c = re.sub(pattern, "", c)
-                with open(hf, "w", encoding="utf-8") as f:
-                    f.write(new_c)
-                print(f"🧹 Berhasil membersihkan pop-up dari template login Hub: {hf}")
+            if not os.path.isfile(fpath):
+                continue
+            with open(fpath, "r", encoding="utf-8", errors="ignore") as f:
+                content = f.read()
+            if "BEGIN LAB AI UMPO MODAL ANNOUNCEMENT" in content:
+                new_content = re.sub(pattern, "", content)
+                with open(fpath, "w", encoding="utf-8") as f:
+                    f.write(new_content)
+                print(f"🧹 BERHASIL DIBERSIHKAN: Pop-up dicopot dari template: {fpath}")
                 cleaned_count += 1
         except Exception as e:
-            print(f"⚠️ Gagal membersihkan {hf}: {e}")
-    if cleaned_count > 0:
-        print(f"✅ Selesai membersihkan {cleaned_count} berkas template login JupyterHub.")
+            print(f"⚠️ Gagal memeriksa {fpath}: {e}")
+
+    print(f"✅ Selesai: {cleaned_count} file template Hub/Login berhasil dibersihkan dari pop-up.")
 
 
-def find_candidate_html_files():
-    """Mencari seluruh file index.html dan page.html yang digunakan oleh JupyterLab / Jupyter Server (Single User Workspace)."""
+def find_jupyterlab_static_files():
+    """
+    Mencari HANYA berkas statis index.html milik workspace JupyterLab.
+    Berkas ini HANYA dibuka saat pengguna sudah masuk ke /user/<username>/lab.
+    Berkas ini TIDAK PERNAH dibuka oleh halaman login /hub/login.
+    """
     candidates = set()
-    
-    # 1. Lokasi standar /opt/jupyterhub (HANYA jupyterlab dan jupyter_server)
+
+    # 1. Lokasi standar /opt/jupyterhub
     candidates.update(glob.glob("/opt/jupyterhub/share/jupyter/lab/static/index.html"))
-    candidates.update(glob.glob("/opt/jupyterhub/share/jupyter/lab/templates/page.html"))
     candidates.update(glob.glob("/opt/jupyterhub/lib/**/jupyterlab/static/index.html", recursive=True))
-    candidates.update(glob.glob("/opt/jupyterhub/lib/**/jupyter_server/templates/page.html", recursive=True))
 
     # 2. Lokasi /usr dan /usr/local
     candidates.update(glob.glob("/usr/local/share/jupyter/lab/static/index.html"))
     candidates.update(glob.glob("/usr/share/jupyter/lab/static/index.html"))
     candidates.update(glob.glob("/usr/local/lib/**/jupyterlab/static/index.html", recursive=True))
     candidates.update(glob.glob("/usr/lib/**/jupyterlab/static/index.html", recursive=True))
-    candidates.update(glob.glob("/usr/local/lib/**/jupyter_server/templates/page.html", recursive=True))
-    candidates.update(glob.glob("/usr/lib/**/jupyter_server/templates/page.html", recursive=True))
 
     # 3. Lokasi Python environment aktif
     prefix = sys.prefix
     candidates.update(glob.glob(f"{prefix}/share/jupyter/lab/static/index.html"))
-    candidates.update(glob.glob(f"{prefix}/share/jupyter/lab/templates/page.html"))
     candidates.update(glob.glob(f"{prefix}/lib/**/jupyterlab/static/index.html", recursive=True))
-    candidates.update(glob.glob(f"{prefix}/lib/**/jupyter_server/templates/page.html", recursive=True))
 
-    # 4. Pencarian dinamis di direktori server (Kecualikan jupyterhub templates)
-    for root in ["/opt", "/usr/local", "/etc/jupyter", "/home/public"]:
-        if os.path.exists(root):
-            for dirpath, _, filenames in os.walk(root):
-                dp = dirpath.replace("\\", "/").lower()
-                if "jupyterhub/templates" in dp or "hub/templates" in dp:
-                    continue
-                if "index.html" in filenames and ("lab/static" in dp or "jupyterlab" in dp):
-                    candidates.add(os.path.join(dirpath, "index.html"))
-                if "page.html" in filenames and ("templates" in dp and ("lab" in dp or "jupyter_server" in dp)):
-                    candidates.add(os.path.join(dirpath, "page.html"))
+    # Filter ketat: HANYA index.html dan BUKAN template
+    valid = []
+    for c in candidates:
+        if os.path.isfile(c) and c.endswith("index.html") and "templates" not in c:
+            valid.append(c)
 
-    return [c for c in candidates if os.path.isfile(c) and not is_hub_login_template(c)]
+    return valid
 
 
 def inject_into_file(filepath: str) -> bool:
-    """Menyisipkan atau memperbarui snippet modal pengumuman di file target."""
+    """Menyisipkan atau memperbarui snippet modal pengumuman di file target workspace."""
     try:
         with open(filepath, "r", encoding="utf-8") as f:
             content = f.read()
@@ -600,7 +612,7 @@ def inject_into_file(filepath: str) -> bool:
         with open(filepath, "w", encoding="utf-8") as f:
             f.write(new_content)
 
-        print(f"✅ Berhasil menanamkan Pop-up Modal Lab AI ke: {filepath}")
+        print(f"✅ Berhasil menanamkan Pop-up Modal Lab AI ke workspace: {filepath}")
         return True
     except Exception as e:
         print(f"⚠️ Gagal menyisipkan ke {filepath}: {e}")
@@ -608,14 +620,14 @@ def inject_into_file(filepath: str) -> bool:
 
 
 def main():
-    print("🧹 Mensterilkan template halaman login JupyterHub...")
-    clean_hub_templates()
+    print("1️⃣ Membersihkan template login JupyterHub dari segala pop-up...")
+    clean_all_login_and_hub_templates()
 
-    print("🔍 Memindai berkas antarmuka JupyterLab workspace di sistem server...")
-    files = find_candidate_html_files()
-    
+    print("\n2️⃣ Mencari berkas antarmuka JupyterLab workspace (Single-User)...")
+    files = find_jupyterlab_static_files()
+
     if not files:
-        print("ℹ️ Tidak ditemukan berkas statis JupyterLab di direktori lokal saat ini.")
+        print("ℹ️ Tidak ditemukan berkas statis JupyterLab workspace di direktori lokal saat ini.")
         print("   (Skrip ini siap dieksekusi di server produksi via deploy_simtik.sh).")
         return 0
 
@@ -624,7 +636,7 @@ def main():
         if inject_into_file(f):
             success_count += 1
 
-    print(f"✨ Selesai: {success_count} berkas antarmuka JupyterLab berhasil diperbarui (hanya aktif setelah login).")
+    print(f"\n✨ Selesai: {success_count} berkas workspace JupyterLab berhasil dikonfigurasi (HANYA muncul saat sudah login).")
     return 0
 
 

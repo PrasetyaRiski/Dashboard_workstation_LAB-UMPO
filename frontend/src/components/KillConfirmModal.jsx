@@ -9,13 +9,13 @@ export default function KillConfirmModal({ isOpen, processInfo, onConfirm, onClo
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm motion-backdrop">
       <div className={`w-full max-w-md bg-white border ${
         is_system ? 'border-amber-200' : 'border-rose-200'
-      } rounded-2xl shadow-[0_20px_50px_rgba(15,23,42,0.15)] overflow-hidden flex flex-col motion-modal-pop`}>
+      } rounded-xl shadow-xl overflow-hidden flex flex-col motion-modal-pop`}>
         {/* Header */}
         <div className={`flex items-center justify-between p-5 border-b ${
           is_system ? 'border-amber-100 bg-amber-50/40' : 'border-rose-100 bg-rose-50/40'
         }`}>
           <div className="flex items-center gap-3.5">
-            <div className={`w-10 h-10 flex items-center justify-center rounded-xl shrink-0 shadow-sm ${
+            <div className={`w-10 h-10 flex items-center justify-center rounded-xl shrink-0 shadow-xs ${
               is_system 
                 ? 'bg-amber-100/80 border border-amber-200 text-amber-700' 
                 : 'bg-rose-100/80 border border-rose-200 text-rose-700'
@@ -33,7 +33,7 @@ export default function KillConfirmModal({ isOpen, processInfo, onConfirm, onClo
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/80 hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-colors border border-slate-200/60 shadow-sm"
+            className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/80 hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-colors border border-slate-200/60 shadow-xs"
             type="button"
           >
             <X className="w-4 h-4" />
@@ -55,8 +55,8 @@ export default function KillConfirmModal({ isOpen, processInfo, onConfirm, onClo
             </p>
           )}
 
-          {/* Process Metadata Details Panel - 3D Inset Card */}
-          <div className="bg-slate-50/80 rounded-xl border border-slate-200/90 overflow-hidden font-mono text-xs shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]">
+          {/* Process Metadata Details Panel */}
+          <div className="bg-slate-50/80 rounded-xl border border-slate-200 overflow-hidden font-mono text-xs shadow-xs">
             <div className="flex justify-between items-center px-4 py-2.5 border-b border-slate-200/70">
               <span className="text-slate-500 text-[11px] font-semibold uppercase tracking-wider">Pemilik Sesi</span>
               <span className="text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded border border-blue-200/60">{username}</span>
@@ -79,7 +79,7 @@ export default function KillConfirmModal({ isOpen, processInfo, onConfirm, onClo
             {cmdline && (
               <div className="p-3.5 bg-slate-100/70 border-t border-slate-200/80">
                 <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mb-1.5">Perintah Lengkap</p>
-                <code className="block text-[11px] text-slate-700 break-all p-2.5 bg-white rounded-lg border border-slate-200 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]">
+                <code className="block text-[11px] text-slate-700 break-all p-2.5 bg-white rounded-lg border border-slate-200 shadow-xs">
                   {cmdline}
                 </code>
               </div>
@@ -93,7 +93,7 @@ export default function KillConfirmModal({ isOpen, processInfo, onConfirm, onClo
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="px-4 py-2 rounded-xl bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 border border-slate-200 shadow-[0_2px_0_#cbd5e1,0_2px_4px_rgba(0,0,0,0.03)] active:translate-y-0.5 transition-all disabled:opacity-50"
+            className="px-4 py-2 rounded-lg bg-white hover:bg-slate-50 text-xs font-medium text-slate-700 border border-slate-200 shadow-xs transition-colors disabled:opacity-50"
           >
             {is_system ? 'Tutup' : 'Batal'}
           </button>
@@ -102,7 +102,7 @@ export default function KillConfirmModal({ isOpen, processInfo, onConfirm, onClo
               type="button"
               onClick={onConfirm}
               disabled={isSubmitting}
-              className="px-5 py-2 rounded-xl bg-gradient-to-b from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white text-xs font-semibold shadow-[0_2px_0_#be123c,0_4px_10px_rgba(244,63,94,0.25)] active:translate-y-0.5 active:shadow-[0_1px_0_#be123c] transition-all flex items-center gap-2 disabled:opacity-50"
+              className="px-5 py-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-medium shadow-xs transition-colors flex items-center gap-2 disabled:opacity-50"
             >
               {isSubmitting ? (
                 'Memproses…'

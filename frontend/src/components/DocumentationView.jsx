@@ -47,24 +47,23 @@ export default function DocumentationView({ showToast }) {
   return (
     <div className="flex flex-col gap-6 max-w-6xl mx-auto pb-16">
       {/* Header Banner */}
-      <div className="rounded-2xl bg-gradient-to-br from-blue-900 via-indigo-950 to-slate-950 p-6 sm:p-8 text-white border border-blue-500/20 shadow-xl relative overflow-hidden">
-        <div className="absolute right-0 top-0 translate-x-8 -translate-y-8 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="rounded-xl bg-white p-6 sm:p-7 border border-slate-200 shadow-xs relative overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center shrink-0 shadow-inner">
-              <BookOpen className="w-6 h-6 text-blue-300" />
+            <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-200/80 flex items-center justify-center shrink-0 shadow-xs">
+              <BookOpen className="w-6 h-6 text-blue-600" />
             </div>
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold tracking-wider bg-blue-500/20 text-blue-300 border border-blue-400/30 uppercase">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold tracking-wider bg-blue-50 text-blue-700 border border-blue-200 uppercase">
                   Buku Panduan Resmi v2.2
                 </span>
-                <span className="text-xs text-slate-400 font-mono">Fokus Web & JupyterHub</span>
+                <span className="text-xs text-slate-500 font-mono">Fokus Web & JupyterHub</span>
               </div>
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
                 Buku Panduan Sistem Web & JupyterHub
               </h1>
-              <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl leading-relaxed">
                 Panduan praktis pengoperasian Web Dashboard Monitoring, portal komputasi interaktif JupyterHub, alokasi akselerasi GPU, dan manajemen berkas di Laboratorium AI Universitas Muhammadiyah Ponorogo.
               </p>
             </div>
@@ -75,7 +74,7 @@ export default function DocumentationView({ showToast }) {
               href="http://76.76.76.188:8090"
               target="_blank"
               rel="noreferrer"
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-lg shadow-blue-600/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium shadow-xs transition-colors"
             >
               <span>Buka Portal JupyterHub</span>
               <ExternalLink className="w-3.5 h-3.5" />
@@ -84,15 +83,15 @@ export default function DocumentationView({ showToast }) {
         </div>
 
         {/* Section Tabs */}
-        <div className="flex flex-wrap items-center gap-2 mt-6 pt-6 border-t border-slate-800">
+        <div className="flex flex-wrap items-center gap-1.5 mt-6 pt-5 border-t border-slate-100">
           {sections.map((sec) => (
             <button
               key={sec.id}
               onClick={() => setActiveSection(sec.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 activeSection === sec.id
-                  ? 'bg-blue-600 text-white font-semibold shadow-md'
-                  : 'bg-slate-900/60 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-800'
+                  ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-200/80 shadow-xs'
+                  : 'bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-slate-200/60'
               }`}
             >
               {sec.label}

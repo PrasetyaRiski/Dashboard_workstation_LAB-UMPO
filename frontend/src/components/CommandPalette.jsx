@@ -148,7 +148,7 @@ export default function CommandPalette({
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 bg-slate-900/40 backdrop-blur-sm motion-backdrop">
       <div 
-        className="w-full max-w-xl bg-white border border-slate-200/90 rounded-2xl shadow-[0_25px_60px_rgba(15,23,42,0.18)] overflow-hidden flex flex-col motion-modal-pop"
+        className="w-full max-w-xl bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden flex flex-col motion-modal-pop"
         onKeyDown={handleKeyDown}
       >
         {/* Search Input Bar */}
@@ -162,7 +162,7 @@ export default function CommandPalette({
             placeholder="Cari perintah, navigasi tab, atau PID proses… (↑ ↓ Enter)"
             className="flex-1 bg-transparent text-sm text-slate-800 placeholder:text-slate-400 outline-none font-medium"
           />
-          <kbd className="px-2 py-0.5 text-[11px] font-mono bg-white text-slate-500 rounded-md border border-slate-200 shadow-sm">
+          <kbd className="px-2 py-0.5 text-[11px] font-mono bg-white text-slate-500 rounded-md border border-slate-200 shadow-xs">
             ESC
           </kbd>
         </div>
@@ -182,9 +182,9 @@ export default function CommandPalette({
                   key={item.id}
                   onClick={item.action}
                   onMouseEnter={() => setSelectedIndex(idx)}
-                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-xs transition-colors ${
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-left text-xs transition-colors ${
                     isSelected 
-                      ? 'bg-blue-50 text-blue-900 font-semibold shadow-sm' 
+                      ? 'bg-blue-50 text-blue-900 font-semibold shadow-xs' 
                       : 'text-slate-700 hover:bg-slate-50'
                   }`}
                   type="button"
@@ -198,7 +198,7 @@ export default function CommandPalette({
                       {item.category}
                     </span>
                     {item.shortcut && (
-                      <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-white text-slate-600 rounded border border-slate-200 shadow-sm">
+                      <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-white text-slate-600 rounded border border-slate-200 shadow-xs">
                         {item.shortcut}
                       </kbd>
                     )}
@@ -216,7 +216,7 @@ export default function CommandPalette({
             <span>↵ Eksekusi</span>
             <span>Esc Tutup</span>
           </div>
-          <span className="text-blue-600 font-semibold">Azure 3D Console · TI UMPO</span>
+          <span className="text-blue-600 font-semibold">Enterprise Console · TI UMPO</span>
         </div>
       </div>
     </div>

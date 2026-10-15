@@ -129,10 +129,10 @@ export default function AuditLogView({ logs = [] }) {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Integrity Compliance Info Bar - 3D Card */}
-      <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Integrity Compliance Info Bar */}
+      <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200/80 flex items-center justify-center text-blue-600 shrink-0 shadow-sm">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200/80 flex items-center justify-center text-blue-600 shrink-0 shadow-xs">
             <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
@@ -151,26 +151,26 @@ export default function AuditLogView({ logs = [] }) {
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="px-3 py-1 bg-slate-100 text-slate-700 font-mono text-xs font-semibold rounded-lg border border-slate-200/80 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]">
+          <span className="px-3 py-1 bg-slate-100 text-slate-700 font-mono text-xs font-semibold rounded-lg border border-slate-200 shadow-xs">
             {logs.length} Peristiwa Terekam
           </span>
         </div>
       </div>
 
-      {/* Main Table / Stream Container - 3D Card */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] overflow-hidden flex flex-col">
+      {/* Main Table / Stream Container */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden flex flex-col">
         {/* Filters and Search Bar */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-b border-slate-200/80 bg-slate-50/70">
-          <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto p-1 bg-slate-200/50 rounded-xl border border-slate-200/60 shadow-[inset_0_1px_2px_rgba(0,0,0,0.03)]">
+          <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto p-1 bg-slate-200/50 rounded-xl border border-slate-200/60">
             {filterChips.map((chip) => {
               const active = filter === chip.id;
               return (
                 <button
                   key={chip.id}
                   onClick={() => setFilter(chip.id)}
-                  className={`px-3 py-1.5 text-xs font-mono font-medium rounded-lg transition-all duration-150 whitespace-nowrap ${
+                  className={`px-3 py-1.5 text-xs font-mono font-medium rounded-lg transition-colors whitespace-nowrap ${
                     active
-                      ? 'bg-white text-blue-700 font-semibold border border-blue-200/80 shadow-[0_2px_4px_rgba(37,99,235,0.1),0_1px_2px_rgba(0,0,0,0.05)]'
+                      ? 'bg-white text-blue-700 font-semibold border border-blue-200/80 shadow-xs'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
                   }`}
                   type="button"
@@ -188,7 +188,7 @@ export default function AuditLogView({ logs = [] }) {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Cari aksi, user, target…"
-              className="w-full bg-white border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-xl py-1.5 pl-9 pr-3 text-xs font-mono text-slate-800 placeholder:text-slate-400 outline-none transition-all shadow-[inset_0_1px_2px_rgba(0,0,0,0.03)]"
+              className="w-full bg-white border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-xl py-1.5 pl-9 pr-3 text-xs font-mono text-slate-800 placeholder:text-slate-400 outline-none transition-all shadow-xs"
             />
           </div>
         </div>

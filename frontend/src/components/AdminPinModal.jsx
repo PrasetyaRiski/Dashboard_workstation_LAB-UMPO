@@ -58,11 +58,11 @@ export default function AdminPinModal({ isOpen, onSuccess, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm motion-backdrop">
-      <div className="w-full max-w-md bg-white border border-slate-200/90 rounded-2xl shadow-[0_20px_50px_rgba(15,23,42,0.15),0_0_0_1px_rgba(255,255,255,0.8)] overflow-hidden flex flex-col motion-modal-pop">
+      <div className="w-full max-w-md bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden flex flex-col motion-modal-pop">
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-gradient-to-b from-slate-50 to-white">
+        <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-white">
           <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-blue-50 border border-blue-200/80 text-blue-600 shadow-sm shrink-0">
+            <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-blue-50 border border-blue-200/80 text-blue-600 shadow-xs shrink-0">
               <Lock className="w-5 h-5" />
             </div>
             <div>
@@ -88,9 +88,9 @@ export default function AdminPinModal({ isOpen, onSuccess, onClose }) {
           <button
             type="button"
             onClick={() => { setLoginMode('simtik'); setErrorMsg(''); }}
-            className={`flex-1 py-2 px-3 rounded-xl text-xs font-mono font-semibold transition-all flex items-center justify-center gap-2 ${
+            className={`flex-1 py-2 px-3 rounded-lg text-xs font-mono font-semibold transition-all flex items-center justify-center gap-2 ${
               loginMode === 'simtik'
-                ? 'bg-white text-blue-700 border border-blue-200 shadow-[0_2px_4px_rgba(37,99,235,0.1)]'
+                ? 'bg-white text-blue-700 border border-blue-200 shadow-xs'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
             }`}
           >
@@ -100,9 +100,9 @@ export default function AdminPinModal({ isOpen, onSuccess, onClose }) {
           <button
             type="button"
             onClick={() => { setLoginMode('pin'); setErrorMsg(''); }}
-            className={`flex-1 py-2 px-3 rounded-xl text-xs font-mono font-semibold transition-all flex items-center justify-center gap-2 ${
+            className={`flex-1 py-2 px-3 rounded-lg text-xs font-mono font-semibold transition-all flex items-center justify-center gap-2 ${
               loginMode === 'pin'
-                ? 'bg-white text-amber-700 border border-amber-200 shadow-[0_2px_4px_rgba(245,158,11,0.1)]'
+                ? 'bg-white text-amber-700 border border-amber-200 shadow-xs'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
             }`}
           >
@@ -132,7 +132,7 @@ export default function AdminPinModal({ isOpen, onSuccess, onClose }) {
                     value={nim}
                     onChange={e => setNim(e.target.value)}
                     placeholder="Contoh: 22533..."
-                    className="w-full bg-slate-50 focus:bg-white border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-xl py-2.5 px-3.5 text-xs font-mono text-slate-900 outline-none transition-all shadow-[inset_0_1px_2px_rgba(0,0,0,0.03)]"
+                    className="w-full bg-slate-50 focus:bg-white border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-lg py-2.5 px-3.5 text-xs font-mono text-slate-900 outline-none transition-all shadow-xs"
                     autoFocus
                   />
                 </div>
@@ -145,7 +145,7 @@ export default function AdminPinModal({ isOpen, onSuccess, onClose }) {
                     value={password}
                     onChange={e => setPassword(e.target.value)}
                     placeholder="Masukkan password SSO..."
-                    className="w-full bg-slate-50 focus:bg-white border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-xl py-2.5 px-3.5 text-xs text-slate-900 outline-none transition-all shadow-[inset_0_1px_2px_rgba(0,0,0,0.03)]"
+                    className="w-full bg-slate-50 focus:bg-white border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-lg py-2.5 px-3.5 text-xs text-slate-900 outline-none transition-all shadow-xs"
                   />
                 </div>
               </>
@@ -161,7 +161,7 @@ export default function AdminPinModal({ isOpen, onSuccess, onClose }) {
                     value={pin}
                     onChange={e => setPin(e.target.value)}
                     placeholder="Ketik PIN Master…"
-                    className="w-full bg-slate-50 focus:bg-white border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 rounded-xl py-2.5 pl-10 pr-3.5 text-xs font-mono tracking-widest text-slate-900 outline-none transition-all shadow-[inset_0_1px_2px_rgba(0,0,0,0.03)]"
+                    className="w-full bg-slate-50 focus:bg-white border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 rounded-lg py-2.5 pl-10 pr-3.5 text-xs font-mono tracking-widest text-slate-900 outline-none transition-all shadow-xs"
                     autoFocus
                   />
                 </div>
@@ -179,14 +179,14 @@ export default function AdminPinModal({ isOpen, onSuccess, onClose }) {
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 rounded-xl bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 border border-slate-200 shadow-[0_2px_0_#cbd5e1,0_2px_4px_rgba(0,0,0,0.03)] active:translate-y-0.5 transition-all"
+                className="px-4 py-2 rounded-lg bg-white hover:bg-slate-50 text-xs font-medium text-slate-700 border border-slate-200 shadow-xs transition-colors"
               >
                 Batal
               </button>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="px-5 py-2 rounded-xl bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-xs font-semibold shadow-[0_2px_0_#1d4ed8,0_4px_10px_rgba(37,99,235,0.25)] active:translate-y-0.5 active:shadow-[0_1px_0_#1d4ed8] transition-all flex items-center gap-2 disabled:opacity-50"
+                className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium shadow-xs transition-colors flex items-center gap-2 disabled:opacity-50"
               >
                 {isLoading ? (
                   'Memverifikasi…'

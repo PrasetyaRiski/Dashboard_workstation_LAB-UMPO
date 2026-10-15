@@ -10,7 +10,8 @@ import sys
 import glob
 import re
 
-MODAL_HTML_SNIPPET = '''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
+MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
+<!-- 1. POPUP MODAL PUSAT BANTUAN & SPESIFIKASI ALOKASI -->
 <div id="lab-ai-popup-overlay" style="display:none; position:fixed; inset:0; z-index:9999999; background:rgba(15,23,42,0.72); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); align-items:center; justify-content:center; padding:16px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
   <div id="lab-ai-popup-card" style="background:#ffffff; color:#0f172a; width:100%; max-width:500px; border-radius:20px; box-shadow:0 25px 50px -12px rgba(15,23,42,0.4), 0 0 0 1px rgba(226,232,240,0.9); overflow:hidden; animation:labModalFadeIn 0.25s cubic-bezier(0.16,1,0.3,1); box-sizing:border-box;">
     
@@ -58,7 +59,7 @@ MODAL_HTML_SNIPPET = '''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
           </div>
         </div>
         <div style="margin-top:8px; font-size:11px; color:#64748b; line-height:1.4;">
-          📊 <em>Penggunaan RAM & CPU live terpantau di <strong>Status Bar pojok kanan bawah</strong>.</em>
+          📊 <em>Spesifikasi & penggunaan live dapat Anda pantau setiap saat pada <strong>Badge Status pojok kanan bawah</strong>.</em>
         </div>
       </div>
 
@@ -103,31 +104,103 @@ MODAL_HTML_SNIPPET = '''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
   </div>
 </div>
 
+<!-- 2. FLOATING PERSISTENT HARDWARE SPECS PILL (Selalu Tampak di JupyterLab) -->
+<div id="lab-ai-status-pill" title="Klik untuk membuka Pusat Bantuan & Rincian Spesifikasi Akun Lab AI" style="position:fixed; bottom:28px; right:16px; z-index:99999; display:flex; align-items:center; gap:8px; background:rgba(15,23,42,0.92); color:#f8fafc; border:1px solid rgba(59,130,246,0.45); box-shadow:0 8px 24px rgba(0,0,0,0.35); padding:6px 14px; border-radius:999px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:11.5px; font-weight:600; cursor:pointer; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); user-select:none; transition:all 0.2s cubic-bezier(0.16,1,0.3,1);">
+  <span class="lab-ai-pulse-dot" style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10b981; box-shadow:0 0 8px #10b981; flex-shrink:0;"></span>
+  <span id="lab-ai-pill-text">⚡ 2 Core CPU &bull; 4 GB RAM &bull; GPU 1 (Shared) &bull; 10 GB Kuota</span>
+  <span style="font-size:10.5px; background:rgba(59,130,246,0.25); color:#93c5fd; padding:2px 8px; border-radius:999px; border:1px solid rgba(59,130,246,0.35); margin-left:4px; font-weight:700;">Detail ℹ️</span>
+</div>
+
 <style>
 @keyframes labModalFadeIn {
   from { opacity: 0; transform: scale(0.94) translateY(10px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
-#btn-dismiss-lab-popup:hover { background: #1d4ed8; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(37,99,235,0.35); }
-#btn-dismiss-lab-popup:active { transform: translateY(1px); }
+@keyframes labPulseDot {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1.1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+.lab-ai-pulse-dot {
+  animation: labPulseDot 2s infinite ease-in-out;
+}
+#lab-ai-status-pill:hover {
+  transform: translateY(-2px);
+  background: rgba(15, 23, 42, 0.98);
+  border-color: rgba(96, 165, 250, 0.8);
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.45);
+}
+#lab-ai-status-pill:active {
+  transform: translateY(0);
+}
+#btn-dismiss-lab-popup:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(37,99,235,0.35);
+}
+#btn-dismiss-lab-popup:active {
+  transform: translateY(1px);
+}
 </style>
 
 <script>
 (function() {
   function initLabNotice() {
     var overlay = document.getElementById('lab-ai-popup-overlay');
-    var btn = document.getElementById('btn-dismiss-lab-popup');
-    if (!overlay || !btn) return;
+    var btnDismiss = document.getElementById('btn-dismiss-lab-popup');
+    var pill = document.getElementById('lab-ai-status-pill');
+    var pillText = document.getElementById('lab-ai-pill-text');
 
-    // Tampilkan modal setiap kali halaman JupyterLab dibuka / login baru
-    // Berikan delay halus 1.2 detik agar UI JupyterLab selesai loading di layar
+    // Tampilkan modal sambutan 1.2 detik setelah halaman JupyterLab selesai render
     setTimeout(function() {
-      overlay.style.display = 'flex';
+      if (overlay) overlay.style.display = 'flex';
     }, 1200);
 
-    btn.onclick = function() {
-      overlay.style.display = 'none';
-    };
+    // Tombol tutup modal
+    if (btnDismiss && overlay) {
+      btnDismiss.onclick = function() {
+        overlay.style.display = 'none';
+      };
+    }
+
+    // Klik Floating Pill untuk membuka kembali modal kapan saja
+    if (pill && overlay) {
+      pill.onclick = function() {
+        overlay.style.display = 'flex';
+      };
+    }
+
+    // Pemantau penggunaan memori & CPU secara live via jupyter-resource-usage REST API
+    function fetchLiveMetrics() {
+      if (!pillText) return;
+      try {
+        var baseMatch = window.location.pathname.match(/^(\/user\/[^\/]+)/);
+        var prefix = baseMatch ? baseMatch[1] : '';
+        var apiUrl = prefix + '/api/metrics/v1';
+
+        fetch(apiUrl, { credentials: 'same-origin' })
+          .then(function(res) {
+            if (!res.ok) throw new Error('Status ' + res.status);
+            return res.json();
+          })
+          .then(function(data) {
+            if (!data) return;
+            var memUsedMB = Math.round((data.rss || 0) / (1024 * 1024));
+            var memLimitBytes = data.limits && data.limits.memory && data.limits.memory.rss;
+            var memLimitStr = memLimitBytes ? (memLimitBytes / (1024 * 1024 * 1024)).toFixed(0) + ' GB' : '4 GB';
+            var memDisplay = memUsedMB >= 1024 ? (memUsedMB / 1024).toFixed(1) + ' GB' : memUsedMB + ' MB';
+            var cpuStr = (data.cpu_percent !== undefined && data.cpu_percent !== null) ? (' &bull; CPU: ' + Math.round(data.cpu_percent) + '%') : ' &bull; 2 Core';
+
+            pillText.innerHTML = '⚡ RAM: <strong style="color:#60a5fa;">' + memDisplay + ' / ' + memLimitStr + '</strong>' + cpuStr + ' &bull; GPU 1 &bull; 10 GB';
+          })
+          .catch(function(err) {
+            // Jika metrics API belum aktif / server belum direstart, pertahankan tampilan alokasi default
+          });
+      } catch(e) {}
+    }
+
+    fetchLiveMetrics();
+    setInterval(fetchLiveMetrics, 8000);
   }
 
   if (document.readyState === 'loading') {

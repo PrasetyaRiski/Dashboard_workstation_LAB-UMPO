@@ -169,6 +169,9 @@ if [ -f "$JH_CONFIG" ]; then
     # Konfigurasi system-wide jupyter-resource-usage agar otomatis membaca cgroups dan menampilkan indikator CPU & RAM
     sudo mkdir -p /etc/jupyter
     sudo tee /etc/jupyter/jupyter_server_config.py > /dev/null << 'EOF_RES'
+c.ServerApp.jpserver_extensions = {
+    'jupyter_resource_usage': True
+}
 c.ResourceUseDisplay.track_cpu_percent = True
 c.ResourceUseDisplay.enable_menu = True
 EOF_RES
@@ -176,6 +179,19 @@ EOF_RES
     if [ -d "/opt/jupyterhub" ]; then
         sudo mkdir -p /opt/jupyterhub/etc/jupyter 2>/dev/null || true
         sudo cp -f /etc/jupyter/jupyter_server_config.py /opt/jupyterhub/etc/jupyter/ 2>/dev/null || true
+    fi
+
+    # Aktifkan extension secara eksplisit di environment Python sistem & JupyterHub
+    echo "⚙️ Mengaktifkan extension jupyter-resource-usage..."
+    if [ -x "/opt/jupyterhub/bin/jupyter" ]; then
+        sudo /opt/jupyterhub/bin/jupyter server extension enable --py jupyter_resource_usage --sys-prefix 2>/dev/null || true
+        sudo /opt/jupyterhub/bin/jupyter serverextension enable --py jupyter_resource_usage --sys-prefix 2>/dev/null || true
+        sudo /opt/jupyterhub/bin/jupyter labextension enable @jupyter-server/resource-usage 2>/dev/null || true
+    fi
+    if command -v jupyter &> /dev/null; then
+        sudo jupyter server extension enable --py jupyter_resource_usage --sys-prefix 2>/dev/null || true
+        sudo jupyter serverextension enable --py jupyter_resource_usage --sys-prefix 2>/dev/null || true
+        sudo jupyter labextension enable @jupyter-server/resource-usage 2>/dev/null || true
     fi
 
     # 5.3 Bersihkan konfigurasi versi lama agar tidak terjadi duplikasi
@@ -253,6 +269,10 @@ EOF
     else
         echo "⚠️ Cek status jupyterhub: sudo systemctl status jupyterhub.service"
     fi
+
+    # Segarkan notebook server single-user yang sedang berjalan agar segera memuat extension baru
+    echo "🔄 Menyegarkan proses single-user notebook server yang aktif..."
+    sudo pkill -f 'jupyterhub-singleuser' 2>/dev/null || true
 else
     echo "⚠️ File jupyterhub_config.py tidak ditemukan di path default. Silakan cek lokasinya."
 fi

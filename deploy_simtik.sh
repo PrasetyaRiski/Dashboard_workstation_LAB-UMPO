@@ -155,7 +155,30 @@ if [ -f "$JH_CONFIG" ]; then
         fi
     fi
 
-    # 5.2 Bersihkan konfigurasi versi lama agar tidak terjadi duplikasi
+    # 5.2 Pastikan jupyter-resource-usage terinstall untuk menampilkan RAM & CPU Live di Status Bar JupyterLab
+    echo "📊 Memeriksa & menginstall jupyter-resource-usage (Status Bar Live RAM & CPU)..."
+    if [ -x "/opt/jupyterhub/bin/pip" ]; then
+        sudo /opt/jupyterhub/bin/pip install --quiet --break-system-packages jupyter-resource-usage 2>/dev/null \
+            || sudo /opt/jupyterhub/bin/pip install --quiet jupyter-resource-usage 2>/dev/null || true
+    fi
+    if command -v pip3 &> /dev/null; then
+        sudo pip3 install --quiet --break-system-packages jupyter-resource-usage 2>/dev/null \
+            || sudo pip3 install --quiet jupyter-resource-usage 2>/dev/null || true
+    fi
+
+    # Konfigurasi system-wide jupyter-resource-usage agar otomatis membaca cgroups dan menampilkan indikator CPU & RAM
+    sudo mkdir -p /etc/jupyter
+    sudo tee /etc/jupyter/jupyter_server_config.py > /dev/null << 'EOF_RES'
+c.ResourceUseDisplay.track_cpu_percent = True
+c.ResourceUseDisplay.enable_menu = True
+EOF_RES
+    sudo cp -f /etc/jupyter/jupyter_server_config.py /etc/jupyter/jupyter_notebook_config.py 2>/dev/null || true
+    if [ -d "/opt/jupyterhub" ]; then
+        sudo mkdir -p /opt/jupyterhub/etc/jupyter 2>/dev/null || true
+        sudo cp -f /etc/jupyter/jupyter_server_config.py /opt/jupyterhub/etc/jupyter/ 2>/dev/null || true
+    fi
+
+    # 5.3 Bersihkan konfigurasi versi lama agar tidak terjadi duplikasi
     sudo sed -i '/# === BEGIN SIMTIK & QoS CONFIG ===/,/# === END SIMTIK & QoS CONFIG ===/d' "$JH_CONFIG" 2>/dev/null || true
     sudo sed -i '/# =* INTEGRASI OTENTIKASI SIMTIK UMPO/,+35d' "$JH_CONFIG" 2>/dev/null || true
     sudo sed -i '/jupyterhub_simtik_auth/d' "$JH_CONFIG" 2>/dev/null || true

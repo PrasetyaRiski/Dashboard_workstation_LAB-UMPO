@@ -38,6 +38,30 @@ MODAL_HTML_SNIPPET = '''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
         Selamat datang di Lingkungan Komputasi AI & JupyterHub.
       </p>
 
+      <!-- Hardware Allocation Specs Card -->
+      <div style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:14px; padding:12px 14px; margin-bottom:14px;">
+        <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:#334155; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+          <span>⚡</span> Alokasi Hardware Akun Anda (Standard Tier):
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:11.5px; font-family:monospace;">
+          <div style="background:#ffffff; padding:6px 10px; border-radius:8px; border:1px solid #e2e8f0; display:flex; justify-content:space-between;">
+            <span style="color:#64748b;">RAM Limit</span> <strong style="color:#0f172a;">4 GB</strong>
+          </div>
+          <div style="background:#ffffff; padding:6px 10px; border-radius:8px; border:1px solid #e2e8f0; display:flex; justify-content:space-between;">
+            <span style="color:#64748b;">CPU Quota</span> <strong style="color:#0f172a;">2 Core</strong>
+          </div>
+          <div style="background:#ffffff; padding:6px 10px; border-radius:8px; border:1px solid #e2e8f0; display:flex; justify-content:space-between;">
+            <span style="color:#64748b;">GPU Compute</span> <strong style="color:#2563eb;">GPU 1 (Shared)</strong>
+          </div>
+          <div style="background:#ffffff; padding:6px 10px; border-radius:8px; border:1px solid #e2e8f0; display:flex; justify-content:space-between;">
+            <span style="color:#64748b;">Storage Kuota</span> <strong style="color:#0f172a;">10 GB</strong>
+          </div>
+        </div>
+        <div style="margin-top:8px; font-size:11px; color:#64748b; line-height:1.4;">
+          📊 <em>Penggunaan RAM & CPU live terpantau di <strong>Status Bar pojok kanan bawah</strong>.</em>
+        </div>
+      </div>
+
       <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; padding:14px 16px; margin-bottom:16px;">
         <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
           <span style="font-size:14px;">⚠️</span>

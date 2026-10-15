@@ -11,224 +11,200 @@ import glob
 import re
 
 MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
-<!-- 1. POPUP MODAL PUSAT BANTUAN & REAL-TIME PERFORMANCE GAUGES -->
-<div id="lab-ai-popup-overlay" style="display:none; position:fixed; inset:0; z-index:9999999; background:rgba(15,23,42,0.75); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); align-items:center; justify-content:center; padding:16px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-  <div id="lab-ai-popup-card" style="background:#0f172a; color:#f8fafc; width:100%; max-width:540px; border-radius:24px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.7), 0 0 0 1px rgba(59,130,246,0.25); overflow:hidden; animation:labModalFadeIn 0.25s cubic-bezier(0.16,1,0.3,1); box-sizing:border-box;">
+<!-- 1. POPUP MODAL PUSAT BANTUAN & REAL-TIME PERFORMANCE BENTO CONSOLE -->
+<div id="lab-ai-popup-overlay" style="display:none; position:fixed; inset:0; z-index:9999999; background:rgba(4,7,13,0.78); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); align-items:center; justify-content:center; padding:16px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Inter',sans-serif;">
+  <div id="lab-ai-popup-card" style="background:#0d1117; color:#f0f6fc; width:100%; max-width:560px; border-radius:18px; border:1px solid rgba(255,255,255,0.12); box-shadow:0 24px 64px -12px rgba(0,0,0,0.85), 0 0 0 1px rgba(255,255,255,0.04); overflow:hidden; animation:labModalFadeIn 0.2s cubic-bezier(0.16,1,0.3,1); box-sizing:border-box;">
     
     <!-- Modal Header -->
-    <div style="background:linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%); padding:18px 22px; color:#ffffff; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.1);">
-      <div style="display:flex; align-items:center; gap:12px;">
-        <div style="width:38px; height:38px; border-radius:12px; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.25); display:flex; align-items:center; justify-content:center; font-size:20px; shrink:0;">
-          ⚡
+    <div style="background:#161b22; padding:16px 20px; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:space-between;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div style="width:32px; height:32px; border-radius:8px; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.25); display:flex; align-items:center; justify-content:center; color:#38bdf8;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
         </div>
         <div>
-          <div style="display:inline-flex; align-items:center; gap:5px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; background:rgba(16,185,129,0.25); color:#6ee7b7; padding:2px 8px; border-radius:999px; margin-bottom:2px; border:1px solid rgba(16,185,129,0.35);">
-            <span class="lab-ai-pulse-dot" style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#10b981; shrink:0;"></span>
-            Live Performance Monitor
+          <div style="display:flex; align-items:center; gap:8px;">
+            <h3 style="margin:0; font-size:14.5px; font-weight:600; letter-spacing:-0.01em; color:#f0f6fc;">
+              Workstation Resource Monitor
+            </h3>
+            <span style="font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; background:rgba(63,185,80,0.15); color:#3fb950; border:1px solid rgba(63,185,80,0.3); padding:1px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:4px;">
+              <span class="lab-live-dot" style="width:5px; height:5px; border-radius:50%; background:#3fb950;"></span> Live 3s
+            </span>
           </div>
-          <h3 style="margin:0; font-size:15.5px; font-weight:700; letter-spacing:-0.01em; line-height:1.2;">
-            Pusat Monitoring & Bantuan Lab AI UMPO
-          </h3>
+          <p style="margin:2px 0 0; font-size:11px; color:#8b949e;">
+            Laboratorium Komputasi AI &bull; FT Universitas Muhammadiyah Ponorogo
+          </p>
         </div>
       </div>
-      <div id="modal-user-badge" style="font-size:11px; font-family:monospace; background:rgba(0,0,0,0.3); padding:4px 8px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); color:#93c5fd;">
-        NIM: Deteksi...
-      </div>
+      <button id="btn-close-x" style="background:transparent; border:none; color:#8b949e; cursor:pointer; padding:6px; border-radius:6px; display:flex; align-items:center; justify-content:center; transition:color 0.15s ease;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
     </div>
 
     <!-- Modal Content Body -->
-    <div style="padding:20px 22px; font-size:12.5px; line-height:1.5; color:#cbd5e1; max-height:80vh; overflow-y:auto;">
+    <div style="padding:18px 20px; font-size:12px; line-height:1.5; color:#c9d1d9; max-height:80vh; overflow-y:auto;">
       
-      <!-- Alert Box: Kritis Overquota & Instruksi Backup -->
-      <div id="overquota-alert-box" style="display:none; background:linear-gradient(135deg, rgba(239,68,68,0.22) 0%, rgba(185,28,28,0.3) 100%); border:2px solid #ef4444; border-radius:16px; padding:16px; margin-bottom:14px; box-shadow:0 0 25px rgba(239,68,68,0.4); animation:labPulseBorder 2s infinite alternate;">
-        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
-          <span style="font-size:24px; line-height:1;">🚨</span>
-          <div>
-            <strong id="oq-box-title" style="color:#fca5a5; font-size:13px; text-transform:uppercase; letter-spacing:0.04em; display:block;">
-              Peringatan Kritis: Penyimpanan Melebihi Kuota (Overquota)
-            </strong>
-            <span style="font-size:11px; color:#fecaca;">Batas Maksimal Penyimpanan Akun Anda Telah Terlampaui</span>
+      <!-- Account Info Strip -->
+      <div style="display:flex; justify-content:space-between; align-items:center; background:#161b22; border-radius:8px; padding:8px 12px; margin-bottom:14px; font-size:11.5px; border:1px solid rgba(255,255,255,0.06);">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="color:#8b949e;">User:</span>
+          <strong id="modal-user-name" style="font-family:ui-monospace, monospace; color:#58a6ff; font-weight:600;">Detecting...</strong>
+          <span style="color:rgba(255,255,255,0.15);">&bull;</span>
+          <span id="modal-user-tier" style="color:#8b949e;">Standard Tier (2C / 4GB)</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span style="color:#8b949e;">Updated:</span>
+          <span id="modal-sync-time" style="font-family:ui-monospace, monospace; color:#f0f6fc;">--:--:--</span>
+        </div>
+      </div>
+
+      <!-- Overquota Critical Alert (Minimalist & Serious) -->
+      <div id="overquota-alert-box" style="display:none; background:rgba(248,81,73,0.08); border:1px solid rgba(248,81,73,0.35); border-radius:10px; padding:12px 14px; margin-bottom:14px;">
+        <div style="display:flex; align-items:flex-start; gap:10px;">
+          <div style="color:#f85149; margin-top:1px; flex-shrink:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          </div>
+          <div style="flex:1;">
+            <div style="font-weight:600; font-size:12px; color:#ff7b72; margin-bottom:3px;">
+              Peringatan: Kapasitas Penyimpanan Melebihi Kuota (Overquota)
+            </div>
+            <div style="font-size:11.5px; color:#c9d1d9; line-height:1.5;">
+              Penggunaan disk Anda telah mencapai <strong id="oq-used-val" style="color:#ff7b72;">-- GB</strong> dari kuota <strong id="oq-quota-val">10.00 GB</strong> (<span id="oq-pct-val">--%</span>).
+            </div>
+            <div style="margin-top:8px; font-size:11px; color:#8b949e; line-height:1.5; background:#0d1117; padding:8px 10px; border-radius:6px; border:1px solid rgba(255,255,255,0.06);">
+              <strong style="color:#f0f6fc;">Tindakan Diperlukan:</strong>
+              <div style="margin-top:3px;">1. Segera unduh (download) notebook <code>.ipynb</code> dan berkas penting ke perangkat lokal.</div>
+              <div>2. Hapus file checkpoint model (<code>.pt</code>, <code>.ckpt</code>) dan cache tidak terpakai dari panel File Browser.</div>
+              <div style="margin-top:4px; color:#ff7b72;">&bull; Berkas berukuran besar dapat dihapus otomatis oleh Administrator jika kuota tidak dirapikan.</div>
+            </div>
           </div>
         </div>
+      </div>
+
+      <!-- Bento Grid: 4 Metric Cards -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
         
-        <p style="margin:8px 0 10px; font-size:12px; line-height:1.55; color:#ffffff; background:rgba(0,0,0,0.4); padding:10px 12px; border-radius:10px; border:1px solid rgba(239,68,68,0.35);">
-          Penyimpanan Anda saat ini telah mencapai <strong id="oq-used-val" style="color:#ef4444; font-size:13px;">-- GB</strong> dari batas kuota <strong id="oq-quota-val">10 GB</strong> (<span id="oq-pct-val" style="color:#fca5a5; font-weight:700;">--%</span>).
-        </p>
-
-        <div style="background:rgba(15,23,42,0.85); border:1px solid rgba(239,68,68,0.4); border-radius:12px; padding:12px; margin-bottom:10px; font-size:11.5px; color:#f8fafc; line-height:1.6;">
-          <div style="font-weight:700; color:#fca5a5; margin-bottom:4px; display:flex; align-items:center; gap:6px;">
-            <span>⚠️</span> TINDAKAN SEGERA YANG HARUS DILAKUKAN:
+        <!-- Metric 1: CPU -->
+        <div style="background:#161b22; border:1px solid rgba(255,255,255,0.07); border-radius:10px; padding:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <span style="font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:#8b949e;">CPU Allocation</span>
+            <span id="gauge-txt-cpu-cores" style="font-size:10.5px; font-family:ui-monospace, monospace; color:#8b949e;">0.0 / 2.0 Cores</span>
           </div>
-          <ol style="margin:0; padding-left:18px; display:flex; flex-direction:column; gap:4px;">
-            <li>
-              <strong>Segera Cadangkan (Download Berkas):</strong> Klik kanan file notebook (<code>.ipynb</code>), dataset, atau script penting Anda di File Browser sebelah kiri &rarr; pilih <em>Download</em> ke komputer lokal Anda sekarang juga.
-            </li>
-            <li>
-              <strong>Hapus Berkas Sampah:</strong> Hapus file checkpoint model (<code>.pt</code>, <code>.pth</code>, <code>.ckpt</code>), folder cache (<code>.cache</code>), atau dataset duplikat yang tidak lagi digunakan.
-            </li>
-          </ol>
-        </div>
-
-        <div style="font-size:11px; color:#fecaca; background:rgba(239,68,68,0.25); padding:8px 12px; border-radius:8px; border-left:4px solid #ef4444; line-height:1.5;">
-          ⏳ <strong>PEMBERITAHUAN KEBIJAKAN ADMINISTRATOR:</strong><br/>
-          Sesuai SOP Lab AI FT UMPO, jika berkas tidak segera dibackup dan kuota tidak dirapikan dalam waktu dekat, <strong>Admin Lab akan menghapus berkas-berkas berukuran besar secara otomatis</strong> untuk menjaga kestabilan sistem server.
-        </div>
-      </div>
-
-      <!-- Real-Time Hardware Performance Gauges -->
-      <div style="background:#1e293b; border:1px solid #334155; border-radius:16px; padding:14px; margin-bottom:14px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-          <span style="font-size:11px; font-weight:700; text-transform:uppercase; color:#94a3b8; letter-spacing:0.05em;">
-            📊 Real-Time Resource Gauges (Live 3s):
-          </span>
-          <span id="modal-sync-time" style="font-size:10.5px; font-family:monospace; color:#64748b;">
-            Sinkronisasi...
-          </span>
-        </div>
-
-        <!-- 1. CPU Gauge -->
-        <div style="margin-bottom:10px;">
-          <div style="display:flex; justify-content:space-between; font-size:11.5px; margin-bottom:4px;">
-            <span style="color:#93c5fd; font-weight:600;">⚡ CPU Usage (2 Core):</span>
-            <span id="gauge-txt-cpu" style="font-weight:700; color:#f8fafc; font-family:monospace;">0% (0.0 / 2 Core)</span>
+          <div id="gauge-txt-cpu-pct" style="font-size:20px; font-weight:700; color:#f0f6fc; font-family:ui-monospace, monospace; margin-bottom:8px;">
+            0%
           </div>
-          <div style="width:100%; height:7px; background:#0f172a; border-radius:999px; overflow:hidden;">
-            <div id="gauge-bar-cpu" style="width:0%; height:100%; background:linear-gradient(90deg, #3b82f6, #60a5fa); border-radius:999px; transition:width 0.4s ease;"></div>
+          <div style="width:100%; height:4px; background:rgba(255,255,255,0.08); border-radius:999px; overflow:hidden;">
+            <div id="gauge-bar-cpu" style="width:0%; height:100%; background:#38bdf8; border-radius:999px; transition:width 0.3s ease;"></div>
           </div>
         </div>
 
-        <!-- 2. RAM Gauge -->
-        <div style="margin-bottom:10px;">
-          <div style="display:flex; justify-content:space-between; font-size:11.5px; margin-bottom:4px;">
-            <span style="color:#6ee7b7; font-weight:600;">🧠 RAM Memory (4 GB Limit):</span>
-            <span id="gauge-txt-ram" style="font-weight:700; color:#f8fafc; font-family:monospace;">0 MB / 4,096 MB (0%)</span>
+        <!-- Metric 2: Memory (RAM) -->
+        <div style="background:#161b22; border:1px solid rgba(255,255,255,0.07); border-radius:10px; padding:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <span style="font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:#8b949e;">Memory (RAM)</span>
+            <span id="gauge-txt-ram-max" style="font-size:10.5px; font-family:ui-monospace, monospace; color:#8b949e;">Limit 4.00 GB</span>
           </div>
-          <div style="width:100%; height:7px; background:#0f172a; border-radius:999px; overflow:hidden;">
-            <div id="gauge-bar-ram" style="width:0%; height:100%; background:linear-gradient(90deg, #10b981, #34d399); border-radius:999px; transition:width 0.4s ease;"></div>
+          <div id="gauge-txt-ram-val" style="font-size:20px; font-weight:700; color:#f0f6fc; font-family:ui-monospace, monospace; margin-bottom:8px;">
+            0.00 GB <span id="gauge-txt-ram-pct" style="font-size:12px; font-weight:500; color:#8b949e;">(0%)</span>
           </div>
-        </div>
-
-        <!-- 3. GPU Gauge -->
-        <div style="margin-bottom:10px;">
-          <div style="display:flex; justify-content:space-between; font-size:11.5px; margin-bottom:4px;">
-            <span style="color:#d8b4fe; font-weight:600;">🎮 GPU 1 Compute & VRAM:</span>
-            <span id="gauge-txt-gpu" style="font-weight:700; color:#f8fafc; font-family:monospace;">0% • VRAM: 0 MB / 4.8 GB</span>
-          </div>
-          <div style="width:100%; height:7px; background:#0f172a; border-radius:999px; overflow:hidden;">
-            <div id="gauge-bar-gpu" style="width:0%; height:100%; background:linear-gradient(90deg, #8b5cf6, #c084fc); border-radius:999px; transition:width 0.4s ease;"></div>
+          <div style="width:100%; height:4px; background:rgba(255,255,255,0.08); border-radius:999px; overflow:hidden;">
+            <div id="gauge-bar-ram" style="width:0%; height:100%; background:#3fb950; border-radius:999px; transition:width 0.3s ease;"></div>
           </div>
         </div>
 
-        <!-- 4. Storage Gauge -->
-        <div>
-          <div style="display:flex; justify-content:space-between; font-size:11.5px; margin-bottom:4px;">
-            <span style="color:#fde047; font-weight:600;">💾 Storage Disk (10 GB Kuota):</span>
-            <span id="gauge-txt-disk" style="font-weight:700; color:#f8fafc; font-family:monospace;">0 MB / 10 GB (0%)</span>
+        <!-- Metric 3: GPU Accelerator -->
+        <div style="background:#161b22; border:1px solid rgba(255,255,255,0.07); border-radius:10px; padding:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <span style="font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:#8b949e;">GPU Compute (Shared)</span>
+            <span id="gauge-txt-gpu-name" style="font-size:10.5px; font-family:ui-monospace, monospace; color:#8b949e;">RTX 5060 Ti</span>
           </div>
-          <div style="width:100%; height:7px; background:#0f172a; border-radius:999px; overflow:hidden;">
-            <div id="gauge-bar-disk" style="width:0%; height:100%; background:linear-gradient(90deg, #eab308, #facc15); border-radius:999px; transition:width 0.4s ease;"></div>
+          <div id="gauge-txt-gpu-comp" style="font-size:20px; font-weight:700; color:#f0f6fc; font-family:ui-monospace, monospace; margin-bottom:8px;">
+            0% <span id="gauge-txt-gpu-vram" style="font-size:11px; font-weight:400; color:#8b949e;">(VRAM 0 MB)</span>
+          </div>
+          <div style="width:100%; height:4px; background:rgba(255,255,255,0.08); border-radius:999px; overflow:hidden;">
+            <div id="gauge-bar-gpu" style="width:0%; height:100%; background:#a371f7; border-radius:999px; transition:width 0.3s ease;"></div>
+          </div>
+        </div>
+
+        <!-- Metric 4: Storage Quota -->
+        <div style="background:#161b22; border:1px solid rgba(255,255,255,0.07); border-radius:10px; padding:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <span style="font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:#8b949e;">Storage Quota</span>
+            <span id="gauge-txt-disk-max" style="font-size:10.5px; font-family:ui-monospace, monospace; color:#8b949e;">Quota 10.00 GB</span>
+          </div>
+          <div id="gauge-txt-disk-val" style="font-size:20px; font-weight:700; color:#f0f6fc; font-family:ui-monospace, monospace; margin-bottom:8px;">
+            0.00 GB <span id="gauge-txt-disk-pct" style="font-size:12px; font-weight:500; color:#8b949e;">(0%)</span>
+          </div>
+          <div style="width:100%; height:4px; background:rgba(255,255,255,0.08); border-radius:999px; overflow:hidden;">
+            <div id="gauge-bar-disk" style="width:0%; height:100%; background:#d29922; border-radius:999px; transition:width 0.3s ease;"></div>
           </div>
         </div>
 
       </div>
 
-      <!-- Panduan Mengatasi Kendala -->
-      <div style="background:#131d31; border:1px solid #1e293b; border-radius:14px; padding:12px 14px; margin-bottom:12px;">
-        <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
-          <span style="font-size:13px;">⚠️</span>
-          <span style="font-weight:700; font-size:11px; color:#f87171; text-transform:uppercase; letter-spacing:0.04em;">
-            Tips Mengatasi Kendala Praktikum:
-          </span>
-        </div>
-        <ul style="margin:0; padding-left:16px; font-size:11.5px; color:#94a3b8; display:flex; flex-direction:column; gap:5px;">
-          <li>
-            <strong style="color:#f1f5f9;">Kernel Mati / OOM:</strong> Menu <em>Kernel &rarr; Restart Kernel and Clear Outputs</em>, kecilkan <code>batch_size</code>.
-          </li>
-          <li>
-            <strong style="color:#f1f5f9;">Penyimpanan Penuh:</strong> Hapus berkas checkpoint besar yang tidak terpakai dari file browser.
-          </li>
-          <li>
-            <strong style="color:#f1f5f9;">Sesi Terkunci (403):</strong> Logout dari tab atau perangkat lama via menu <em>File &rarr; Log Out</em>.
-          </li>
-        </ul>
-      </div>
-
-      <div style="background:rgba(37,99,235,0.12); border:1px solid rgba(59,130,246,0.3); border-radius:12px; padding:10px 12px; font-size:11.5px; color:#93c5fd; display:flex; gap:8px; align-items:flex-start;">
-        <span style="font-size:14px; line-height:1;">💡</span>
-        <span>
-          Jika kendala berlanjut, laporkan kepada <strong>Asisten Laboratorium</strong> yang bertugas di Laboratorium AI Fakultas Teknik UMPO.
-        </span>
+      <!-- Minimalist Technical Guidance -->
+      <div style="background:#161b22; border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:10px 12px; font-size:11px; color:#8b949e; line-height:1.5;">
+        <span style="color:#f0f6fc; font-weight:600;">Petunjuk Praktikum:</span>
+        Jika notebook mengalami <em>Kernel Died / OOM</em>, gunakan menu <code>Kernel &rarr; Restart Kernel and Clear Outputs</code> dan turunkan ukuran <code>batch_size</code>. Untuk mengunduh berkas, klik kanan file di panel kiri dan pilih <code>Download</code>.
       </div>
     </div>
 
-    <!-- Modal Footer Actions -->
-    <div style="padding:12px 20px; background:#0b1120; border-top:1px solid #1e293b; display:flex; justify-content:space-between; align-items:center;">
-      <span style="font-size:11px; color:#64748b;">
-        ⚡ Terhubung ke Node AI Server
+    <!-- Modal Footer -->
+    <div style="padding:12px 20px; background:#161b22; border-top:1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-between; align-items:center;">
+      <span style="font-size:11px; font-family:ui-monospace, monospace; color:#8b949e;">
+        Node: ai-ftumpo-01 &bull; cgroups v2
       </span>
-      <button id="btn-dismiss-lab-popup" style="background:#2563eb; color:#ffffff; border:none; padding:8px 18px; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer; box-shadow:0 2px 6px rgba(37,99,235,0.35); transition:all 0.15s ease;">
-        Tutup & Kembali Bekerja
+      <button id="btn-dismiss-lab-popup" style="background:#238636; color:#ffffff; border:1px solid rgba(240,246,252,0.1); padding:7px 16px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; transition:background 0.15s ease;">
+        Tutup Monitor
       </button>
     </div>
 
   </div>
 </div>
 
-<!-- 2. FLOATING REAL-TIME PERFORMANCE PILL (Selalu Tampak di Layar JupyterLab) -->
-<div id="lab-ai-status-pill" title="Klik untuk membuka Real-Time Performance Monitor & Panduan Lab AI" style="position:fixed; bottom:24px; right:16px; z-index:99999; display:flex; align-items:center; gap:8px; background:rgba(15,23,42,0.92); color:#f8fafc; border:1px solid rgba(59,130,246,0.4); box-shadow:0 8px 24px rgba(0,0,0,0.4); padding:5px 12px; border-radius:999px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,sans-serif; font-size:11px; font-weight:600; cursor:pointer; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); user-select:none; transition:all 0.2s cubic-bezier(0.16,1,0.3,1);">
+<!-- 2. FLOATING REAL-TIME PERFORMANCE TOOLBAR (Sleek Developer Pill) -->
+<div id="lab-ai-status-pill" title="Workstation Telemetry & Resource Monitor (Klik untuk rincian)" style="position:fixed; bottom:22px; right:18px; z-index:99999; display:flex; align-items:center; gap:8px; background:rgba(13,17,23,0.92); color:#c9d1d9; border:1px solid rgba(255,255,255,0.14); box-shadow:0 8px 24px rgba(0,0,0,0.5); padding:5px 12px; border-radius:999px; font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,monospace; font-size:11px; cursor:pointer; backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); user-select:none; transition:all 0.2s cubic-bezier(0.16,1,0.3,1);">
   
-  <span class="lab-ai-pulse-dot" style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#10b981; box-shadow:0 0 8px #10b981; shrink:0;"></span>
+  <span class="lab-live-dot" style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#3fb950; shrink:0;"></span>
   
-  <div id="lab-ai-live-tags" style="display:flex; align-items:center; gap:6px;">
-    <!-- CPU Tag -->
-    <span style="background:rgba(59,130,246,0.18); border:1px solid rgba(59,130,246,0.35); padding:1.5px 7px; border-radius:6px; display:inline-flex; gap:3px;">
-      <strong style="color:#93c5fd;">CPU</strong> <span id="pill-val-cpu">--%</span>
-    </span>
-    <!-- RAM Tag -->
-    <span style="background:rgba(16,185,129,0.18); border:1px solid rgba(16,185,129,0.35); padding:1.5px 7px; border-radius:6px; display:inline-flex; gap:3px;">
-      <strong style="color:#6ee7b7;">RAM</strong> <span id="pill-val-ram">-- / 4G</span>
-    </span>
-    <!-- GPU Tag -->
-    <span style="background:rgba(168,85,247,0.18); border:1px solid rgba(168,85,247,0.35); padding:1.5px 7px; border-radius:6px; display:inline-flex; gap:3px;">
-      <strong style="color:#d8b4fe;">GPU 1</strong> <span id="pill-val-gpu">--%</span>
-    </span>
-    <!-- Disk Tag -->
-    <span style="background:rgba(234,179,8,0.18); border:1px solid rgba(234,179,8,0.35); padding:1.5px 7px; border-radius:6px; display:inline-flex; gap:3px;">
-      <strong style="color:#fde047;">Disk</strong> <span id="pill-val-disk">-- / 10G</span>
-    </span>
+  <div id="lab-ai-live-tags" style="display:flex; align-items:center; gap:8px;">
+    <span>CPU <strong id="pill-val-cpu" style="color:#f0f6fc;">--%</strong></span>
+    <span style="color:rgba(255,255,255,0.15);">&bull;</span>
+    <span>RAM <strong id="pill-val-ram" style="color:#f0f6fc;">--/4G</strong></span>
+    <span style="color:rgba(255,255,255,0.15);">&bull;</span>
+    <span>GPU <strong id="pill-val-gpu" style="color:#f0f6fc;">--%</strong></span>
+    <span style="color:rgba(255,255,255,0.15);">&bull;</span>
+    <span id="pill-disk-container">Disk <strong id="pill-val-disk" style="color:#f0f6fc;">--/10G</strong></span>
   </div>
 
-  <span style="font-size:10px; background:#2563eb; color:#ffffff; padding:2px 8px; border-radius:999px; margin-left:2px; font-weight:700;">
-    📊 Monitor
+  <span style="background:rgba(255,255,255,0.08); color:#8b949e; font-size:9.5px; padding:1.5px 6px; border-radius:4px; margin-left:2px; font-weight:600;">
+    Console
   </span>
 </div>
 
 <style>
 @keyframes labModalFadeIn {
-  from { opacity: 0; transform: scale(0.95) translateY(8px); }
+  from { opacity: 0; transform: scale(0.97) translateY(6px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
-@keyframes labPulseDot {
-  0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-  70% { transform: scale(1.15); box-shadow: 0 0 0 5px rgba(16, 185, 129, 0); }
-  100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+@keyframes labDotPulse {
+  0% { transform: scale(0.9); opacity: 0.7; }
+  50% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.7; }
 }
-@keyframes labPulseBorder {
-  0% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.3); border-color: #ef4444; }
-  100% { box-shadow: 0 0 25px rgba(239, 68, 68, 0.7); border-color: #f87171; }
-}
-.lab-ai-pulse-dot {
-  animation: labPulseDot 2s infinite ease-in-out;
+.lab-live-dot {
+  animation: labDotPulse 2s infinite ease-in-out;
 }
 #lab-ai-status-pill:hover {
-  transform: translateY(-2px);
-  background: rgba(15, 23, 42, 0.98);
-  border-color: rgba(96, 165, 250, 0.8);
-  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.4);
+  transform: translateY(-1.5px);
+  background: rgba(22, 27, 34, 0.98);
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.6);
 }
 #btn-dismiss-lab-popup:hover {
-  background: #1d4ed8;
-  transform: translateY(-1px);
+  background: #2ea043;
+}
+#btn-close-x:hover {
+  color: #f0f6fc;
 }
 </style>
 
@@ -251,22 +227,25 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
   function initLabNotice() {
     var overlay = document.getElementById('lab-ai-popup-overlay');
     var btnDismiss = document.getElementById('btn-dismiss-lab-popup');
+    var btnCloseX = document.getElementById('btn-close-x');
     var pill = document.getElementById('lab-ai-status-pill');
-    var userBadge = document.getElementById('modal-user-badge');
+    var userNameEl = document.getElementById('modal-user-name');
+    var userTierEl = document.getElementById('modal-user-tier');
 
     var username = detectUsername();
-    if (userBadge) userBadge.innerText = 'Akun: ' + username;
+    if (userNameEl) userNameEl.innerText = username;
 
-    // Tampilkan modal pertama kali setelah 1 detik
+    // Tampilkan modal pertama kali setelah JupyterLab render
     setTimeout(function() {
       if (overlay) overlay.style.display = 'flex';
     }, 1200);
 
-    if (btnDismiss && overlay) {
-      btnDismiss.onclick = function() {
-        overlay.style.display = 'none';
-      };
+    function hideModal() {
+      if (overlay) overlay.style.display = 'none';
     }
+
+    if (btnDismiss) btnDismiss.onclick = hideModal;
+    if (btnCloseX) btnCloseX.onclick = hideModal;
 
     if (pill && overlay) {
       pill.onclick = function() {
@@ -289,7 +268,6 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
           applyTelemetry(data);
         })
         .catch(function(err) {
-          // Fallback ke native Jupyter Server /api/metrics/v1 jika port 8888 terblokir
           fallbackJupyterMetrics();
         });
     }
@@ -308,17 +286,20 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
       var diskQuotaGB = d.disk_quota_gb || 10;
       var diskPct = Math.min(100, Math.round(d.disk_percent || 0));
 
-      // 1. Update Floating Pill Tags
+      if (userTierEl && d.tier) userTierEl.innerText = d.tier;
+
+      // 1. Update Floating Pill Toolbar
       var pillCpu = document.getElementById('pill-val-cpu');
       var pillRam = document.getElementById('pill-val-ram');
       var pillGpu = document.getElementById('pill-val-gpu');
       var pillDisk = document.getElementById('pill-val-disk');
+      var pillDiskContainer = document.getElementById('pill-disk-container');
 
       if (pillCpu) pillCpu.innerText = cpuPct + '%';
       if (pillRam) {
         var ramDisplay = ramUsedMB >= 1024 ? (ramUsedMB/1024).toFixed(1) + 'G' : ramUsedMB + 'M';
         var ramLimitDisplay = (ramMaxMB/1024).toFixed(0) + 'G';
-        pillRam.innerText = ramDisplay + '/' + ramLimitDisplay + ' (' + ramPct + '%)';
+        pillRam.innerText = ramDisplay + '/' + ramLimitDisplay;
       }
       if (pillGpu) pillGpu.innerText = gpuComp + '%';
       if (pillDisk) {
@@ -326,34 +307,50 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
         pillDisk.innerText = diskGB + '/' + diskQuotaGB + 'G';
       }
 
-      // 2. Update Modal Gauges
-      var txtCpu = document.getElementById('gauge-txt-cpu');
+      // 2. Update Bento Grid Cards
+      var elCpuPct = document.getElementById('gauge-txt-cpu-pct');
+      var elCpuCores = document.getElementById('gauge-txt-cpu-cores');
       var barCpu = document.getElementById('gauge-bar-cpu');
-      if (txtCpu) txtCpu.innerText = cpuPct + '% (' + cpuUsed + ' / ' + cpuLimit + ' Core)';
+      if (elCpuPct) elCpuPct.innerText = cpuPct + '%';
+      if (elCpuCores) elCpuCores.innerText = cpuUsed + ' / ' + cpuLimit + ' Cores';
       if (barCpu) barCpu.style.width = Math.min(100, (cpuPct / (cpuLimit * 100)) * 100) + '%';
 
-      var txtRam = document.getElementById('gauge-txt-ram');
+      var elRamVal = document.getElementById('gauge-txt-ram-val');
+      var elRamPct = document.getElementById('gauge-txt-ram-pct');
       var barRam = document.getElementById('gauge-bar-ram');
-      if (txtRam) txtRam.innerText = ramUsedMB + ' MB / ' + ramMaxMB + ' MB (' + ramPct + '%)';
+      if (elRamVal) {
+        var ramValStr = (ramUsedMB/1024).toFixed(2) + ' GB ';
+        elRamVal.innerHTML = ramValStr + '<span style="font-size:12px; font-weight:500; color:#8b949e;">(' + ramPct + '%)</span>';
+      }
       if (barRam) {
         barRam.style.width = ramPct + '%';
-        barRam.style.background = ramPct > 85 ? 'linear-gradient(90deg, #ef4444, #f87171)' : 'linear-gradient(90deg, #10b981, #34d399)';
+        barRam.style.background = ramPct > 85 ? '#f85149' : '#3fb950';
       }
 
-      var txtGpu = document.getElementById('gauge-txt-gpu');
+      var elGpuComp = document.getElementById('gauge-txt-gpu-comp');
+      var elGpuName = document.getElementById('gauge-txt-gpu-name');
       var barGpu = document.getElementById('gauge-bar-gpu');
-      if (txtGpu) txtGpu.innerText = 'Compute: ' + gpuComp + '% • VRAM: ' + vramUsed + ' MB / ' + vramLimit + ' MB';
+      if (elGpuName && d.gpu_name) elGpuName.innerText = d.gpu_name;
+      if (elGpuComp) {
+        elGpuComp.innerHTML = gpuComp + '% <span style="font-size:11px; font-weight:400; color:#8b949e;">(VRAM ' + vramUsed + ' MB)</span>';
+      }
       if (barGpu) barGpu.style.width = Math.max(gpuComp, Math.round((vramUsed/vramLimit)*100)) + '%';
 
-      var txtDisk = document.getElementById('gauge-txt-disk');
+      var elDiskVal = document.getElementById('gauge-txt-disk-val');
       var barDisk = document.getElementById('gauge-bar-disk');
-      if (txtDisk) txtDisk.innerText = (diskUsedMB/1024).toFixed(2) + ' GB / ' + diskQuotaGB + ' GB (' + diskPct + '%)';
-      if (barDisk) barDisk.style.width = diskPct + '%';
+      if (elDiskVal) {
+        var diskValStr = (diskUsedMB/1024).toFixed(2) + ' GB ';
+        elDiskVal.innerHTML = diskValStr + '<span style="font-size:12px; font-weight:500; color:#8b949e;">(' + diskPct + '%)</span>';
+      }
+      if (barDisk) {
+        barDisk.style.width = diskPct + '%';
+        barDisk.style.background = diskPct >= 100 ? '#f85149' : (diskPct > 80 ? '#d29922' : '#38bdf8');
+      }
 
       var syncTime = document.getElementById('modal-sync-time');
-      if (syncTime) syncTime.innerText = 'Sinkron: ' + (d.server_time || new Date().toLocaleTimeString());
+      if (syncTime) syncTime.innerText = d.server_time || new Date().toLocaleTimeString();
 
-      // 3. Logika Overquota & Notifikasi Kritis Segera Backup
+      // 3. Logika Overquota Peringatan Bersih (Non-Slop)
       var oqBox = document.getElementById('overquota-alert-box');
       var oqUsed = document.getElementById('oq-used-val');
       var oqQuota = document.getElementById('oq-quota-val');
@@ -363,32 +360,29 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
       if (isOverQuota) {
         if (oqBox) oqBox.style.display = 'block';
         if (oqUsed) oqUsed.innerText = (diskUsedMB / 1024).toFixed(2) + ' GB';
-        if (oqQuota) oqQuota.innerText = diskQuotaGB + ' GB';
+        if (oqQuota) oqQuota.innerText = diskQuotaGB + '.00 GB';
         if (oqPct) oqPct.innerText = diskPct + '%';
 
-        // Auto buka modal alert saat pertama kali overquota terdeteksi
         if (!window._labHasAlertedOverquota) {
           window._labHasAlertedOverquota = true;
           if (overlay) overlay.style.display = 'flex';
         }
 
-        // Pill pojok kanan bawah berubah menyala merah darurat
         if (pill) {
-          pill.style.border = '1.5px solid #ef4444';
-          pill.style.boxShadow = '0 0 22px rgba(239, 68, 68, 0.65)';
-          pill.style.background = 'linear-gradient(135deg, rgba(127,29,29,0.95), rgba(185,28,28,0.95))';
+          pill.style.borderColor = 'rgba(248,81,73,0.6)';
+          pill.style.background = 'rgba(24,14,17,0.96)';
         }
-        if (pillDisk) {
-          pillDisk.parentElement.style.background = 'rgba(239,68,68,0.45)';
-          pillDisk.parentElement.style.border = '1px solid #ef4444';
-          pillDisk.innerHTML = '<strong style="color:#ffffff;">🚨 OVERQUOTA: ' + (diskUsedMB/1024).toFixed(1) + '/' + diskQuotaGB + 'G (BACKUP SEGERA!)</strong>';
+        if (pillDiskContainer) {
+          pillDiskContainer.innerHTML = '<span style="color:#ff7b72; font-weight:600;">Disk ' + (diskUsedMB/1024).toFixed(1) + '/' + diskQuotaGB + 'G (Overquota)</span>';
         }
       } else {
         if (oqBox) oqBox.style.display = 'none';
         if (pill) {
-          pill.style.border = '1px solid rgba(59,130,246,0.4)';
-          pill.style.boxShadow = '0 8px 24px rgba(0,0,0,0.4)';
-          pill.style.background = 'rgba(15,23,42,0.92)';
+          pill.style.borderColor = 'rgba(255,255,255,0.14)';
+          pill.style.background = 'rgba(13,17,23,0.92)';
+        }
+        if (pillDiskContainer) {
+          pillDiskContainer.innerHTML = 'Disk <strong id="pill-val-disk" style="color:#f0f6fc;">' + (diskUsedMB/1024).toFixed(1) + '/' + diskQuotaGB + 'G</strong>';
         }
       }
     }

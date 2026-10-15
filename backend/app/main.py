@@ -376,6 +376,72 @@ def get_full_snapshot():
 def get_status():
     return get_full_snapshot()
 
+@app.get("/api/user-telemetry/{username}")
+def get_user_telemetry(username: str):
+    """
+    Mengembalikan data performa real-time spesifik untuk satu user (Live Monitoring di JupyterLab)
+    Mencakup: CPU, RAM, GPU (Compute % & VRAM), dan Storage Kuota.
+    """
+    clean_user = username.strip().lower()
+    if clean_user.isdigit():
+        clean_user = f"m{clean_user}"
+    
+    snapshot = get_full_snapshot()
+    gpus = snapshot.get("gpus", [])
+    users = snapshot.get("users", [])
+    
+    target = None
+    for u in users:
+        if u.get("username") == clean_user:
+            target = dict(u)
+            break
+            
+    from app.db import is_user_priority
+    nim = clean_user[1:] if clean_user.startswith("m") and clean_user[1:].isdigit() else clean_user
+    is_priority = is_user_priority(nim)
+    assigned_gpu_idx = 0 if is_priority else 1
+    gpu_obj = gpus[assigned_gpu_idx] if len(gpus) > assigned_gpu_idx else {}
+    
+    from app.telemetry import get_user_disk_metrics
+    disk_info = get_user_disk_metrics(clean_user, is_priority)
+    
+    if not target:
+        target = {
+            "username": clean_user,
+            "tier": "Level 1 (Priority)" if is_priority else "Level 2 (Standard)",
+            "is_priority": is_priority,
+            "gpu_assigned": f"GPU {assigned_gpu_idx}",
+            "gpu_index": assigned_gpu_idx,
+            "vram_used_mb": 0.0,
+            "vram_limit_mb": 16311.0 if is_priority else 4893.0,
+            "vram_percent_of_quota": 0.0,
+            "cpu_percent": 0.0,
+            "cpu_cores_used": 0.0,
+            "cpu_cores_limit": 20 if is_priority else 2,
+            "cpu_quota_percent": 0.0,
+            "ram_used_mb": 0.0,
+            "ram_max_mb": 71680.0 if is_priority else 4096.0,
+            "ram_percent": 0.0,
+            "disk_used_mb": disk_info["disk_used_mb"],
+            "disk_quota_gb": disk_info["disk_quota_gb"],
+            "disk_percent": disk_info["disk_percent"],
+            "is_over_quota": disk_info["is_over_quota"],
+            "status": "Online (Idle)",
+            "status_color": "blue"
+        }
+    else:
+        target["disk_used_mb"] = disk_info["disk_used_mb"]
+        target["disk_quota_gb"] = disk_info["disk_quota_gb"]
+        target["disk_percent"] = disk_info["disk_percent"]
+        target["is_over_quota"] = disk_info["is_over_quota"]
+        
+    target["gpu_name"] = gpu_obj.get("name", target.get("gpu_assigned", f"GPU {assigned_gpu_idx}"))
+    target["gpu_compute_percent"] = gpu_obj.get("compute_percent", 0)
+    target["gpu_temperature"] = gpu_obj.get("temperature", 0)
+    target["gpu_total_vram_mb"] = gpu_obj.get("total_vram_mb", 16384)
+    target["server_time"] = time.strftime("%H:%M:%S")
+    return target
+
 @app.post("/api/verify-pin")
 def verify_pin(req: VerifyPinRequest):
     return {"success": True, "message": "Mode Admin (PIN dihapus)."}

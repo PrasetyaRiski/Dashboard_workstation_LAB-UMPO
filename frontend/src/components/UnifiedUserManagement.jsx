@@ -908,7 +908,7 @@ export default function UnifiedUserManagement({
                                 )}
                               </div>
                               <span className="font-mono text-xs text-slate-400 truncate">
-                                mhs.{item.nim}@umpo.ac.id
+                                mhs.{item.nim}
                               </span>
                             </div>
                           </div>

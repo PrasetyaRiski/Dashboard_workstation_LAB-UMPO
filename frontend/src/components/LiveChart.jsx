@@ -172,11 +172,11 @@ function LiveChart({ history = [] }) {
                 ? 'bg-amber-50 border-amber-200 text-amber-700 shadow-sm'
                 : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
             }`}
-            title={isPaused ? 'Lanjutkan Stream (Live)' : 'Bekukan Grafik (Pause)'}
+            title={isPaused ? 'Lanjutkan Stream' : 'Jeda Grafik'}
             type="button"
           >
             {isPaused ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
-            <span>{isPaused ? 'BEKU' : 'LIVE'}</span>
+            <span>{isPaused ? 'Jeda' : 'Stream'}</span>
           </button>
 
           {/* Segmented Range Control */}

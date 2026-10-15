@@ -148,9 +148,9 @@ function SystemOverview({
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-1 font-mono text-[11px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200">
+          <div className="flex items-center gap-1.5 font-mono text-[11px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200" title="Sinkronisasi Telemetri Aktif">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 pulse-dot" />
-            <span className="font-semibold">Live</span>
+            <span className="font-semibold">Aktif</span>
           </div>
         </div>
       </div>

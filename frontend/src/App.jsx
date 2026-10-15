@@ -454,7 +454,7 @@ export default function App() {
             ) : isConnected ? (
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-mono text-emerald-700 shadow-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 pulse-dot" />
-                <span className="font-semibold">Live</span>
+                <span className="font-semibold">Terhubung</span>
               </div>
             ) : (
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-xs font-mono shadow-sm">

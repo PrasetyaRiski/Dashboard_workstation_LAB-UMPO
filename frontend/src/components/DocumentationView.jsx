@@ -36,7 +36,7 @@ const PYTHON_SNIPPETS = [
     desc: 'Memeriksa ketersediaan akselerasi CUDA, nama perangkat GPU, serta alokasi memori tensor awal.',
     code: `import torch
 
-print(f"PyTorch Version : {torch.__version__}")
+print(f"PyTorch         : {torch.__version__}")
 print(f"CUDA Available  : {torch.cuda.is_available()}")
 
 if torch.cuda.is_available():
@@ -100,7 +100,7 @@ if torch.cuda.is_available():
     desc: 'Memastikan runtime TensorFlow mendeteksi GPU dan mengaktifkan dynamic memory growth.',
     code: `import tensorflow as tf
 
-print(f"TensorFlow Version: {tf.__version__}")
+print(f"TensorFlow: {tf.__version__}")
 gpus = tf.config.list_physical_devices('GPU')
 
 print(f"Jumlah GPU Terdeteksi: {len(gpus)}")
@@ -176,7 +176,7 @@ export default function DocumentationView({ showToast }) {
             <div>
               <div className="flex items-center gap-2 mb-1.5">
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold tracking-wider bg-slate-800 text-slate-300 border border-slate-700 uppercase print:text-black print:border-slate-400">
-                  Buku Panduan & SOP v2.3
+                  Buku Panduan & SOP
                 </span>
                 <span className="text-xs text-slate-400 font-mono print:text-slate-600">Fokus Web, JupyterHub & AI Runtime</span>
               </div>

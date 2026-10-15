@@ -445,22 +445,18 @@ export default function App() {
 
           {/* Right Mode Pill, Clock, and Auth Action */}
           <div className="flex items-center gap-2.5">
-            {/* Status Telemetri Pill */}
+            {/* Status Peringatan Koneksi Terputus (Hanya muncul jika bermasalah) */}
             {isDataStale ? (
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-mono shadow-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
                 <span>Data Basi · {staleSeconds}s</span>
               </div>
-            ) : isConnected ? (
-              <div className="inline-flex items-center p-1.5 rounded-full bg-emerald-50 border border-emerald-200 shadow-sm" title="Server Terhubung">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 pulse-dot" />
-              </div>
-            ) : (
+            ) : !isConnected ? (
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-xs font-mono shadow-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                 <span>Menyambung ulang…</span>
               </div>
-            )}
+            ) : null}
 
             {/* Role Badge */}
             {isOperator ? (

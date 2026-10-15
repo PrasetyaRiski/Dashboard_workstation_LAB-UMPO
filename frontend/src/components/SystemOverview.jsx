@@ -44,9 +44,9 @@ function SystemOverview({
 
   // Cluster Health Calculation
   let healthStatus = 'healthy';
-  let healthLabel = 'Semua Layanan Normal (All Systems Nominal)';
-  let healthClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
-  let dotClass = 'bg-emerald-500';
+  let healthLabel = '';
+  let healthClass = '';
+  let dotClass = '';
 
   if (cpuPercent >= 90 || memoryPercent >= 90 || !isStorageSafe || vramPct >= 95) {
     healthStatus = 'critical';
@@ -80,11 +80,13 @@ function SystemOverview({
           <p className="text-xs text-slate-500 mt-0.5">Telemetri sumber daya komputasi dan status klaster Workstation DGX UMPO</p>
         </div>
 
-        {/* Dynamic Cluster Health Pill */}
-        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-mono font-medium shadow-xs self-start md:self-auto ${healthClass}`}>
-          <span className={`w-2 h-2 rounded-full pulse-dot ${dotClass}`} />
-          <span className="font-semibold">{healthLabel}</span>
-        </div>
+        {/* Dynamic Cluster Health Pill - Only shown during warning or critical load */}
+        {healthStatus !== 'healthy' && (
+          <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-mono font-medium shadow-xs self-start md:self-auto ${healthClass}`}>
+            <span className={`w-2 h-2 rounded-full pulse-dot ${dotClass}`} />
+            <span className="font-semibold">{healthLabel}</span>
+          </div>
+        )}
       </div>
 
       {/* Cluster Workload & Priority Slot Strip */}
@@ -282,9 +284,6 @@ function SystemOverview({
             <div className="flex items-center justify-between text-slate-500 mb-2">
               <span className="text-xs font-semibold text-slate-900 flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-emerald-600" /> Layanan & Backup
-              </span>
-              <span className="text-[10px] font-mono font-semibold text-emerald-700 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200">
-                WAL Active
               </span>
             </div>
             

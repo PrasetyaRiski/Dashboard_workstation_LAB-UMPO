@@ -34,23 +34,28 @@ export default function Sidebar({
 
   return (
     <>
-      {/* Collapse/Expand toggle — 3D tactile button */}
-      <button
-        onClick={onToggle}
-        className="fixed z-50 flex items-center justify-center w-7 h-7 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-300 shadow-[0_2px_6px_rgba(0,0,0,0.08)] active:translate-y-0.5 transition-all duration-200"
+      {/* Collapse/Expand toggle — with animated gradient ring */}
+      <div
+        className="fixed z-50 flex items-center justify-center p-[2.5px] rounded-xl overflow-hidden transition-all duration-200 shadow-[0_2px_8px_rgba(37,99,235,0.15)] hover:shadow-[0_4px_14px_rgba(37,99,235,0.25)]"
         style={{
           top: '50%',
-          left: isOpen ? 'calc(16rem - 14px)' : '10px',
+          left: isOpen ? 'calc(16rem - 16px)' : '10px',
           transform: 'translateY(-50%)',
         }}
-        title={isOpen ? 'Sembunyikan Sidebar' : 'Tampilkan Sidebar'}
-        type="button"
       >
-        {isOpen
-          ? <PanelLeftClose className="w-3.5 h-3.5" />
-          : <PanelLeftOpen className="w-3.5 h-3.5" />
-        }
-      </button>
+        <span className="absolute inset-[-200%] animate-spin-gradient bg-[conic-gradient(from_0deg,#2563eb,#4f46e5,#06b6d4,#10b981,#3b82f6,#2563eb)]" />
+        <button
+          onClick={onToggle}
+          className="relative flex items-center justify-center w-7 h-7 rounded-[9px] bg-white text-slate-700 hover:text-blue-600 active:translate-y-0.5 transition-all duration-150 z-10"
+          title={isOpen ? 'Sembunyikan Sidebar' : 'Tampilkan Sidebar'}
+          type="button"
+        >
+          {isOpen
+            ? <PanelLeftClose className="w-3.5 h-3.5" />
+            : <PanelLeftOpen className="w-3.5 h-3.5" />
+          }
+        </button>
+      </div>
 
       {/* Azure & White 3D Navigation Rail */}
       <aside

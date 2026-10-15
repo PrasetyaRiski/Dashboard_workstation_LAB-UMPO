@@ -368,3 +368,20 @@
   transition: background-color var(--duration-fast) var(--ease-out-expo),
               border-color var(--duration-fast) var(--ease-out-expo);
 }
+
+/* ─────────────────────────────────────────────────────────────────
+   ANIMATED GRADIENT RING (Sidebar Toggle & Interactive Elements)
+   ───────────────────────────────────────────────────────────────── */
+@keyframes spin-gradient {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-gradient {
+  animation: spin-gradient 4s linear infinite;
+}
+

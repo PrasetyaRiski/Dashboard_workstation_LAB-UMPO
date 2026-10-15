@@ -2,7 +2,7 @@
 """
 inject_jupyter_modal.py
 Skrip otomatis untuk menanamkan Pop-Up Modal pemberitahuan dan pusat bantuan
-ke dalam antarmuka JupyterLab & JupyterHub Laboratorium AI UMPO.
+ke dalam antarmuka JupyterLab Laboratorium AI UMPO (Hanya muncul saat pengguna sudah login).
 """
 
 import os
@@ -27,7 +27,7 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
               Workstation Resource Monitor
             </h3>
             <span style="font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; background:rgba(63,185,80,0.15); color:#3fb950; border:1px solid rgba(63,185,80,0.3); padding:1px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:4px;">
-              <span class="lab-live-dot" style="width:5px; height:5px; border-radius:50%; background:#3fb950;"></span> Live 3s
+              <span class="lab-live-dot" style="width:5px; height:5px; border-radius:50%; background:#3fb950;"></span> Aktif
             </span>
           </div>
           <p style="margin:2px 0 0; font-size:11px; color:#8b949e;">
@@ -101,51 +101,72 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
         <div style="background:#161b22; border:1px solid rgba(255,255,255,0.07); border-radius:10px; padding:12px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
             <span style="font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:#8b949e;">Memory (RAM)</span>
-            <span id="gauge-txt-ram-max" style="font-size:10.5px; font-family:ui-monospace, monospace; color:#8b949e;">Limit 4.00 GB</span>
+            <span id="gauge-txt-ram-limit" style="font-size:10.5px; font-family:ui-monospace, monospace; color:#8b949e;">Limit 4.0 GB</span>
           </div>
           <div id="gauge-txt-ram-val" style="font-size:20px; font-weight:700; color:#f0f6fc; font-family:ui-monospace, monospace; margin-bottom:8px;">
-            0.00 GB <span id="gauge-txt-ram-pct" style="font-size:12px; font-weight:500; color:#8b949e;">(0%)</span>
+            0.00 GB <span style="font-size:12px; font-weight:500; color:#8b949e;">(0%)</span>
           </div>
           <div style="width:100%; height:4px; background:rgba(255,255,255,0.08); border-radius:999px; overflow:hidden;">
             <div id="gauge-bar-ram" style="width:0%; height:100%; background:#3fb950; border-radius:999px; transition:width 0.3s ease;"></div>
           </div>
         </div>
 
-        <!-- Metric 3: GPU Accelerator -->
+        <!-- Metric 3: GPU Acceleration -->
         <div style="background:#161b22; border:1px solid rgba(255,255,255,0.07); border-radius:10px; padding:12px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <span style="font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:#8b949e;">GPU Compute (Shared)</span>
-            <span id="gauge-txt-gpu-name" style="font-size:10.5px; font-family:ui-monospace, monospace; color:#8b949e;">RTX 5060 Ti</span>
+            <span style="font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:#8b949e;">Akselerasi GPU</span>
+            <span id="gauge-txt-gpu-name" style="font-size:10px; color:#58a6ff; font-family:ui-monospace, monospace; font-weight:500;">RTX 5060 Ti</span>
           </div>
           <div id="gauge-txt-gpu-comp" style="font-size:20px; font-weight:700; color:#f0f6fc; font-family:ui-monospace, monospace; margin-bottom:8px;">
-            0% <span id="gauge-txt-gpu-vram" style="font-size:11px; font-weight:400; color:#8b949e;">(VRAM 0 MB)</span>
+            0% <span style="font-size:11px; font-weight:400; color:#8b949e;">(VRAM 0 MB)</span>
           </div>
           <div style="width:100%; height:4px; background:rgba(255,255,255,0.08); border-radius:999px; overflow:hidden;">
-            <div id="gauge-bar-gpu" style="width:0%; height:100%; background:#a371f7; border-radius:999px; transition:width 0.3s ease;"></div>
+            <div id="gauge-bar-gpu" style="width:0%; height:100%; background:#d29922; border-radius:999px; transition:width 0.3s ease;"></div>
           </div>
         </div>
 
         <!-- Metric 4: Storage Quota -->
         <div style="background:#161b22; border:1px solid rgba(255,255,255,0.07); border-radius:10px; padding:12px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <span style="font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:#8b949e;">Storage Quota</span>
-            <span id="gauge-txt-disk-max" style="font-size:10.5px; font-family:ui-monospace, monospace; color:#8b949e;">Quota 10.00 GB</span>
+            <span style="font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:#8b949e;">Home Storage</span>
+            <span id="gauge-txt-disk-quota" style="font-size:10.5px; font-family:ui-monospace, monospace; color:#8b949e;">Kuota 10 GB</span>
           </div>
           <div id="gauge-txt-disk-val" style="font-size:20px; font-weight:700; color:#f0f6fc; font-family:ui-monospace, monospace; margin-bottom:8px;">
-            0.00 GB <span id="gauge-txt-disk-pct" style="font-size:12px; font-weight:500; color:#8b949e;">(0%)</span>
+            0.00 GB <span style="font-size:12px; font-weight:500; color:#8b949e;">(0%)</span>
           </div>
           <div style="width:100%; height:4px; background:rgba(255,255,255,0.08); border-radius:999px; overflow:hidden;">
-            <div id="gauge-bar-disk" style="width:0%; height:100%; background:#d29922; border-radius:999px; transition:width 0.3s ease;"></div>
+            <div id="gauge-bar-disk" style="width:0%; height:100%; background:#38bdf8; border-radius:999px; transition:width 0.3s ease;"></div>
           </div>
         </div>
 
       </div>
 
-      <!-- Minimalist Technical Guidance -->
-      <div style="background:#161b22; border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:10px 12px; font-size:11px; color:#8b949e; line-height:1.5;">
-        <span style="color:#f0f6fc; font-weight:600;">Petunjuk Praktikum:</span>
-        Jika notebook mengalami <em>Kernel Died / OOM</em>, gunakan menu <code>Kernel &rarr; Restart Kernel and Clear Outputs</code> dan turunkan ukuran <code>batch_size</code>. Untuk mengunduh berkas, klik kanan file di panel kiri dan pilih <code>Download</code>.
+      <!-- Panduan Aturan Operasional (Engineering Standards) -->
+      <div style="background:#161b22; border:1px solid rgba(255,255,255,0.07); border-radius:10px; padding:14px;">
+        <div style="font-weight:600; color:#f0f6fc; font-size:12px; margin-bottom:10px; display:flex; align-items:center; gap:6px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#58a6ff" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          SOP & Regulasi Penggunaan Server AI
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:11.5px; line-height:1.5;">
+          <div style="background:#0d1117; padding:9px 11px; border-radius:6px; border:1px solid rgba(255,255,255,0.05);">
+            <strong style="color:#f0f6fc; display:block; margin-bottom:2px;">1. Single-Device Policy</strong>
+            <span style="color:#8b949e;">Satu akun hanya boleh aktif pada 1 perangkat browser secara bersamaan untuk mencegah bentrok data.</span>
+          </div>
+          <div style="background:#0d1117; padding:9px 11px; border-radius:6px; border:1px solid rgba(255,255,255,0.05);">
+            <strong style="color:#f0f6fc; display:block; margin-bottom:2px;">2. Idle Culler 30 Menit</strong>
+            <span style="color:#8b949e;">Notebook tanpa aktivitas komputasi selama 30 menit akan dimatikan otomatis untuk membebaskan VRAM.</span>
+          </div>
+          <div style="background:#0d1117; padding:9px 11px; border-radius:6px; border:1px solid rgba(255,255,255,0.05);">
+            <strong style="color:#f0f6fc; display:block; margin-bottom:2px;">3. Folder dataset_shared</strong>
+            <span style="color:#8b949e;">Gunakan pintasan <code>~/dataset_shared</code> untuk membaca dataset publik tanpa mengurangi kuota storage.</span>
+          </div>
+          <div style="background:#0d1117; padding:9px 11px; border-radius:6px; border:1px solid rgba(255,255,255,0.05);">
+            <strong style="color:#f0f6fc; display:block; margin-bottom:2px;">4. Alokasi Prioritas Skripsi</strong>
+            <span style="color:#8b949e;">Mahasiswa skripsi/riset dapat mengajukan Dedicated GPU 0 (Level 1) ke Asisten Laboratorium.</span>
+          </div>
+        </div>
       </div>
+
     </div>
 
     <!-- Modal Footer -->
@@ -161,8 +182,8 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
   </div>
 </div>
 
-<!-- 2. FLOATING REAL-TIME PERFORMANCE TOOLBAR (Sleek Developer Pill) -->
-<div id="lab-ai-status-pill" title="Workstation Telemetry & Resource Monitor (Klik untuk rincian)" style="position:fixed; bottom:22px; right:18px; z-index:99999; display:flex; align-items:center; gap:8px; background:rgba(13,17,23,0.92); color:#c9d1d9; border:1px solid rgba(255,255,255,0.14); box-shadow:0 8px 24px rgba(0,0,0,0.5); padding:5px 12px; border-radius:999px; font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,monospace; font-size:11px; cursor:pointer; backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); user-select:none; transition:all 0.2s cubic-bezier(0.16,1,0.3,1);">
+<!-- 2. FLOATING PERFORMANCE TOOLBAR (Default: hidden, hanya muncul jika sudah login) -->
+<div id="lab-ai-status-pill" title="Workstation Telemetry & Resource Monitor (Klik untuk membuka rincian)" style="display:none; position:fixed; bottom:22px; right:18px; z-index:99999; align-items:center; gap:8px; background:rgba(13,17,23,0.92); color:#c9d1d9; border:1px solid rgba(255,255,255,0.14); box-shadow:0 8px 24px rgba(0,0,0,0.5); padding:5px 12px; border-radius:999px; font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,monospace; font-size:11px; cursor:pointer; backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); user-select:none; transition:all 0.2s cubic-bezier(0.16,1,0.3,1);">
   
   <span class="lab-live-dot" style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#3fb950; shrink:0;"></span>
   
@@ -210,38 +231,73 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
 
 <script>
 (function() {
-  function detectUsername() {
+  // Fungsi presisi untuk memastikan pengguna benar-benar berada di dalam workspace yang sudah login
+  function isUserLoggedInJupyter() {
+    var path = window.location.pathname || '';
+
+    // 1. Jika masih berada di menu login /hub/login atau form login terdeteksi
+    if (path.indexOf('/hub/login') !== -1 || path.indexOf('/login') !== -1) {
+      return null;
+    }
+    if (document.querySelector('form[action*="login"]') || document.getElementById('login_submit_btn')) {
+      return null;
+    }
+
+    // 2. Deteksi dari URL path notebook user: /user/<username>/...
+    var m = path.match(/\/user\/([^\/]+)/);
+    if (m && m[1] && m[1] !== 'hub') {
+      return m[1];
+    }
+
+    // 3. Deteksi dari konfigurasi internal runtime JupyterLab
     try {
       var el = document.getElementById('jupyter-config-data');
-      if (el) {
+      if (el && el.textContent) {
         var cfg = JSON.parse(el.textContent);
-        var m = (cfg.baseUrl || '').match(/\/(?:hub\/)?user\/([^\/]+)/);
-        if (m && m[1]) return m[1];
+        if (cfg.baseUrl) {
+          var m2 = cfg.baseUrl.match(/\/user\/([^\/]+)/);
+          if (m2 && m2[1] && m2[1] !== 'hub') return m2[1];
+        }
+        if (cfg.userName && cfg.userName !== 'hub') return cfg.userName;
       }
     } catch(e) {}
-    var m2 = window.location.pathname.match(/\/(?:hub\/)?user\/([^\/]+)/);
-    if (m2 && m2[1]) return m2[1];
-    return 'm21533045';
+
+    return null;
   }
 
   function initLabNotice() {
+    var username = isUserLoggedInJupyter();
     var overlay = document.getElementById('lab-ai-popup-overlay');
+    var pill = document.getElementById('lab-ai-status-pill');
+
+    // JIKA BELUM LOGIN (misalnya di menu login /hub/login):
+    // Matikan dan sembunyikan seluruh elemen modal dan floating pill!
+    if (!username) {
+      if (overlay) overlay.style.display = 'none';
+      if (pill) pill.style.display = 'none';
+      return; // Berhenti total! Pop-up tidak akan pernah muncul di menu login.
+    }
+
+    // JIKA SUDAH LOGIN DI JUPYTERLAB:
     var btnDismiss = document.getElementById('btn-dismiss-lab-popup');
     var btnCloseX = document.getElementById('btn-close-x');
-    var pill = document.getElementById('lab-ai-status-pill');
     var userNameEl = document.getElementById('modal-user-name');
     var userTierEl = document.getElementById('modal-user-tier');
 
-    var username = detectUsername();
     if (userNameEl) userNameEl.innerText = username;
+    if (pill) pill.style.display = 'flex';
 
-    // Tampilkan modal pertama kali setelah JupyterLab render
-    setTimeout(function() {
-      if (overlay) overlay.style.display = 'flex';
-    }, 1200);
+    // Munculkan pop-up modal sekali saat sesi baru dimulai setelah login
+    var sessionKey = 'lab_ai_popup_seen_' + username;
+    if (!sessionStorage.getItem(sessionKey)) {
+      setTimeout(function() {
+        if (overlay) overlay.style.display = 'flex';
+      }, 1500);
+    }
 
     function hideModal() {
       if (overlay) overlay.style.display = 'none';
+      sessionStorage.setItem(sessionKey, 'true');
     }
 
     if (btnDismiss) btnDismiss.onclick = hideModal;
@@ -253,12 +309,13 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
       };
     }
 
-    // Engine Live Monitoring Real-Time (Polling tiap 3 detik)
+    // Engine Monitoring Real-Time (Polling tiap 3 detik)
     function updateTelemetry() {
-      var u = detectUsername();
+      var u = isUserLoggedInJupyter();
+      if (!u) return;
       var host = window.location.hostname || '76.76.76.188';
 
-      // 1. Coba path relatif (/api/user-telemetry/...) via reverse proxy Nginx (Port 80/443, bebas CORS & Mixed Content)
+      // 1. Coba path relatif (/api/user-telemetry/...) via reverse proxy Nginx (Port 80/443)
       fetch('/api/user-telemetry/' + u)
         .then(function(res) {
           if (!res.ok) throw new Error(res.status);
@@ -363,7 +420,7 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
       var syncTime = document.getElementById('modal-sync-time');
       if (syncTime) syncTime.innerText = d.server_time || new Date().toLocaleTimeString();
 
-      // 3. Logika Overquota Peringatan Bersih (Non-Slop)
+      // 3. Logika Overquota Peringatan Bersih
       var oqBox = document.getElementById('overquota-alert-box');
       var oqUsed = document.getElementById('oq-used-val');
       var oqQuota = document.getElementById('oq-quota-val');
@@ -404,6 +461,7 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
       try {
         var baseMatch = window.location.pathname.match(/^(\/user\/[^\/]+)/);
         var prefix = baseMatch ? baseMatch[1] : '';
+        if (!prefix) return;
         fetch(prefix + '/api/metrics/v1', { credentials: 'same-origin' })
           .then(function(res) { if (!res.ok) throw new Error(res.status); return res.json(); })
           .then(function(data) {
@@ -445,11 +503,47 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
 <!-- === END LAB AI UMPO MODAL ANNOUNCEMENT === -->'''
 
 
+def is_hub_login_template(filepath: str) -> bool:
+    """Mengecek apakah berkas merupakan template login / portal hub JupyterHub."""
+    fp = filepath.replace("\\", "/").lower()
+    return "jupyterhub/templates" in fp or "hub/templates" in fp or fp.endswith("/login.html")
+
+
+def clean_hub_templates():
+    """Membersihkan sisa injection modal dari template login / hub JupyterHub jika sebelumnya pernah tersisip."""
+    hub_candidates = set()
+    for root in ["/opt/jupyterhub", "/usr/local", "/usr", sys.prefix]:
+        if os.path.exists(root):
+            for dirpath, _, filenames in os.walk(root):
+                dp = dirpath.replace("\\", "/").lower()
+                if "jupyterhub" in dp and "templates" in dp:
+                    for fn in filenames:
+                        if fn.endswith(".html"):
+                            hub_candidates.add(os.path.join(dirpath, fn))
+
+    pattern = re.compile(r"<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->.*?<!-- === END LAB AI UMPO MODAL ANNOUNCEMENT === -->", re.DOTALL)
+    cleaned_count = 0
+    for hf in hub_candidates:
+        try:
+            with open(hf, "r", encoding="utf-8") as f:
+                c = f.read()
+            if "BEGIN LAB AI UMPO MODAL ANNOUNCEMENT" in c:
+                new_c = re.sub(pattern, "", c)
+                with open(hf, "w", encoding="utf-8") as f:
+                    f.write(new_c)
+                print(f"🧹 Berhasil membersihkan pop-up dari template login Hub: {hf}")
+                cleaned_count += 1
+        except Exception as e:
+            print(f"⚠️ Gagal membersihkan {hf}: {e}")
+    if cleaned_count > 0:
+        print(f"✅ Selesai membersihkan {cleaned_count} berkas template login JupyterHub.")
+
+
 def find_candidate_html_files():
-    """Mencari seluruh file index.html dan page.html yang digunakan oleh JupyterLab / Jupyter Server."""
+    """Mencari seluruh file index.html dan page.html yang digunakan oleh JupyterLab / Jupyter Server (Single User Workspace)."""
     candidates = set()
     
-    # 1. Lokasi standar /opt/jupyterhub
+    # 1. Lokasi standar /opt/jupyterhub (HANYA jupyterlab dan jupyter_server)
     candidates.update(glob.glob("/opt/jupyterhub/share/jupyter/lab/static/index.html"))
     candidates.update(glob.glob("/opt/jupyterhub/share/jupyter/lab/templates/page.html"))
     candidates.update(glob.glob("/opt/jupyterhub/lib/**/jupyterlab/static/index.html", recursive=True))
@@ -470,16 +564,19 @@ def find_candidate_html_files():
     candidates.update(glob.glob(f"{prefix}/lib/**/jupyterlab/static/index.html", recursive=True))
     candidates.update(glob.glob(f"{prefix}/lib/**/jupyter_server/templates/page.html", recursive=True))
 
-    # 4. Pencarian dinamis di direktori server
+    # 4. Pencarian dinamis di direktori server (Kecualikan jupyterhub templates)
     for root in ["/opt", "/usr/local", "/etc/jupyter", "/home/public"]:
         if os.path.exists(root):
             for dirpath, _, filenames in os.walk(root):
-                if "index.html" in filenames and ("lab/static" in dirpath or "jupyterlab" in dirpath):
+                dp = dirpath.replace("\\", "/").lower()
+                if "jupyterhub/templates" in dp or "hub/templates" in dp:
+                    continue
+                if "index.html" in filenames and ("lab/static" in dp or "jupyterlab" in dp):
                     candidates.add(os.path.join(dirpath, "index.html"))
-                if "page.html" in filenames and ("templates" in dirpath and ("jupyter" in dirpath or "lab" in dirpath)):
+                if "page.html" in filenames and ("templates" in dp and ("lab" in dp or "jupyter_server" in dp)):
                     candidates.add(os.path.join(dirpath, "page.html"))
 
-    return [c for c in candidates if os.path.isfile(c)]
+    return [c for c in candidates if os.path.isfile(c) and not is_hub_login_template(c)]
 
 
 def inject_into_file(filepath: str) -> bool:
@@ -511,7 +608,10 @@ def inject_into_file(filepath: str) -> bool:
 
 
 def main():
-    print("🔍 Memindai berkas antarmuka JupyterLab di sistem server...")
+    print("🧹 Mensterilkan template halaman login JupyterHub...")
+    clean_hub_templates()
+
+    print("🔍 Memindai berkas antarmuka JupyterLab workspace di sistem server...")
     files = find_candidate_html_files()
     
     if not files:
@@ -524,7 +624,7 @@ def main():
         if inject_into_file(f):
             success_count += 1
 
-    print(f"✨ Selesai: {success_count} berkas antarmuka JupyterLab berhasil diperbarui dengan Pop-Up Modal.")
+    print(f"✨ Selesai: {success_count} berkas antarmuka JupyterLab berhasil diperbarui (hanya aktif setelah login).")
     return 0
 
 

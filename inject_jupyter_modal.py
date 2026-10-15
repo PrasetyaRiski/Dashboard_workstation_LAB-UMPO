@@ -510,12 +510,46 @@ def clean_all_login_and_hub_templates():
     Membersihkan secara tuntas injeksi modal dari SEMUA template HTML JupyterHub (login.html, page.html, dll).
     Template halaman Hub TIDAK BOLEH mengandung kode modal.
     """
+    import subprocess
     pattern = re.compile(
         r"<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->.*?<!-- === END LAB AI UMPO MODAL ANNOUNCEMENT === -->",
         re.DOTALL
     )
 
-    # Daftar pencarian terfokus direktori template di server
+    candidate_files = set()
+
+    # 1. Pindai langsung menggunakan grep kecepatan tinggi di seluruh direktori server
+    try:
+        res = subprocess.run(
+            ["grep", "-rl", "--include=*.html", "BEGIN LAB AI UMPO MODAL ANNOUNCEMENT", "/opt", "/usr", "/etc", "/home", "/var"],
+            capture_output=True, text=True, timeout=12
+        )
+        for line in res.stdout.splitlines():
+            fp = line.strip()
+            # Kecualikan HANYA berkas statis index.html workspace singleuser
+            if fp and fp.endswith(".html"):
+                if not (fp.endswith("index.html") and ("lab/static" in fp or "jupyterlab/static" in fp)):
+                    candidate_files.add(fp)
+    except Exception as e:
+        print(f"ℹ️ Info grep search: {e}")
+
+    # 2. Pindai modul JupyterHub dan Jupyter Server aktif jika terpasang di runtime
+    try:
+        import jupyterhub
+        jh_dir = os.path.dirname(jupyterhub.__file__)
+        candidate_files.update(glob.glob(f"{jh_dir}/templates/*.html"))
+        candidate_files.update(glob.glob(f"{jh_dir}/**/*.html", recursive=True))
+    except Exception:
+        pass
+
+    try:
+        import jupyter_server
+        js_dir = os.path.dirname(jupyter_server.__file__)
+        candidate_files.update(glob.glob(f"{js_dir}/templates/*.html"))
+    except Exception:
+        pass
+
+    # 3. Direktori template standar JupyterHub
     hub_template_dirs = [
         "/opt/jupyterhub/share/jupyterhub/templates",
         "/usr/local/share/jupyterhub/templates",
@@ -528,8 +562,6 @@ def clean_all_login_and_hub_templates():
         f"{sys.prefix}/share/jupyter/lab/templates",
     ]
 
-    # Tambahkan pencarian glob untuk site-packages / dist-packages
-    candidate_files = set()
     for d in hub_template_dirs:
         if os.path.exists(d):
             candidate_files.update(glob.glob(f"{d}/*.html"))

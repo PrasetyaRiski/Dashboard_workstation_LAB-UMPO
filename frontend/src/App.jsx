@@ -426,9 +426,9 @@ export default function App() {
         className="flex flex-col min-h-screen transition-all duration-200"
         style={{ paddingLeft: (!isMobile && isSidebarOpen) ? '16rem' : '0' }}
       >
-        {/* Sticky Header with Clean Border */}
+        {/* Sticky Header with 3D Depth */}
         <header
-          className="fixed top-0 right-0 h-14 bg-white/95 backdrop-blur-md border-b border-slate-200 z-40 flex items-center justify-between px-3 sm:px-5 transition-all duration-200"
+          className="fixed top-0 right-0 h-14 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-[0_2px_12px_rgba(0,0,0,0.03)] z-40 flex items-center justify-between px-3 sm:px-5 transition-all duration-200"
           style={{ left: (!isMobile && isSidebarOpen) ? '16rem' : '0' }}
         >
           {/* Left Brand */}
@@ -447,17 +447,17 @@ export default function App() {
           <div className="flex items-center gap-2.5">
             {/* Status Telemetri Pill */}
             {isDataStale ? (
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-mono shadow-xs">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-mono shadow-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
                 <span>Data Basi · {staleSeconds}s</span>
               </div>
             ) : isConnected ? (
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-mono text-emerald-700 shadow-xs">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-mono text-emerald-700 shadow-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 pulse-dot" />
                 <span className="font-semibold">Live</span>
               </div>
             ) : (
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-xs font-mono shadow-xs">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-xs font-mono shadow-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                 <span>Menyambung ulang…</span>
               </div>
@@ -465,12 +465,12 @@ export default function App() {
 
             {/* Role Badge */}
             {isOperator ? (
-              <div className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-xs font-mono shadow-xs">
+              <div className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-xs font-mono shadow-sm">
                 <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
                 <span>Operator: {adminUser?.nama ? adminUser.nama.split(' ')[0] : 'Aslab'}</span>
               </div>
             ) : isSuperAdmin ? (
-              <div className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-mono shadow-xs">
+              <div className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-mono shadow-sm">
                 <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
                 <span>Super Admin</span>
               </div>
@@ -480,7 +480,7 @@ export default function App() {
             {!isAdmin ? (
               <button
                 onClick={() => setLoginModalOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium shadow-xs transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-xs font-semibold shadow-[0_2px_0_#1d4ed8,0_4px_10px_rgba(37,99,235,0.25)] active:translate-y-0.5 transition-all"
                 title="Login Operator / Admin"
                 type="button"
               >
@@ -490,7 +490,7 @@ export default function App() {
             ) : (
               <button
                 onClick={handleLogout}
-                className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 shadow-xs transition-colors"
+                className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 shadow-sm active:translate-y-0.5 transition-all"
                 title="Keluar dari Konsol"
                 type="button"
               >
@@ -607,7 +607,7 @@ export default function App() {
       {/* Floating Toast Notification (Manifesto Section 7.C) */}
       {toast && (
         <div className="fixed bottom-5 right-5 z-50">
-          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white border border-slate-200 shadow-lg text-xs font-mono text-slate-800">
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white border border-slate-200 shadow-[0_10px_30px_rgba(0,0,0,0.1),0_2px_6px_rgba(37,99,235,0.08)] text-xs font-mono text-slate-800">
             {toast.type === 'success' ? (
               <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             ) : toast.type === 'error' ? (

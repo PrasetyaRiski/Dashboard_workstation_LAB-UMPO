@@ -82,14 +82,14 @@ function LiveChart({ history = [] }) {
 
   if (!Array.isArray(history) || history.length === 0) {
     return (
-      <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-xs flex items-center justify-center text-xs font-mono text-slate-400">
+      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center justify-center text-xs font-mono text-slate-400">
         <span>Menunggu telemetri real-time buffer…</span>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-xs flex flex-col gap-4">
+    <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] flex flex-col gap-4">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -109,7 +109,7 @@ function LiveChart({ history = [] }) {
         {/* Controls & Quick Stats */}
         <div className="flex items-center gap-2.5 flex-wrap">
           {latest && (
-            <div className="hidden md:flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 font-mono text-xs shadow-xs">
+            <div className="hidden md:flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 font-mono text-xs shadow-sm">
               <span className="text-slate-500">GPU 0:</span>
               <span className="text-blue-600 tabular-nums font-bold">{latest.gpu0_compute?.toFixed(0) || 0}%</span>
               <span className="text-slate-300">·</span>
@@ -121,9 +121,9 @@ function LiveChart({ history = [] }) {
           {/* Pause Button */}
           <button
             onClick={togglePause}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-mono font-medium transition-colors shadow-xs ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-mono font-medium transition-all shadow-sm active:translate-y-0.5 ${
               isPaused
-                ? 'bg-amber-50 border-amber-200 text-amber-700'
+                ? 'bg-amber-50 border-amber-200 text-amber-700 shadow-sm'
                 : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
             }`}
             title={isPaused ? 'Lanjutkan Stream (Live)' : 'Bekukan Grafik (Pause)'}
@@ -141,7 +141,7 @@ function LiveChart({ history = [] }) {
                 onClick={() => setRange(opt.value)}
                 className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
                   range === opt.value
-                    ? 'bg-white text-blue-700 shadow-xs'
+                    ? 'bg-white text-blue-700 shadow-sm'
                     : 'text-slate-500 hover:text-slate-900'
                 }`}
                 type="button"
@@ -154,7 +154,7 @@ function LiveChart({ history = [] }) {
       </div>
 
       {/* Chart Canvas with Clean Light Grid */}
-      <div className="w-full h-52 bg-slate-50/60 rounded-xl p-2 border border-slate-200/80 relative overflow-hidden">
+      <div className="w-full h-52 bg-slate-50/60 rounded-xl p-2 border border-slate-200 shadow-inner relative overflow-hidden">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={formattedData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
             <CartesianGrid stroke="#e2e8f0" strokeDasharray="3 3" vertical={false} />

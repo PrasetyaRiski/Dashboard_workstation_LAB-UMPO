@@ -60,7 +60,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
   }
 
   return (
-    <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-xs flex flex-col gap-5">
+    <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] motion-card flex flex-col gap-5">
       
       {/* Header Info */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
@@ -80,7 +80,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
 
         {/* Telemetry Pills: Temperature, Fan, Power */}
         <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 shadow-xs">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 shadow-sm">
             <span className={`w-2 h-2 rounded-full ${
               tempStatus === 'rose' ? 'bg-rose-500' : tempStatus === 'amber' ? 'bg-amber-500' : 'bg-emerald-500'
             }`} />
@@ -92,30 +92,30 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
             </span>
           </div>
 
-          <div className="px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 shadow-xs">
+          <div className="px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 shadow-sm">
             Kipas: <span className="tabular-nums font-bold text-slate-800">{fan}%</span>
           </div>
 
-          <div className="px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 shadow-xs">
+          <div className="px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 shadow-sm">
             Daya: <span className="tabular-nums font-bold text-slate-800">{power}W</span>
           </div>
         </div>
       </div>
 
-      {/* Primary Metrics: Compute & VRAM */}
+      {/* Primary Metrics: Compute & VRAM with 3D Depth */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Compute Load */}
-        <div className="p-3.5 bg-slate-50/70 rounded-xl border border-slate-200/80">
+        <div className="p-3.5 bg-slate-50/70 rounded-xl border border-slate-200/80 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]">
           <div className="flex justify-between items-baseline text-xs mb-2">
             <span className="text-slate-600 font-semibold">Beban Komputasi (Compute)</span>
             <span className="font-mono tabular-nums font-bold text-blue-700">{computePct}%</span>
           </div>
-          <div className="w-full bg-slate-200/70 h-2 rounded-full overflow-hidden border border-slate-200/80">
+          <div className="w-full bg-slate-200/70 h-2 rounded-full overflow-hidden border border-slate-200/60 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]">
             <div 
               className={`h-full rounded-full motion-bar ${
-                computePct >= 90 ? 'bg-rose-500' : 
-                computePct >= 75 ? 'bg-amber-500' : 
-                'bg-blue-600'
+                computePct >= 90 ? 'bg-gradient-to-r from-rose-500 to-rose-600' : 
+                computePct >= 75 ? 'bg-gradient-to-r from-amber-500 to-amber-600' : 
+                'bg-gradient-to-r from-blue-500 to-blue-600'
               }`}
               style={{ width: `${computePct}%` }}
             />
@@ -123,19 +123,19 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
         </div>
 
         {/* VRAM Memory Summary */}
-        <div className="p-3.5 bg-slate-50/70 rounded-xl border border-slate-200/80">
+        <div className="p-3.5 bg-slate-50/70 rounded-xl border border-slate-200/80 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]">
           <div className="flex justify-between items-baseline text-xs mb-2">
             <span className="text-slate-600 font-semibold">Penggunaan VRAM</span>
             <span className="font-mono tabular-nums font-bold text-slate-900">
               {vramUsedGb} <span className="text-slate-400 font-normal">/ {vramTotalGb} GB</span> ({vramPct}%)
             </span>
           </div>
-          <div className="w-full bg-slate-200/70 h-2 rounded-full overflow-hidden border border-slate-200/80">
+          <div className="w-full bg-slate-200/70 h-2 rounded-full overflow-hidden border border-slate-200/60 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]">
             <div 
               className={`h-full rounded-full motion-bar ${
-                vramPct >= 90 ? 'bg-rose-500' : 
-                vramPct >= 75 ? 'bg-amber-500' : 
-                'bg-sky-600'
+                vramPct >= 90 ? 'bg-gradient-to-r from-rose-500 to-rose-600' : 
+                vramPct >= 75 ? 'bg-gradient-to-r from-amber-500 to-amber-600' : 
+                'bg-gradient-to-r from-sky-500 to-blue-600'
               }`}
               style={{ width: `${vramPct}%` }}
             />
@@ -248,7 +248,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
                   const isProtected = proc.is_system || !proc.is_killable;
                   const isResearch = proc.username === 'labriset' || proc.username?.includes('riset');
                   return (
-                    <tr key={proc.pid} className="hover:bg-slate-50/80 transition-colors">
+                    <tr key={proc.pid} className="hover:bg-blue-50/40 motion-row">
                       {/* User with dot indicator */}
                       <td className="px-3.5 py-2.5 text-slate-900 font-medium">
                         <div className="flex items-center gap-1.5">
@@ -302,7 +302,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
                                 vramMb: proc.vram_mb,
                                 is_system: proc.is_system
                               })}
-                              className="px-2.5 py-1 text-[11px] font-mono font-medium rounded-md bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 shadow-xs transition-colors"
+                              className="px-2.5 py-1 text-[11px] font-mono font-semibold rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 shadow-[0_1px_2px_rgba(225,29,72,0.1)] active:translate-y-0.5 transition-all"
                               title="Hentikan Proses (Terminate)"
                               type="button"
                             >

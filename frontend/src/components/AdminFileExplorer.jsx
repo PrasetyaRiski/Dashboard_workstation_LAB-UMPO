@@ -289,9 +289,9 @@ export default function AdminFileExplorer({
                   setSelectedUserForFiles(identifier);
                   setExplorerPath('');
                 }}
-                className={`w-full text-left flex flex-col p-3 rounded-lg transition-colors ${
+                className={`w-full text-left flex flex-col p-3 rounded-xl transition-all duration-150 motion-press hover:translate-x-1 ${
                   isSelected 
-                    ? 'bg-blue-500/10 border-blue-500/30 border shadow-xs' 
+                    ? 'bg-blue-500/10 border-blue-500/30 border shadow-sm' 
                     : 'hover:bg-slate-800/50 border border-transparent'
                 }`}
               >
@@ -317,7 +317,7 @@ export default function AdminFileExplorer({
       </div>
 
       {/* Right Pane - File Explorer */}
-      <div className={`flex-1 flex flex-col bg-[#181b25] border border-[#46455430] rounded-xl shadow-xl overflow-hidden ${!selectedUserForFiles ? 'hidden lg:flex' : 'flex'}`}>
+      <div className={`flex-1 flex flex-col bg-[#181b25] border border-[#46455430] rounded-2xl shadow-xl overflow-hidden ${!selectedUserForFiles ? 'hidden lg:flex' : 'flex'}`}>
         {selectedUserForFiles ? (
           <>
             <div className="p-4 border-b border-[#46455430] bg-[#1a1d27] flex items-center justify-between">
@@ -330,7 +330,7 @@ export default function AdminFileExplorer({
                   <ArrowLeft className="w-3.5 h-3.5" />
                   <span>Daftar</span>
                 </button>
-                <div className="w-10 h-10 rounded-xl bg-blue-900/30 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-xs shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-blue-900/30 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-sm shrink-0">
                   <Folder className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
@@ -353,7 +353,7 @@ export default function AdminFileExplorer({
             <div className="px-4 py-3 border-b border-[#46455430] bg-[#1a1d27] flex flex-wrap items-center gap-2">
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 shadow-xs transition-colors text-xs font-mono font-bold"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 motion-press transition-all text-xs font-mono font-bold"
               >
                 <Upload className="w-4 h-4" />
                 Upload File
@@ -366,7 +366,7 @@ export default function AdminFileExplorer({
               />
               <button
                 onClick={() => setNewFolderModal({ isOpen: true, folderName: '' })}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-xs transition-colors text-xs font-mono font-bold"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 motion-press transition-all text-xs font-mono font-bold"
               >
                 <FolderPlus className="w-4 h-4" />
                 New Folder
@@ -375,7 +375,7 @@ export default function AdminFileExplorer({
               {clipboard.path && (
                 <button
                   onClick={handlePaste}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30 shadow-xs transition-colors text-xs font-mono font-bold ml-auto"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30 motion-press transition-all text-xs font-mono font-bold ml-auto"
                 >
                   <Clipboard className="w-4 h-4" />
                   Paste ({clipboard.type})
@@ -418,7 +418,7 @@ export default function AdminFileExplorer({
                       const isDir = file.is_dir;
                       const fullPath = explorerPath ? `${explorerPath}/${file.name}` : file.name;
                       return (
-                        <tr key={idx} className={`hover:bg-slate-800/50 transition-colors ${isDir ? 'cursor-pointer' : ''}`} onClick={() => {
+                        <tr key={idx} className={`hover:bg-slate-800/50 motion-row ${isDir ? 'cursor-pointer' : ''}`} onClick={() => {
                           if (isDir) {
                             setExplorerPath(fullPath);
                           }
@@ -438,7 +438,7 @@ export default function AdminFileExplorer({
                                   e.stopPropagation(); 
                                   setRenameModal({ isOpen: true, oldPath: fullPath, currentName: file.name, newName: file.name });
                                 }}
-                                className="p-1.5 rounded-lg bg-slate-500/10 hover:bg-slate-500/20 text-slate-400 border border-slate-500/30 transition-colors"
+                                className="p-1.5 rounded-lg bg-slate-500/10 hover:bg-slate-500/20 text-slate-400 border border-slate-500/30 motion-press active:scale-95 transition-all"
                                 title="Rename"
                               >
                                 <Edit className="w-3.5 h-3.5" />
@@ -450,7 +450,7 @@ export default function AdminFileExplorer({
                                   setClipboard({ path: fullPath, type: 'copy' }); 
                                   showToast('Dicopy ke clipboard', 'success');
                                 }}
-                                className="p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 transition-colors"
+                                className="p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 motion-press active:scale-95 transition-all"
                                 title="Copy"
                               >
                                 <Copy className="w-3.5 h-3.5" />
@@ -462,7 +462,7 @@ export default function AdminFileExplorer({
                                   setClipboard({ path: fullPath, type: 'cut' }); 
                                   showToast('Di-cut ke clipboard', 'success');
                                 }}
-                                className="p-1.5 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/30 transition-colors"
+                                className="p-1.5 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/30 motion-press active:scale-95 transition-all"
                                 title="Cut"
                               >
                                 <Scissors className="w-3.5 h-3.5" />
@@ -471,7 +471,7 @@ export default function AdminFileExplorer({
                               {!isDir && (
                                 <button
                                   onClick={(e) => { e.stopPropagation(); handleDownloadFile(fullPath); }}
-                                  className="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition-colors"
+                                  className="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 motion-press active:scale-95 transition-all"
                                   title="Download File"
                                 >
                                   <Download className="w-3.5 h-3.5" />
@@ -483,7 +483,7 @@ export default function AdminFileExplorer({
                                   e.stopPropagation(); 
                                   setDeleteConfirmModal({ isOpen: true, path: fullPath, name: file.name });
                                 }}
-                                className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 transition-colors"
+                                className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 motion-press active:scale-95 transition-all"
                                 title="Delete"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />

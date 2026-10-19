@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { 
   Folder, File, ArrowUp, ArrowLeft, Download, Copy, X, Search, User,
   Trash2, Edit, Scissors, Upload, FolderPlus, Clipboard, Database,
-  AlertCircle, CheckCircle2, RefreshCw, FolderInput, Share2
+  AlertCircle, CheckCircle2, RefreshCw, FolderInput, Share2, Lock
 } from 'lucide-react';
 
 export default function AdminFileExplorer({ 
@@ -10,7 +10,8 @@ export default function AdminFileExplorer({
   adminToken, 
   students = [], 
   systemUsers = [],
-  showToast 
+  showToast,
+  onOpenLogin
 }) {
   const [selectedUserForFiles, setSelectedUserForFiles] = useState(null);
   const [explorerPath, setExplorerPath] = useState('');
@@ -291,6 +292,30 @@ export default function AdminFileExplorer({
       return name.includes(q) || nim.includes(q);
     });
   }, [searchQuery, students, systemUsers]);
+
+  if (!isAdmin) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[460px] p-8 bg-white border border-slate-200/90 rounded-2xl shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] text-center">
+        <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 mb-4 shadow-sm">
+          <Folder className="w-8 h-8" />
+        </div>
+        <h2 className="text-base font-bold text-slate-900 tracking-tight">
+          File Explorer Memerlukan Autentikasi
+        </h2>
+        <p className="text-xs text-slate-500 max-w-md mt-1 mb-5">
+          Penjelajahan direktori kerja mahasiswa dan berkas server hanya dapat diakses oleh Super Admin dan Asisten Laboratorium (Operator) yang terotentikasi.
+        </p>
+        <button
+          onClick={onOpenLogin}
+          type="button"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-sm active:translate-y-0.5 transition-all"
+        >
+          <Lock className="w-3.5 h-3.5" />
+          <span>Masuk Sebagai Admin / Aslab</span>
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-5 w-full">

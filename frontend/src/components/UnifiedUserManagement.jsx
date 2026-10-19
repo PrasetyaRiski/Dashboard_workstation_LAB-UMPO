@@ -521,7 +521,8 @@ export default function UnifiedUserManagement({
       if (filterType === 'mhs' && item.type !== 'student') return false;
       if (filterType === 'overquota' && !item.is_over_quota) return false;
 
-      if (selectedCohort !== 'all' && item.type === 'student') {
+      if (selectedCohort !== 'all') {
+        if (item.type !== 'student') return false;
         const nimStr = String(item.nim || '');
         if (!nimStr.startsWith(selectedCohort)) return false;
       }

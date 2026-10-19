@@ -294,7 +294,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [fetchStatus]);
+  }, [fetchStatus, isAdmin]);
 
   const getAuthHeaders = () => ({
     'Content-Type': 'application/json',
@@ -578,6 +578,7 @@ export default function App() {
                   students={students}
                   systemUsers={data?.users || []}
                   showToast={showToast}
+                  onOpenLogin={() => setLoginModalOpen(true)}
                 />
               </ErrorBoundary>
             </div>

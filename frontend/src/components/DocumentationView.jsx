@@ -166,44 +166,44 @@ export default function DocumentationView({ showToast }) {
 
   return (
     <div className="flex flex-col gap-6 max-w-6xl mx-auto pb-16 print:p-0 print:max-w-none">
-      {/* Header Banner - Clean, Crisp, Flat Design */}
-      <div className="rounded-2xl bg-slate-900 p-6 sm:p-7 text-white border border-slate-800 print:bg-white print:text-black print:border-none print:p-2">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      {/* Header Banner - Azure & White 3D Design */}
+      <div className="rounded-2xl bg-white border border-slate-200/90 p-5 sm:p-6 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] print:border-none print:p-2">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
           <div className="flex items-start gap-4">
-            <div className="w-11 h-11 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0 print:hidden">
-              <BookOpen className="w-5 h-5 text-blue-400" />
+            <div className="w-11 h-11 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center shrink-0 shadow-sm print:hidden">
+              <BookOpen className="w-5 h-5 text-blue-600" />
             </div>
             <div>
               <div className="flex items-center gap-2 mb-1.5">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold tracking-wider bg-slate-800 text-slate-300 border border-slate-700 uppercase print:text-black print:border-slate-400">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider bg-blue-50 text-blue-700 border border-blue-200 uppercase print:text-black print:border-slate-400">
                   Buku Panduan & SOP
                 </span>
-                <span className="text-xs text-slate-400 font-mono print:text-slate-600">Fokus Web, JupyterHub & AI Runtime</span>
+                <span className="text-xs text-slate-500 font-mono print:text-slate-600">Fokus Web, JupyterHub & AI Runtime</span>
               </div>
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white print:text-black">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 print:text-black">
                 Buku Panduan Sistem Web & Komputasi AI
               </h1>
-              <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl leading-relaxed print:text-slate-700">
+              <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed print:text-slate-700">
                 Dokumentasi operasional Web Dashboard, portal riset JupyterHub, isolasi GPU, manajemen dataset bersama, dan pintasan kode Python di Laboratorium AI Universitas Muhammadiyah Ponorogo.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0 print:hidden">
+          <div className="flex items-center gap-2.5 shrink-0 print:hidden">
             <button
               onClick={handlePrint}
               type="button"
-              className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition-all active:scale-[0.98]"
+              className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold shadow-sm transition-all active:translate-y-0.5"
               title="Cetak SOP ini sebagai PDF atau Dokumen Kertas"
             >
-              <Printer className="w-4 h-4 text-slate-400" />
+              <Printer className="w-4 h-4 text-slate-500" />
               <span>Cetak SOP</span>
             </button>
             <a
               href={dynamicJupyterUrl}
               target="_blank"
               rel="noreferrer"
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold transition-all active:scale-[0.98]"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-[0_2px_10px_rgba(37,99,235,0.25)] transition-all active:translate-y-0.5"
             >
               <span>Buka JupyterHub</span>
               <ExternalLink className="w-3.5 h-3.5" />
@@ -212,17 +212,17 @@ export default function DocumentationView({ showToast }) {
         </div>
 
         {/* Live Search & Filter Bar */}
-        <div className="mt-6 pt-5 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 print:hidden">
+        <div className="mt-5 pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 print:hidden">
           {/* Section Tabs */}
           <div className="flex flex-wrap items-center gap-1.5">
             {sections.map((sec) => (
               <button
                 key={sec.id}
                 onClick={() => setActiveSection(sec.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all active:translate-y-0.5 ${
                   activeSection === sec.id
-                    ? 'bg-blue-600 text-white font-semibold'
-                    : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/60'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-slate-200 shadow-xs'
                 }`}
               >
                 {sec.label}
@@ -232,18 +232,18 @@ export default function DocumentationView({ showToast }) {
 
           {/* Search Box */}
           <div className="relative min-w-[240px]">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari kata kunci / kode…"
-              className="w-full bg-slate-950 text-xs text-white placeholder-slate-400 rounded-xl pl-9 pr-8 py-2 border border-slate-700 focus:outline-none focus:border-blue-500"
+              className="w-full bg-slate-50 focus:bg-white text-xs text-slate-900 placeholder:text-slate-400 rounded-xl pl-8.5 pr-8 py-2 border border-slate-200 focus:border-blue-500 outline-none transition-all shadow-inner"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                 type="button"
               >
                 <X className="w-3.5 h-3.5" />
@@ -262,16 +262,16 @@ export default function DocumentationView({ showToast }) {
           {/* PYTHON CHEAT-SHEET FOR AI STUDENTS */}
           {(activeSection === 'all' || activeSection === 'snippets') && (
             (matchesSearch('python') || matchesSearch('cuda') || matchesSearch('pytorch') || matchesSearch('vram') || filteredSnippets.length > 0) && (
-              <div className="rounded-2xl bg-white border border-slate-200 p-6 flex flex-col gap-5">
+              <div className="rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] p-6 flex flex-col gap-5">
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+                    <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center font-bold shadow-xs">
                       <Terminal className="w-4 h-4" />
                     </div>
                     <div>
                       <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
                         <span>Cheat-Sheet Kode Python Mahasiswa & Peneliti</span>
-                        <span className="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 text-[10px] font-mono font-semibold">
+                        <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-mono font-semibold">
                           Praktis & Teruji
                         </span>
                       </h2>
@@ -286,47 +286,47 @@ export default function DocumentationView({ showToast }) {
                   {filteredSnippets.map((snippet) => (
                     <div
                       key={snippet.id}
-                      className="rounded-xl border border-slate-800 bg-slate-900 text-slate-100 overflow-hidden"
+                      className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-xs"
                     >
-                      <div className="flex items-center justify-between px-4 py-2.5 bg-slate-950 border-b border-slate-800 text-xs">
+                      <div className="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-b border-slate-200 text-xs">
                         <div className="flex items-center gap-2">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-blue-50 text-blue-700 border border-blue-200">
                             {snippet.category}
                           </span>
-                          <span className="font-semibold text-slate-200">{snippet.title}</span>
+                          <span className="font-bold text-slate-800">{snippet.title}</span>
                         </div>
                         <button
                           onClick={() => copyToClipboard(snippet.code, snippet.id)}
-                          className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-mono transition-colors border border-slate-700 active:scale-95"
+                          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-700 text-[11px] font-mono transition-colors border border-slate-200 shadow-xs active:translate-y-0.5"
                           title="Salin kode ke clipboard"
                           type="button"
                         >
                           {copiedCode === snippet.id ? (
                             <>
-                              <Check className="w-3.5 h-3.5 text-emerald-400" />
-                              <span className="text-emerald-400">Tersalin!</span>
+                              <Check className="w-3.5 h-3.5 text-emerald-600" />
+                              <span className="text-emerald-700 font-semibold">Tersalin!</span>
                             </>
                           ) : (
                             <>
-                              <Copy className="w-3.5 h-3.5 text-slate-400" />
+                              <Copy className="w-3.5 h-3.5 text-slate-500" />
                               <span>Salin Kode</span>
                             </>
                           )}
                         </button>
                       </div>
 
-                      <div className="p-3 text-[11px] text-slate-400 bg-slate-900 border-b border-slate-800/80 leading-relaxed font-sans">
+                      <div className="px-4 py-2.5 text-xs text-slate-600 bg-white border-b border-slate-100 leading-relaxed font-sans">
                         {snippet.desc}
                       </div>
 
-                      <div className="p-4 bg-slate-950 overflow-x-auto font-mono text-[11px] leading-relaxed text-emerald-300">
+                      <div className="p-4 bg-slate-900 overflow-x-auto font-mono text-[11px] leading-relaxed text-emerald-400">
                         <pre><code>{snippet.code}</code></pre>
                       </div>
                     </div>
                   ))}
 
                   {filteredSnippets.length === 0 && (
-                    <div className="p-6 text-center text-xs text-slate-400 bg-slate-50 rounded-xl border border-slate-200">
+                    <div className="p-6 text-center text-xs text-slate-500 bg-slate-50 rounded-xl border border-slate-200">
                       Tidak ada cuplikan kode yang sesuai dengan kata kunci pencarian.
                     </div>
                   )}
@@ -338,9 +338,9 @@ export default function DocumentationView({ showToast }) {
           {/* 1. BAGIAN PANDUAN JUPYTERHUB (MAHASISWA & PENELITI) */}
           {(activeSection === 'all' || activeSection === 'mahasiswa') && (
             (matchesSearch('jupyter') || matchesSearch('mahasiswa') || matchesSearch('login') || matchesSearch('simtik')) && (
-              <div className="rounded-2xl bg-white border border-slate-200 p-6 flex flex-col gap-5">
+              <div className="rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] p-6 flex flex-col gap-5">
                 <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center font-bold shadow-xs">
                     1
                   </div>
                   <div>
@@ -402,9 +402,9 @@ export default function DocumentationView({ showToast }) {
           {/* 2. BAGIAN WEB DASHBOARD (MONITORING PUBLIK) */}
           {(activeSection === 'all' || activeSection === 'dashboard') && (
             (matchesSearch('dashboard') || matchesSearch('ringkasan') || matchesSearch('telemetri') || matchesSearch('level')) && (
-              <div className="rounded-2xl bg-white border border-slate-200 p-6 flex flex-col gap-5">
+              <div className="rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] p-6 flex flex-col gap-5">
                 <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
-                  <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                  <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center font-bold shadow-xs">
                     2
                   </div>
                   <div>
@@ -474,9 +474,9 @@ export default function DocumentationView({ showToast }) {
           {/* 3. BAGIAN ASISTEN LAB & ADMINISTRATOR */}
           {(activeSection === 'all' || activeSection === 'aslab') && (
             (matchesSearch('aslab') || matchesSearch('admin') || matchesSearch('boost') || matchesSearch('kill') || matchesSearch('snapshot')) && (
-              <div className="rounded-2xl bg-white border border-slate-200 p-6 flex flex-col gap-5">
+              <div className="rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] p-6 flex flex-col gap-5">
                 <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
-                  <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+                  <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200 flex items-center justify-center font-bold shadow-xs">
                     3
                   </div>
                   <div>
@@ -560,9 +560,9 @@ export default function DocumentationView({ showToast }) {
           {/* 4. BAGIAN WEB FILE EXPLORER */}
           {(activeSection === 'all' || activeSection === 'explorer') && (
             (matchesSearch('file') || matchesSearch('explorer') || matchesSearch('upload') || matchesSearch('download')) && (
-              <div className="rounded-2xl bg-white border border-slate-200 p-6 flex flex-col gap-5">
+              <div className="rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] p-6 flex flex-col gap-5">
                 <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
-                  <div className="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center font-bold">
+                  <div className="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 border border-sky-200 flex items-center justify-center font-bold shadow-xs">
                     4
                   </div>
                   <div>
@@ -621,9 +621,9 @@ export default function DocumentationView({ showToast }) {
           {/* 5. BAGIAN KENDALA & SOLUSI */}
           {(activeSection === 'all' || activeSection === 'troubleshoot') && (
             (matchesSearch('kendala') || matchesSearch('solusi') || matchesSearch('403') || matchesSearch('oom') || matchesSearch('quota')) && (
-              <div className="rounded-2xl bg-white border border-slate-200 p-6 flex flex-col gap-4">
+              <div className="rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] p-6 flex flex-col gap-4">
                 <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
-                  <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
+                  <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center font-bold shadow-xs">
                     5
                   </div>
                   <div>
@@ -675,7 +675,7 @@ export default function DocumentationView({ showToast }) {
         <div className="flex flex-col gap-6">
 
           {/* Kartu Regulasi Single-Device Lock */}
-          <div className="rounded-2xl bg-white border border-slate-200 p-5 flex flex-col gap-3">
+          <div className="rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] p-5 flex flex-col gap-3">
             <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm">
               <Lock className="w-4 h-4 text-rose-600" />
               <span>Kebijakan Single-Device Lock</span>
@@ -683,13 +683,13 @@ export default function DocumentationView({ showToast }) {
             <p className="text-xs text-slate-600 leading-relaxed">
               Setiap mahasiswa hanya diizinkan aktif di <strong>1 perangkat peramban</strong> secara bersamaan guna mencegah bentrok penyimpanan berkas notebook dan praktik joki praktikum.
             </p>
-            <div className="p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-[11px] font-medium">
+            <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-[11px] font-medium">
               💡 Selalu lakukan <strong>File → Log Out</strong> di JupyterLab sebelum berganti komputer atau menutup browser.
             </div>
           </div>
 
           {/* Kartu Idle Culler - Diselaraskan dengan konfigurasi 30 Menit (1800s) server */}
-          <div className="rounded-2xl bg-white border border-slate-200 p-5 flex flex-col gap-3">
+          <div className="rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] p-5 flex flex-col gap-3">
             <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm">
               <Clock className="w-4 h-4 text-blue-600" />
               <span>Pemadaman Otomatis (30 Menit)</span>
@@ -700,7 +700,7 @@ export default function DocumentationView({ showToast }) {
           </div>
 
           {/* Akses Cepat Port */}
-          <div className="rounded-2xl bg-white border border-slate-200 p-5 flex flex-col gap-3">
+          <div className="rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] p-5 flex flex-col gap-3">
             <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
               <span>Daftar Layanan Web Lab AI</span>
@@ -715,7 +715,7 @@ export default function DocumentationView({ showToast }) {
                   href={dynamicJupyterUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="p-1.5 rounded-lg bg-white border border-slate-200 text-blue-600 hover:bg-blue-50 transition-colors"
+                  className="p-1.5 rounded-lg bg-white border border-slate-200 text-blue-600 hover:bg-blue-50 transition-colors shadow-2xs"
                   title="Buka JupyterHub"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
@@ -727,26 +727,39 @@ export default function DocumentationView({ showToast }) {
                   <span className="font-bold text-slate-900 block">Web Dashboard</span>
                   <span className="text-[11px] text-slate-500 font-mono">Port 8888 &bull; Monitoring & Console</span>
                 </div>
-                <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-mono font-bold">
+                <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-mono font-bold">
                   ONLINE
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Kontak Laboratorium */}
-          <div className="rounded-2xl bg-slate-900 text-white p-5 flex flex-col gap-3 border border-slate-800 print:hidden">
-            <span className="text-xs font-mono font-semibold text-blue-400 uppercase tracking-wider">
+          {/* Kontak & Informasi Laboratorium */}
+          <div className="rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] p-5 flex flex-col gap-3 print:hidden">
+            <span className="text-[10px] font-mono font-bold text-blue-600 uppercase tracking-wider flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5" />
               Dukungan Akademik & Teknis
             </span>
-            <h3 className="text-sm font-bold">Laboratorium AI & Riset Komputasi</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <h3 className="text-sm font-bold text-slate-900">Laboratorium AI & Riset Komputasi</h3>
+            <p className="text-xs text-slate-600 leading-relaxed">
               Program Studi Teknik Informatika, Fakultas Teknik, Universitas Muhammadiyah Ponorogo. Untuk pengajuan GPU Boost Skripsi atau pertanyaan terkait, silakan menghubungi Asisten Laboratorium yang bertugas.
             </p>
-            <div className="pt-2 border-t border-slate-800 text-[11px] font-mono text-slate-400 flex flex-col gap-1">
-              <span>Status Klaster: Beroperasi Penuh</span>
-              <span>SSO SIMTIK: Terhubung (Real-time)</span>
-              <span>Culler Policy: 30 Menit Idle</span>
+            <div className="pt-3 border-t border-slate-100 text-[11px] font-mono text-slate-500 flex flex-col gap-1.5">
+              <div className="flex items-center justify-between">
+                <span>Status Klaster:</span>
+                <span className="font-semibold text-emerald-600 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  Beroperasi Normal
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>SSO SIMTIK:</span>
+                <span className="font-semibold text-blue-600">Terhubung (Real-time)</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Culler Policy:</span>
+                <span className="font-semibold text-slate-700">30 Menit Idle</span>
+              </div>
             </div>
           </div>
 

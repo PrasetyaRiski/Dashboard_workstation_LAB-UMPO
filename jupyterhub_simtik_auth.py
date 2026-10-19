@@ -345,9 +345,13 @@ def ensure_user_tmp_dir(username: str):
         logger.warning(f"Gagal menyiapkan user tmpdir untuk {username}: {e}")
 
 
-def simtik_options_form(spawner):
+def simtik_options_form(spawner=None, *args, **kwargs):
     """Form pemilihan profil komputasi praktikum (GPU vs CPU) saat login ke JupyterHub."""
-    username = spawner.user.name
+    actual_spawner = spawner if hasattr(spawner, "user") else (args[0] if args and hasattr(args[0], "user") else None)
+    if not actual_spawner or not getattr(actual_spawner, "user", None):
+        return ""
+
+    username = actual_spawner.user.name
     priority = username in LEVEL1_SYSTEM
     if not priority and not is_system_account(username):
         nim = username_to_nim(username)
@@ -395,12 +399,15 @@ def simtik_options_form(spawner):
     """
 
 
-def simtik_options_from_form(spawner, formdata):
-    """Parsing pilihan profil komputasi dari form HTML."""
+def simtik_options_from_form(formdata_or_self, formdata=None, *args, **kwargs):
+    """Parsing pilihan profil komputasi dari form HTML (mendukung pemanggilan method & function)."""
+    data = formdata if isinstance(formdata, dict) else (formdata_or_self if isinstance(formdata_or_self, dict) else {})
     options = {}
-    if "compute_mode" in formdata:
-        options["compute_mode"] = formdata["compute_mode"][0]
+    if "compute_mode" in data:
+        val = data["compute_mode"]
+        options["compute_mode"] = val[0] if isinstance(val, (list, tuple)) else str(val)
     return options
+
 
 
 def simtik_pre_spawn_hook(spawner):
@@ -516,11 +523,14 @@ def simtik_post_stop_hook(spawner):
         logger.warning(f"Error pada simtik_post_stop_hook untuk {spawner.user.name}: {e}")
 
 
-# Kaitkan options_form & options_from_form ke SystemdSpawner secara otomatis saat modul diimpor
+# Kaitkan options_form & options_from_form ke Spawner dan SystemdSpawner secara otomatis saat modul diimpor
 try:
+    from jupyterhub.spawner import Spawner
+    Spawner.options_form = simtik_options_form
+    Spawner.options_from_form = simtik_options_from_form
     from systemdspawner import SystemdSpawner
     SystemdSpawner.options_form = simtik_options_form
     SystemdSpawner.options_from_form = simtik_options_from_form
-    logger.info("SystemdSpawner options_form berhasil dikaitkan ke Profil Komputasi Lab AI.")
+    logger.info("Spawner & SystemdSpawner options_form berhasil dikaitkan ke Profil Komputasi Lab AI.")
 except Exception as _e:
-    logger.warning(f"Gagal mengaitkan options_form pada SystemdSpawner: {_e}")
+    logger.warning(f"Gagal mengaitkan options_form: {_e}")

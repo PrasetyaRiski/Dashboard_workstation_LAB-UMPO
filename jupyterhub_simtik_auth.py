@@ -345,71 +345,6 @@ def ensure_user_tmp_dir(username: str):
         logger.warning(f"Gagal menyiapkan user tmpdir untuk {username}: {e}")
 
 
-def simtik_options_form(spawner=None, *args, **kwargs):
-    """Form pemilihan profil komputasi praktikum (GPU vs CPU) saat login ke JupyterHub."""
-    actual_spawner = spawner if hasattr(spawner, "user") else (args[0] if args and hasattr(args[0], "user") else None)
-    if not actual_spawner or not getattr(actual_spawner, "user", None):
-        return ""
-
-    username = actual_spawner.user.name
-    priority = username in LEVEL1_SYSTEM
-    if not priority and not is_system_account(username):
-        nim = username_to_nim(username)
-        try:
-            from app.db import is_user_priority
-            priority = is_user_priority(nim)
-        except Exception:
-            priority = False
-
-    if priority:
-        return """
-        <div style="padding:16px;background:#f0fdf4;border:1px solid #86efac;border-radius:12px;margin-bottom:14px;font-family:sans-serif;">
-            <p style="margin:0 0 6px 0;font-weight:700;color:#166534;font-size:14px;">⚡ Alokasi Prioritas Riset (Dedicated GPU 0)</p>
-            <p style="margin:0;font-size:12px;color:#15803d;line-height:1.5;">Akun Anda memiliki hak akses Level 1 (20 Core CPU, 70 GB RAM, Dedicated GPU 0 100% VRAM).</p>
-            <input type="hidden" name="compute_mode" value="gpu0" />
-        </div>
-        """
-
-    return """
-    <div style="padding:16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;margin-bottom:14px;font-family:sans-serif;">
-        <label style="display:block;font-weight:700;color:#0f172a;font-size:13px;margin-bottom:10px;">
-            Pilih Profil Komputasi Praktikum:
-        </label>
-        <div style="display:flex;flex-direction:column;gap:10px;">
-            <label style="display:flex;align-items:flex-start;gap:10px;padding:12px;background:#ffffff;border:1.5px solid #3b82f6;border-radius:10px;cursor:pointer;">
-                <input type="radio" name="compute_mode" value="gpu" checked style="margin-top:3px;" />
-                <div>
-                    <span style="font-weight:700;font-size:13px;color:#1e3a8a;display:block;">🚀 Mode Akselerasi GPU (Deep Learning / PyTorch / TensorFlow)</span>
-                    <span style="font-size:11px;color:#64748b;line-height:1.4;display:block;margin-top:2px;">
-                        Terhubung ke GPU 1 Shared Pool dengan optimasi Anti-OOM (expandable segments). Gunakan untuk praktikum Neural Network, Vision, & NLP.
-                    </span>
-                </div>
-            </label>
-            <label style="display:flex;align-items:flex-start;gap:10px;padding:12px;background:#ffffff;border:1px solid #cbd5e1;border-radius:10px;cursor:pointer;">
-                <input type="radio" name="compute_mode" value="cpu" style="margin-top:3px;" />
-                <div>
-                    <span style="font-weight:700;font-size:13px;color:#334155;display:block;">⚡ Mode Standar CPU (Data Science / NumPy / Pandas / Scikit-Learn)</span>
-                    <span style="font-size:11px;color:#64748b;line-height:1.4;display:block;margin-top:2px;">
-                        Hemat VRAM (0 MB GPU). Bebas antrean komputasi untuk materi Data Mining, Visualisasi, Regresi & Klasifikasi dasar.
-                    </span>
-                </div>
-            </label>
-        </div>
-    </div>
-    """
-
-
-def simtik_options_from_form(formdata_or_self, formdata=None, *args, **kwargs):
-    """Parsing pilihan profil komputasi dari form HTML (mendukung pemanggilan method & function)."""
-    data = formdata if isinstance(formdata, dict) else (formdata_or_self if isinstance(formdata_or_self, dict) else {})
-    options = {}
-    if "compute_mode" in data:
-        val = data["compute_mode"]
-        options["compute_mode"] = val[0] if isinstance(val, (list, tuple)) else str(val)
-    return options
-
-
-
 def simtik_pre_spawn_hook(spawner):
     username = spawner.user.name
     # 1. Pastikan pintasan dataset_shared terpasang di home user
@@ -451,10 +386,6 @@ def simtik_pre_spawn_hook(spawner):
         if arg not in spawner.args:
             spawner.args.append(arg)
 
-    # 4. Baca Pilihan Profil Komputasi (CPU vs GPU)
-    user_options = getattr(spawner, "user_options", {}) or {}
-    compute_mode = user_options.get("compute_mode", "gpu")
-
     user_home = f"/home/{username}"
     user_tmp = f"{user_home}/.tmp"
 
@@ -480,11 +411,7 @@ def simtik_pre_spawn_hook(spawner):
             "TMP": user_tmp,
         })
     else:
-        is_cpu_only = (compute_mode == "cpu")
-        cuda_dev = "" if is_cpu_only else "1"
-        mode_label = "CPU-ONLY (0 MB GPU)" if is_cpu_only else "GPU 1 Shared Anti-OOM"
-        logger.info(f"[QoS] {username} -> LEVEL 2 ({mode_label}, 2 core, 4G)")
-
+        logger.info(f"[QoS] {username} -> LEVEL 2 (GPU 1 Shared Anti-OOM, 2 core, 4G)")
         spawner.unit_extra_properties = {"Slice": "compute-level2.slice"}
         spawner.cpu_limit = 2.0
         spawner.mem_limit = "4G"
@@ -495,7 +422,7 @@ def simtik_pre_spawn_hook(spawner):
             "OPENBLAS_NUM_THREADS": "2",
             "MKL_NUM_THREADS": "2",
             "CUDA_DEVICE_ORDER": "PCI_BUS_ID",
-            "CUDA_VISIBLE_DEVICES": cuda_dev,
+            "CUDA_VISIBLE_DEVICES": "1",
             # Optimasi Framework AI Anti-OOM
             "TF_FORCE_GPU_ALLOW_GROWTH": "true",
             "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True",
@@ -523,14 +450,14 @@ def simtik_post_stop_hook(spawner):
         logger.warning(f"Error pada simtik_post_stop_hook untuk {spawner.user.name}: {e}")
 
 
-# Kaitkan options_form & options_from_form ke Spawner dan SystemdSpawner secara otomatis saat modul diimpor
+# Pastikan Spawner dan SystemdSpawner tidak menampilkan form pilihan profil (login langsung)
 try:
     from jupyterhub.spawner import Spawner
-    Spawner.options_form = simtik_options_form
-    Spawner.options_from_form = simtik_options_from_form
+    Spawner.options_form = None
+    Spawner.options_from_form = None
     from systemdspawner import SystemdSpawner
-    SystemdSpawner.options_form = simtik_options_form
-    SystemdSpawner.options_from_form = simtik_options_from_form
-    logger.info("Spawner & SystemdSpawner options_form berhasil dikaitkan ke Profil Komputasi Lab AI.")
+    SystemdSpawner.options_form = None
+    SystemdSpawner.options_from_form = None
+    logger.info("Spawner & SystemdSpawner options_form dinonaktifkan (login langsung tanpa pilihan profil).")
 except Exception as _e:
-    logger.warning(f"Gagal mengaitkan options_form: {_e}")
+    pass

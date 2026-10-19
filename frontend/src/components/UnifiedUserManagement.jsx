@@ -3,7 +3,7 @@ import {
   Users, Zap, ShieldCheck, Search, CheckCircle2,
   AlertCircle, AlertTriangle, Clock, UserCheck, UserX, KeyRound, RefreshCw,
   Cpu, Trash2, X, HardDrive, Layers, Database, Server, Download, Eraser,
-  Folder, File, ArrowUp, Copy, Edit2
+  Folder, File, ArrowUp, Copy, Edit2, Square
 } from 'lucide-react';
 
 /* ── Live Countdown Timer Component ── */
@@ -541,7 +541,7 @@ export default function UnifiedUserManagement({
         return nimStr.includes(q) || namaStr.includes(q) || ipStr.includes(q);
       }
     });
-  }, [unifiedList, filterType, searchQuery]);
+  }, [unifiedList, filterType, searchQuery, selectedCohort]);
 
   return (
     <div className="flex flex-col w-full gap-6">
@@ -1116,7 +1116,7 @@ export default function UnifiedUserManagement({
                                 title="Kill Sesi OS Aktif"
                                 type="button"
                               >
-                                <span className="material-symbols-outlined text-[16px] block">stop_circle</span>
+                                <Square className="w-3.5 h-3.5 fill-current" />
                               </button>
 
                               {/* Super Admin Advanced Actions */}
@@ -1330,7 +1330,7 @@ export default function UnifiedUserManagement({
                               title="Kill Seluruh Proses Akun"
                               type="button"
                             >
-                              <span className="material-symbols-outlined text-[16px] block">stop_circle</span>
+                              <Square className="w-3.5 h-3.5 fill-current" />
                             </button>
                             {isSuperAdmin && (
                               <button

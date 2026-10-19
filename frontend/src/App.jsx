@@ -439,7 +439,7 @@ export default function App() {
             </span>
             <span className="text-slate-400 text-xs">/</span>
             <span className="text-xs font-medium text-blue-600 capitalize truncate">
-              {activeTab === 'overview' ? 'Ringkasan' : activeTab === 'students' ? 'Pengguna' : activeTab === 'files' ? 'File Explorer' : 'Log Audit'}
+              {activeTab === 'overview' ? 'Ringkasan' : activeTab === 'students' ? 'Pengguna' : activeTab === 'files' ? 'File Explorer' : activeTab === 'audit' ? 'Log Audit' : 'Buku Panduan'}
             </span>
           </div>
 

@@ -4,6 +4,8 @@ import {
   LayoutDashboard,
   Users,
   FileText,
+  FolderOpen,
+  BookOpen,
   ShieldCheck,
   LogOut,
   RefreshCw,
@@ -57,12 +59,42 @@ export default function CommandPalette({
       action: () => { onTabChange('students'); onClose(); }
     },
     {
+      id: 'tab-files',
+      category: 'Navigasi',
+      label: 'Buka File Explorer Mahasiswa',
+      shortcut: '4',
+      icon: FolderOpen,
+      action: () => {
+        if (isAdmin) {
+          onTabChange('files');
+        } else {
+          onOpenLogin?.();
+        }
+        onClose();
+      }
+    },
+    {
       id: 'tab-audit',
       category: 'Navigasi',
       label: 'Buka Log Audit (Audit Trail)',
       shortcut: '3',
       icon: FileText,
-      action: () => { onTabChange('audit'); onClose(); }
+      action: () => {
+        if (isAdmin) {
+          onTabChange('audit');
+        } else {
+          onOpenLogin?.();
+        }
+        onClose();
+      }
+    },
+    {
+      id: 'tab-docs',
+      category: 'Navigasi',
+      label: 'Buka Buku Panduan & Dokumentasi',
+      shortcut: '5',
+      icon: BookOpen,
+      action: () => { onTabChange('docs'); onClose(); }
     },
     {
       id: 'action-refresh',

@@ -917,7 +917,10 @@ def resolve_safe_user_path(nim: str, relative_path: str = "", allow_home_root: b
     if not clean_nim:
         raise HTTPException(status_code=400, detail="Identitas pengguna (NIM) tidak valid.")
 
-    possible_dirs = [f"/home/{clean_nim}", f"/home/m{clean_nim}"]
+    if clean_nim == "dataset_shared":
+        possible_dirs = ["/home/dataset_shared", "/home/public/datasets"]
+    else:
+        possible_dirs = [f"/home/{clean_nim}", f"/home/m{clean_nim}"]
     home_dir = None
     for d in possible_dirs:
         if os.path.isdir(d):
@@ -925,7 +928,7 @@ def resolve_safe_user_path(nim: str, relative_path: str = "", allow_home_root: b
             break
             
     if not home_dir:
-        home_dir = os.path.realpath(f"/home/m{clean_nim}")
+        home_dir = os.path.realpath(f"/home/dataset_shared" if clean_nim == "dataset_shared" else f"/home/m{clean_nim}")
 
     # Pastikan home_dir aman dan bukan direktori sistem
     if home_dir in ["/", "/home", "/root", "/var", "/tmp", "/etc", "/opt", "/usr"]:
@@ -973,11 +976,16 @@ def resolve_safe_user_path(nim: str, relative_path: str = "", allow_home_root: b
     return home_dir, joined
 
 @app.get("/api/users/{nim}/files")
-def list_user_files(nim: str, path: str = "", session: Dict[str, Any] = Depends(verify_super_admin)):
+def list_user_files(nim: str, path: str = "", session: Dict[str, Any] = Depends(verify_operator_or_admin)):
     import subprocess, os
     home_dir, target_path = resolve_safe_user_path(nim, path, allow_home_root=True)
     if not os.path.exists(home_dir):
-        return {"success": False, "files": [], "detail": "Direktori pengguna belum dibuat."}
+        return {
+            "success": True, 
+            "files": [], 
+            "not_created": True, 
+            "message": f"Direktori kerja /home/{os.path.basename(home_dir)} belum dibuat (mahasiswa belum pernah membuka sesi notebook)."
+        }
     if not os.path.exists(target_path):
         return {"success": False, "files": [], "detail": "Direktori tidak ditemukan."}
     
@@ -1011,7 +1019,7 @@ from fastapi.responses import Response, FileResponse, StreamingResponse
 import mimetypes
 
 @app.get("/api/users/{nim}/download")
-def download_user_file(nim: str, filepath: str, session: Dict[str, Any] = Depends(verify_super_admin)):
+def download_user_file(nim: str, filepath: str, session: Dict[str, Any] = Depends(verify_operator_or_admin)):
     import subprocess, os
     home_dir, target_path = resolve_safe_user_path(nim, filepath, allow_home_root=False)
     if not os.path.isfile(target_path):
@@ -1054,7 +1062,7 @@ def download_user_file(nim: str, filepath: str, session: Dict[str, Any] = Depend
     )
 
 @app.post("/api/users/{nim}/copy-to-shared")
-def copy_file_to_shared(nim: str, req: CopyRequest, session: Dict[str, Any] = Depends(verify_super_admin)):
+def copy_file_to_shared(nim: str, req: CopyRequest, session: Dict[str, Any] = Depends(verify_operator_or_admin)):
     import subprocess, os
     home_dir, target_path = resolve_safe_user_path(nim, req.filepath, allow_home_root=False)
     if not os.path.exists(target_path):
@@ -1081,7 +1089,7 @@ def copy_file_to_shared(nim: str, req: CopyRequest, session: Dict[str, Any] = De
 
 
 @app.post("/api/users/{nim}/delete")
-def delete_file(nim: str, req: DeleteRequest, session: Dict[str, Any] = Depends(verify_super_admin)):
+def delete_file(nim: str, req: DeleteRequest, session: Dict[str, Any] = Depends(verify_operator_or_admin)):
     import os, subprocess
     home_dir, target_path = resolve_safe_user_path(nim, req.path, allow_home_root=False, for_write=True)
     if not os.path.exists(target_path):
@@ -1097,7 +1105,7 @@ def delete_file(nim: str, req: DeleteRequest, session: Dict[str, Any] = Depends(
     return {"success": True}
 
 @app.post("/api/users/{nim}/rename")
-def rename_file(nim: str, req: RenameRequest, session: Dict[str, Any] = Depends(verify_super_admin)):
+def rename_file(nim: str, req: RenameRequest, session: Dict[str, Any] = Depends(verify_operator_or_admin)):
     import os, subprocess
     home_dir, old_path = resolve_safe_user_path(nim, req.old_path, allow_home_root=False, for_write=True)
     if not os.path.exists(old_path):
@@ -1122,7 +1130,7 @@ def rename_file(nim: str, req: RenameRequest, session: Dict[str, Any] = Depends(
     return {"success": True}
 
 @app.post("/api/users/{nim}/create-folder")
-def create_folder(nim: str, req: CreateFolderRequest, session: Dict[str, Any] = Depends(verify_super_admin)):
+def create_folder(nim: str, req: CreateFolderRequest, session: Dict[str, Any] = Depends(verify_operator_or_admin)):
     import os, subprocess
     home_dir, parent_dir = resolve_safe_user_path(nim, req.path, allow_home_root=True, for_write=True)
     if not os.path.exists(parent_dir):
@@ -1151,7 +1159,7 @@ def create_folder(nim: str, req: CreateFolderRequest, session: Dict[str, Any] = 
     return {"success": True}
 
 @app.post("/api/users/{nim}/upload")
-def upload_file(nim: str, path: str = Form(...), file: UploadFile = File(...), session: Dict[str, Any] = Depends(verify_super_admin)):
+def upload_file(nim: str, path: str = Form(...), file: UploadFile = File(...), session: Dict[str, Any] = Depends(verify_operator_or_admin)):
     import os, subprocess, shutil
     home_dir, parent_dir = resolve_safe_user_path(nim, path, allow_home_root=True, for_write=True)
     if not os.path.exists(parent_dir):
@@ -1185,7 +1193,7 @@ def upload_file(nim: str, path: str = Form(...), file: UploadFile = File(...), s
     return {"success": True}
 
 @app.post("/api/users/{nim}/move")
-def move_file(nim: str, req: MoveRequest, session: Dict[str, Any] = Depends(verify_super_admin)):
+def move_file(nim: str, req: MoveRequest, session: Dict[str, Any] = Depends(verify_operator_or_admin)):
     import os, subprocess
     home_dir, source_path = resolve_safe_user_path(nim, req.source_path, allow_home_root=False, for_write=True)
     if not os.path.exists(source_path):

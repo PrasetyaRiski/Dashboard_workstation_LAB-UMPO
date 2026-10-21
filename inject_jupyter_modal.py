@@ -289,17 +289,18 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
     if (userNameEl) userNameEl.innerText = username;
     if (pill) pill.style.display = 'flex';
 
-    // Munculkan pop-up modal sekali saat sesi baru dimulai setelah login
-    var sessionKey = 'lab_ai_popup_seen_' + username;
-    if (!sessionStorage.getItem(sessionKey)) {
-      setTimeout(function() {
-        if (overlay) overlay.style.display = 'flex';
-      }, 1500);
-    }
+    // Bersihkan flag lama agar pop-up selalu muncul saat pengguna masuk / login
+    try {
+      sessionStorage.removeItem('lab_ai_popup_seen_' + username);
+    } catch(e) {}
+
+    // Munculkan pop-up modal setelah workspace terbuka
+    setTimeout(function() {
+      if (overlay) overlay.style.display = 'flex';
+    }, 1500);
 
     function hideModal() {
       if (overlay) overlay.style.display = 'none';
-      sessionStorage.setItem(sessionKey, 'true');
     }
 
     if (btnDismiss) btnDismiss.onclick = hideModal;

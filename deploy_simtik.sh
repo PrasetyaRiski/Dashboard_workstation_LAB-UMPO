@@ -97,8 +97,8 @@ EOF
 
 sudo tee /etc/systemd/system/compute-level2.slice > /dev/null << 'EOF'
 [Slice]
-CPUQuota=200%
-MemoryMax=6G
+CPUQuota=2400%
+MemoryMax=60G
 EOF
 sudo systemctl daemon-reload
 

@@ -103,7 +103,7 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
         <div class="lab-metric-card">
           <div style="display:flex; justify-content:space-between; align-items:center;">
             <span style="font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; color:#8b949e;">Memory (RAM)</span>
-            <span id="gauge-txt-ram-limit" style="font-size:10.5px; font-family:ui-monospace,monospace; color:#8b949e;">Limit 4.0 GB</span>
+            <span id="gauge-txt-ram-limit" style="font-size:10.5px; font-family:ui-monospace,monospace; color:#8b949e;">Limit 6.0 GB</span>
           </div>
           <div id="gauge-txt-ram-val" style="font-size:20px; font-weight:700; color:#f0f6fc; font-family:ui-monospace,monospace; margin:4px 0 8px;">
             0.00 GB <span style="font-size:11.5px; font-weight:400; color:#8b949e;">(0%)</span>
@@ -419,7 +419,7 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
       var cpuUsed = (d.cpu_cores_used || 0).toFixed(1);
       var cpuLimit = d.cpu_cores_limit || 2;
       var ramUsedMB = Math.round(d.ram_used_mb || 0);
-      var ramMaxMB = Math.round(d.ram_max_mb || 4096);
+      var ramMaxMB = Math.round(d.ram_max_mb || 6144);
       var ramPct = Math.min(100, Math.round((ramUsedMB / ramMaxMB) * 100));
       var gpuComp = Math.round(d.gpu_compute_percent || 0);
       var vramUsed = Math.round(d.vram_used_mb || 0);
@@ -548,7 +548,7 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
             if (!data) return;
             var rssMB = Math.round((data.rss || 0) / (1024 * 1024));
             var limitBytes = data.limits && data.limits.memory && data.limits.memory.rss;
-            var maxMB = limitBytes ? Math.round(limitBytes / (1024 * 1024)) : 4096;
+            var maxMB = limitBytes ? Math.round(limitBytes / (1024 * 1024)) : 6144;
             var cpuPct = Math.round(data.cpu_percent || 0);
             applyTelemetry({
               cpu_percent: cpuPct,

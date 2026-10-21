@@ -199,9 +199,9 @@ Halaman paling krusial yang menggabungkan mahasiswa SIMTIK dan akun sistem (`tra
    * Level 1: Badge Cyan `Level 1 (Priority)` + text `compute-level1.slice`.
    * Level 2: Badge Slate `Level 2 (Standard)` + text `compute-level2.slice`.
 5. **Alokasi Hardware & Countdown:**
-   * Level 1: `GPU 0 (Dedicated) | 20 Cores | 70GB RAM`.
+   * Level 1: `GPU 0 (Dedicated) | 20 Cores | 60GB RAM`.
      * Teks hitung mundur: `Sisa: <LiveCountdown />` (Warna Amber).
-   * Level 2: `GPU 1 (Shared Pool) | 2 Cores | 3GB RAM`.
+   * Level 2: `GPU 1 (Shared Pool) | 2 Cores | 6GB RAM`.
 6. **Penggunaan RAM:**
    * Progress bar mini pemakaian memori pengguna saat ini.
 7. **Storage (Disk) [FITUR BARU]:**
@@ -224,7 +224,7 @@ Halaman paling krusial yang menggabungkan mahasiswa SIMTIK dan akun sistem (`tra
 
 #### Halaman Infrastruktur (`system`)
 * Bento Box 1: **Alokasi Payung Cgroups v2 (RAM)**
-  * Rincian slice `user.slice` (100 GB), `user-1021.slice` (70 GB), dan kuota per akun training (3 GB).
+  * Rincian slice `user.slice` (100 GB), `user-1021.slice` (60 GB), dan kuota per akun training (6 GB).
 * Bento Box 2: **Konfigurasi CUDA & Driver Server**
   * Versi Driver NVIDIA (595.xx), CUDA Runtime (13.x), PyTorch environment, dan status GPU Architecture.
 * Bento Box 3: **Status Database & Auto-Backup**

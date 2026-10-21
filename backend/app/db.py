@@ -347,7 +347,7 @@ def set_user_priority(nim: str, hours: int = 4, reason: str = "Admin Boost") -> 
         )
         cur.execute(
             f"INSERT INTO audit_logs (nim, action, detail) VALUES ({placeholder}, {placeholder}, {placeholder})",
-            (nim, "BOOST_PRIORITY", f"Menaikkan ke mode Prioritas Level 1 (20 Core, 70G, GPU 0) selama {hours} jam. Alasan: {reason}")
+            (nim, "BOOST_PRIORITY", f"Menaikkan ke mode Prioritas Level 1 (20 Core, 60G, GPU 0) selama {hours} jam. Alasan: {reason}")
         )
         conn.commit()
         return True
@@ -438,7 +438,7 @@ def is_user_active(nim: str) -> bool:
 
 
 def is_user_priority(nim: str) -> bool:
-    """Cek apakah NIM berhak atas kuota Prioritas (20 Core, 70GB, GPU 0)"""
+    """Cek apakah NIM berhak atas kuota Prioritas (20 Core, 60GB, GPU 0)"""
     conn, engine = get_connection()
     cur = conn.cursor()
     try:

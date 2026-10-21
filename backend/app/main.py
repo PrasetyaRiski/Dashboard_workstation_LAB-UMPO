@@ -457,7 +457,7 @@ def get_user_telemetry(username: str):
             "cpu_cores_limit": 20 if is_priority else 2,
             "cpu_quota_percent": 0.0,
             "ram_used_mb": 0.0,
-            "ram_max_mb": 71680.0 if is_priority else 4096.0,
+            "ram_max_mb": 61440.0 if is_priority else 6144.0,
             "ram_percent": 0.0,
             "disk_used_mb": disk_info["disk_used_mb"],
             "disk_quota_gb": disk_info["disk_quota_gb"],
@@ -678,7 +678,7 @@ def get_students(credentials: Optional[HTTPAuthorizationCredentials] = Depends(s
 
 @app.post("/api/users/boost")
 def boost_student(req: BoostUserRequest, session: Dict[str, Any] = Depends(verify_super_admin)):
-    """Menaikkan NIM ke Mode Prioritas Level 1 (20 Core, 70G, GPU 0)"""
+    """Menaikkan NIM ke Mode Prioritas Level 1 (20 Core, 60G, GPU 0)"""
     
     # --- Admission Control ---
     # Hitung jumlah user yang sedang dalam masa boost prioritas
@@ -712,7 +712,7 @@ def boost_student(req: BoostUserRequest, session: Dict[str, Any] = Depends(verif
         record_audit(
             target=f"NIM {req.nim}",
             action="BOOST_PRIORITY",
-            detail=f"Dinaikkan ke Mode Prioritas Level 1 (20 Core, 70G, GPU 0) selama {req.hours} jam oleh {session.get('nama')}.",
+            detail=f"Dinaikkan ke Mode Prioritas Level 1 (20 Core, 60G, GPU 0) selama {req.hours} jam oleh {session.get('nama')}.",
             log_type="success"
         )
         return {"success": True, "message": f"NIM {req.nim} berhasil di-boost ke Mode Prioritas Level 1 selama {req.hours} jam."}
@@ -720,7 +720,7 @@ def boost_student(req: BoostUserRequest, session: Dict[str, Any] = Depends(verif
 
 @app.post("/api/users/unboost")
 def unboost_student(req: UserActionRequest, session: Dict[str, Any] = Depends(verify_super_admin)):
-    """Mengembalikan NIM ke Mode Standard Level 2 (2 Core, 3G, GPU 1)"""
+    """Mengembalikan NIM ke Mode Standard Level 2 (2 Core, 6G, GPU 1)"""
     success = unset_user_priority(req.nim)
     if success:
         # Hentikan sesi Level 1 yang sedang aktif agar GPU 0 dibebaskan dan sesi baru masuk ke Level 2

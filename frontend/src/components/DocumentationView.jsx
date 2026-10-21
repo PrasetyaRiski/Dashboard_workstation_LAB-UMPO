@@ -453,14 +453,14 @@ export default function DocumentationView({ showToast }) {
                       <tr>
                         <td className="p-3 font-semibold text-slate-900">Standard (Level 2)</td>
                         <td className="p-3">GPU 1 (Shared Pool)</td>
-                        <td className="p-3">2 Core CPU &bull; 4 GB RAM</td>
+                        <td className="p-3">2 Core CPU &bull; 6 GB RAM</td>
                         <td className="p-3">10 GB</td>
                         <td className="p-3 text-slate-500">Praktikum perkuliahan rutin</td>
                       </tr>
                       <tr className="bg-amber-50/30">
                         <td className="p-3 font-semibold text-amber-800">Priority (Level 1)</td>
                         <td className="p-3 font-bold text-amber-700">GPU 0 (Dedicated 100%)</td>
-                        <td className="p-3 font-bold text-emerald-700">20 Core CPU &bull; 70 GB RAM</td>
+                        <td className="p-3 font-bold text-emerald-700">20 Core CPU &bull; 60 GB RAM</td>
                         <td className="p-3 font-bold text-slate-800">50 GB</td>
                         <td className="p-3 text-amber-700 font-medium">Skripsi / Riset Deep Learning</td>
                       </tr>

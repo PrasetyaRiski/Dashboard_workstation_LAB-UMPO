@@ -668,7 +668,7 @@ def get_students(credentials: Optional[HTTPAuthorizationCredentials] = Depends(s
 
     users = list_users()
     for u in users:
-        uname = f"m{u['nim']}"
+        uname = f"m{u['nim']}" if str(u['nim']).isdigit() else str(u['nim'])
         disk_info = get_user_disk_metrics(uname, is_priority=bool(u.get("is_priority")))
         u.update(disk_info)
         # Sembunyikan IP perangkat jika bukan admin/aslab terotentikasi demi privasi
@@ -1399,7 +1399,7 @@ async def startup_event():
             try:
                 try:
                     db_users = list_users()
-                    extra_unames = [f"m{u['nim']}" for u in db_users if u.get("nim")]
+                    extra_unames = [f"m{u['nim']}" if str(u['nim']).isdigit() else str(u['nim']) for u in db_users if u.get("nim")]
                 except Exception:
                     extra_unames = []
                 await asyncio.to_thread(update_all_user_disk_usage, extra_unames)

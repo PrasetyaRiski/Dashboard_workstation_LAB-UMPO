@@ -62,9 +62,8 @@ def is_user_process_running(handler, linux_user: str) -> bool:
     Memeriksa secara komprehensif apakah server notebook atau proses pengguna sedang aktif:
     1. Cek state spawner di internal JupyterHub via handler
     2. Cek unit systemd transient SystemdSpawner (jupyter-{user}-singleuser.service)
-    3. Cek proses OS via psutil
-    4. Cek proses OS via pgrep
-    5. Cek cgroup procs Linux (/sys/fs/cgroup/user.slice/user-{uid}.slice/cgroup.procs)
+    3. Cek proses OS via psutil (jupyterhub-singleuser / ipykernel)
+    4. Cek proses OS via pgrep (jupyterhub-singleuser / ipykernel)
     """
     # 1. Cek internal JupyterHub Spawner state
     try:
@@ -102,23 +101,26 @@ def is_user_process_running(handler, linux_user: str) -> bool:
     except Exception:
         pass
 
-    # 3. Cek proses via psutil
+    # 3. Cek proses via psutil (khusus server jupyter dan kernel komputasi)
     try:
         import psutil
-        for p in psutil.process_iter(["username"]):
+        for p in psutil.process_iter(["username", "name", "cmdline"]):
             try:
                 if p.info.get("username") == linux_user:
-                    logger.info(f"[SessionCheck] {linux_user} terdeteksi aktif via psutil.")
-                    return True
+                    cmdline = " ".join(p.info.get("cmdline") or [])
+                    pname = (p.info.get("name") or "").lower()
+                    if "jupyterhub-singleuser" in cmdline or "ipykernel" in cmdline or "jupyter" in pname:
+                        logger.info(f"[SessionCheck] {linux_user} terdeteksi aktif via psutil ({cmdline[:50]}).")
+                        return True
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 continue
     except Exception:
         pass
 
-    # 4. Cek proses via pgrep
+    # 4. Cek proses via pgrep (khusus jupyter & ipykernel)
     try:
         res_pgrep = subprocess.run(
-            ["pgrep", "-u", linux_user],
+            ["pgrep", "-u", linux_user, "-f", "jupyterhub-singleuser|ipykernel_launcher"],
             capture_output=True,
             text=True,
             timeout=2
@@ -126,19 +128,6 @@ def is_user_process_running(handler, linux_user: str) -> bool:
         if res_pgrep.returncode == 0 and res_pgrep.stdout.strip():
             logger.info(f"[SessionCheck] {linux_user} terdeteksi aktif via pgrep.")
             return True
-    except Exception:
-        pass
-
-    # 5. Cek cgroup directory
-    try:
-        import pwd
-        uid = pwd.getpwnam(linux_user).pw_uid
-        cgroup_procs = f"/sys/fs/cgroup/user.slice/user-{uid}.slice/cgroup.procs"
-        if os.path.exists(cgroup_procs):
-            with open(cgroup_procs, "r") as f:
-                if f.read().strip():
-                    logger.info(f"[SessionCheck] {linux_user} terdeteksi aktif via cgroup.procs.")
-                    return True
     except Exception:
         pass
 
@@ -150,6 +139,8 @@ def is_system_account(name: str) -> bool:
 
 
 def nim_to_username(nim: str) -> str:
+    if is_system_account(nim):
+        return nim
     return f"{USER_PREFIX}{nim}"
 
 
@@ -242,77 +233,103 @@ class SimtikAuthenticator(Authenticator):
         if not username or not password:
             return None
 
+        client_ip = extract_client_ip(handler)
+
         try:
-            # 1) Akun sistem lab -> password Linux (Whitelist ketat)
+            # =========================================================
+            # 1) AKUN SISTEM LAB (labriset, training1..10, edy, labadmin)
+            # =========================================================
             if is_system_account(username):
                 ok = await asyncio.to_thread(_pam_check, username, password)
-                return username if ok else None
+                if not ok:
+                    logger.warning(f"Password Linux salah untuk akun sistem: {username}")
+                    return None
 
-            # Izinkan mahasiswa mengetik "m21533045" maupun "21533045"
+                # ENFORCE SINGLE-SESSION: Cek apakah akun sistem sudah memiliki sesi aktif
+                is_running = is_user_process_running(handler, username)
+                if is_running:
+                    logger.warning(
+                        f"[SingleSession] Penolakan login baru: Akun sistem '{username}' "
+                        f"sudah memiliki sesi notebook aktif yang sedang berjalan. Akses login baru dari IP {client_ip} ditolak."
+                    )
+                    raise tornado.web.HTTPError(
+                        403,
+                        f"Akses Ditolak: Akun '{username}' saat ini sedang aktif digunakan pada sesi/perangkat lain. "
+                        f"Kebijakan Laboratorium: Satu akun hanya diperbolehkan aktif pada 1 perangkat secara bersamaan. "
+                        f"Silakan logout dari perangkat sebelumnya terlebih dahulu, atau hubungi Asisten Lab untuk mereset sesi Anda.",
+                        reason=f"Akun sistem '{username}' sedang aktif di perangkat lain"
+                    )
+
+                # Rekam sesi aktif ke database dashboard
+                try:
+                    from app.db import get_or_create_user, set_user_active_session
+                    disp_nama = "Riset Dosen" if username == "labriset" else f"Akun {username.capitalize()}"
+                    get_or_create_user(username, disp_nama)
+                    set_user_active_session(username, client_ip)
+                    logger.info(f"[SingleSession] Sesi aktif tercatat untuk akun sistem {username} (IP: {client_ip})")
+                except Exception as e:
+                    logger.warning(f"Gagal mencatat sesi aktif akun sistem {username}: {e}")
+
+                logger.info(f"Login Akun Sistem sukses: {username} (IP: {client_ip})")
+                return username
+
+            # =========================================================
+            # 2) MAHASISWA SIMTIK (Format NIM)
+            # =========================================================
             nim = username_to_nim(username)
             if not NIM_REGEX.match(nim):
                 logger.warning(f"Username ditolak (bukan akun sistem atau format NIM tidak valid): {username}")
                 return None
 
-            # 2) Mahasiswa -> SIMTIK
+            # Verifikasi kredensial ke SIMTIK
             from app.simtik_auth import verify_simtik_credentials
             is_valid, msg, user_data = await asyncio.to_thread(verify_simtik_credentials, nim, password)
             if not is_valid:
                 logger.warning(f"SIMTIK menolak NIM {nim}: {msg}")
                 return None
 
-            # 3) Sinkron ke DB dashboard & Cek apakah user diblokir admin
+            # Sinkron ke DB dashboard & Cek apakah user diblokir admin
             try:
                 from app.db import get_or_create_user
                 rec = get_or_create_user(nim, user_data.get("nama"))
                 if rec and not rec.get("is_active", True):
                     logger.warning(f"NIM {nim} diblokir admin.")
-                    from tornado import web
-                    raise web.HTTPError(
+                    raise tornado.web.HTTPError(
                         403,
                         f"Akses Ditolak: Akun NIM {nim} sedang dinonaktifkan oleh Admin Lab. Silakan hubungi pengelola.",
                         reason=f"Akun NIM {nim} dinonaktifkan oleh Admin Lab"
                     )
-            except Exception as e:
-                if hasattr(e, "status_code"):
-                    raise e
-                logger.warning(f"Sinkron DB gagal (diabaikan): {e}")
-
-            # 4) Enforce Single-Device / Single Active Session (Option 2)
-            linux_user = nim_to_username(nim)
-            client_ip = extract_client_ip(handler)
-
-            try:
-                from app.db import get_user_active_session, set_user_active_session
-                session_info = get_user_active_session(nim)
-                active_ip = session_info.get("active_ip") if session_info else None
-                is_running = is_user_process_running(handler, linux_user)
-
-                # Jika ada sesi notebook yang sedang aktif dari IP BERBEDA -> TOLAK LOGIN PERANGKAT KEDUA (403)
-                if is_running and active_ip and client_ip != active_ip:
-                    logger.warning(
-                        f"[SingleSession] Penolakan login baru (Opsi 2): NIM {nim} ({linux_user}) "
-                        f"sudah memiliki sesi notebook aktif di perangkat lain (IP aktif: {active_ip}). "
-                        f"Akses login baru dari IP {client_ip} ditolak."
-                    )
-                    raise tornado.web.HTTPError(
-                        403,
-                        f"Akses Ditolak: Akun NIM {nim} sedang aktif digunakan di perangkat lain ({active_ip}). "
-                        f"Selesaikan sesi di perangkat tersebut terlebih dahulu, atau hubungi Asisten Lab untuk mereset sesi Anda.",
-                        reason=f"Akun NIM {nim} sedang aktif di perangkat lain"
-                    )
-
-                # Jika IP sama atau sesi baru: perbarui rekaman sesi aktif perangkat
-                set_user_active_session(nim, client_ip)
-                logger.info(f"[SingleSession] Sesi aktif tercatat untuk NIM {nim} (IP: {client_ip}, running: {is_running})")
             except tornado.web.HTTPError:
                 raise
             except Exception as e:
-                if hasattr(e, "status_code"):
-                    raise e
-                logger.warning(f"Error verifikasi single-session: {e}")
+                logger.warning(f"Sinkron DB gagal (diabaikan): {e}")
 
-            # 5) Akun Linux untuk SystemdSpawner
+            # ENFORCE SINGLE-SESSION: Cek apakah mahasiswa sudah memiliki sesi aktif
+            linux_user = nim_to_username(nim)
+            is_running = is_user_process_running(handler, linux_user)
+
+            if is_running:
+                logger.warning(
+                    f"[SingleSession] Penolakan login baru: NIM {nim} ({linux_user}) "
+                    f"sudah memiliki sesi notebook aktif yang sedang berjalan. Akses login baru dari IP {client_ip} ditolak."
+                )
+                raise tornado.web.HTTPError(
+                    403,
+                    f"Akses Ditolak: Akun NIM {nim} saat ini sedang aktif digunakan pada sesi/perangkat lain. "
+                    f"Kebijakan Laboratorium: Satu akun hanya diperbolehkan aktif pada 1 perangkat secara bersamaan. "
+                    f"Silakan selesaikan atau logout dari sesi sebelumnya terlebih dahulu, atau hubungi Asisten Lab untuk mereset sesi Anda.",
+                    reason=f"Akun NIM {nim} sedang aktif di perangkat lain"
+                )
+
+            # Catat sesi aktif di database
+            try:
+                from app.db import set_user_active_session
+                set_user_active_session(nim, client_ip)
+                logger.info(f"[SingleSession] Sesi aktif tercatat untuk NIM {nim} (IP: {client_ip})")
+            except Exception as e:
+                logger.warning(f"Error set_user_active_session: {e}")
+
+            # Pastikan user Linux lokal tersedia untuk SystemdSpawner
             if not ensure_linux_user(linux_user):
                 return None
 
@@ -441,11 +458,13 @@ def simtik_post_stop_hook(spawner):
     """
     try:
         username = spawner.user.name
-        if not is_system_account(username):
-            nim = username_to_nim(username)
-            from app.db import clear_user_active_session
-            clear_user_active_session(nim)
-            logger.info(f"[SingleSession] Server {username} dihentikan. Sesi aktif NIM {nim} berhasil dibebaskan.")
+        nim = username_to_nim(username)
+        from app.db import clear_user_active_session
+        clear_user_active_session(nim)
+        clear_user_active_session(username)
+        # Pastikan proses server jupyter/kernel pengguna dihentikan bersih
+        subprocess.run(["pkill", "-u", username, "-f", "jupyterhub-singleuser|ipykernel_launcher"], check=False)
+        logger.info(f"[SingleSession] Server {username} dihentikan. Sesi aktif berhasil dibebaskan.")
     except Exception as e:
         logger.warning(f"Error pada simtik_post_stop_hook untuk {spawner.user.name}: {e}")
 

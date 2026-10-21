@@ -387,6 +387,13 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
       if (elCpuCores) elCpuCores.innerText = cpuUsed + ' / ' + cpuLimit + ' Cores';
       if (barCpu) barCpu.style.width = Math.min(100, (cpuPct / (cpuLimit * 100)) * 100) + '%';
 
+      var elRamLimit = document.getElementById('gauge-txt-ram-limit');
+      if (elRamLimit) {
+        var ramLimitGB = (ramMaxMB / 1024);
+        var ramLimitStr = ramLimitGB >= 1 ? (Number.isInteger(ramLimitGB) ? ramLimitGB + '.0 GB' : ramLimitGB.toFixed(1) + ' GB') : ramMaxMB + ' MB';
+        elRamLimit.innerText = 'Limit ' + ramLimitStr;
+      }
+
       var elRamVal = document.getElementById('gauge-txt-ram-val');
       var elRamPct = document.getElementById('gauge-txt-ram-pct');
       var barRam = document.getElementById('gauge-bar-ram');
@@ -407,6 +414,11 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
         elGpuComp.innerHTML = gpuComp + '% <span style="font-size:11px; font-weight:400; color:#8b949e;">(VRAM ' + vramUsed + ' MB)</span>';
       }
       if (barGpu) barGpu.style.width = Math.max(gpuComp, Math.round((vramUsed/vramLimit)*100)) + '%';
+
+      var elDiskQuota = document.getElementById('gauge-txt-disk-quota');
+      if (elDiskQuota) {
+        elDiskQuota.innerText = 'Kuota ' + diskQuotaGB + ' GB';
+      }
 
       var elDiskVal = document.getElementById('gauge-txt-disk-val');
       var barDisk = document.getElementById('gauge-bar-disk');
@@ -599,9 +611,11 @@ def find_jupyterlab_static_files():
     """
     candidates = set()
 
-    # 1. Lokasi standar /opt/jupyterhub
+    # 1. Lokasi standar /opt/jupyterhub dan /opt/ai_env
     candidates.update(glob.glob("/opt/jupyterhub/share/jupyter/lab/static/index.html"))
     candidates.update(glob.glob("/opt/jupyterhub/lib/**/jupyterlab/static/index.html", recursive=True))
+    candidates.update(glob.glob("/opt/ai_env/share/jupyter/lab/static/index.html"))
+    candidates.update(glob.glob("/opt/ai_env/lib/**/jupyterlab/static/index.html", recursive=True))
 
     # 2. Lokasi /usr dan /usr/local
     candidates.update(glob.glob("/usr/local/share/jupyter/lab/static/index.html"))

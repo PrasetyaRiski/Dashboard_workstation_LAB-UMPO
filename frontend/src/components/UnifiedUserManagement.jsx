@@ -561,7 +561,7 @@ export default function UnifiedUserManagement({
           {isAdmin && (
             <button
               onClick={handleExportCSV}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-semibold border border-slate-200 shadow-[0_2px_0_#cbd5e1,0_2px_4px_rgba(0,0,0,0.03)] active:translate-y-0.5 transition-all text-xs"
+              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-semibold border border-slate-200 shadow-xs transition-colors text-xs"
               type="button"
             >
               <Download className="w-3.5 h-3.5 text-blue-600" />
@@ -570,7 +570,7 @@ export default function UnifiedUserManagement({
           )}
           <button
             onClick={() => { fetchStudents(); fetchCapacity(); }}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold shadow-[0_2px_0_#1d4ed8,0_4px_10px_rgba(37,99,235,0.25)] active:translate-y-0.5 transition-all text-xs"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#1a73e8] hover:bg-[#1557b0] text-white font-medium shadow-xs transition-colors text-xs"
             type="button"
           >
             <RefreshCw className="w-3.5 h-3.5" />
@@ -593,7 +593,7 @@ export default function UnifiedUserManagement({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
         {/* Card 1: Total Akun Terdaftar */}
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_10px_28px_-4px_rgba(37,99,235,0.12)] hover:-translate-y-0.5 transition-all flex flex-col justify-between">
+        <div className="bg-white rounded-xl p-5 border border-slate-200/90 shadow-xs hover:border-slate-300 transition-colors flex flex-col justify-between">
           <div className="flex items-start justify-between mb-2">
             <div>
               <span className="text-xs font-bold text-slate-900">Total Akun Terdaftar</span>
@@ -630,7 +630,7 @@ export default function UnifiedUserManagement({
         </div>
 
         {/* Card 2: Akun Riset & Prioritas Aktif */}
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_10px_28px_-4px_rgba(37,99,235,0.12)] hover:-translate-y-0.5 transition-all flex flex-col justify-between">
+        <div className="bg-white rounded-xl p-5 border border-slate-200/90 shadow-xs hover:border-slate-300 transition-colors flex flex-col justify-between">
           <div className="flex items-start justify-between mb-2">
             <div>
               <span className="text-xs font-bold text-slate-900">Akun Riset & Prioritas</span>
@@ -651,7 +651,7 @@ export default function UnifiedUserManagement({
             </div>
             <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden border border-slate-200/60 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]">
               <div
-                className="h-full bg-gradient-to-r from-amber-400 to-amber-500"
+                className="h-full bg-amber-500"
                 style={{ width: `${slotUtilPct}%` }}
               />
             </div>
@@ -663,7 +663,7 @@ export default function UnifiedUserManagement({
         </div>
 
         {/* Card 3: Beban Komputasi GPU */}
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_10px_28px_-4px_rgba(37,99,235,0.12)] hover:-translate-y-0.5 transition-all flex flex-col justify-between">
+        <div className="bg-white rounded-xl p-5 border border-slate-200/90 shadow-xs hover:border-slate-300 transition-colors flex flex-col justify-between">
           <div className="flex items-start justify-between mb-2">
             <div>
               <span className="text-xs font-bold text-slate-900">Beban Komputasi GPU</span>
@@ -690,10 +690,10 @@ export default function UnifiedUserManagement({
               <div
                 className={`h-full transition-all duration-500 ${
                   totalVramPct >= 75
-                    ? 'bg-gradient-to-r from-rose-500 to-rose-600'
+                    ? 'bg-rose-600'
                     : totalVramPct >= 40
                     ? 'bg-gradient-to-r from-amber-500 to-amber-600'
-                    : 'bg-gradient-to-r from-blue-500 to-blue-600'
+                    : 'bg-[#1a73e8]'
                 }`}
                 style={{ width: `${Math.max(totalVramPct, totalActiveGpuUsers > 0 ? 5 : 0)}%` }}
               />
@@ -706,7 +706,7 @@ export default function UnifiedUserManagement({
         </div>
 
         {/* Card 4: Peringatan Storage (Over Quota) */}
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_10px_28px_-4px_rgba(37,99,235,0.12)] hover:-translate-y-0.5 transition-all flex flex-col justify-between">
+        <div className="bg-white rounded-xl p-5 border border-slate-200/90 shadow-xs hover:border-slate-300 transition-colors flex flex-col justify-between">
           <div className="flex items-start justify-between mb-2">
             <div>
               <span className="text-xs font-bold text-slate-900">Peringatan Storage</span>
@@ -737,7 +737,7 @@ export default function UnifiedUserManagement({
             </div>
             <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden border border-slate-200/60 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]">
               <div
-                className={`h-full ${overQuotaCount > 0 ? 'bg-gradient-to-r from-rose-500 to-rose-600' : 'bg-gradient-to-r from-emerald-500 to-emerald-600'}`}
+                className={`h-full ${overQuotaCount > 0 ? 'bg-rose-600' : 'bg-emerald-600'}`}
                 style={{ width: overQuotaCount > 0 ? '100%' : '15%' }}
               />
             </div>
@@ -750,7 +750,7 @@ export default function UnifiedUserManagement({
       </div>
 
       {/* Filter Bar & Search Module */}
-      <div className="bg-white rounded-2xl p-3.5 border border-slate-200/90 shadow-[0_2px_12px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+      <div className="bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         {/* Segmented Controls */}
         <div className="flex flex-wrap items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 font-mono text-xs">
           <button
@@ -826,7 +826,7 @@ export default function UnifiedUserManagement({
       </div>
 
       {/* Precision 9-Column Data Table Container */}
-      <div className="bg-white rounded-2xl shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] overflow-hidden border border-slate-200/90">
+      <div className="bg-white rounded-xl shadow-xs overflow-hidden border border-slate-200/90">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[1360px]">
             <thead>
@@ -1084,7 +1084,7 @@ export default function UnifiedUserManagement({
                                   <button
                                     onClick={() => setBoostModal({ isOpen: true, nim: item.nim, nama: item.nama || '', hours: 4, reason: '' })}
                                     disabled={isSlotsFull}
-                                    className="px-2.5 py-1 rounded-lg bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-[0_2px_0_#1d4ed8,0_2px_4px_rgba(37,99,235,0.2)] active:translate-y-0.5 transition-all text-xs font-mono font-bold disabled:opacity-40 disabled:cursor-not-allowed"
+                                    className="px-2.5 py-1 rounded-lg bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs transition-colors text-xs font-mono font-bold disabled:opacity-40 disabled:cursor-not-allowed"
                                     title={isSlotsFull ? 'Slot Prioritas GPU 0 Penuh' : 'Boost ke Level 1 Dedicated'}
                                     type="button"
                                   >
@@ -1357,8 +1357,8 @@ export default function UnifiedUserManagement({
 
       {/* Boost QoS Modal with 3D Depth */}
       {boostModal.isOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-200 rounded-2xl shadow-[0_20px_50px_rgba(15,23,42,0.15),0_4px_12px_rgba(37,99,235,0.08)] p-6 w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-xl shadow-lg p-6 w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 shadow-sm">
@@ -1391,7 +1391,7 @@ export default function UnifiedUserManagement({
                       onClick={() => setBoostModal(prev => ({ ...prev, hours: h }))}
                       className={`py-2 rounded-xl text-xs font-mono font-semibold transition-all border ${
                         boostModal.hours === h
-                          ? 'bg-gradient-to-b from-blue-500 to-blue-600 text-white border-blue-700 shadow-[0_2px_0_#1d4ed8,0_2px_4px_rgba(37,99,235,0.2)]'
+                          ? 'bg-[#1a73e8] text-white border-blue-700 shadow-xs'
                           : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm'
                       }`}
                     >
@@ -1431,7 +1431,7 @@ export default function UnifiedUserManagement({
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-mono text-xs font-bold shadow-[0_2px_0_#1d4ed8,0_4px_10px_rgba(37,99,235,0.25)] active:translate-y-0.5 transition-all"
+                  className="flex-1 py-2.5 rounded-xl bg-[#1a73e8] hover:bg-[#1557b0] text-white font-mono text-xs font-medium shadow-xs transition-colors"
                 >
                   Konfirmasi Boost
                 </button>
@@ -1443,8 +1443,8 @@ export default function UnifiedUserManagement({
 
       {/* Reset Linux Password Modal */}
       {resetModal.isOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-200 rounded-2xl shadow-[0_20px_50px_rgba(15,23,42,0.15),0_4px_12px_rgba(37,99,235,0.08)] p-6 w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-xl shadow-lg p-6 w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600 shadow-sm">
@@ -1490,7 +1490,7 @@ export default function UnifiedUserManagement({
                 <button
                   type="submit"
                   disabled={resetModal.isSubmitting}
-                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-mono text-xs font-bold shadow-[0_2px_0_#4338ca,0_4px_10px_rgba(79,70,229,0.25)] active:translate-y-0.5 transition-all disabled:opacity-50"
+                  className="flex-1 py-2.5 rounded-xl bg-[#1a73e8] hover:bg-[#1557b0] text-white font-mono text-xs font-medium shadow-xs transition-colors disabled:opacity-50"
                 >
                   {resetModal.isSubmitting ? 'Memproses...' : 'Simpan Password'}
                 </button>
@@ -1502,8 +1502,8 @@ export default function UnifiedUserManagement({
 
       {/* Modal Ubah Nama Mahasiswa */}
       {editNameModal.isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-md overflow-hidden animate-scale-up">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 animate-fade-in">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-2xl w-full max-w-md overflow-hidden animate-scale-up">
             <div className="p-5 border-b border-slate-100 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-200">

@@ -25,30 +25,30 @@ export default function Sidebar({
   onOpenLogin
 }) {
   const tabs = [
-    { id: 'overview', label: 'Ringkasan',     icon: LayoutDashboard, shortcut: '1', requiresAdmin: false },
-    { id: 'students', label: 'Pengguna',      icon: Users,           shortcut: '2', requiresAdmin: false },
-    { id: 'files',    label: 'File Explorer', icon: FolderOpen,      shortcut: '4', requiresAdmin: true },
-    { id: 'audit',    label: 'Log Audit',     icon: FileText,        shortcut: '3', badgeCount: auditCount, requiresAdmin: true },
-    { id: 'docs',     label: 'Buku Panduan',  icon: BookOpen,        shortcut: '5', requiresAdmin: false },
+    { id: 'overview', label: 'Ringkasan Sistem',     icon: LayoutDashboard, shortcut: '1', requiresAdmin: false },
+    { id: 'students', label: 'Manajemen Pengguna',  icon: Users,           shortcut: '2', requiresAdmin: false },
+    { id: 'files',    label: 'File Explorer',       icon: FolderOpen,      shortcut: '4', requiresAdmin: true },
+    { id: 'audit',    label: 'Log Audit',           icon: FileText,        shortcut: '3', badgeCount: auditCount, requiresAdmin: true },
+    { id: 'docs',     label: 'Buku Panduan',        icon: BookOpen,        shortcut: '5', requiresAdmin: false },
   ];
 
   return (
     <>
-      {/* Collapse/Expand toggle — with animated gradient ring */}
+      {/* Collapse/Expand Toggle — Enterprise Stitch Minimalist */}
       <div
-        className="fixed z-50 flex items-center justify-center p-[2.5px] rounded-xl overflow-hidden transition-all duration-200 shadow-[0_2px_8px_rgba(37,99,235,0.15)] hover:shadow-[0_4px_14px_rgba(37,99,235,0.25)]"
+        className="fixed z-50 transition-all duration-200"
         style={{
           top: '50%',
-          left: isOpen ? 'calc(16rem - 16px)' : '10px',
+          left: isOpen ? 'calc(16rem - 13px)' : '10px',
           transform: 'translateY(-50%)',
         }}
       >
-        <span className="absolute inset-[-200%] animate-spin-gradient bg-[conic-gradient(from_0deg,#2563eb,#4f46e5,#06b6d4,#10b981,#3b82f6,#2563eb)]" />
         <button
           onClick={onToggle}
-          className="relative flex items-center justify-center w-7 h-7 rounded-[9px] bg-white text-slate-700 hover:text-blue-600 active:translate-y-0.5 transition-all duration-150 z-10"
-          title={isOpen ? 'Sembunyikan Sidebar' : 'Tampilkan Sidebar'}
+          className="flex items-center justify-center w-6 h-6 rounded-md bg-white border border-slate-300 text-slate-600 hover:text-blue-600 hover:border-slate-400 hover:bg-slate-50 shadow-xs transition-colors"
+          title={isOpen ? 'Sembunyikan Navigasi' : 'Tampilkan Navigasi'}
           type="button"
+          aria-label={isOpen ? 'Sembunyikan Navigasi' : 'Tampilkan Navigasi'}
         >
           {isOpen
             ? <PanelLeftClose className="w-3.5 h-3.5" />
@@ -57,32 +57,32 @@ export default function Sidebar({
         </button>
       </div>
 
-      {/* Azure & White 3D Navigation Rail */}
+      {/* GCP Console Navigation Drawer */}
       <aside
-        className={`fixed inset-y-0 left-0 w-64 bg-white z-40 flex flex-col justify-between border-r border-slate-200/90 shadow-[4px_0_24px_rgba(37,99,235,0.03)] transition-transform duration-200 ${
+        className={`fixed inset-y-0 left-0 w-64 bg-white z-40 flex flex-col justify-between border-r border-slate-200 shadow-xs transition-transform duration-200 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <div className="flex flex-col flex-1 overflow-hidden">
           {/* Header Brand */}
-          <div className="h-16 px-4 flex items-center gap-3 bg-white border-b border-slate-200/80 shrink-0">
-            <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-200/80 flex items-center justify-center shrink-0 p-1.5 shadow-sm overflow-hidden">
+          <div className="h-14 px-4 flex items-center gap-3 bg-white border-b border-slate-200 shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0 p-1">
               <img src="/ti-umpo-logo.png" alt="TI UMPO" className="w-full h-full object-contain" />
             </div>
             <div className="flex flex-col min-w-0">
               <span className="text-xs font-bold text-slate-900 tracking-tight truncate leading-tight">
                 Lab Komputasi AI
               </span>
-              <span className="font-mono text-[10px] text-blue-600 font-medium truncate leading-tight">
+              <span className="font-mono text-[10px] text-slate-500 font-medium truncate leading-tight">
                 Teknik Informatika UMPO
               </span>
             </div>
           </div>
 
-          {/* Navigation Items */}
-          <nav className="flex-1 overflow-y-auto p-3 flex flex-col gap-1.5">
-            <div className="px-2 pb-1.5 text-[10px] font-mono font-semibold uppercase tracking-wider text-slate-400">
-              Navigasi Konsol
+          {/* Navigation Section */}
+          <nav className="flex-1 overflow-y-auto py-3 px-2 flex flex-col gap-1">
+            <div className="px-3 pb-1 text-[10px] font-mono font-semibold uppercase tracking-wider text-slate-400">
+              Konsol Manajemen
             </div>
             {tabs.map((tab) => {
               const Icon = tab.icon;
@@ -101,52 +101,58 @@ export default function Sidebar({
                 <button
                   key={tab.id}
                   onClick={handleClick}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left transition-all duration-200 text-xs font-medium motion-press ${
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left text-xs font-medium transition-colors ${
                     isActive
-                      ? 'bg-gradient-to-r from-blue-50 to-indigo-50/50 text-blue-700 font-semibold border border-blue-200/90 shadow-[0_2px_4px_rgba(37,99,235,0.06)] translate-x-1'
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent hover:translate-x-0.5'
+                      ? 'bg-blue-50/80 text-blue-700 font-semibold border-l-3 border-[#1a73e8]'
+                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-l-3 border-transparent'
                   }`}
                   type="button"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
+                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#1a73e8]' : 'text-slate-400'}`} />
                     <span className="truncate">{tab.label}</span>
-                    {isLocked && <Lock className="w-3.5 h-3.5 ml-1.5 text-rose-400/80 shrink-0" />}
+                    {isLocked && <Lock className="w-3.5 h-3.5 ml-1 text-slate-400 shrink-0" />}
                   </div>
 
-                  {tab.badgeCount !== undefined && tab.badgeCount > 0 && (
-                    <span className="px-1.5 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-blue-100 text-blue-700 border border-blue-200 ml-2 shrink-0">
-                      {tab.badgeCount}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {tab.badgeCount !== undefined && tab.badgeCount > 0 && (
+                      <span className="px-1.5 py-0.2 rounded text-[10px] font-mono font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+                        {tab.badgeCount}
+                      </span>
+                    )}
+                    <span className="text-[10px] font-mono text-slate-400 bg-slate-100 px-1 py-0.2 rounded border border-slate-200/60">
+                      {tab.shortcut}
                     </span>
-                  )}
+                  </div>
                 </button>
               );
             })}
           </nav>
         </div>
 
-        {/* Bottom Section: Live Status & WIB Clock */}
-        <div className="shrink-0 p-3 border-t border-slate-200/80 bg-slate-50/60 flex flex-col gap-2">
-          <div className="flex items-center justify-between px-3 py-2 bg-white rounded-xl border border-slate-200 shadow-sm font-mono text-xs">
+        {/* Bottom Section: Cluster Telemetry Status & Clock */}
+        <div className="shrink-0 p-3 border-t border-slate-200 bg-slate-50/70 flex flex-col gap-2">
+          <div className="flex items-center justify-between px-3 py-2 bg-white rounded-lg border border-slate-200 shadow-xs font-mono text-xs">
             <div className="flex items-center gap-2">
               <span
                 className={`w-2 h-2 rounded-full shrink-0 ${
                   isConnected ? 'bg-emerald-500 pulse-dot' : 'bg-rose-500'
                 }`}
               />
-              <span className={`text-[11px] font-bold ${isConnected ? 'text-emerald-700' : 'text-rose-600'}`}>
-                {isConnected ? 'ONLINE' : 'OFFLINE'}
+              <span className={`text-[10px] font-semibold tracking-wide ${isConnected ? 'text-emerald-700' : 'text-rose-600'}`}>
+                {isConnected ? 'LIVE' : 'OFFLINE'}
               </span>
             </div>
 
             <div className="flex items-center gap-2 text-slate-500 text-[11px]">
-              <span className="tabular-nums font-semibold text-slate-700">{timeStr || '--:--:--'}</span>
+              <span className="tabular-nums font-medium text-slate-700">{timeStr || '--:--:--'}</span>
               <button
                 onClick={onManualRefresh}
                 disabled={isRefreshing}
-                className="p-1 rounded-md text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors disabled:opacity-40"
-                title="Muat Ulang Telemetri (R)"
+                className="p-1 rounded text-slate-400 hover:text-blue-600 hover:bg-slate-100 transition-colors disabled:opacity-40"
+                title="Refresh Telemetry (Shortcut: R)"
                 type="button"
+                aria-label="Refresh Telemetry"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-blue-600' : ''}`} />
               </button>

@@ -295,8 +295,8 @@ export default function AdminFileExplorer({
 
   if (!isAdmin) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[460px] p-8 bg-white border border-slate-200/90 rounded-2xl shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] text-center">
-        <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 mb-4 shadow-sm">
+      <div className="flex flex-col items-center justify-center min-h-[460px] p-8 bg-white border border-slate-200/90 rounded-xl shadow-xs text-center">
+        <div className="w-16 h-16 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 mb-4 shadow-sm">
           <Folder className="w-8 h-8" />
         </div>
         <h2 className="text-base font-bold text-slate-900 tracking-tight">
@@ -348,7 +348,7 @@ export default function AdminFileExplorer({
 
       <div className="flex flex-col lg:flex-row min-h-[580px] gap-5 w-full">
         {/* Left Pane - User Directory List */}
-        <div className={`w-full lg:w-1/3 lg:min-w-[320px] lg:max-w-sm flex flex-col bg-white border border-slate-200/90 rounded-2xl shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] overflow-hidden ${selectedUserForFiles ? 'hidden lg:flex' : 'flex'}`}>
+        <div className={`w-full lg:w-1/3 lg:min-w-[320px] lg:max-w-sm flex flex-col bg-white border border-slate-200/90 rounded-xl shadow-xs overflow-hidden ${selectedUserForFiles ? 'hidden lg:flex' : 'flex'}`}>
           <div className="p-4 border-b border-slate-100 bg-slate-50/70">
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-bold text-slate-900 flex items-center gap-2">
@@ -429,7 +429,7 @@ export default function AdminFileExplorer({
         </div>
 
         {/* Right Pane - Active Workspace Explorer */}
-        <div className={`flex-1 flex flex-col bg-white border border-slate-200/90 rounded-2xl shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] overflow-hidden ${!selectedUserForFiles ? 'hidden lg:flex' : 'flex'}`}>
+        <div className={`flex-1 flex flex-col bg-white border border-slate-200/90 rounded-xl shadow-xs overflow-hidden ${!selectedUserForFiles ? 'hidden lg:flex' : 'flex'}`}>
           {selectedUserForFiles ? (
             <>
               {/* Header Navigation Strip */}
@@ -511,7 +511,7 @@ export default function AdminFileExplorer({
                     <span>Memuat berkas…</span>
                   </div>
                 ) : notCreatedMsg ? (
-                  <div className="p-6 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 flex flex-col items-center justify-center text-center gap-2 max-w-md mx-auto my-8 shadow-sm">
+                  <div className="p-6 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 flex flex-col items-center justify-center text-center gap-2 max-w-md mx-auto my-8 shadow-sm">
                     <AlertCircle className="w-8 h-8 text-amber-600" />
                     <h4 className="font-bold text-sm">Direktori Pengguna Belum Dibuat</h4>
                     <p className="text-xs text-amber-800 leading-relaxed font-mono">
@@ -681,7 +681,7 @@ export default function AdminFileExplorer({
             </>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-slate-400">
-              <div className="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 mb-3 shadow-inner">
+              <div className="w-16 h-16 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 mb-3 shadow-inner">
                 <Folder className="w-8 h-8 text-slate-300" />
               </div>
               <h3 className="font-bold text-sm text-slate-800">Pilih Akun Pengguna</h3>
@@ -695,8 +695,8 @@ export default function AdminFileExplorer({
 
       {/* Rename Modal */}
       {renameModal.isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-          <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-[0_20px_50px_rgba(15,23,42,0.15)] w-full max-w-sm motion-modal-pop">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4">
+          <div className="bg-white border border-slate-200 p-6 rounded-xl shadow-lg w-full max-w-sm motion-modal-pop">
             <h3 className="text-sm font-bold text-slate-900 mb-1">Ubah Nama File / Folder</h3>
             <p className="text-xs text-slate-500 mb-4 font-mono truncate">{renameModal.currentName}</p>
             <form onSubmit={handleRename}>
@@ -730,8 +730,8 @@ export default function AdminFileExplorer({
 
       {/* New Folder Modal */}
       {newFolderModal.isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-          <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-[0_20px_50px_rgba(15,23,42,0.15)] w-full max-w-sm motion-modal-pop">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4">
+          <div className="bg-white border border-slate-200 p-6 rounded-xl shadow-lg w-full max-w-sm motion-modal-pop">
             <h3 className="text-sm font-bold text-slate-900 mb-1">Buat Folder Baru</h3>
             <p className="text-xs text-slate-500 mb-4 font-mono">Lokasi: /{explorerPath || ''}</p>
             <form onSubmit={handleCreateFolder}>
@@ -766,8 +766,8 @@ export default function AdminFileExplorer({
 
       {/* Delete Confirm Modal */}
       {deleteConfirmModal.isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-          <div className="bg-white border border-rose-200 p-6 rounded-2xl shadow-[0_20px_50px_rgba(15,23,42,0.15)] w-full max-w-sm motion-modal-pop">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4">
+          <div className="bg-white border border-rose-200 p-6 rounded-xl shadow-lg w-full max-w-sm motion-modal-pop">
             <h3 className="text-sm font-bold text-rose-600 mb-1">Konfirmasi Penghapusan</h3>
             <p className="text-xs text-slate-600 mb-4 leading-relaxed">
               Apakah Anda yakin ingin menghapus <strong className="font-mono text-slate-900">{deleteConfirmModal.name}</strong> secara permanen?

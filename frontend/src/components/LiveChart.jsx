@@ -17,8 +17,8 @@ const RANGE_OPTIONS = [
 ];
 
 const SERIES = [
-  { key: 'gpu0_compute', name: 'GPU 0 Compute', color: '#2563eb' },
-  { key: 'gpu1_compute', name: 'GPU 1 Compute', color: '#4f46e5' },
+  { key: 'gpu0_compute', name: 'GPU 0 Compute', color: '#1a73e8' },
+  { key: 'gpu1_compute', name: 'GPU 1 Compute', color: '#4338ca' },
   { key: 'cpu',          name: 'CPU Host',      color: '#0284c7' },
   { key: 'ram',          name: 'RAM Host',      color: '#059669' },
 ];
@@ -26,15 +26,15 @@ const SERIES = [
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload || !payload.length) return null;
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-3 shadow-xl font-mono min-w-[170px]">
-      <p className="text-[10px] text-slate-500 mb-2 font-semibold uppercase tracking-wider">
+    <div className="bg-white border border-slate-300 rounded-lg p-2.5 shadow-md font-mono min-w-[160px]">
+      <p className="text-[10px] text-slate-500 mb-1.5 font-semibold uppercase tracking-wider">
         Waktu: {label || '—'}
       </p>
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-1">
         {payload.map((entry) => (
-          <div key={entry.dataKey} className="flex items-center justify-between gap-4 text-xs">
-            <span className="flex items-center gap-1.5 text-slate-600 font-medium">
-              <span className="w-2.5 h-2.5 rounded-sm shadow-sm" style={{ background: entry.color }} />
+          <div key={entry.dataKey} className="flex items-center justify-between gap-3 text-xs">
+            <span className="flex items-center gap-1.5 text-slate-700 font-medium">
+              <span className="w-2 h-2 rounded-xs" style={{ background: entry.color }} />
               {entry.name}
             </span>
             <span className="font-bold tabular-nums" style={{ color: entry.color }}>
@@ -91,14 +91,14 @@ function LiveChart({ history = [] }) {
 
   if (!Array.isArray(history) || history.length === 0) {
     return (
-      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center justify-center text-xs font-mono text-slate-400">
+      <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-xs flex items-center justify-center text-xs font-mono text-slate-400">
         <span>Menunggu telemetri real-time buffer…</span>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] flex flex-col gap-4">
+    <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-xs hover:border-slate-300 transition-colors flex flex-col gap-4">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -106,8 +106,8 @@ function LiveChart({ history = [] }) {
             <h2 className="text-sm font-bold text-slate-900 tracking-tight">
               Telemetri Beban Komputasi Real-time
             </h2>
-            <span className="px-2 py-0.5 rounded-full bg-blue-50 font-mono text-[10px] font-semibold text-blue-700 border border-blue-200">
-              T-60s BUFFER
+            <span className="px-2 py-0.2 rounded bg-slate-100 font-mono text-[10px] font-semibold text-slate-700 border border-slate-200">
+              BUFFER T-60s
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -116,11 +116,11 @@ function LiveChart({ history = [] }) {
         </div>
 
         {/* Controls & Quick Stats */}
-        <div className="flex items-center gap-2.5 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
           {latest && (
-            <div className="hidden md:flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 font-mono text-xs shadow-sm">
+            <div className="hidden md:flex items-center gap-2 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200 font-mono text-xs">
               <span className="text-slate-500">GPU 0:</span>
-              <span className="text-blue-600 tabular-nums font-bold">{latest.gpu0_compute?.toFixed(0) || 0}%</span>
+              <span className="text-[#1a73e8] tabular-nums font-bold">{latest.gpu0_compute?.toFixed(0) || 0}%</span>
               <span className="text-slate-300">·</span>
               <span className="text-slate-500">CPU:</span>
               <span className="text-slate-800 tabular-nums font-bold">{latest.cpu?.toFixed(0) || 0}%</span>
@@ -128,13 +128,13 @@ function LiveChart({ history = [] }) {
           )}
 
           {/* Metric Filter Segmented Control */}
-          <div className="flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200 font-mono text-xs">
+          <div className="flex items-center bg-slate-100 p-0.5 rounded-md border border-slate-200 font-mono text-xs">
             <button
               onClick={() => setMetricFilter('ALL')}
-              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
+              className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${
                 metricFilter === 'ALL'
-                  ? 'bg-white text-blue-700 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-900'
+                  ? 'bg-white text-[#1a73e8] shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
               type="button"
             >
@@ -142,10 +142,10 @@ function LiveChart({ history = [] }) {
             </button>
             <button
               onClick={() => setMetricFilter('GPU')}
-              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
+              className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${
                 metricFilter === 'GPU'
-                  ? 'bg-white text-blue-700 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-900'
+                  ? 'bg-white text-[#1a73e8] shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
               type="button"
             >
@@ -153,10 +153,10 @@ function LiveChart({ history = [] }) {
             </button>
             <button
               onClick={() => setMetricFilter('HOST')}
-              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
+              className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${
                 metricFilter === 'HOST'
-                  ? 'bg-white text-blue-700 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-900'
+                  ? 'bg-white text-[#1a73e8] shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
               type="button"
             >
@@ -167,10 +167,10 @@ function LiveChart({ history = [] }) {
           {/* Pause Button */}
           <button
             onClick={togglePause}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-mono font-medium transition-all shadow-sm active:translate-y-0.5 ${
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-md border text-xs font-mono font-medium transition-colors ${
               isPaused
-                ? 'bg-amber-50 border-amber-200 text-amber-700 shadow-sm'
-                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                ? 'bg-amber-50 border-amber-300 text-amber-800'
+                : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
             }`}
             title={isPaused ? 'Lanjutkan Stream' : 'Jeda Grafik'}
             type="button"
@@ -180,15 +180,15 @@ function LiveChart({ history = [] }) {
           </button>
 
           {/* Segmented Range Control */}
-          <div className="flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200 font-mono text-xs">
+          <div className="flex items-center bg-slate-100 p-0.5 rounded-md border border-slate-200 font-mono text-xs">
             {RANGE_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
                 onClick={() => setRange(opt.value)}
-                className={`px-2 py-1 rounded-md text-[11px] font-semibold transition-all ${
+                className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${
                   range === opt.value
-                    ? 'bg-white text-blue-700 shadow-sm'
-                    : 'text-slate-500 hover:text-slate-900'
+                    ? 'bg-white text-[#1a73e8] shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
                 type="button"
               >
@@ -200,7 +200,7 @@ function LiveChart({ history = [] }) {
       </div>
 
       {/* Chart Canvas with Clean Light Grid */}
-      <div className="w-full h-52 bg-slate-50/60 rounded-xl p-2 border border-slate-200 shadow-inner relative overflow-hidden">
+      <div className="w-full h-48 bg-slate-50 rounded-lg p-2 border border-slate-200 relative overflow-hidden">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={formattedData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
             <CartesianGrid stroke="#e2e8f0" strokeDasharray="3 3" vertical={false} />
@@ -229,9 +229,9 @@ function LiveChart({ history = [] }) {
                 dataKey={s.key}
                 name={s.name}
                 stroke={s.color}
-                strokeWidth={s.key.includes('gpu') ? 2 : 1.5}
+                strokeWidth={1.5}
                 fill={s.color}
-                fillOpacity={s.key === 'gpu0_compute' ? 0.12 : s.key === 'gpu1_compute' ? 0.10 : 0.08}
+                fillOpacity={0.08}
                 isAnimationActive={false}
               />
             ))}
@@ -244,13 +244,13 @@ function LiveChart({ history = [] }) {
         <div className="flex items-center gap-4 flex-wrap">
           {visibleSeries.map((s) => (
             <div key={s.key} className="flex items-center gap-1.5">
-              <span className="w-3 h-1.5 rounded-full shadow-sm" style={{ background: s.color }} />
+              <span className="w-2.5 h-1.5 rounded-xs" style={{ background: s.color }} />
               <span className="font-medium text-slate-700">{s.name}</span>
             </div>
           ))}
         </div>
-        <span className="text-[10px] text-slate-400 font-semibold">
-          {isPaused ? 'STREAM DIBEKUKAN' : 'T-0s SEKARANG'}
+        <span className="text-[10px] text-slate-400 font-medium">
+          {isPaused ? 'STREAM DIBEKUKAN' : 'TELEMETRI AKTIF'}
         </span>
       </div>
     </div>

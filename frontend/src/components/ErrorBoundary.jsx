@@ -26,9 +26,9 @@ export default class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="w-full p-6 my-4 rounded-2xl bg-white border border-rose-200 shadow-[0_4px_20px_-2px_rgba(244,63,94,0.1),0_2px_4px_rgba(0,0,0,0.03)] flex flex-col gap-4">
+        <div className="w-full p-6 my-4 rounded-lg bg-white border border-rose-200 shadow-xs flex flex-col gap-4">
           <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 shrink-0 shadow-sm">
+            <div className="w-10 h-10 rounded-lg bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 shrink-0 shadow-sm">
               <AlertTriangle className="w-5 h-5 text-rose-600" />
             </div>
             <div>
@@ -42,7 +42,7 @@ export default class ErrorBoundary extends React.Component {
           </div>
 
           {this.state.error && (
-            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 font-mono text-xs text-rose-600 overflow-x-auto whitespace-pre-wrap shadow-[inset_0_1px_2px_rgba(0,0,0,0.03)]">
+            <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200 font-mono text-xs text-rose-600 overflow-x-auto whitespace-pre-wrap shadow-[inset_0_1px_2px_rgba(0,0,0,0.03)]">
               {this.state.error.toString()}
             </div>
           )}
@@ -50,7 +50,7 @@ export default class ErrorBoundary extends React.Component {
           <div className="flex items-center gap-3 pt-2">
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-xs font-mono font-semibold flex items-center gap-2 border border-slate-200 shadow-[0_2px_0_#cbd5e1,0_2px_4px_rgba(0,0,0,0.03)] active:translate-y-0.5 transition-all"
+              className="px-4 py-2 rounded-lg bg-white hover:bg-slate-50 text-slate-700 text-xs font-mono font-semibold flex items-center gap-2 border border-slate-200 shadow-xs transition-colors"
               type="button"
             >
               <RefreshCw className="w-3.5 h-3.5 text-blue-600" />
@@ -58,7 +58,7 @@ export default class ErrorBoundary extends React.Component {
             </button>
             <button
               onClick={this.handleReset}
-              className="px-4 py-2 rounded-xl bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-xs font-mono font-semibold flex items-center gap-2 shadow-[0_2px_0_#1d4ed8,0_4px_10px_rgba(37,99,235,0.25)] active:translate-y-0.5 transition-all"
+              className="px-4 py-2 rounded-lg bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-mono font-medium flex items-center gap-2 shadow-xs transition-colors"
               type="button"
             >
               <LayoutDashboard className="w-3.5 h-3.5" />

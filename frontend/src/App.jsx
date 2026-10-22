@@ -13,9 +13,9 @@ import ErrorBoundary from './components/ErrorBoundary';
 import DocumentationView from './components/DocumentationView';
 
 import {
-  WifiOff, RefreshCw, Layers, ShieldCheck,
-  CheckCircle2, AlertCircle, Info, Menu, LogOut,
-  Search, ShieldAlert
+  WifiOff, RefreshCw, ShieldCheck,
+  CheckCircle2, AlertCircle, Info, LogOut,
+  Search
 } from 'lucide-react';
 
 export default function App() {
@@ -35,15 +35,15 @@ export default function App() {
   const isSuperAdmin = Boolean(adminToken && adminRole === 'admin');
   const isOperator = Boolean(adminToken && adminRole === 'aslab');
 
-  const [loginModalOpen, setLoginModalOpen]       = useState(false);
+  const [loginModalOpen, setLoginModalOpen]         = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
-  const [students, setStudents]                   = useState([]);
-  const [isConnected, setIsConnected]             = useState(false);
-  const [isRefreshing, setIsRefreshing]           = useState(false);
-  const [toast, setToast]                         = useState(null);
-  const [activeTab, setActiveTab]                 = useState('overview');
-  const [isMobile, setIsMobile]                 = useState(() => typeof window !== 'undefined' ? window.innerWidth < 1024 : false);
-  const [isSidebarOpen, setIsSidebarOpen]         = useState(() => typeof window !== 'undefined' ? window.innerWidth >= 1024 : true);
+  const [students, setStudents]                     = useState([]);
+  const [isConnected, setIsConnected]               = useState(false);
+  const [isRefreshing, setIsRefreshing]             = useState(false);
+  const [toast, setToast]                           = useState(null);
+  const [activeTab, setActiveTab]                   = useState('overview');
+  const [isMobile, setIsMobile]                     = useState(() => typeof window !== 'undefined' ? window.innerWidth < 1024 : false);
+  const [isSidebarOpen, setIsSidebarOpen]           = useState(() => typeof window !== 'undefined' ? window.innerWidth >= 1024 : true);
 
   useEffect(() => {
     const handleResize = () => {
@@ -253,19 +253,17 @@ export default function App() {
 
   useEffect(() => { fetchStatus(); }, [fetchStatus]);
 
-  // Global Keyboard Shortcuts (Section 6.G)
+  // Global Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e) => {
       const isInputFocused = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName);
 
-      // Ctrl + K or Cmd + K: Command Palette
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         setCommandPaletteOpen(prev => !prev);
         return;
       }
 
-      // Single-key shortcuts only active when NOT typing in input
       if (!isInputFocused) {
         if (e.key === '1') {
           e.preventDefault();
@@ -393,17 +391,17 @@ export default function App() {
   const isDataStale = staleSeconds > 15;
 
   return (
-    <div className="min-h-screen bg-[#f1f5f9] text-[#0f172a] font-sans antialiased selection:bg-blue-100 selection:text-blue-700">
+    <div className="min-h-screen bg-[#f8fafc] text-[#0f172a] font-sans antialiased selection:bg-blue-100 selection:text-blue-800">
       {/* Mobile Drawer Overlay */}
       {isMobile && isSidebarOpen && (
         <div
           onClick={() => setIsSidebarOpen(false)}
-          className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-30 lg:hidden transition-opacity"
+          className="fixed inset-0 bg-slate-900/60 z-30 lg:hidden transition-opacity"
           aria-hidden="true"
         />
       )}
 
-      {/* Sidebar Navigation */}
+      {/* Sidebar Navigation Drawer */}
       <Sidebar
         activeTab={activeTab}
         onTabChange={(tab) => {
@@ -421,61 +419,73 @@ export default function App() {
         onOpenLogin={() => setLoginModalOpen(true)}
       />
 
-      {/* Main Canvas Area */}
+      {/* Main Console Canvas */}
       <div
         className="flex flex-col min-h-screen transition-all duration-200"
         style={{ paddingLeft: (!isMobile && isSidebarOpen) ? '16rem' : '0' }}
       >
-        {/* Sticky Header with 3D Depth */}
+        {/* Enterprise Fixed Top Bar (GCP Style) */}
         <header
-          className="fixed top-0 right-0 h-14 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-[0_2px_12px_rgba(0,0,0,0.03)] z-40 flex items-center justify-between px-3 sm:px-5 transition-all duration-200"
+          className="fixed top-0 right-0 h-14 bg-white border-b border-slate-200 z-40 flex items-center justify-between px-4 sm:px-6 transition-all duration-200"
           style={{ left: (!isMobile && isSidebarOpen) ? '16rem' : '0' }}
         >
-          {/* Left Brand */}
+          {/* Breadcrumbs */}
           <div className="flex items-center gap-2 min-w-0">
-            <span className="text-xs font-bold text-slate-900 tracking-tight truncate">
+            <span className="text-xs font-semibold text-slate-800 tracking-tight truncate">
               <span className="hidden sm:inline">Lab Komputasi AI UMPO</span>
-              <span className="sm:hidden">Lab AI</span>
+              <span className="sm:hidden">Lab AI UMPO</span>
             </span>
-            <span className="text-slate-400 text-xs">/</span>
-            <span className="text-xs font-medium text-blue-600 capitalize truncate">
-              {activeTab === 'overview' ? 'Ringkasan' : activeTab === 'students' ? 'Pengguna' : activeTab === 'files' ? 'File Explorer' : activeTab === 'audit' ? 'Log Audit' : 'Buku Panduan'}
+            <span className="text-slate-300 text-xs">/</span>
+            <span className="text-xs font-medium text-[#1a73e8] truncate">
+              {activeTab === 'overview' ? 'Ringkasan Sistem' : activeTab === 'students' ? 'Manajemen Pengguna' : activeTab === 'files' ? 'File Explorer' : activeTab === 'audit' ? 'Log Audit' : 'Buku Panduan'}
             </span>
           </div>
 
-          {/* Right Mode Pill, Clock, and Auth Action */}
-          <div className="flex items-center gap-2.5">
-            {/* Status Peringatan Koneksi Terputus (Hanya muncul jika bermasalah) */}
+          {/* Quick Command & Actions */}
+          <div className="flex items-center gap-3">
+            {/* Command Palette Trigger */}
+            <button
+              onClick={() => setCommandPaletteOpen(true)}
+              className="hidden md:flex items-center gap-2 px-2.5 py-1 text-xs text-slate-500 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-md font-mono transition-colors"
+              title="Buka Command Palette (Ctrl+K)"
+              type="button"
+            >
+              <Search className="w-3.5 h-3.5 text-slate-400" />
+              <span>Cari proses / pintasan...</span>
+              <kbd className="px-1.5 py-0.2 text-[10px] bg-white border border-slate-200 rounded text-slate-400">⌘K</kbd>
+            </button>
+
+            {/* Connection Warning */}
             {isDataStale ? (
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-mono shadow-sm">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-xs font-mono">
                 <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-                <span>Data Basi · {staleSeconds}s</span>
+                <span>Data Stale · {staleSeconds}s</span>
               </div>
             ) : !isConnected ? (
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-xs font-mono shadow-sm">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50 border border-amber-200 text-amber-700 text-xs font-mono">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                 <span>Menyambung ulang…</span>
               </div>
             ) : null}
 
-            {/* Role Badge */}
+            {/* User Role Indicator */}
             {isOperator ? (
-              <div className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-xs font-mono shadow-sm">
+              <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 border border-slate-200 text-xs font-mono">
                 <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
                 <span>Operator: {adminUser?.nama ? adminUser.nama.split(' ')[0] : 'Aslab'}</span>
               </div>
             ) : isSuperAdmin ? (
-              <div className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-mono shadow-sm">
-                <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
+              <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 border border-slate-200 text-xs font-mono">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#1a73e8]" />
                 <span>Super Admin</span>
               </div>
             ) : null}
 
-            {/* Login / Logout Action */}
+            {/* Auth Button */}
             {!isAdmin ? (
               <button
                 onClick={() => setLoginModalOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-xs font-semibold shadow-[0_2px_0_#1d4ed8,0_4px_10px_rgba(37,99,235,0.25)] active:translate-y-0.5 transition-all"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-medium transition-colors shadow-xs"
                 title="Login Operator / Admin"
                 type="button"
               >
@@ -485,9 +495,10 @@ export default function App() {
             ) : (
               <button
                 onClick={handleLogout}
-                className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 shadow-sm active:translate-y-0.5 transition-all"
+                className="p-1.5 rounded-md text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition-colors"
                 title="Keluar dari Konsol"
                 type="button"
+                aria-label="Logout"
               >
                 <LogOut className="w-3.5 h-3.5" />
               </button>
@@ -495,17 +506,17 @@ export default function App() {
           </div>
         </header>
 
-        {/* Persistent Warning Banner (Manifesto Section 7.C) */}
+        {/* Telemetry Disconnected Banner */}
         {!isConnected && (
           <div className="pt-16 px-6">
-            <div className="flex items-center justify-between gap-3 px-4 py-2 rounded-lg bg-[rgba(244,63,94,0.1)] border border-[rgba(244,63,94,0.25)] text-[#fb7185] text-xs font-mono">
+            <div className="flex items-center justify-between gap-3 px-4 py-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-mono">
               <div className="flex items-center gap-2">
                 <WifiOff className="w-4 h-4 shrink-0" />
-                <span>Koneksi telemetri WebSocket terputus — mencoba menghubungkan kembali secara otomatis…</span>
+                <span>Koneksi telemetri terputus — mencoba menghubungkan kembali secara otomatis…</span>
               </div>
               <button
                 onClick={fetchStatus}
-                className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[rgba(244,63,94,0.2)] hover:bg-[rgba(244,63,94,0.3)] font-semibold transition-colors"
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-rose-100 hover:bg-rose-200 text-rose-800 font-semibold transition-colors"
                 type="button"
               >
                 <RefreshCw className="w-3 h-3" />
@@ -516,11 +527,11 @@ export default function App() {
         )}
 
         {/* Main Content View Container */}
-        <main className="flex-1 pt-16 sm:pt-18 px-3 sm:px-5 lg:px-7 pb-12 w-full max-w-[1600px] mx-auto">
+        <main className="flex-1 pt-18 px-4 sm:px-6 lg:px-8 pb-12 w-full max-w-[1600px] mx-auto">
           {activeTab === 'overview' && (
             <div key="overview" className="motion-view-enter">
               <ErrorBoundary title="Kendala Modul Ringkasan Sistem">
-                <div className="flex flex-col gap-6">
+                <div className="flex flex-col gap-5">
                   <SystemOverview
                     system={data?.system}
                     gpus={data?.gpus}
@@ -602,22 +613,23 @@ export default function App() {
         </main>
       </div>
 
-      {/* Floating Toast Notification (Manifesto Section 7.C) */}
+      {/* Floating Toast Notification */}
       {toast && (
         <div className="fixed bottom-5 right-5 z-50">
-          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white border border-slate-200 shadow-[0_10px_30px_rgba(0,0,0,0.1),0_2px_6px_rgba(37,99,235,0.08)] text-xs font-mono text-slate-800">
+          <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white border border-slate-200 shadow-md text-xs font-mono text-slate-800">
             {toast.type === 'success' ? (
               <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             ) : toast.type === 'error' ? (
               <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
             ) : (
-              <Info className="w-4 h-4 text-blue-600 shrink-0" />
+              <Info className="w-4 h-4 text-[#1a73e8] shrink-0" />
             )}
             <span className="font-semibold">{toast.message}</span>
             <button
               onClick={() => setToast(null)}
               className="ml-2 text-slate-400 hover:text-slate-700 transition-colors"
               type="button"
+              aria-label="Tutup Notifikasi"
             >
               ✕
             </button>

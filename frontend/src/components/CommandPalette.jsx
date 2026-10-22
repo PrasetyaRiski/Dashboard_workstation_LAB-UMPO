@@ -10,10 +10,7 @@ import {
   LogOut,
   RefreshCw,
   DatabaseBackup,
-  Layers,
-  Terminal,
-  X,
-  Keyboard
+  Terminal
 } from 'lucide-react';
 
 export default function CommandPalette({
@@ -178,13 +175,13 @@ export default function CommandPalette({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 bg-slate-900/40 backdrop-blur-sm motion-backdrop">
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 bg-slate-900/60">
       <div 
-        className="w-full max-w-xl bg-white border border-slate-200/90 rounded-2xl shadow-[0_25px_60px_rgba(15,23,42,0.18)] overflow-hidden flex flex-col motion-modal-pop"
+        className="w-full max-w-xl bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden flex flex-col motion-modal-pop"
         onKeyDown={handleKeyDown}
       >
         {/* Search Input Bar */}
-        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-slate-100 bg-slate-50/70">
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-200 bg-slate-50">
           <Search className="w-4 h-4 text-slate-400 shrink-0" />
           <input
             ref={inputRef}
@@ -192,15 +189,15 @@ export default function CommandPalette({
             value={query}
             onChange={(e) => { setQuery(e.target.value); setSelectedIndex(0); }}
             placeholder="Cari perintah, navigasi tab, atau PID proses… (↑ ↓ Enter)"
-            className="flex-1 bg-transparent text-sm text-slate-800 placeholder:text-slate-400 outline-none font-medium"
+            className="flex-1 bg-transparent text-xs text-slate-800 placeholder:text-slate-400 outline-none font-medium"
           />
-          <kbd className="px-2 py-0.5 text-[11px] font-mono bg-white text-slate-500 rounded-md border border-slate-200 shadow-sm">
+          <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-white text-slate-500 rounded border border-slate-200 shadow-xs">
             ESC
           </kbd>
         </div>
 
         {/* Command list */}
-        <div className="max-h-80 overflow-y-auto p-2 divide-y divide-slate-50">
+        <div className="max-h-80 overflow-y-auto p-1.5 divide-y divide-slate-100">
           {filtered.length === 0 ? (
             <div className="p-8 text-center text-xs text-slate-400">
               Tidak ada hasil yang cocok dengan &quot;{query}&quot;
@@ -214,23 +211,23 @@ export default function CommandPalette({
                   key={item.id}
                   onClick={item.action}
                   onMouseEnter={() => setSelectedIndex(idx)}
-                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-xs transition-colors ${
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left text-xs transition-colors ${
                     isSelected 
-                      ? 'bg-blue-50 text-blue-900 font-semibold shadow-sm' 
-                      : 'text-slate-700 hover:bg-slate-50'
+                      ? 'bg-blue-50/80 text-[#1a73e8] font-semibold border-l-2 border-[#1a73e8]' 
+                      : 'text-slate-700 hover:bg-slate-50 border-l-2 border-transparent'
                   }`}
                   type="button"
                 >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <Icon className={`w-4 h-4 shrink-0 ${isSelected ? 'text-blue-600' : 'text-slate-400'}`} />
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Icon className={`w-4 h-4 shrink-0 ${isSelected ? 'text-[#1a73e8]' : 'text-slate-400'}`} />
                     <span className="truncate">{item.label}</span>
                   </div>
-                  <div className="flex items-center gap-2.5 shrink-0 ml-3">
+                  <div className="flex items-center gap-2 shrink-0 ml-3">
                     <span className="text-[10px] text-slate-400 uppercase tracking-wider font-mono">
                       {item.category}
                     </span>
                     {item.shortcut && (
-                      <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-white text-slate-600 rounded border border-slate-200 shadow-sm">
+                      <kbd className="px-1.5 py-0.2 text-[10px] font-mono bg-white text-slate-600 rounded border border-slate-200">
                         {item.shortcut}
                       </kbd>
                     )}
@@ -242,13 +239,13 @@ export default function CommandPalette({
         </div>
 
         {/* Footer shortcuts helper */}
-        <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-mono">
+        <div className="px-4 py-2 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-500 font-mono">
           <div className="flex items-center gap-3">
-            <span>↑↓ Pilih</span>
+            <span>↑↓ Navigasi</span>
             <span>↵ Eksekusi</span>
             <span>Esc Tutup</span>
           </div>
-          <span className="text-blue-600 font-semibold">Azure 3D Console · TI UMPO</span>
+          <span className="text-slate-600 font-medium">Enterprise Cloud Console · TI UMPO</span>
         </div>
       </div>
     </div>

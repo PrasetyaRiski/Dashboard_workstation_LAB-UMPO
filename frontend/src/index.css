@@ -1,18 +1,18 @@
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
-  /* ── Azure & Pure White 3D Console: Surfaces ── */
-  --color-bg-app: #f1f5f9;       /* Slate 100 soft canvas */
-  --color-bg-surface: #ffffff;   /* Pure white card */
-  --color-bg-elevated: #ffffff;  /* Raised surface */
-  --color-bg-subtle: #f8fafc;    /* Slate 50 row/card accent */
+  /* ── Google Cloud / Stitch Console Enterprise Palette ── */
+  --color-bg-app: #f8fafc;        /* Slate 50 clean console canvas */
+  --color-bg-surface: #ffffff;    /* Pure solid white surface */
+  --color-bg-elevated: #ffffff;   /* Pure solid surface */
+  --color-bg-subtle: #f1f5f9;     /* Slate 100 table header / zebra */
 
-  /* Legacy aliases mapped to clean light 3D tokens */
-  --color-surface-dim: #f1f5f9;
+  /* Legacy mappings */
+  --color-surface-dim: #f8fafc;
   --color-surface-1: #ffffff;
-  --color-surface-2: #f8fafc;
-  --color-surface-3: #f1f5f9;
+  --color-surface-2: #f1f5f9;
+  --color-surface-3: #e2e8f0;
   --color-surface-container: #ffffff;
   --color-surface-container-low: #ffffff;
   --color-surface-container-lowest: #f8fafc;
@@ -20,73 +20,75 @@
   --color-surface-container-highest: #e2e8f0;
   --color-bg-void: #f8fafc;
 
-  /* ── Borders: Crisp 3D Bevels & Hairlines ── */
-  --color-border-subtle: #e2e8f0;
-  --color-border-strong: #cbd5e1;
+  /* ── Crisp Hairline Borders ── */
+  --color-border-subtle: #e2e8f0; /* Slate 200 standard border */
+  --color-border-strong: #cbd5e1; /* Slate 300 active/focus border */
   --color-border-base: #e2e8f0;
   --color-border-sub: #f1f5f9;
   --color-border-emph: #94a3b8;
 
-  /* ── Typography & Text (High Contrast Slate) ── */
-  --color-text-primary: #0f172a;   /* Slate 900 */
-  --color-text-secondary: #475569; /* Slate 600 */
+  /* ── Typography & Contrast ── */
+  --color-text-primary: #0f172a;   /* Slate 900 high contrast */
+  --color-text-secondary: #475569; /* Slate 600 secondary */
   --color-text-disabled: #94a3b8;  /* Slate 400 */
   --color-text-muted: #64748b;     /* Slate 500 */
   --color-on-surface: #0f172a;
   --color-on-surface-variant: #475569;
 
-  /* ── Semantic Accents: Tech Blue Dominant ── */
-  --color-accent-emerald: #059669;
+  /* ── Enterprise Semantic Accents (GCP Standards) ── */
+  --color-accent-blue: #1a73e8;        /* Google Cloud Primary Blue */
+  --color-accent-blue-hover: #1557b0;  /* Google Cloud Blue Dark */
+  --color-accent-emerald: #059669;     /* Emerald status online/healthy */
   --color-accent-emerald-text: #047857;
-  --color-accent-amber: #d97706;
+  --color-accent-amber: #d97706;       /* Amber status warning */
   --color-accent-amber-text: #b45309;
-  --color-accent-rose: #e11d48;
-  --color-accent-rose-text: #be123c;
+  --color-accent-rose: #dc2626;        /* Crimson status critical/error */
+  --color-accent-rose-text: #b91c1c;
   --color-accent-sky: #0284c7;
   --color-accent-sky-text: #0369a1;
-  --color-accent-indigo: #4f46e5;
-  --color-accent-indigo-text: #4338ca;
+  --color-accent-indigo: #4338ca;
+  --color-accent-indigo-text: #3730a3;
 
   /* Neon/Vibrant aliases mapped to crisp rich shades */
   --color-neon-emerald: #059669;
   --color-neon-amber: #d97706;
-  --color-neon-rose: #e11d48;
+  --color-neon-rose: #dc2626;
   --color-neon-cyan: #0284c7;
-  --color-neon-indigo: #2563eb;
+  --color-neon-indigo: #1a73e8;
 
-  /* Primary Brand: Royal Electric Blue */
-  --color-primary: #2563eb;
-  --color-primary-fixed: #3b82f6;
+  /* Primary Brand: Google Cloud Blue */
+  --color-primary: #1a73e8;
+  --color-primary-fixed: #2563eb;
   --color-primary-fixed-dim: #1d4ed8;
-  --color-secondary: #4f46e5;
-  --color-secondary-fixed: #6366f1;
-  --color-secondary-fixed-dim: #4338ca;
+  --color-secondary: #475569;
+  --color-secondary-fixed: #64748b;
+  --color-secondary-fixed-dim: #334155;
   --color-tertiary: #059669;
   --color-tertiary-fixed: #10b981;
-  --color-error: #e11d48;
-  --color-error-container: #ffe4e6;
+  --color-error: #dc2626;
+  --color-error-container: #fef2f2;
 
-  /* Keyboard Focus */
-  --color-focus-ring: #2563eb;
+  /* Focus Ring */
+  --color-focus-ring: #1a73e8;
 
   /* Fonts */
-  --font-sans: "Inter", "Geist Sans", system-ui, -apple-system, sans-serif;
-  --font-mono: "JetBrains Mono", "Geist Mono", ui-monospace, Menlo, Consolas, monospace;
+  --font-sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 
 /* ─────────────────────────────────────────────────────────────────
-   AZURE & WHITE 3D SYSTEM CSS VARIABLES & TOKENS
+   CSS CUSTOM PROPERTIES: GOOGLE STITCH / GCP CONSOLE TOKENS
    ───────────────────────────────────────────────────────────────── */
 :root {
   color-scheme: light;
 
   /* Surfaces */
-  --bg-app: #f1f5f9;
+  --bg-app: #f8fafc;
   --bg-surface: #ffffff;
   --bg-elevated: #ffffff;
-  --bg-subtle: #f8fafc;
+  --bg-subtle: #f1f5f9;
 
-  /* Hairline Borders */
+  /* Borders */
   --border-subtle: #e2e8f0;
   --border-strong: #cbd5e1;
   --border-base: #e2e8f0;
@@ -96,56 +98,45 @@
   --text-secondary: #475569;
   --text-disabled: #94a3b8;
   --text-muted: #64748b;
-  --focus-ring: #2563eb;
+  --focus-ring: #1a73e8;
 
   /* Semantics */
+  --accent-blue: #1a73e8;
+  --accent-blue-hover: #1557b0;
   --accent-emerald: #059669;
   --accent-emerald-text: #047857;
   --accent-amber: #d97706;
   --accent-amber-text: #b45309;
-  --accent-rose: #e11d48;
-  --accent-rose-text: #be123c;
-  --accent-sky: #0284c7;
-  --accent-sky-text: #0369a1;
-  --accent-indigo: #2563eb;
-  --accent-indigo-text: #1d4ed8;
+  --accent-rose: #dc2626;
+  --accent-rose-text: #b91c1c;
 
-  /* Radii */
-  --r-sm: 6px;
-  --r-md: 10px;
-  --r-lg: 16px;
+  /* Precision Radii */
+  --r-sm: 4px;
+  --r-md: 8px;
+  --r-lg: 12px;
 
-  /* 3D Shadows & Layering */
-  --shadow-3d-card: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 24px -4px rgba(37, 99, 235, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-  --shadow-3d-card-hover: 0 8px 12px -2px rgba(0, 0, 0, 0.06), 0 16px 32px -4px rgba(37, 99, 235, 0.14), 0 2px 4px 0 rgba(0, 0, 0, 0.04);
-  --shadow-3d-btn: 0 2px 0 #1d4ed8, 0 4px 10px rgba(37, 99, 235, 0.25);
-  --shadow-overlay: 0 20px 40px -10px rgba(15, 23, 42, 0.2), 0 1px 3px rgba(0, 0, 0, 0.05);
+  /* Shadow system: subtle and crisp */
+  --shadow-gcp-card: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-gcp-dropdown: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-gcp-modal: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
 
   /* Transitions */
-  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-out-soft: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
   --duration-fast: 150ms;
   --duration-normal: 200ms;
-  --duration-base: 250ms;
-  --duration-slow: 600ms;
 }
 
 @keyframes data-flash {
-  from { background-color: rgba(37, 99, 235, 0.16); }
+  from { background-color: rgba(26, 115, 232, 0.12); }
   to   { background-color: transparent; }
 }
 .is-updated {
-  animation: data-flash 900ms var(--ease-out-soft);
+  animation: data-flash 800ms ease-out;
 }
 
-/* ─────────────────────────────────────────────────────────────────
-   MOTION.md SYSTEM ANIMATIONS & TRANSITIONS (Strix Polish)
-   ───────────────────────────────────────────────────────────────── */
 @keyframes viewEnter {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
@@ -156,7 +147,7 @@
 @keyframes modalPop {
   from {
     opacity: 0;
-    transform: scale(0.96) translateY(6px);
+    transform: scale(0.98) translateY(4px);
   }
   to {
     opacity: 1;
@@ -164,69 +155,15 @@
   }
 }
 
-@keyframes backdropFade {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.animate-fade-in {
-  animation: backdropFade var(--duration-fast) var(--ease-out-soft) forwards;
-}
-
 .motion-view-enter {
-  animation: viewEnter var(--duration-base) var(--ease-out-soft) forwards;
+  animation: viewEnter var(--duration-fast) ease-out forwards;
 }
 
 .motion-modal-pop {
-  animation: modalPop var(--duration-base) var(--ease-out-soft) forwards;
+  animation: modalPop var(--duration-fast) ease-out forwards;
 }
 
-.motion-backdrop {
-  animation: backdropFade var(--duration-fast) var(--ease-out-soft) forwards;
-}
-
-/* Strix-like subtle 3D card tilt & hover lift */
-.motion-card {
-  transition: transform var(--duration-base) var(--ease-out-soft),
-              box-shadow var(--duration-base) var(--ease-out-soft),
-              border-color var(--duration-fast) var(--ease-out-soft);
-}
-
-.motion-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px -4px rgba(37, 99, 235, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
-}
-
-/* Tactile button feedback */
-.motion-press {
-  transition: transform var(--duration-fast) var(--ease-out-soft),
-              box-shadow var(--duration-fast) var(--ease-out-soft),
-              background-color var(--duration-fast) var(--ease-out-soft);
-}
-
-.motion-press:active {
-  transform: translateY(1.5px) scale(0.985);
-}
-
-/* Functional data progress bar smooth transitions */
-.motion-bar {
-  transition: width var(--duration-slow) var(--ease-out-soft),
-              background-color var(--duration-base) var(--ease-out-soft);
-}
-
-/* Table row interactive transition */
-.motion-row {
-  transition: background-color var(--duration-fast) var(--ease-out-soft),
-              transform var(--duration-fast) var(--ease-out-soft);
-}
-
-.motion-row:hover {
-  transform: translateX(2px);
-}
-
-/* ─────────────────────────────────────────────────────────────────
-   BASE LAYER & ANTI-JITTER TABULAR NUMBERS
-   ───────────────────────────────────────────────────────────────── */
+/* Base resets & typography */
 @layer base {
   *, *::before, *::after {
     box-sizing: border-box;
@@ -248,7 +185,7 @@
   }
 
   .tabular-nums, .font-mono, code, pre, kbd {
-    font-family: "JetBrains Mono", "Geist Mono", ui-monospace, Menlo, Consolas, monospace;
+    font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
     font-feature-settings: "tnum" 1;
   }
@@ -260,74 +197,70 @@
 }
 
 /* ─────────────────────────────────────────────────────────────────
-   3D COMPONENT UTILITIES (Tactile & Clean)
+   GCP STITCH ENTERPRISE CONSOLE UTILITIES
    ───────────────────────────────────────────────────────────────── */
-.card-3d {
+.gcp-card {
   background-color: #ffffff;
-  border-radius: 1rem;
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 10px 24px -4px rgba(37, 99, 235, 0.07), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
-  transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 0.75rem; /* rounded-xl */
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+  transition: border-color var(--duration-fast) ease;
 }
 
-.card-3d:hover {
-  box-shadow: 0 8px 12px -2px rgba(0, 0, 0, 0.05), 0 16px 32px -4px rgba(37, 99, 235, 0.12), 0 2px 4px 0 rgba(0, 0, 0, 0.03);
+.gcp-card:hover {
+  border-color: #cbd5e1;
 }
 
-.btn-3d-primary {
-  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+.gcp-btn-primary {
+  background-color: #1a73e8;
   color: #ffffff;
-  font-weight: 600;
+  font-weight: 500;
   border-radius: 0.5rem;
-  box-shadow: 0 2px 0 #1d4ed8, 0 4px 10px rgba(37, 99, 235, 0.25);
-  transition: all 150ms ease;
+  border: 1px solid transparent;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  transition: background-color var(--duration-fast) ease;
 }
 
-.btn-3d-primary:hover {
-  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
+.gcp-btn-primary:hover {
+  background-color: #1557b0;
 }
 
-.btn-3d-primary:active {
-  transform: translateY(2px);
-  box-shadow: 0 0 0 #1d4ed8, 0 1px 3px rgba(37, 99, 235, 0.2);
+.gcp-btn-primary:active {
+  background-color: #104388;
 }
 
-.btn-3d-secondary {
-  background: #ffffff;
+.gcp-btn-secondary {
+  background-color: #ffffff;
   color: #334155;
   font-weight: 500;
   border: 1px solid #cbd5e1;
   border-radius: 0.5rem;
-  box-shadow: 0 2px 0 #cbd5e1, 0 2px 4px rgba(0, 0, 0, 0.03);
-  transition: all 150ms ease;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  transition: all var(--duration-fast) ease;
 }
 
-.btn-3d-secondary:hover {
-  background: #f8fafc;
+.gcp-btn-secondary:hover {
+  background-color: #f8fafc;
+  border-color: #94a3b8;
   color: #0f172a;
 }
 
-.btn-3d-secondary:active {
-  transform: translateY(2px);
-  box-shadow: 0 0 0 #cbd5e1, 0 1px 2px rgba(0, 0, 0, 0.02);
-}
-
-/* ─────────────────────────────────────────────────────────────────
-   STATUS DOT: BREATHING PULSE (Subtle 2.5s)
-   ───────────────────────────────────────────────────────────────── */
+/* Precision status dot */
 @keyframes subtle-pulse {
   0%, 100% {
     opacity: 1;
     transform: scale(1);
   }
   50% {
-    opacity: 0.45;
+    opacity: 0.5;
     transform: scale(0.92);
   }
 }
 
 .pulse-dot {
-  animation: subtle-pulse 2.5s infinite ease-in-out;
+  animation: subtle-pulse 2s infinite ease-in-out;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -338,50 +271,18 @@
   }
 }
 
-/* ─────────────────────────────────────────────────────────────────
-   CUSTOM SCROLLBARS — Clean Azure Track
-   ───────────────────────────────────────────────────────────────── */
+/* Clean GCP Console Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #f8fafc;
 }
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
-  border-radius: 6px;
+  border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
-
-.hairline-border {
-  border: 1px solid var(--border-subtle);
-}
-
-.hairline-border-strong {
-  border: 1px solid var(--border-strong);
-}
-
-.interactive-row {
-  transition: background-color var(--duration-fast) var(--ease-out-expo),
-              border-color var(--duration-fast) var(--ease-out-expo);
-}
-
-/* ─────────────────────────────────────────────────────────────────
-   ANIMATED GRADIENT RING (Sidebar Toggle & Interactive Elements)
-   ───────────────────────────────────────────────────────────────── */
-@keyframes spin-gradient {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-spin-gradient {
-  animation: spin-gradient 4s linear infinite;
-}
-

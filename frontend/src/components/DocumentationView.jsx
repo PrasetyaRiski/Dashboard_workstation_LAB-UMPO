@@ -167,7 +167,7 @@ export default function DocumentationView({ showToast }) {
   return (
     <div className="flex flex-col gap-6 max-w-6xl mx-auto pb-16 print:p-0 print:max-w-none">
       {/* Header Banner - Azure & White 3D Design */}
-      <div className="rounded-2xl bg-white border border-slate-200/90 p-5 sm:p-6 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] print:border-none print:p-2">
+      <div className="rounded-xl bg-white border border-slate-200/90 p-5 sm:p-6 shadow-xs print:border-none print:p-2">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
           <div className="flex items-start gap-4">
             <div className="w-11 h-11 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center shrink-0 shadow-sm print:hidden">
@@ -262,7 +262,7 @@ export default function DocumentationView({ showToast }) {
           {/* PYTHON CHEAT-SHEET FOR AI STUDENTS */}
           {(activeSection === 'all' || activeSection === 'snippets') && (
             (matchesSearch('python') || matchesSearch('cuda') || matchesSearch('pytorch') || matchesSearch('vram') || filteredSnippets.length > 0) && (
-              <div className="rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] p-6 flex flex-col gap-5">
+              <div className="rounded-xl bg-white border border-slate-200/90 shadow-xs p-6 flex flex-col gap-5">
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center font-bold shadow-xs">
@@ -338,7 +338,7 @@ export default function DocumentationView({ showToast }) {
           {/* 1. BAGIAN PANDUAN JUPYTERHUB (MAHASISWA & PENELITI) */}
           {(activeSection === 'all' || activeSection === 'mahasiswa') && (
             (matchesSearch('jupyter') || matchesSearch('mahasiswa') || matchesSearch('login') || matchesSearch('simtik')) && (
-              <div className="rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] p-6 flex flex-col gap-5">
+              <div className="rounded-xl bg-white border border-slate-200/90 shadow-xs p-6 flex flex-col gap-5">
                 <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
                   <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center font-bold shadow-xs">
                     1
@@ -402,7 +402,7 @@ export default function DocumentationView({ showToast }) {
           {/* 2. BAGIAN WEB DASHBOARD (MONITORING PUBLIK) */}
           {(activeSection === 'all' || activeSection === 'dashboard') && (
             (matchesSearch('dashboard') || matchesSearch('ringkasan') || matchesSearch('telemetri') || matchesSearch('level')) && (
-              <div className="rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] p-6 flex flex-col gap-5">
+              <div className="rounded-xl bg-white border border-slate-200/90 shadow-xs p-6 flex flex-col gap-5">
                 <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
                   <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center font-bold shadow-xs">
                     2
@@ -474,7 +474,7 @@ export default function DocumentationView({ showToast }) {
           {/* 3. BAGIAN ASISTEN LAB & ADMINISTRATOR */}
           {(activeSection === 'all' || activeSection === 'aslab') && (
             (matchesSearch('aslab') || matchesSearch('admin') || matchesSearch('boost') || matchesSearch('kill') || matchesSearch('snapshot')) && (
-              <div className="rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] p-6 flex flex-col gap-5">
+              <div className="rounded-xl bg-white border border-slate-200/90 shadow-xs p-6 flex flex-col gap-5">
                 <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
                   <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200 flex items-center justify-center font-bold shadow-xs">
                     3
@@ -560,7 +560,7 @@ export default function DocumentationView({ showToast }) {
           {/* 4. BAGIAN WEB FILE EXPLORER */}
           {(activeSection === 'all' || activeSection === 'explorer') && (
             (matchesSearch('file') || matchesSearch('explorer') || matchesSearch('upload') || matchesSearch('download')) && (
-              <div className="rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] p-6 flex flex-col gap-5">
+              <div className="rounded-xl bg-white border border-slate-200/90 shadow-xs p-6 flex flex-col gap-5">
                 <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
                   <div className="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 border border-sky-200 flex items-center justify-center font-bold shadow-xs">
                     4
@@ -621,7 +621,7 @@ export default function DocumentationView({ showToast }) {
           {/* 5. BAGIAN KENDALA & SOLUSI */}
           {(activeSection === 'all' || activeSection === 'troubleshoot') && (
             (matchesSearch('kendala') || matchesSearch('solusi') || matchesSearch('403') || matchesSearch('oom') || matchesSearch('quota')) && (
-              <div className="rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] p-6 flex flex-col gap-4">
+              <div className="rounded-xl bg-white border border-slate-200/90 shadow-xs p-6 flex flex-col gap-4">
                 <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
                   <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center font-bold shadow-xs">
                     5
@@ -675,7 +675,7 @@ export default function DocumentationView({ showToast }) {
         <div className="flex flex-col gap-6">
 
           {/* Kartu Regulasi Single-Device Lock */}
-          <div className="rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] p-5 flex flex-col gap-3">
+          <div className="rounded-xl bg-white border border-slate-200/90 shadow-xs p-5 flex flex-col gap-3">
             <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm">
               <Lock className="w-4 h-4 text-rose-600" />
               <span>Kebijakan Single-Device Lock</span>
@@ -689,7 +689,7 @@ export default function DocumentationView({ showToast }) {
           </div>
 
           {/* Kartu Idle Culler - Diselaraskan dengan konfigurasi 30 Menit (1800s) server */}
-          <div className="rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] p-5 flex flex-col gap-3">
+          <div className="rounded-xl bg-white border border-slate-200/90 shadow-xs p-5 flex flex-col gap-3">
             <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm">
               <Clock className="w-4 h-4 text-blue-600" />
               <span>Pemadaman Otomatis (30 Menit)</span>
@@ -700,7 +700,7 @@ export default function DocumentationView({ showToast }) {
           </div>
 
           {/* Akses Cepat Port */}
-          <div className="rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] p-5 flex flex-col gap-3">
+          <div className="rounded-xl bg-white border border-slate-200/90 shadow-xs p-5 flex flex-col gap-3">
             <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
               <span>Daftar Layanan Web Lab AI</span>
@@ -735,7 +735,7 @@ export default function DocumentationView({ showToast }) {
           </div>
 
           {/* Kontak & Informasi Laboratorium */}
-          <div className="rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06),0_2px_4px_rgba(0,0,0,0.03)] p-5 flex flex-col gap-3 print:hidden">
+          <div className="rounded-xl bg-white border border-slate-200/90 shadow-xs p-5 flex flex-col gap-3 print:hidden">
             <span className="text-[10px] font-mono font-bold text-blue-600 uppercase tracking-wider flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5" />
               Dukungan Akademik & Teknis

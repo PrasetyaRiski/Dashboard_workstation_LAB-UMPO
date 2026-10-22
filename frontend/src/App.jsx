@@ -10,7 +10,6 @@ import AdminFileExplorer from './components/AdminFileExplorer';
 import AdminPinModal from './components/AdminPinModal';
 import CommandPalette from './components/CommandPalette';
 import ErrorBoundary from './components/ErrorBoundary';
-import DocumentationView from './components/DocumentationView';
 
 import {
   WifiOff, RefreshCw, ShieldCheck,
@@ -277,9 +276,6 @@ export default function App() {
         } else if (e.key === '3') {
           e.preventDefault();
           if (isAdmin) setActiveTab('audit'); else setLoginModalOpen(true);
-        } else if (e.key === '5') {
-          e.preventDefault();
-          setActiveTab('docs');
         } else if (e.key === '?') {
           e.preventDefault();
           setCommandPaletteOpen(true);
@@ -437,7 +433,7 @@ export default function App() {
             </span>
             <span className="text-slate-300 text-xs">/</span>
             <span className="text-xs font-medium text-[#1a73e8] truncate">
-              {activeTab === 'overview' ? 'Ringkasan Sistem' : activeTab === 'students' ? 'Manajemen Pengguna' : activeTab === 'files' ? 'File Explorer' : activeTab === 'audit' ? 'Log Audit' : 'Buku Panduan'}
+              {activeTab === 'overview' ? 'Ringkasan Sistem' : activeTab === 'students' ? 'Manajemen Pengguna' : activeTab === 'files' ? 'File Explorer' : 'Log Audit'}
             </span>
           </div>
 
@@ -599,14 +595,6 @@ export default function App() {
             <div key="audit" className="motion-view-enter">
               <ErrorBoundary title="Kendala Modul Log Audit">
                 <AuditLogView logs={data?.audit_logs || []} />
-              </ErrorBoundary>
-            </div>
-          )}
-
-          {activeTab === 'docs' && (
-            <div key="docs" className="motion-view-enter">
-              <ErrorBoundary title="Kendala Modul Buku Panduan">
-                <DocumentationView showToast={showToast} />
               </ErrorBoundary>
             </div>
           )}

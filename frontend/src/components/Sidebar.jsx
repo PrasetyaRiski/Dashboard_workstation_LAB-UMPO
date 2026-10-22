@@ -6,7 +6,6 @@ import {
   LayoutDashboard,
   Users,
   FileText,
-  BookOpen,
   PanelLeftClose,
   PanelLeftOpen
 } from 'lucide-react';
@@ -29,7 +28,6 @@ export default function Sidebar({
     { id: 'students', label: 'Manajemen Pengguna',  icon: Users,           shortcut: '2', requiresAdmin: false },
     { id: 'files',    label: 'File Explorer',       icon: FolderOpen,      shortcut: '4', requiresAdmin: true },
     { id: 'audit',    label: 'Log Audit',           icon: FileText,        shortcut: '3', badgeCount: auditCount, requiresAdmin: true },
-    { id: 'docs',     label: 'Buku Panduan',        icon: BookOpen,        shortcut: '5', requiresAdmin: false },
   ];
 
   return (

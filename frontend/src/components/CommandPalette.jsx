@@ -5,7 +5,6 @@ import {
   Users,
   FileText,
   FolderOpen,
-  BookOpen,
   ShieldCheck,
   LogOut,
   RefreshCw,
@@ -84,14 +83,6 @@ export default function CommandPalette({
         }
         onClose();
       }
-    },
-    {
-      id: 'tab-docs',
-      category: 'Navigasi',
-      label: 'Buka Buku Panduan & Dokumentasi',
-      shortcut: '5',
-      icon: BookOpen,
-      action: () => { onTabChange('docs'); onClose(); }
     },
     {
       id: 'action-refresh',

@@ -60,7 +60,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
   }
 
   return (
-    <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-xs hover:border-slate-300 transition-colors flex flex-col gap-4">
+    <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-xs motion-card flex flex-col gap-4">
       
       {/* Header Info */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
@@ -112,7 +112,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
           </div>
           <div className="w-full bg-slate-200/80 h-2 rounded-full overflow-hidden border border-slate-200">
             <div 
-              className={`h-full rounded-full transition-all duration-300 ${
+              className={`h-full rounded-full motion-bar ${
                 computePct >= 90 ? 'bg-rose-600' : 
                 computePct >= 75 ? 'bg-amber-500' : 
                 'bg-[#1a73e8]'
@@ -132,7 +132,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
           </div>
           <div className="w-full bg-slate-200/80 h-2 rounded-full overflow-hidden border border-slate-200">
             <div 
-              className={`h-full rounded-full transition-all duration-300 ${
+              className={`h-full rounded-full motion-bar ${
                 vramPct >= 90 ? 'bg-rose-600' : 
                 vramPct >= 75 ? 'bg-amber-500' : 
                 'bg-[#1a73e8]'
@@ -164,11 +164,11 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
                   key={index}
                   onMouseEnter={() => setHoveredBlock(block)}
                   onMouseLeave={() => setHoveredBlock(null)}
-                  className={`h-5 rounded transition-colors cursor-pointer ${
+                  className={`h-5 rounded cursor-pointer transition-all duration-150 hover:scale-110 active:scale-95 ${
                     occupied
                       ? isResearch
-                        ? 'bg-indigo-600 border border-indigo-700 hover:bg-indigo-500'
-                        : 'bg-[#1a73e8] border border-blue-700 hover:bg-blue-500'
+                        ? 'bg-indigo-600 border border-indigo-700 hover:bg-indigo-500 shadow-xs'
+                        : 'bg-[#1a73e8] border border-blue-700 hover:bg-blue-500 shadow-xs'
                       : 'bg-white border border-slate-200 hover:border-slate-400'
                   }`}
                   title={occupied ? `PID ${proc?.pid} (${proc?.username}) · ${proc?.vram_mb} MB` : `Blok ${index + 1} Kosong`}
@@ -248,7 +248,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
                   const isProtected = proc.is_system || !proc.is_killable;
                   const isResearch = proc.username === 'labriset' || proc.username?.includes('riset');
                   return (
-                    <tr key={proc.pid} className="hover:bg-slate-50 transition-colors">
+                    <tr key={proc.pid} className="hover:bg-slate-50 transition-colors motion-row">
                       {/* User with dot indicator */}
                       <td className="px-3 py-2 text-slate-900 font-medium">
                         <div className="flex items-center gap-1.5">
@@ -302,7 +302,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
                                 vramMb: proc.vram_mb,
                                 is_system: proc.is_system
                               })}
-                              className="px-2 py-0.5 text-[11px] font-mono font-medium rounded bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-colors"
+                              className="px-2 py-0.5 text-[11px] font-mono font-medium rounded bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-colors motion-press"
                               title="Hentikan Proses (Terminate)"
                               type="button"
                             >

@@ -99,7 +99,7 @@ function SystemOverview({
       {/* Cluster Workload & Priority Slot Strip */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {/* Slot Prioritas GPU 0 */}
-        <div className="bg-white px-4 py-3 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
+        <div className="bg-white px-4 py-3 rounded-xl border border-slate-200 shadow-xs motion-card flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
               priorityStudent ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-blue-50 text-blue-700 border border-blue-200'
@@ -138,7 +138,7 @@ function SystemOverview({
         </div>
 
         {/* Pengguna & Beban Sesi Komputasi */}
-        <div className="bg-white px-4 py-3 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
+        <div className="bg-white px-4 py-3 rounded-xl border border-slate-200 shadow-xs motion-card flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-slate-50 text-slate-700 border border-slate-200 flex items-center justify-center shrink-0">
               <Users className="w-4 h-4 text-[#1a73e8]" />
@@ -168,7 +168,7 @@ function SystemOverview({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* Metric 1: CPU & RAM Host */}
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs hover:border-slate-300 transition-colors flex flex-col justify-between">
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs motion-card flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-xs font-semibold text-slate-900 flex items-center gap-1.5">
               <Cpu className="w-4 h-4 text-[#1a73e8]" /> Beban Komputasi Host
@@ -186,7 +186,7 @@ function SystemOverview({
               </div>
               <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200">
                 <div 
-                  className={`h-full rounded-full transition-all duration-300 ${
+                  className={`h-full rounded-full motion-bar ${
                     cpuPercent >= 90 ? 'bg-rose-600' : 
                     cpuPercent >= 75 ? 'bg-amber-500' : 
                     'bg-[#1a73e8]'
@@ -203,7 +203,7 @@ function SystemOverview({
               </div>
               <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200">
                 <div 
-                  className={`h-full rounded-full transition-all duration-300 ${
+                  className={`h-full rounded-full motion-bar ${
                     memoryPercent >= 90 ? 'bg-rose-600' : 
                     memoryPercent >= 75 ? 'bg-amber-500' : 
                     'bg-emerald-600'
@@ -216,7 +216,7 @@ function SystemOverview({
         </div>
 
         {/* Metric 2: Penyimpanan /home */}
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs hover:border-slate-300 transition-colors flex flex-col justify-between">
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs motion-card flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-xs font-semibold text-slate-900 flex items-center gap-1.5">
               <HardDrive className="w-4 h-4 text-slate-600" /> Penyimpanan /home
@@ -234,7 +234,7 @@ function SystemOverview({
 
             <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200 mb-2">
               <div 
-                className={`h-full rounded-full transition-all duration-300 ${
+                className={`h-full rounded-full motion-bar ${
                   !isStorageSafe ? 'bg-rose-600' : 'bg-slate-700'
                 }`}
                 style={{ width: `${homeDisk.percent || 0}%` }}
@@ -250,7 +250,7 @@ function SystemOverview({
         </div>
 
         {/* Metric 3: VRAM Quota Cluster (Dual GPU) */}
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs hover:border-slate-300 transition-colors flex flex-col justify-between">
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs motion-card flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-xs font-semibold text-slate-900 flex items-center gap-1.5">
               <Layers className="w-4 h-4 text-[#1a73e8]" /> Total VRAM Klaster
@@ -270,7 +270,7 @@ function SystemOverview({
 
             <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200 mb-2">
               <div 
-                className={`h-full rounded-full transition-all duration-300 ${
+                className={`h-full rounded-full motion-bar ${
                   vramPct >= 90 ? 'bg-rose-600' : 
                   vramPct >= 75 ? 'bg-amber-500' : 
                   'bg-[#1a73e8]'
@@ -286,7 +286,7 @@ function SystemOverview({
         </div>
 
         {/* Metric 4: Keamanan & Status Layanan */}
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs hover:border-slate-300 transition-colors flex flex-col justify-between">
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs motion-card flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between text-slate-500 mb-2">
               <span className="text-xs font-semibold text-slate-900 flex items-center gap-1.5">
@@ -320,7 +320,7 @@ function SystemOverview({
             <button
               onClick={onTriggerBackup}
               disabled={isBackingUp}
-              className="w-full mt-2 py-1.5 px-3 bg-white hover:bg-slate-50 border border-slate-300 hover:border-slate-400 text-slate-700 rounded-lg text-xs font-medium shadow-xs transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full mt-2 py-1.5 px-3 bg-white hover:bg-slate-50 border border-slate-300 hover:border-slate-400 text-slate-700 rounded-lg text-xs font-medium shadow-xs transition-colors motion-press flex items-center justify-center gap-2 disabled:opacity-50"
               type="button"
             >
               {isBackingUp ? (

@@ -561,7 +561,7 @@ export default function UnifiedUserManagement({
           {isAdmin && (
             <button
               onClick={handleExportCSV}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-semibold border border-slate-200 shadow-xs transition-colors text-xs"
+              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-semibold border border-slate-200 shadow-xs transition-colors motion-press text-xs"
               type="button"
             >
               <Download className="w-3.5 h-3.5 text-blue-600" />
@@ -570,7 +570,7 @@ export default function UnifiedUserManagement({
           )}
           <button
             onClick={() => { fetchStudents(); fetchCapacity(); }}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#1a73e8] hover:bg-[#1557b0] text-white font-medium shadow-xs transition-colors text-xs"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#1a73e8] hover:bg-[#1557b0] text-white font-medium shadow-xs transition-colors motion-press text-xs"
             type="button"
           >
             <RefreshCw className="w-3.5 h-3.5" />
@@ -593,7 +593,7 @@ export default function UnifiedUserManagement({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
         {/* Card 1: Total Akun Terdaftar */}
-        <div className="bg-white rounded-xl p-5 border border-slate-200/90 shadow-xs hover:border-slate-300 transition-colors flex flex-col justify-between">
+        <div className="bg-white rounded-xl p-5 border border-slate-200/90 shadow-xs motion-card flex flex-col justify-between">
           <div className="flex items-start justify-between mb-2">
             <div>
               <span className="text-xs font-bold text-slate-900">Total Akun Terdaftar</span>
@@ -630,7 +630,7 @@ export default function UnifiedUserManagement({
         </div>
 
         {/* Card 2: Akun Riset & Prioritas Aktif */}
-        <div className="bg-white rounded-xl p-5 border border-slate-200/90 shadow-xs hover:border-slate-300 transition-colors flex flex-col justify-between">
+        <div className="bg-white rounded-xl p-5 border border-slate-200/90 shadow-xs motion-card flex flex-col justify-between">
           <div className="flex items-start justify-between mb-2">
             <div>
               <span className="text-xs font-bold text-slate-900">Akun Riset & Prioritas</span>
@@ -651,7 +651,7 @@ export default function UnifiedUserManagement({
             </div>
             <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden border border-slate-200/60 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]">
               <div
-                className="h-full bg-amber-500"
+                className="h-full bg-amber-500 motion-bar"
                 style={{ width: `${slotUtilPct}%` }}
               />
             </div>
@@ -663,7 +663,7 @@ export default function UnifiedUserManagement({
         </div>
 
         {/* Card 3: Beban Komputasi GPU */}
-        <div className="bg-white rounded-xl p-5 border border-slate-200/90 shadow-xs hover:border-slate-300 transition-colors flex flex-col justify-between">
+        <div className="bg-white rounded-xl p-5 border border-slate-200/90 shadow-xs motion-card flex flex-col justify-between">
           <div className="flex items-start justify-between mb-2">
             <div>
               <span className="text-xs font-bold text-slate-900">Beban Komputasi GPU</span>
@@ -688,11 +688,11 @@ export default function UnifiedUserManagement({
             </div>
             <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden border border-slate-200/60 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]">
               <div
-                className={`h-full transition-all duration-500 ${
+                className={`h-full motion-bar ${
                   totalVramPct >= 75
                     ? 'bg-rose-600'
                     : totalVramPct >= 40
-                    ? 'bg-gradient-to-r from-amber-500 to-amber-600'
+                    ? 'bg-amber-500'
                     : 'bg-[#1a73e8]'
                 }`}
                 style={{ width: `${Math.max(totalVramPct, totalActiveGpuUsers > 0 ? 5 : 0)}%` }}
@@ -706,7 +706,7 @@ export default function UnifiedUserManagement({
         </div>
 
         {/* Card 4: Peringatan Storage (Over Quota) */}
-        <div className="bg-white rounded-xl p-5 border border-slate-200/90 shadow-xs hover:border-slate-300 transition-colors flex flex-col justify-between">
+        <div className="bg-white rounded-xl p-5 border border-slate-200/90 shadow-xs motion-card flex flex-col justify-between">
           <div className="flex items-start justify-between mb-2">
             <div>
               <span className="text-xs font-bold text-slate-900">Peringatan Storage</span>
@@ -737,7 +737,7 @@ export default function UnifiedUserManagement({
             </div>
             <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden border border-slate-200/60 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]">
               <div
-                className={`h-full ${overQuotaCount > 0 ? 'bg-rose-600' : 'bg-emerald-600'}`}
+                className={`h-full motion-bar ${overQuotaCount > 0 ? 'bg-rose-600' : 'bg-emerald-600'}`}
                 style={{ width: overQuotaCount > 0 ? '100%' : '15%' }}
               />
             </div>

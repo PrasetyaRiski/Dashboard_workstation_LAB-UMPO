@@ -120,9 +120,14 @@
   --shadow-gcp-dropdown: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
   --shadow-gcp-modal: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
 
-  /* Transitions */
+  /* Transitions & Motion Tokens (MOTION.md Strix & GCP Standards) */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-soft: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
   --duration-fast: 150ms;
+  --duration-base: 250ms;
   --duration-normal: 200ms;
+  --duration-slow: 600ms;
 }
 
 @keyframes data-flash {
@@ -136,7 +141,7 @@
 @keyframes viewEnter {
   from {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -147,7 +152,7 @@
 @keyframes modalPop {
   from {
     opacity: 0;
-    transform: scale(0.98) translateY(4px);
+    transform: scale(0.96) translateY(6px);
   }
   to {
     opacity: 1;
@@ -155,12 +160,60 @@
   }
 }
 
+@keyframes backdropFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 .motion-view-enter {
-  animation: viewEnter var(--duration-fast) ease-out forwards;
+  animation: viewEnter var(--duration-base) var(--ease-out-soft) forwards;
 }
 
 .motion-modal-pop {
-  animation: modalPop var(--duration-fast) ease-out forwards;
+  animation: modalPop var(--duration-base) var(--ease-out-soft) forwards;
+}
+
+.motion-backdrop {
+  animation: backdropFade var(--duration-fast) var(--ease-out-soft) forwards;
+}
+
+/* Smooth telemetry bar progress transitions */
+.motion-bar {
+  transition: width var(--duration-slow) var(--ease-out-soft),
+              background-color var(--duration-base) var(--ease-out-soft);
+}
+
+/* Tactile button press feedback */
+.motion-press {
+  transition: transform var(--duration-fast) var(--ease-out-soft),
+              box-shadow var(--duration-fast) var(--ease-out-soft),
+              background-color var(--duration-fast) var(--ease-out-soft);
+}
+
+.motion-press:active {
+  transform: translateY(1.5px) scale(0.985);
+}
+
+/* Card hover subtle elevation */
+.motion-card {
+  transition: transform var(--duration-base) var(--ease-out-soft),
+              box-shadow var(--duration-base) var(--ease-out-soft),
+              border-color var(--duration-fast) var(--ease-out-soft);
+}
+
+.motion-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px -3px rgba(15, 23, 42, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+/* Table row interactive transition */
+.motion-row {
+  transition: background-color var(--duration-fast) var(--ease-out-soft),
+              transform var(--duration-fast) var(--ease-out-soft);
+}
+
+.motion-row:hover {
+  transform: translateX(2px);
 }
 
 /* Base resets & typography */

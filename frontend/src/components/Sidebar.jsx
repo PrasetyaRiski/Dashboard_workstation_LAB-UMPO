@@ -43,7 +43,7 @@ export default function Sidebar({
       >
         <button
           onClick={onToggle}
-          className="flex items-center justify-center w-6 h-6 rounded-md bg-white border border-slate-300 text-slate-600 hover:text-blue-600 hover:border-slate-400 hover:bg-slate-50 shadow-xs transition-colors"
+          className="flex items-center justify-center w-6 h-6 rounded-md bg-white border border-slate-300 text-slate-600 hover:text-blue-600 hover:border-slate-400 hover:bg-slate-50 shadow-xs transition-colors motion-press"
           title={isOpen ? 'Sembunyikan Navigasi' : 'Tampilkan Navigasi'}
           type="button"
           aria-label={isOpen ? 'Sembunyikan Navigasi' : 'Tampilkan Navigasi'}
@@ -99,7 +99,7 @@ export default function Sidebar({
                 <button
                   key={tab.id}
                   onClick={handleClick}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left text-xs font-medium transition-colors ${
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left text-xs font-medium transition-colors motion-press ${
                     isActive
                       ? 'bg-blue-50/80 text-blue-700 font-semibold border-l-3 border-[#1a73e8]'
                       : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-l-3 border-transparent'

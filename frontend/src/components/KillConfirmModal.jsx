@@ -6,7 +6,7 @@ export default function KillConfirmModal({ isOpen, processInfo, onConfirm, onClo
   const { pid, username, procName, cmdline, vramMb, is_system } = processInfo;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 motion-backdrop">
       <div className={`w-full max-w-md bg-white border ${
         is_system ? 'border-amber-300' : 'border-rose-300'
       } rounded-xl shadow-lg overflow-hidden flex flex-col motion-modal-pop`}>
@@ -94,7 +94,7 @@ export default function KillConfirmModal({ isOpen, processInfo, onConfirm, onClo
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="px-3.5 py-1.5 rounded-md bg-white hover:bg-slate-100 text-xs font-medium text-slate-700 border border-slate-300 transition-colors disabled:opacity-50"
+            className="px-3.5 py-1.5 rounded-md bg-white hover:bg-slate-100 text-xs font-medium text-slate-700 border border-slate-300 transition-colors motion-press disabled:opacity-50"
           >
             {is_system ? 'Tutup' : 'Batal'}
           </button>
@@ -103,7 +103,7 @@ export default function KillConfirmModal({ isOpen, processInfo, onConfirm, onClo
               type="button"
               onClick={onConfirm}
               disabled={isSubmitting}
-              className="px-4 py-1.5 rounded-md bg-rose-600 hover:bg-rose-700 text-white text-xs font-medium transition-colors flex items-center gap-1.5 disabled:opacity-50"
+              className="px-4 py-1.5 rounded-md bg-rose-600 hover:bg-rose-700 text-white text-xs font-medium transition-colors motion-press flex items-center gap-1.5 disabled:opacity-50"
             >
               {isSubmitting ? (
                 'Memproses…'

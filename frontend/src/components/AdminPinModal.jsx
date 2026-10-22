@@ -57,7 +57,7 @@ export default function AdminPinModal({ isOpen, onSuccess, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 motion-backdrop">
       <div className="w-full max-w-md bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden flex flex-col motion-modal-pop">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white">
@@ -180,14 +180,14 @@ export default function AdminPinModal({ isOpen, onSuccess, onClose }) {
               <button
                 type="button"
                 onClick={onClose}
-                className="px-3.5 py-1.5 rounded-md bg-white hover:bg-slate-50 text-xs font-medium text-slate-700 border border-slate-300 transition-colors"
+                className="px-3.5 py-1.5 rounded-md bg-white hover:bg-slate-50 text-xs font-medium text-slate-700 border border-slate-300 transition-colors motion-press"
               >
                 Batal
               </button>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="px-4 py-1.5 rounded-md bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-medium transition-colors flex items-center gap-1.5 disabled:opacity-50"
+                className="px-4 py-1.5 rounded-md bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-medium transition-colors motion-press flex items-center gap-1.5 disabled:opacity-50"
               >
                 {isLoading ? (
                   'Memverifikasi…'

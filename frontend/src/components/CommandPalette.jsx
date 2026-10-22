@@ -36,50 +36,49 @@ export default function CommandPalette({
     }
   }, [isOpen]);
 
-  // Command items definitions
   const baseCommands = [
     {
-      id: 'tab-overview',
+      id: 'nav-overview',
       category: 'Navigasi',
-      label: 'Buka Ringkasan Sistem (Overview)',
+      label: 'Buka Ringkasan Sistem & GPU',
       shortcut: '1',
       icon: LayoutDashboard,
       action: () => { onTabChange('overview'); onClose(); }
     },
     {
-      id: 'tab-users',
+      id: 'nav-students',
       category: 'Navigasi',
-      label: 'Buka Manajemen Pengguna (Users)',
+      label: 'Buka Manajemen Pengguna SIMTIK',
       shortcut: '2',
       icon: Users,
       action: () => { onTabChange('students'); onClose(); }
     },
     {
-      id: 'tab-files',
+      id: 'nav-files',
       category: 'Navigasi',
-      label: 'Buka File Explorer Mahasiswa',
+      label: 'Buka Admin File Explorer',
       shortcut: '4',
       icon: FolderOpen,
       action: () => {
-        if (isAdmin) {
-          onTabChange('files');
-        } else {
+        if (!isAdmin) {
           onOpenLogin?.();
+        } else {
+          onTabChange('files');
         }
         onClose();
       }
     },
     {
-      id: 'tab-audit',
+      id: 'nav-audit',
       category: 'Navigasi',
-      label: 'Buka Log Audit (Audit Trail)',
+      label: 'Buka Log Audit Sistem',
       shortcut: '3',
       icon: FileText,
       action: () => {
-        if (isAdmin) {
-          onTabChange('audit');
-        } else {
+        if (!isAdmin) {
           onOpenLogin?.();
+        } else {
+          onTabChange('audit');
         }
         onClose();
       }
@@ -87,7 +86,7 @@ export default function CommandPalette({
     {
       id: 'action-refresh',
       category: 'Aksi Sistem',
-      label: 'Muat Ulang Telemetri (Refresh)',
+      label: 'Segarkan Telemetri Secara Manual',
       shortcut: 'R',
       icon: RefreshCw,
       action: () => { onRefreshTelemetry?.(); onClose(); }
@@ -95,10 +94,17 @@ export default function CommandPalette({
     {
       id: 'action-backup',
       category: 'Aksi Sistem',
-      label: 'Snapshot Backup Database SQLite',
+      label: 'Buat Cadangan Snapshot Database Baru',
       shortcut: 'B',
       icon: DatabaseBackup,
-      action: () => { onTriggerBackup?.(); onClose(); }
+      action: () => {
+        if (!isAdmin) {
+          onOpenLogin?.();
+        } else {
+          onTriggerBackup?.();
+        }
+        onClose();
+      }
     },
     isAdmin ? {
       id: 'action-logout',
@@ -166,31 +172,31 @@ export default function CommandPalette({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 bg-slate-900/60">
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 bg-[#2E2018]/60 backdrop-blur-xs font-sans">
       <div 
-        className="w-full max-w-xl bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden flex flex-col motion-modal-pop"
+        className="w-full max-w-xl bg-[#F3EBDD] border border-[#E4D8C3] rounded-2xl shadow-warm-modal overflow-hidden flex flex-col"
         onKeyDown={handleKeyDown}
       >
         {/* Search Input Bar */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-200 bg-slate-50">
-          <Search className="w-4 h-4 text-slate-400 shrink-0" />
+        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[#E4D8C3] bg-[#FAF6EF]">
+          <Search className="w-4 h-4 text-[#7A6A5C] shrink-0" />
           <input
             ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => { setQuery(e.target.value); setSelectedIndex(0); }}
             placeholder="Cari perintah, navigasi tab, atau PID proses… (↑ ↓ Enter)"
-            className="flex-1 bg-transparent text-xs text-slate-800 placeholder:text-slate-400 outline-none font-medium"
+            className="flex-1 bg-transparent text-xs text-[#2E2018] placeholder:text-[#7A6A5C] outline-none font-medium"
           />
-          <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-white text-slate-500 rounded border border-slate-200 shadow-xs">
+          <kbd className="px-2 py-0.5 text-[10px] font-mono bg-[#EFE6D8] text-[#3B2E26] rounded-md border border-[#E4D8C3]">
             ESC
           </kbd>
         </div>
 
         {/* Command list */}
-        <div className="max-h-80 overflow-y-auto p-1.5 divide-y divide-slate-100">
+        <div className="max-h-80 overflow-y-auto p-2 divide-y divide-[#E4D8C3] bg-[#FAF6EF]">
           {filtered.length === 0 ? (
-            <div className="p-8 text-center text-xs text-slate-400">
+            <div className="p-8 text-center text-xs text-[#7A6A5C]">
               Tidak ada hasil yang cocok dengan &quot;{query}&quot;
             </div>
           ) : (
@@ -202,23 +208,29 @@ export default function CommandPalette({
                   key={item.id}
                   onClick={item.action}
                   onMouseEnter={() => setSelectedIndex(idx)}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left text-xs transition-colors ${
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-xs transition-colors min-h-[44px] cursor-pointer ${
                     isSelected 
-                      ? 'bg-blue-50/80 text-[#1a73e8] font-semibold border-l-2 border-[#1a73e8]' 
-                      : 'text-slate-700 hover:bg-slate-50 border-l-2 border-transparent'
+                      ? 'bg-[#6F4E37] text-[#FAF6EF] font-semibold shadow-xs' 
+                      : 'text-[#3B2E26] hover:bg-[#F3EBDD]'
                   }`}
                   type="button"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <Icon className={`w-4 h-4 shrink-0 ${isSelected ? 'text-[#1a73e8]' : 'text-slate-400'}`} />
+                    <Icon className={`w-4 h-4 shrink-0 ${isSelected ? 'text-[#FAF6EF]' : 'text-[#6F4E37]'}`} />
                     <span className="truncate">{item.label}</span>
                   </div>
                   <div className="flex items-center gap-2 shrink-0 ml-3">
-                    <span className="text-[10px] text-slate-400 uppercase tracking-wider font-mono">
+                    <span className={`text-[10px] uppercase tracking-wider font-mono ${
+                      isSelected ? 'text-[#FAF6EF]/80' : 'text-[#7A6A5C]'
+                    }`}>
                       {item.category}
                     </span>
                     {item.shortcut && (
-                      <kbd className="px-1.5 py-0.2 text-[10px] font-mono bg-white text-slate-600 rounded border border-slate-200">
+                      <kbd className={`px-2 py-0.5 text-[10px] font-mono rounded border ${
+                        isSelected 
+                          ? 'bg-[#FAF6EF]/20 border-[#FAF6EF]/30 text-[#FAF6EF]' 
+                          : 'bg-[#EFE6D8] text-[#3B2E26] border-[#E4D8C3]'
+                      }`}>
                         {item.shortcut}
                       </kbd>
                     )}
@@ -230,13 +242,13 @@ export default function CommandPalette({
         </div>
 
         {/* Footer shortcuts helper */}
-        <div className="px-4 py-2 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-500 font-mono">
+        <div className="px-4 py-2.5 bg-[#EFE6D8]/60 border-t border-[#E4D8C3] flex items-center justify-between text-[11px] text-[#7A6A5C] font-mono">
           <div className="flex items-center gap-3">
             <span>↑↓ Navigasi</span>
             <span>↵ Eksekusi</span>
             <span>Esc Tutup</span>
           </div>
-          <span className="text-slate-600 font-medium">Enterprise Cloud Console · TI UMPO</span>
+          <span className="text-[#3B2E26] font-medium hidden sm:inline">Lab Komputasi AI · TI UMPO</span>
         </div>
       </div>
     </div>

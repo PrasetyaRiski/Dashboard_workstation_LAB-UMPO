@@ -1,0 +1,341 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  /* ── Google Cloud / Stitch Console Enterprise Palette ── */
+  --color-bg-app: #f8fafc;        /* Slate 50 clean console canvas */
+  --color-bg-surface: #ffffff;    /* Pure solid white surface */
+  --color-bg-elevated: #ffffff;   /* Pure solid surface */
+  --color-bg-subtle: #f1f5f9;     /* Slate 100 table header / zebra */
+
+  /* Legacy mappings */
+  --color-surface-dim: #f8fafc;
+  --color-surface-1: #ffffff;
+  --color-surface-2: #f1f5f9;
+  --color-surface-3: #e2e8f0;
+  --color-surface-container: #ffffff;
+  --color-surface-container-low: #ffffff;
+  --color-surface-container-lowest: #f8fafc;
+  --color-surface-container-high: #f1f5f9;
+  --color-surface-container-highest: #e2e8f0;
+  --color-bg-void: #f8fafc;
+
+  /* ── Crisp Hairline Borders ── */
+  --color-border-subtle: #e2e8f0; /* Slate 200 standard border */
+  --color-border-strong: #cbd5e1; /* Slate 300 active/focus border */
+  --color-border-base: #e2e8f0;
+  --color-border-sub: #f1f5f9;
+  --color-border-emph: #94a3b8;
+
+  /* ── Typography & Contrast ── */
+  --color-text-primary: #0f172a;   /* Slate 900 high contrast */
+  --color-text-secondary: #475569; /* Slate 600 secondary */
+  --color-text-disabled: #94a3b8;  /* Slate 400 */
+  --color-text-muted: #64748b;     /* Slate 500 */
+  --color-on-surface: #0f172a;
+  --color-on-surface-variant: #475569;
+
+  /* ── Enterprise Semantic Accents (GCP Standards) ── */
+  --color-accent-blue: #1a73e8;        /* Google Cloud Primary Blue */
+  --color-accent-blue-hover: #1557b0;  /* Google Cloud Blue Dark */
+  --color-accent-emerald: #059669;     /* Emerald status online/healthy */
+  --color-accent-emerald-text: #047857;
+  --color-accent-amber: #d97706;       /* Amber status warning */
+  --color-accent-amber-text: #b45309;
+  --color-accent-rose: #dc2626;        /* Crimson status critical/error */
+  --color-accent-rose-text: #b91c1c;
+  --color-accent-sky: #0284c7;
+  --color-accent-sky-text: #0369a1;
+  --color-accent-indigo: #4338ca;
+  --color-accent-indigo-text: #3730a3;
+
+  /* Neon/Vibrant aliases mapped to crisp rich shades */
+  --color-neon-emerald: #059669;
+  --color-neon-amber: #d97706;
+  --color-neon-rose: #dc2626;
+  --color-neon-cyan: #0284c7;
+  --color-neon-indigo: #1a73e8;
+
+  /* Primary Brand: Google Cloud Blue */
+  --color-primary: #1a73e8;
+  --color-primary-fixed: #2563eb;
+  --color-primary-fixed-dim: #1d4ed8;
+  --color-secondary: #475569;
+  --color-secondary-fixed: #64748b;
+  --color-secondary-fixed-dim: #334155;
+  --color-tertiary: #059669;
+  --color-tertiary-fixed: #10b981;
+  --color-error: #dc2626;
+  --color-error-container: #fef2f2;
+
+  /* Focus Ring */
+  --color-focus-ring: #1a73e8;
+
+  /* Fonts */
+  --font-sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   CSS CUSTOM PROPERTIES: GOOGLE STITCH / GCP CONSOLE TOKENS
+   ───────────────────────────────────────────────────────────────── */
+:root {
+  color-scheme: light;
+
+  /* Surfaces */
+  --bg-app: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-subtle: #f1f5f9;
+
+  /* Borders */
+  --border-subtle: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --border-base: #e2e8f0;
+
+  /* Typography */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-disabled: #94a3b8;
+  --text-muted: #64748b;
+  --focus-ring: #1a73e8;
+
+  /* Semantics */
+  --accent-blue: #1a73e8;
+  --accent-blue-hover: #1557b0;
+  --accent-emerald: #059669;
+  --accent-emerald-text: #047857;
+  --accent-amber: #d97706;
+  --accent-amber-text: #b45309;
+  --accent-rose: #dc2626;
+  --accent-rose-text: #b91c1c;
+
+  /* Precision Radii */
+  --r-sm: 4px;
+  --r-md: 8px;
+  --r-lg: 12px;
+
+  /* Shadow system: subtle and crisp */
+  --shadow-gcp-card: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-gcp-dropdown: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-gcp-modal: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+
+  /* Transitions & Motion Tokens (MOTION.md Strix & GCP Standards) */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-soft: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-normal: 200ms;
+  --duration-slow: 600ms;
+}
+
+@keyframes data-flash {
+  from { background-color: rgba(26, 115, 232, 0.12); }
+  to   { background-color: transparent; }
+}
+.is-updated {
+  animation: data-flash 800ms ease-out;
+}
+
+@keyframes viewEnter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes modalPop {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes backdropFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.motion-view-enter {
+  animation: viewEnter var(--duration-base) var(--ease-out-soft) forwards;
+}
+
+.motion-modal-pop {
+  animation: modalPop var(--duration-base) var(--ease-out-soft) forwards;
+}
+
+.motion-backdrop {
+  animation: backdropFade var(--duration-fast) var(--ease-out-soft) forwards;
+}
+
+/* Smooth telemetry bar progress transitions */
+.motion-bar {
+  transition: width var(--duration-slow) var(--ease-out-soft),
+              background-color var(--duration-base) var(--ease-out-soft);
+}
+
+/* Tactile button press feedback */
+.motion-press {
+  transition: transform var(--duration-fast) var(--ease-out-soft),
+              box-shadow var(--duration-fast) var(--ease-out-soft),
+              background-color var(--duration-fast) var(--ease-out-soft);
+}
+
+.motion-press:active {
+  transform: translateY(1.5px) scale(0.985);
+}
+
+/* Card hover subtle elevation */
+.motion-card {
+  transition: transform var(--duration-base) var(--ease-out-soft),
+              box-shadow var(--duration-base) var(--ease-out-soft),
+              border-color var(--duration-fast) var(--ease-out-soft);
+}
+
+.motion-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px -3px rgba(15, 23, 42, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+/* Table row interactive transition */
+.motion-row {
+  transition: background-color var(--duration-fast) var(--ease-out-soft),
+              transform var(--duration-fast) var(--ease-out-soft);
+}
+
+.motion-row:hover {
+  transform: translateX(2px);
+}
+
+/* Base resets & typography */
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: var(--bg-app);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    line-height: 1.5;
+    min-height: 100dvh;
+  }
+
+  .tabular-nums, .font-mono, code, pre, kbd {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   GCP STITCH ENTERPRISE CONSOLE UTILITIES
+   ───────────────────────────────────────────────────────────────── */
+.gcp-card {
+  background-color: #ffffff;
+  border-radius: 0.75rem; /* rounded-xl */
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+  transition: border-color var(--duration-fast) ease;
+}
+
+.gcp-card:hover {
+  border-color: #cbd5e1;
+}
+
+.gcp-btn-primary {
+  background-color: #1a73e8;
+  color: #ffffff;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  border: 1px solid transparent;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  transition: background-color var(--duration-fast) ease;
+}
+
+.gcp-btn-primary:hover {
+  background-color: #1557b0;
+}
+
+.gcp-btn-primary:active {
+  background-color: #104388;
+}
+
+.gcp-btn-secondary {
+  background-color: #ffffff;
+  color: #334155;
+  font-weight: 500;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  transition: all var(--duration-fast) ease;
+}
+
+.gcp-btn-secondary:hover {
+  background-color: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+/* Precision status dot */
+@keyframes subtle-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.92);
+  }
+}
+
+.pulse-dot {
+  animation: subtle-pulse 2s infinite ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Clean GCP Console Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

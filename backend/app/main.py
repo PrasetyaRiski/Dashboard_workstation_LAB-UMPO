@@ -29,7 +29,7 @@ from app.db import (
     set_user_priority, unset_user_priority,
     toggle_user_admin, toggle_user_active, set_user_role,
     is_user_priority, auto_expire_priorities, get_connection,
-    perform_database_backup, list_database_backups,
+    perform_database_backup, list_database_backups, checkpoint_wal_database,
     get_user, nim_to_username
 )
 
@@ -1321,6 +1321,20 @@ def trigger_backup(request: Request, session: Dict[str, Any] = Depends(verify_op
 def get_backups(session: Dict[str, Any] = Depends(verify_operator_or_admin)):
     """Mendaftar seluruh file snapshot backup database yang tersedia"""
     return {"success": True, "backups": list_database_backups()}
+
+@app.post("/api/admin/checkpoint-wal")
+def trigger_wal_checkpoint(request: Request, session: Dict[str, Any] = Depends(verify_operator_or_admin)):
+    """Melakukan checkpoint dan truncate SQLite WAL log untuk membebaskan ruang disk (Admin / Aslab)"""
+    res = checkpoint_wal_database()
+    if not res.get("success"):
+        raise HTTPException(status_code=500, detail=res.get("message", "Gagal checkpoint WAL."))
+    record_audit(
+        target="SYSTEM_DATABASE",
+        action="CHECKPOINT_WAL",
+        detail=f"SQLite WAL checkpoint dieksekusi oleh {session.get('nama')}",
+        log_type="info"
+    )
+    return res
 
 
 # WebSocket Manager for real-time live telemetry

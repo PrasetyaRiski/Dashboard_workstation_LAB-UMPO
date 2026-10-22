@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { 
   Folder, File, ArrowUp, ArrowLeft, Download, Copy, X, Search, User,
   Trash2, Edit, Scissors, Upload, FolderPlus, Clipboard, Database,
-  AlertCircle, CheckCircle2, RefreshCw, FolderInput, Share2, Lock
+  AlertCircle, RefreshCw, Share2, Lock
 } from 'lucide-react';
 
 export default function AdminFileExplorer({ 

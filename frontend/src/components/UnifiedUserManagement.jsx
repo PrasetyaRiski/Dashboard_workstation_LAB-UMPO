@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
-  Users, Zap, ShieldCheck, Search, CheckCircle2,
-  AlertCircle, AlertTriangle, Clock, UserCheck, UserX, KeyRound, RefreshCw,
+  Users, Zap, ShieldCheck, Search,
+  AlertTriangle, Clock, UserCheck, UserX, KeyRound, RefreshCw,
   Cpu, Trash2, X, HardDrive, Layers, Database, Server, Download, Eraser,
-  Folder, File, ArrowUp, Copy, Edit2, Square
+  Edit2, Square
 } from 'lucide-react';
 
 /* ── Live Countdown Timer Component ── */
@@ -47,7 +47,7 @@ export default function UnifiedUserManagement({
   students = [],
   systemUsers = [],
   gpus = [],
-  onOpenKillModal,
+  _onOpenKillModal,
   onResetPassword,
   onKillAllUser,
   fetchStudents,

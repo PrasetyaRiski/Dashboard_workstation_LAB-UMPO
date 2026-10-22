@@ -1,9 +1,7 @@
 import React, { useState, useMemo, memo } from 'react';
 import {
-  Zap,
   XCircle,
   Key,
-  Cpu,
   ShieldAlert,
   Search,
   Clock,
@@ -13,7 +11,6 @@ import {
   AlertTriangle,
   Lock,
   Shield,
-  MemoryStick as Memory,
   LayoutGrid,
   List
 } from 'lucide-react';

@@ -665,6 +665,13 @@ def perform_database_backup(retention_days: int = 14) -> Optional[str]:
 
         # Hot backup menggunakan native sqlite3 backup
         src_conn = sqlite3.connect(target_path, timeout=10)
+        try:
+            # Checkpoint WAL log and truncate WAL file
+            src_conn.execute("PRAGMA wal_checkpoint(TRUNCATE);")
+            src_conn.execute("PRAGMA optimize;")
+        except Exception as ck_err:
+            logger.warning(f"WAL checkpoint warning: {ck_err}")
+
         dst_conn = sqlite3.connect(dest_path)
         with dst_conn:
             src_conn.backup(dst_conn)
@@ -704,6 +711,41 @@ def cleanup_old_backups(backup_dir: str, retention_days: int = 14):
                     pass
     except Exception as e:
         logger.warning(f"Gagal rotasi backup: {e}")
+
+
+def checkpoint_wal_database() -> Dict[str, Any]:
+    """
+    Melakukan flushing WAL log ke file database utama dan memotong ukuran file .db-wal (TRUNCATE).
+    Mencegah membengkaknya file WAL secara berlebihan dan mengoptimalkan performa I/O query.
+    """
+    global SQLITE_PATH
+    if USE_POSTGRES:
+        return {"success": True, "message": "PostgreSQL tidak memerlukan SQLite WAL checkpoint."}
+
+    target_path = SQLITE_PATH
+    if not os.path.exists(target_path):
+        local_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "lab_users.db")
+        if os.path.exists(local_path):
+            target_path = local_path
+        else:
+            return {"success": False, "message": "Database SQLite tidak ditemukan untuk WAL checkpoint."}
+
+    try:
+        conn = sqlite3.connect(target_path, timeout=10)
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA wal_checkpoint(TRUNCATE);")
+        res = cursor.fetchone()
+        cursor.execute("PRAGMA optimize;")
+        conn.close()
+        logger.info(f"✅ SQLite WAL checkpoint (TRUNCATE) berhasil: {res}")
+        return {
+            "success": True,
+            "message": "WAL checkpoint (TRUNCATE) dan PRAGMA optimize berhasil dieksekusi.",
+            "checkpoint_result": res
+        }
+    except Exception as e:
+        logger.error(f"❌ Gagal melakukan WAL checkpoint: {e}")
+        return {"success": False, "message": str(e)}
 
 
 def list_database_backups() -> List[Dict[str, Any]]:

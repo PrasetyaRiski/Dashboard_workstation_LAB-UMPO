@@ -16,7 +16,7 @@ import {
 export default function CommandPalette({
   isOpen,
   onClose,
-  activeTab,
+  _activeTab,
   onTabChange,
   isAdmin,
   onOpenLogin,

@@ -55,7 +55,7 @@ export default function App() {
   }, []);
 
   // Stale Telemetry Detection (> 15 seconds)
-  const [lastDataTimestamp, setLastDataTimestamp] = useState(Date.now());
+  const [lastDataTimestamp, setLastDataTimestamp] = useState(() => Date.now());
   const [staleSeconds, setStaleSeconds]           = useState(0);
 
   // Database Backup States

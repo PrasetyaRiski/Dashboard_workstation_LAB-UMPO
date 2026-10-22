@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  Users, Zap, RotateCcw, Shield, ShieldCheck, Search, CheckCircle2,
-  AlertCircle, Clock, UserCheck, UserX, Sparkles, KeyRound, RefreshCw,
-  Lock, LogOut, ChevronLeft, ChevronRight, Activity, Cpu, MoreVertical,
-  Database, Server, Ban
+  Users, Zap, RotateCcw, Shield, Search, CheckCircle2,
+  AlertCircle, UserCheck, KeyRound, RefreshCw,
+  Lock, LogOut, ChevronLeft, ChevronRight, Activity, Cpu,
+  Database, Ban
 } from 'lucide-react';
 
 const LiveCountdown = ({ expiresAt }) => {
@@ -36,7 +36,7 @@ const LiveCountdown = ({ expiresAt }) => {
   return <span className="text-amber-400 font-semibold">{timeLeft || '...'}</span>;
 };
 
-export default function SimtikUserManagement({ isAdmin, showToast }) {
+export default function SimtikUserManagement({ _isAdmin, showToast }) {
   const [adminToken, setAdminToken] = useState(localStorage.getItem('adminToken') || '');
   const [pin, setPin] = useState('');
   const [loginError, setLoginError] = useState('');

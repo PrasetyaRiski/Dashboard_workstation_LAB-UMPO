@@ -362,6 +362,76 @@ def ensure_user_tmp_dir(username: str):
         logger.warning(f"Gagal menyiapkan user tmpdir untuk {username}: {e}")
 
 
+def is_admin_or_aslab_user(username: str, jh_user=None) -> bool:
+    """
+    Memeriksa apakah pengguna memiliki hak akses Admin atau Aslab:
+    1. Cek akun sistem inti (labadmin, edy, labriset)
+    2. Cek flag admin internal JupyterHub (jh_user.admin)
+    3. Cek data role di database lab_users.db (role == 'admin' atau 'aslab' atau is_admin == True)
+    """
+    if username in SYSTEM_ACCOUNTS:
+        return True
+    if jh_user and getattr(jh_user, "admin", False):
+        return True
+    nim = username_to_nim(username)
+    try:
+        from app.db import get_user
+        u = get_user(nim)
+        if u and (u.get("is_admin") or u.get("role") in ("admin", "aslab")):
+            return True
+    except Exception:
+        pass
+    return False
+
+
+def count_active_level2_students(spawner, exclude_username=None) -> int:
+    """
+    Menghitung jumlah mahasiswa praktikum Level 2 yang server-nya sedang aktif berjalan.
+    Akun Admin, Aslab, dan mahasiswa Level 1 (Prioritas Skripsi GPU 0) DIBYPASS (tidak dihitung).
+    """
+    try:
+        from jupyterhub import orm
+        db = getattr(getattr(spawner, "user", None), "db", None)
+        should_close = False
+        if not db:
+            from jupyterhub.orm import new_session_factory
+            session_factory = new_session_factory("sqlite:////opt/jupyterhub/etc/jupyterhub.sqlite")
+            db = session_factory()
+            should_close = True
+
+        try:
+            active_spawners = (
+                db.query(orm.Spawner)
+                .join(orm.User)
+                .filter(orm.Spawner.server_id.isnot(None))
+                .all()
+            )
+            count = 0
+            for s in active_spawners:
+                uname = s.user.name
+                if exclude_username and uname == exclude_username:
+                    continue
+                # Lewati jika akun admin, aslab, atau akun sistem
+                if is_admin_or_aslab_user(uname, s.user):
+                    continue
+                # Lewati jika mahasiswa sedang berada di Mode Prioritas Level 1 (Skripsi/Riset GPU 0)
+                nim = username_to_nim(uname)
+                try:
+                    from app.db import is_user_priority
+                    if is_user_priority(nim):
+                        continue
+                except Exception:
+                    pass
+                count += 1
+            return count
+        finally:
+            if should_close:
+                db.close()
+    except Exception as e:
+        logger.warning(f"Error menghitung active level2 students: {e}")
+        return 0
+
+
 def simtik_pre_spawn_hook(spawner):
     username = spawner.user.name
     # 1. Pastikan pintasan dataset_shared terpasang di home user
@@ -370,6 +440,7 @@ def simtik_pre_spawn_hook(spawner):
     ensure_user_tmp_dir(username)
 
     priority = username in LEVEL1_SYSTEM
+    is_privileged = is_admin_or_aslab_user(username, getattr(spawner, "user", None))
     if not priority and not is_system_account(username):
         nim = username_to_nim(username)
         # Cek apakah akun aktif atau dinonaktifkan oleh Admin
@@ -390,6 +461,25 @@ def simtik_pre_spawn_hook(spawner):
             priority = is_user_priority(nim)
         except Exception as e:
             logger.warning(f"Cek prioritas gagal untuk {username}: {e}")
+
+    # =========================================================================
+    # 2.5 ADMISSION CONTROL: Kuota Maksimal 30 Mahasiswa Praktikum (Level 2)
+    # Akun Aslab, Admin, dan Mahasiswa Prioritas Skripsi (Level 1) DIBYPASS
+    # =========================================================================
+    if not priority and not is_privileged:
+        MAX_LEVEL2_CONCURRENT = 30
+        active_l2 = count_active_level2_students(spawner, exclude_username=username)
+        if active_l2 >= MAX_LEVEL2_CONCURRENT:
+            from tornado import web
+            logger.warning(
+                f"[AdmissionControl] Spawn ditolak untuk {username}: Kuota 30 mahasiswa praktikum Level 2 penuh ({active_l2}/{MAX_LEVEL2_CONCURRENT})."
+            )
+            raise web.HTTPError(
+                429,
+                f"Kapasitas Lab Penuh ({active_l2}/{MAX_LEVEL2_CONCURRENT} Mahasiswa Aktif): "
+                f"Batas kuota 30 mahasiswa praktikum aktif sedang tercapai. "
+                f"Silakan tunggu beberapa saat hingga ada mahasiswa lain yang selesai atau sesi otomatis terlepas."
+            )
 
     # 3. Kernel-Level Culling (15 Menit Idle Kernel)
     if not hasattr(spawner, "args") or spawner.args is None:

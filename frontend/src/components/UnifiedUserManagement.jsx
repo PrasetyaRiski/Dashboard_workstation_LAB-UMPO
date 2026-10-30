@@ -993,7 +993,7 @@ export default function UnifiedUserManagement({
                         <td className="py-3.5 px-4">
                           <div className="flex flex-col gap-0.5">
                             <span className="font-mono text-xs text-[#2E2018] font-semibold">
-                              {item.is_priority ? 'GPU 0 (Dedicated) | 20 Cores | 60GB' : 'GPU 1 (Shared Pool) | 2 Cores | 6GB'}
+                              {item.is_priority ? 'GPU 0 (Dedicated) | 20 Cores | 60GB' : 'GPU 1 (Shared Pool) | 2 Cores | 3GB'}
                             </span>
                             {item.is_priority && item.priority_expires_at ? (
                               <div className="inline-flex items-center gap-1 text-[#B45309] font-mono text-xs font-bold">
@@ -1256,7 +1256,7 @@ export default function UnifiedUserManagement({
                       <td className="py-3.5 px-4">
                         <div className="flex flex-col gap-0.5">
                           <span className="font-mono text-xs text-[#2E2018] font-semibold">
-                            {isRiset ? 'GPU 0 (Dedicated) | 20 Cores | 60GB' : 'GPU 1 (Shared Pool) | 2 Cores | 6GB'}
+                            {isRiset ? 'GPU 0 (Dedicated) | 20 Cores | 60GB' : 'GPU 1 (Shared Pool) | 2 Cores | 3GB'}
                           </span>
                           <span className="font-mono text-xs text-[#7A6A5C]">
                             {isRiset ? 'Riset Dosen Tetap' : 'Batch Job Pipeline'}

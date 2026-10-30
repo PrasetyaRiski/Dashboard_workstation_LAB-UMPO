@@ -31,13 +31,13 @@ export default function AdminPinModal({ isOpen, onSuccess, onClose }) {
     try {
       let res, data;
       if (loginMode === 'simtik') {
-        res = await fetch('/api/admin/login-simtik', {
+        res = await fetch('/api/admin/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ nim: nim.trim(), password }),
         });
       } else {
-        res = await fetch('/api/admin/verify-pin', {
+        res = await fetch('/api/admin/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ pin: pin.trim() }),

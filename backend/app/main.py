@@ -205,6 +205,19 @@ def admin_login(req: LoginRequest, request: Request):
 
     raise HTTPException(status_code=400, detail="Harap masukkan PIN Master atau NIM & Password SIMTIK.")
 
+# Kompatibilitas endpoint login lama (dipakai cache frontend versi sebelumnya).
+@app.post("/api/admin/verify-pin")
+def admin_verify_pin(req: LoginRequest, request: Request):
+    if not req.pin:
+        raise HTTPException(status_code=400, detail="PIN Operator wajib diisi.")
+    return admin_login(req, request)
+
+@app.post("/api/admin/login-simtik")
+def admin_login_simtik(req: LoginRequest, request: Request):
+    if not req.nim or not req.password:
+        raise HTTPException(status_code=400, detail="NIM dan Password wajib diisi.")
+    return admin_login(req, request)
+
 @app.post("/api/admin/logout")
 def admin_logout(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)):
     if credentials and credentials.credentials:

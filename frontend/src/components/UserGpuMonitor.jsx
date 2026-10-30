@@ -109,7 +109,7 @@ function UserCard({ user, isAdmin, onOpenKillModal, onKillAllUser, onOpenReset }
               className="badge badge-neutral"
               style={{ fontSize: '0.5rem', color: 'var(--accent-blue)' }}
             >
-              Limit {isRiset ? '60 GB' : '6 GB'} RAM
+              Limit {isRiset ? '60 GB' : '3 GB'} RAM
             </span>
           </div>
         </div>

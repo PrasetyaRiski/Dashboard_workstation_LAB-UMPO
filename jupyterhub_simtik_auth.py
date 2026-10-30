@@ -428,10 +428,10 @@ def simtik_pre_spawn_hook(spawner):
             "TMP": user_tmp,
         })
     else:
-        logger.info(f"[QoS] {username} -> LEVEL 2 (GPU 1 Shared Anti-OOM, 2 core, 6G)")
+        logger.info(f"[QoS] {username} -> LEVEL 2 (GPU 1 Shared Anti-OOM, 2 core, 3G)")
         spawner.unit_extra_properties = {"Slice": "compute-level2.slice"}
         spawner.cpu_limit = 2.0
-        spawner.mem_limit = "6G"
+        spawner.mem_limit = "3G"
         if not hasattr(spawner, "environment") or spawner.environment is None:
             spawner.environment = {}
         spawner.environment.update({

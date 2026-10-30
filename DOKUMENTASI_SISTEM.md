@@ -85,7 +85,7 @@ Resource server dialokasikan secara adil dan terisolasi menggunakan **Linux Cgro
 |---|---|---|
 | **Sasaran Pengguna** | Mahasiswa praktikum reguler & akun kelas `training1`–`training10` | Mahasiswa Skripsi/Riset yang di-boost admin & akun `labriset` |
 | **Alokasi CPU** | **2 Core** (`CPUQuota=200%`) | **20 Core** (`CPUQuota=2000%`) |
-| **Batas RAM** | **6 GB** (`MemoryMax=6G`) | **60 GB** (`MemoryMax=60G`) |
+| **Batas RAM** | **3 GB** (`MemoryMax=3G` / Pool 72 GB) | **60 GB** (`MemoryMax=60G`) |
 | **Alokasi GPU** | **GPU 1 (Shared Pool)** | **GPU 0 (Dedicated)** |
 | **Cgroup Slice** | `compute-level2.slice` | `compute-level1.slice` |
 | **Threading Library** | `OMP_NUM_THREADS=2`, `OPENBLAS_NUM_THREADS=2` | `OMP_NUM_THREADS=20`, `OPENBLAS_NUM_THREADS=20` |

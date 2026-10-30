@@ -720,7 +720,7 @@ def boost_student(req: BoostUserRequest, session: Dict[str, Any] = Depends(verif
 
 @app.post("/api/users/unboost")
 def unboost_student(req: UserActionRequest, session: Dict[str, Any] = Depends(verify_super_admin)):
-    """Mengembalikan NIM ke Mode Standard Level 2 (2 Core, 6G, GPU 1)"""
+    """Mengembalikan NIM ke Mode Standard Level 2 (2 Core, 3G, GPU 1)"""
     success = unset_user_priority(req.nim)
     if success:
         # Hentikan sesi Level 1 yang sedang aktif agar GPU 0 dibebaskan dan sesi baru masuk ke Level 2

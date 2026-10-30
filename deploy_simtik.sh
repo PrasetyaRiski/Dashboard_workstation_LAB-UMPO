@@ -87,8 +87,8 @@ else
     fi
 fi
 
-# 4.5 Konfigurasi Cgroups v2 Slices (Level 1: 60G, Level 2: 6G)
-echo "⚙️ Memeriksa & mengonfigurasi systemd QoS Slices (Level 2: 6G RAM, Level 1: 60G RAM)..."
+# 4.5 Konfigurasi Cgroups v2 Slices (Level 1: 60G, Level 2: 72G pool / 3G per-user)
+echo "⚙️ Memeriksa & mengonfigurasi systemd QoS Slices (Level 2: 72G pool / 3G per-user, Level 1: 60G RAM)..."
 sudo tee /etc/systemd/system/compute-level1.slice > /dev/null << 'EOF'
 [Slice]
 CPUQuota=2000%
@@ -98,7 +98,7 @@ EOF
 sudo tee /etc/systemd/system/compute-level2.slice > /dev/null << 'EOF'
 [Slice]
 CPUQuota=2400%
-MemoryMax=60G
+MemoryMax=72G
 EOF
 sudo systemctl daemon-reload
 

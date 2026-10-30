@@ -32,7 +32,7 @@ export default function Sidebar({
 
   return (
     <>
-      {/* Collapse/Expand Toggle — Enterprise Stitch Minimalist */}
+      {/* Collapse/Expand Toggle — Warm Minimalist with 44px touch target */}
       <div
         className="fixed z-50 transition-all duration-200"
         style={{
@@ -43,7 +43,7 @@ export default function Sidebar({
       >
         <button
           onClick={onToggle}
-          className="flex items-center justify-center w-6 h-6 rounded-md bg-white border border-slate-300 text-slate-600 hover:text-blue-600 hover:border-slate-400 hover:bg-slate-50 shadow-xs transition-colors motion-press"
+          className="flex items-center justify-center w-7 h-7 sm:w-6 sm:h-6 rounded-md bg-[#FAF6EF] border border-[#E4D8C3] text-[#3B2E26] hover:text-[#6F4E37] hover:border-[#6F4E37] hover:bg-[#F3EBDD] shadow-xs transition-colors"
           title={isOpen ? 'Sembunyikan Navigasi' : 'Tampilkan Navigasi'}
           type="button"
           aria-label={isOpen ? 'Sembunyikan Navigasi' : 'Tampilkan Navigasi'}
@@ -55,31 +55,31 @@ export default function Sidebar({
         </button>
       </div>
 
-      {/* GCP Console Navigation Drawer */}
+      {/* Warm Cream Navigation Drawer */}
       <aside
-        className={`fixed inset-y-0 left-0 w-64 bg-white z-40 flex flex-col justify-between border-r border-slate-200 shadow-xs transition-transform duration-200 ${
+        className={`fixed inset-y-0 left-0 w-64 bg-[#F3EBDD] z-40 flex flex-col justify-between border-r border-[#E4D8C3] shadow-warm-sm transition-transform duration-200 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <div className="flex flex-col flex-1 overflow-hidden">
           {/* Header Brand */}
-          <div className="h-14 px-4 flex items-center gap-3 bg-white border-b border-slate-200 shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0 p-1">
-              <img src="/ti-umpo-logo.png" alt="TI UMPO" className="w-full h-full object-contain" />
+          <div className="h-16 px-4 flex items-center gap-3 bg-[#FAF6EF] border-b border-[#E4D8C3] shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-[#F3EBDD] border border-[#E4D8C3] flex items-center justify-center shrink-0 p-1 shadow-xs">
+              <img src="/ti-umpo-logo.png" alt="TI UMPO" className="w-full h-full object-contain max-w-full" />
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="text-xs font-bold text-slate-900 tracking-tight truncate leading-tight">
+              <span className="font-serif text-sm font-bold text-[#2E2018] tracking-tight truncate leading-tight">
                 Lab Komputasi AI
               </span>
-              <span className="font-mono text-[10px] text-slate-500 font-medium truncate leading-tight">
+              <span className="font-sans text-[11px] text-[#7A6A5C] font-medium truncate leading-tight mt-0.5">
                 Teknik Informatika UMPO
               </span>
             </div>
           </div>
 
           {/* Navigation Section */}
-          <nav className="flex-1 overflow-y-auto py-3 px-2 flex flex-col gap-1">
-            <div className="px-3 pb-1 text-[10px] font-mono font-semibold uppercase tracking-wider text-slate-400">
+          <nav className="flex-1 overflow-y-auto py-3 px-2 flex flex-col gap-1.5">
+            <div className="px-3 pb-1 text-[11px] font-sans font-semibold uppercase tracking-wider text-[#7A6A5C]">
               Konsol Manajemen
             </div>
             {tabs.map((tab) => {
@@ -99,26 +99,34 @@ export default function Sidebar({
                 <button
                   key={tab.id}
                   onClick={handleClick}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left text-xs font-medium transition-colors motion-press ${
+                  className={`w-full min-h-[44px] flex items-center justify-between px-3 py-2.5 rounded-xl text-left text-xs font-medium transition-all duration-200 ${
                     isActive
-                      ? 'bg-blue-50/80 text-blue-700 font-semibold border-l-3 border-[#1a73e8]'
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-l-3 border-transparent'
+                      ? 'bg-[#6F4E37] text-[#FAF6EF] font-semibold shadow-xs'
+                      : 'text-[#3B2E26] hover:bg-[#EFE6D8] hover:text-[#2E2018]'
                   }`}
                   type="button"
                 >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#1a73e8]' : 'text-slate-400'}`} />
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#FAF6EF]' : 'text-[#6F4E37]'}`} />
                     <span className="truncate">{tab.label}</span>
-                    {isLocked && <Lock className="w-3.5 h-3.5 ml-1 text-slate-400 shrink-0" />}
+                    {isLocked && <Lock className="w-3.5 h-3.5 ml-1 text-[#7A6A5C] shrink-0" />}
                   </div>
 
                   <div className="flex items-center gap-1.5 shrink-0">
                     {tab.badgeCount !== undefined && tab.badgeCount > 0 && (
-                      <span className="px-1.5 py-0.2 rounded text-[10px] font-mono font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold ${
+                        isActive 
+                          ? 'bg-[#FAF6EF] text-[#6F4E37]' 
+                          : 'bg-[#C8794A] text-white'
+                      }`}>
                         {tab.badgeCount}
                       </span>
                     )}
-                    <span className="text-[10px] font-mono text-slate-400 bg-slate-100 px-1 py-0.2 rounded border border-slate-200/60">
+                    <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${
+                      isActive 
+                        ? 'border-[#FAF6EF]/30 text-[#FAF6EF]/80 bg-[#FAF6EF]/10' 
+                        : 'border-[#E4D8C3] text-[#7A6A5C] bg-[#FAF6EF]'
+                    }`}>
                       {tab.shortcut}
                     </span>
                   </div>
@@ -129,30 +137,30 @@ export default function Sidebar({
         </div>
 
         {/* Bottom Section: Cluster Telemetry Status & Clock */}
-        <div className="shrink-0 p-3 border-t border-slate-200 bg-slate-50/70 flex flex-col gap-2">
-          <div className="flex items-center justify-between px-3 py-2 bg-white rounded-lg border border-slate-200 shadow-xs font-mono text-xs">
+        <div className="shrink-0 p-3 border-t border-[#E4D8C3] bg-[#EFE6D8]/60 flex flex-col gap-2">
+          <div className="flex items-center justify-between px-3 py-2 bg-[#FAF6EF] rounded-xl border border-[#E4D8C3] shadow-xs font-mono text-xs">
             <div className="flex items-center gap-2">
               <span
-                className={`w-2 h-2 rounded-full shrink-0 ${
-                  isConnected ? 'bg-emerald-500 pulse-dot' : 'bg-rose-500'
+                className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                  isConnected ? 'bg-[#2E7D32] pulse-dot' : 'bg-[#C53030]'
                 }`}
               />
-              <span className={`text-[10px] font-semibold tracking-wide ${isConnected ? 'text-emerald-700' : 'text-rose-600'}`}>
+              <span className={`text-[10px] font-bold tracking-wide ${isConnected ? 'text-[#2E7D32]' : 'text-[#C53030]'}`}>
                 {isConnected ? 'LIVE' : 'OFFLINE'}
               </span>
             </div>
 
-            <div className="flex items-center gap-2 text-slate-500 text-[11px]">
-              <span className="tabular-nums font-medium text-slate-700">{timeStr || '--:--:--'}</span>
+            <div className="flex items-center gap-2 text-[#7A6A5C] text-[11px]">
+              <span className="tabular-nums font-semibold text-[#2E2018]">{timeStr || '--:--:--'}</span>
               <button
                 onClick={onManualRefresh}
                 disabled={isRefreshing}
-                className="p-1 rounded text-slate-400 hover:text-blue-600 hover:bg-slate-100 transition-colors disabled:opacity-40"
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-[#7A6A5C] hover:text-[#6F4E37] hover:bg-[#EFE6D8] transition-colors disabled:opacity-40"
                 title="Refresh Telemetry (Shortcut: R)"
                 type="button"
                 aria-label="Refresh Telemetry"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-blue-600' : ''}`} />
+                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-[#6F4E37]' : ''}`} />
               </button>
             </div>
           </div>

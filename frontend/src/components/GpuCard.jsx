@@ -17,87 +17,94 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
   const temp = gpu.temperature_c ?? 0;
   const fan = gpu.fan_speed_percent ?? 0;
   const power = gpu.power_w ?? 0;
+  const maxPower = gpu.power_limit_w ?? 250;
 
-  // Temperature status
-  const tempStatus = temp >= 85 ? 'rose' : temp >= 75 ? 'amber' : 'emerald';
+  const isHighCompute = computePct >= 85;
+  const isHighVram = vramPct >= 90;
+  const isHighTemp = temp >= 80;
+
+  const processes = gpu.processes || [];
 
   const copyToClipboard = (text, pid) => {
-    navigator.clipboard?.writeText(String(text));
+    navigator.clipboard?.writeText?.(String(text));
     setCopiedPid(pid);
     setTimeout(() => setCopiedPid(null), 1500);
   };
 
-  // ── VRAM Block Allocation Grid ──
-  const totalGbInt = Math.max(1, Math.round(vramTotalMb / 1024));
-  const totalBlocks = Math.min(32, Math.max(16, totalGbInt));
-  const mbPerBlock = vramTotalMb / totalBlocks;
+  // Generate 32 VRAM blocks representation
+  const TOTAL_BLOCKS = 32;
+  const occupiedBlocksCount = Math.min(TOTAL_BLOCKS, Math.round((vramPct / 100) * TOTAL_BLOCKS));
 
-  const processes = gpu.processes || [];
-  const allocatedBlocks = [];
-  let remainingProcessBlocks = processes.map(p => ({
-    ...p,
-    neededBlocks: Math.max(1, Math.round((p.vram_mb || 0) / mbPerBlock))
-  }));
-
-  for (let i = 0; i < totalBlocks; i++) {
-    const proc = remainingProcessBlocks.find(p => p.neededBlocks > 0);
-    if (proc) {
-      proc.neededBlocks -= 1;
-      const isResearch = proc.username === 'labriset' || proc.username?.includes('riset');
-      allocatedBlocks.push({
-        index: i,
-        occupied: true,
-        isResearch,
-        proc
-      });
-    } else {
-      allocatedBlocks.push({
-        index: i,
-        occupied: false,
-        proc: null
-      });
+  const sortedProcesses = [...processes].sort((a, b) => (b.vram_mb || 0) - (a.vram_mb || 0));
+  
+  const blocks = Array.from({ length: TOTAL_BLOCKS }).map((_, i) => {
+    if (i >= occupiedBlocksCount) {
+      return { id: i, type: 'free', proc: null, label: 'Siap Pakai' };
     }
-  }
+    
+    let cumBlocks = 0;
+    for (const proc of sortedProcesses) {
+      const procBlocks = Math.max(1, Math.round(((proc.vram_mb || 0) / vramTotalMb) * TOTAL_BLOCKS));
+      if (i < cumBlocks + procBlocks) {
+        const isPriority = proc.username === 'labriset' || proc.username?.includes('riset');
+        return {
+          id: i,
+          type: isPriority ? 'priority' : 'training',
+          proc,
+          label: `${proc.username} (${proc.vram_mb || 0} MB)`
+        };
+      }
+      cumBlocks += procBlocks;
+    }
+
+    return { id: i, type: 'system', proc: null, label: 'Sistem / Cache' };
+  });
 
   return (
-    <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-xs motion-card flex flex-col gap-4">
-      
-      {/* Header Info */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-sm font-bold text-slate-900 tracking-tight">
-              Akselerator GPU {gpu.index}
-            </h2>
-            <span className="text-[11px] font-mono font-medium text-slate-700 px-2 py-0.2 rounded bg-slate-100 border border-slate-200">
-              {gpu.name || 'NVIDIA RTX'}
-            </span>
+    <div className="bg-[#F3EBDD] rounded-2xl border border-[#E4D8C3] p-4 sm:p-5 shadow-warm-xs flex flex-col gap-4 font-sans">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E4D8C3] pb-3">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-[#FAF6EF] text-[#6F4E37] border border-[#E4D8C3] flex items-center justify-center font-serif font-bold text-sm shadow-xs shrink-0">
+            {gpu.index}
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Lab Komputasi AI · Dual Arch Workstation
-          </p>
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="font-serif text-sm font-bold text-[#2E2018] tracking-tight">
+                {gpu.name || `NVIDIA RTX ${gpu.index}`}
+              </h2>
+              {gpu.index === 0 && (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A]">
+                  Prioritas Riset
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-[#7A6A5C] font-mono mt-0.5">
+              Slot PCIe · Bus ID: {gpu.bus_id || '0000:01:00.0'}
+            </p>
+          </div>
         </div>
 
-        {/* Telemetry Pills: Temperature, Fan, Power */}
-        <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-50 border border-slate-200 text-slate-700">
-            <span className={`w-2 h-2 rounded-full ${
-              tempStatus === 'rose' ? 'bg-rose-500' : tempStatus === 'amber' ? 'bg-amber-500' : 'bg-emerald-500'
-            }`} />
-            <span className="text-slate-500">Suhu:</span>
-            <span className={`tabular-nums font-bold ${
-              tempStatus === 'rose' ? 'text-rose-600' : tempStatus === 'amber' ? 'text-amber-600' : 'text-slate-900'
-            }`}>
-              {temp}°C
-            </span>
+        {/* Vital Telemetry Badges */}
+        <div className="flex items-center gap-2 font-mono text-xs flex-wrap">
+          <div className={`px-2.5 py-1 rounded-xl border flex items-center gap-1.5 ${
+            isHighTemp 
+              ? 'bg-[#FEE2E2] border-[#FCA5A5] text-[#C53030]' 
+              : 'bg-[#FAF6EF] border-[#E4D8C3] text-[#3B2E26]'
+          }`}>
+            <span className="text-[10px] uppercase font-sans font-semibold text-[#7A6A5C]">Suhu</span>
+            <span className="font-bold">{temp}°C</span>
           </div>
 
-          <div className="px-2 py-1 rounded-md bg-slate-50 border border-slate-200 text-slate-600">
-            Kipas: <span className="tabular-nums font-bold text-slate-800">{fan}%</span>
+          <div className="px-2.5 py-1 rounded-xl border bg-[#FAF6EF] border-[#E4D8C3] text-[#3B2E26] flex items-center gap-1.5">
+            <span className="text-[10px] uppercase font-sans font-semibold text-[#7A6A5C]">Kipas</span>
+            <span className="font-bold">{fan}%</span>
           </div>
 
-          <div className="px-2 py-1 rounded-md bg-slate-50 border border-slate-200 text-slate-600">
-            Daya: <span className="tabular-nums font-bold text-slate-800">{power}W</span>
+          <div className="px-2.5 py-1 rounded-xl border bg-[#FAF6EF] border-[#E4D8C3] text-[#3B2E26] flex items-center gap-1.5">
+            <span className="text-[10px] uppercase font-sans font-semibold text-[#7A6A5C]">Daya</span>
+            <span className="font-bold">{power}W</span>
+            <span className="text-[10px] text-[#7A6A5C]">/{maxPower}W</span>
           </div>
         </div>
       </div>
@@ -105,17 +112,17 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
       {/* Primary Metrics: Compute & VRAM */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {/* Compute Load */}
-        <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+        <div className="p-3 bg-[#FAF6EF] rounded-xl border border-[#E4D8C3]">
           <div className="flex justify-between items-baseline text-xs mb-1.5">
-            <span className="text-slate-600 font-medium">Beban Komputasi (Compute)</span>
-            <span className="font-mono tabular-nums font-bold text-slate-900">{computePct}%</span>
+            <span className="text-[#7A6A5C] font-medium">Beban Komputasi (Compute)</span>
+            <span className="font-mono tabular-nums font-bold text-[#2E2018]">{computePct}%</span>
           </div>
-          <div className="w-full bg-slate-200/80 h-2 rounded-full overflow-hidden border border-slate-200">
+          <div className="w-full bg-[#EFE6D8] h-2.5 rounded-full overflow-hidden border border-[#E4D8C3]">
             <div 
-              className={`h-full rounded-full motion-bar ${
-                computePct >= 90 ? 'bg-rose-600' : 
-                computePct >= 75 ? 'bg-amber-500' : 
-                'bg-[#1a73e8]'
+              className={`h-full rounded-full transition-all duration-300 ${
+                computePct >= 90 ? 'bg-[#C53030]' : 
+                computePct >= 75 ? 'bg-[#B45309]' : 
+                'bg-[#6F4E37]'
               }`}
               style={{ width: `${computePct}%` }}
             />
@@ -123,19 +130,19 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
         </div>
 
         {/* VRAM Memory Summary */}
-        <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+        <div className="p-3 bg-[#FAF6EF] rounded-xl border border-[#E4D8C3]">
           <div className="flex justify-between items-baseline text-xs mb-1.5">
-            <span className="text-slate-600 font-medium">Alokasi VRAM</span>
-            <span className="font-mono tabular-nums font-bold text-slate-900">
-              {vramUsedGb} <span className="text-slate-400 font-normal">/ {vramTotalGb} GB</span> ({vramPct}%)
+            <span className="text-[#7A6A5C] font-medium">Alokasi VRAM</span>
+            <span className="font-mono tabular-nums font-bold text-[#2E2018]">
+              {vramUsedGb} <span className="text-[#7A6A5C] font-normal">/ {vramTotalGb} GB</span> ({vramPct}%)
             </span>
           </div>
-          <div className="w-full bg-slate-200/80 h-2 rounded-full overflow-hidden border border-slate-200">
+          <div className="w-full bg-[#EFE6D8] h-2.5 rounded-full overflow-hidden border border-[#E4D8C3]">
             <div 
-              className={`h-full rounded-full motion-bar ${
-                vramPct >= 90 ? 'bg-rose-600' : 
-                vramPct >= 75 ? 'bg-amber-500' : 
-                'bg-[#1a73e8]'
+              className={`h-full rounded-full transition-all duration-300 ${
+                vramPct >= 90 ? 'bg-[#C53030]' : 
+                vramPct >= 75 ? 'bg-[#B45309]' : 
+                'bg-[#C8794A]'
               }`}
               style={{ width: `${vramPct}%` }}
             />
@@ -143,182 +150,160 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
         </div>
       </div>
 
-      {/* VRAM Block Allocation Grid */}
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between text-xs font-mono">
-          <span className="text-slate-500 text-[11px] font-semibold uppercase tracking-wider">
-            Grid Alokasi VRAM ({totalBlocks} Blok @ {(mbPerBlock / 1024).toFixed(1)} GB)
+      {/* VRAM Block Allocation Grid (Tactile 32-slot) */}
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] font-sans font-semibold text-[#7A6A5C] uppercase tracking-wider">
+            Peta Alokasi Blok VRAM (32 Slot · 512MB/Slot)
           </span>
-          <span className="text-slate-800 tabular-nums font-semibold">
-            {vramUsedGb} / {vramTotalGb} GB · {vramPct}%
+          <span className="text-[10px] font-mono text-[#6F4E37] font-semibold">
+            {hoveredBlock ? hoveredBlock.label : `${occupiedBlocksCount}/32 Slot Terisi`}
           </span>
         </div>
 
-        {/* The Blocks Grid */}
-        <div className="relative">
-          <div className="grid grid-cols-8 sm:grid-cols-12 md:grid-cols-16 lg:grid-cols-24 gap-1.5 p-2 bg-slate-50 rounded-lg border border-slate-200">
-            {allocatedBlocks.map((block) => {
-              const { index, occupied, isResearch, proc } = block;
-              return (
-                <div
-                  key={index}
-                  onMouseEnter={() => setHoveredBlock(block)}
-                  onMouseLeave={() => setHoveredBlock(null)}
-                  className={`h-5 rounded cursor-pointer transition-all duration-150 hover:scale-110 active:scale-95 ${
-                    occupied
-                      ? isResearch
-                        ? 'bg-indigo-600 border border-indigo-700 hover:bg-indigo-500 shadow-xs'
-                        : 'bg-[#1a73e8] border border-blue-700 hover:bg-blue-500 shadow-xs'
-                      : 'bg-white border border-slate-200 hover:border-slate-400'
-                  }`}
-                  title={occupied ? `PID ${proc?.pid} (${proc?.username}) · ${proc?.vram_mb} MB` : `Blok ${index + 1} Kosong`}
-                />
-              );
-            })}
-          </div>
+        <div className="grid grid-cols-16 sm:grid-cols-32 gap-1 p-2 rounded-xl bg-[#FAF6EF] border border-[#E4D8C3]">
+          {blocks.map((b) => {
+            let color = 'bg-[#FAF6EF] border-[#E4D8C3]';
+            if (b.type === 'priority') color = 'bg-[#C8794A] border-[#A8582C]';
+            else if (b.type === 'training') color = 'bg-[#6F4E37] border-[#4A3426]';
+            else if (b.type === 'system') color = 'bg-[#7A6A5C] border-[#5A4A3E]';
 
-          {/* Block Tooltip overlay if hovered */}
-          {hoveredBlock && (
-            <div className="mt-2 px-3 py-1.5 rounded-md bg-slate-900 border border-slate-800 text-[11px] font-mono text-white flex items-center justify-between shadow-md">
-              {hoveredBlock.occupied ? (
-                <>
-                  <div className="flex items-center gap-2">
-                    <span className={`w-2 h-2 rounded-full ${hoveredBlock.isResearch ? 'bg-indigo-400' : 'bg-blue-400'}`} />
-                    <span className="font-bold">PID {hoveredBlock.proc?.pid}</span>
-                    <span className="text-slate-400">({hoveredBlock.proc?.username})</span>
-                    <span className="text-slate-300 truncate max-w-[200px]">{hoveredBlock.proc?.name}</span>
-                  </div>
-                  <span className="font-bold text-blue-400">{hoveredBlock.proc?.vram_mb || 0} MB</span>
-                </>
-              ) : (
-                <span className="text-slate-300">Blok Kosong (Tersedia untuk alokasi proses baru)</span>
-              )}
-            </div>
-          )}
+            return (
+              <div
+                key={b.id}
+                onMouseEnter={() => setHoveredBlock(b)}
+                onMouseLeave={() => setHoveredBlock(null)}
+                className={`h-4 sm:h-5 rounded-[4px] border transition-all duration-150 cursor-pointer hover:scale-110 ${color}`}
+                title={b.label}
+              />
+            );
+          })}
         </div>
 
         {/* Legend */}
-        <div className="flex items-center gap-4 text-[11px] font-mono text-slate-500 mt-0.5">
+        <div className="flex items-center gap-4 text-[11px] font-mono text-[#7A6A5C] pt-1 flex-wrap">
           <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-xs bg-indigo-600 border border-indigo-700" />
-            <span>Riset (<code className="text-indigo-700 font-semibold">labriset</code>)</span>
+            <span className="w-3 h-3 rounded-[3px] bg-[#C8794A] border border-[#A8582C]" />
+            <span>Riset (<code className="text-[#2E2018] font-bold">labriset</code>)</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-xs bg-[#1a73e8] border border-blue-700" />
-            <span>Praktikum (<code className="text-blue-700 font-semibold">training1-10</code>)</span>
+            <span className="w-3 h-3 rounded-[3px] bg-[#6F4E37] border border-[#4A3426]" />
+            <span>Praktikum (<code className="text-[#2E2018] font-bold">training1-10</code>)</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-xs bg-white border border-slate-300" />
+            <span className="w-3 h-3 rounded-[3px] bg-[#FAF6EF] border border-[#E4D8C3]" />
             <span>Idle / Siap Pakai</span>
           </div>
         </div>
       </div>
 
-      {/* Dense Process Table */}
+      {/* Process Table with Responsive Overflow */}
       <div className="mt-1">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-xs font-bold text-slate-900 tracking-tight">
+          <h3 className="text-xs font-bold text-[#2E2018] tracking-tight">
             Tabel Proses Aktif ({processes.length})
           </h3>
-          <span className="text-[10px] font-mono text-slate-400">
+          <span className="text-[10px] font-mono text-[#7A6A5C]">
             Diurutkan berdasarkan alokasi VRAM
           </span>
         </div>
 
-        <div className="border border-slate-200 rounded-lg overflow-hidden bg-white shadow-xs">
-          <table className="w-full text-xs text-left">
-            <thead className="bg-slate-50 text-slate-600 border-b border-slate-200 font-mono text-[11px]">
-              <tr>
-                <th className="px-3 py-2 font-semibold">User</th>
-                <th className="px-3 py-2 font-semibold text-right">PID</th>
-                <th className="px-3 py-2 font-semibold">Proses / Command</th>
-                <th className="px-3 py-2 font-semibold text-right">VRAM</th>
-                {isAdmin && <th className="px-3 py-2 font-semibold text-right">Aksi</th>}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 font-mono text-slate-700">
-              {processes.length === 0 ? (
+        <div className="border border-[#E4D8C3] rounded-xl overflow-hidden bg-[#FAF6EF] shadow-xs">
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs text-left min-w-[500px]">
+              <thead className="bg-[#EFE6D8] text-[#2E2018] border-b border-[#E4D8C3] font-mono text-[11px]">
                 <tr>
-                  <td colSpan={isAdmin ? 5 : 4} className="px-3 py-6 text-center text-xs text-slate-400">
-                    Tidak ada proses komputasi aktif pada GPU ini.
-                  </td>
+                  <th className="px-3 py-2.5 font-semibold">User</th>
+                  <th className="px-3 py-2.5 font-semibold text-right">PID</th>
+                  <th className="px-3 py-2.5 font-semibold">Proses / Command</th>
+                  <th className="px-3 py-2.5 font-semibold text-right">VRAM</th>
+                  {isAdmin && <th className="px-3 py-2.5 font-semibold text-right">Aksi</th>}
                 </tr>
-              ) : (
-                processes.map((proc) => {
-                  const isProtected = proc.is_system || !proc.is_killable;
-                  const isResearch = proc.username === 'labriset' || proc.username?.includes('riset');
-                  return (
-                    <tr key={proc.pid} className="hover:bg-slate-50 transition-colors motion-row">
-                      {/* User with dot indicator */}
-                      <td className="px-3 py-2 text-slate-900 font-medium">
-                        <div className="flex items-center gap-1.5">
-                          <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                            isResearch ? 'bg-indigo-600' : 'bg-[#1a73e8]'
-                          }`} />
-                          <span className="truncate max-w-[90px] font-semibold">{proc.username}</span>
-                        </div>
-                      </td>
-
-                      {/* PID with copy button */}
-                      <td className="px-3 py-2 text-right">
-                        <button
-                          onClick={() => copyToClipboard(proc.pid, proc.pid)}
-                          className="inline-flex items-center gap-1 text-slate-500 hover:text-[#1a73e8] transition-colors group"
-                          title="Salin PID"
-                          type="button"
-                        >
-                          <span className="tabular-nums font-mono">{proc.pid}</span>
-                          {copiedPid === proc.pid ? (
-                            <Check className="w-3 h-3 text-emerald-600" />
-                          ) : (
-                            <Copy className="w-2.5 h-2.5 opacity-0 group-hover:opacity-100 transition-opacity text-slate-400" />
-                          )}
-                        </button>
-                      </td>
-
-                      {/* Process Command */}
-                      <td className="px-3 py-2 max-w-[180px] sm:max-w-[240px] truncate text-slate-600" title={proc.cmdline || proc.name}>
-                        <div className="flex items-center gap-1.5">
-                          {isProtected && <Shield className="w-3 h-3 text-slate-400 shrink-0" title="Proses Sistem Terproteksi" />}
-                          <span className="truncate">{proc.name}</span>
-                        </div>
-                      </td>
-
-                      {/* VRAM in MB */}
-                      <td className="px-3 py-2 text-right tabular-nums text-slate-900 font-bold">
-                        {proc.vram_mb || 0} <span className="text-slate-400 text-[10px] font-normal">MB</span>
-                      </td>
-
-                      {/* Admin Kill Action */}
-                      {isAdmin && (
-                        <td className="px-3 py-2 text-right">
-                          {!isProtected ? (
-                            <button
-                              onClick={() => onOpenKillModal({
-                                pid: proc.pid,
-                                username: proc.username,
-                                procName: proc.name,
-                                cmdline: proc.cmdline,
-                                vramMb: proc.vram_mb,
-                                is_system: proc.is_system
-                              })}
-                              className="px-2 py-0.5 text-[11px] font-mono font-medium rounded bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-colors motion-press"
-                              title="Hentikan Proses (Terminate)"
-                              type="button"
-                            >
-                              Hentikan
-                            </button>
-                          ) : (
-                            <span className="text-slate-400 text-[11px]">—</span>
-                          )}
+              </thead>
+              <tbody className="divide-y divide-[#E4D8C3] font-mono text-[#3B2E26]">
+                {processes.length === 0 ? (
+                  <tr>
+                    <td colSpan={isAdmin ? 5 : 4} className="px-3 py-6 text-center text-xs text-[#7A6A5C]">
+                      Tidak ada proses komputasi aktif pada GPU ini.
+                    </td>
+                  </tr>
+                ) : (
+                  processes.map((proc) => {
+                    const isProtected = proc.is_system || !proc.is_killable;
+                    const isResearch = proc.username === 'labriset' || proc.username?.includes('riset');
+                    return (
+                      <tr key={proc.pid} className="hover:bg-[#F3EBDD] transition-colors">
+                        {/* User with dot indicator */}
+                        <td className="px-3 py-2.5 text-[#2E2018] font-medium">
+                          <div className="flex items-center gap-1.5">
+                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                              isResearch ? 'bg-[#C8794A]' : 'bg-[#6F4E37]'
+                            }`} />
+                            <span className="truncate max-w-[100px] font-semibold">{proc.username}</span>
+                          </div>
                         </td>
-                      )}
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+
+                        {/* PID with copy button */}
+                        <td className="px-3 py-2.5 text-right">
+                          <button
+                            onClick={() => copyToClipboard(proc.pid, proc.pid)}
+                            className="inline-flex items-center gap-1 text-[#7A6A5C] hover:text-[#6F4E37] transition-colors group p-1"
+                            title="Salin PID"
+                            type="button"
+                          >
+                            <span className="tabular-nums font-mono">{proc.pid}</span>
+                            {copiedPid === proc.pid ? (
+                              <Check className="w-3 h-3 text-[#2E7D32]" />
+                            ) : (
+                              <Copy className="w-2.5 h-2.5 opacity-0 group-hover:opacity-100 transition-opacity text-[#7A6A5C]" />
+                            )}
+                          </button>
+                        </td>
+
+                        {/* Process Command */}
+                        <td className="px-3 py-2.5 max-w-[200px] sm:max-w-[260px] truncate text-[#3B2E26]" title={proc.cmdline || proc.name}>
+                          <div className="flex items-center gap-1.5">
+                            {isProtected && <Shield className="w-3 h-3 text-[#7A6A5C] shrink-0" title="Proses Sistem Terproteksi" />}
+                            <span className="truncate font-sans">{proc.name}</span>
+                          </div>
+                        </td>
+
+                        {/* VRAM in MB */}
+                        <td className="px-3 py-2.5 text-right tabular-nums text-[#2E2018] font-bold">
+                          {proc.vram_mb || 0} <span className="text-[#7A6A5C] text-[10px] font-normal">MB</span>
+                        </td>
+
+                        {/* Admin Kill Action */}
+                        {isAdmin && (
+                          <td className="px-3 py-2.5 text-right">
+                            {!isProtected ? (
+                              <button
+                                onClick={() => onOpenKillModal({
+                                  pid: proc.pid,
+                                  username: proc.username,
+                                  procName: proc.name,
+                                  cmdline: proc.cmdline,
+                                  vramMb: proc.vram_mb,
+                                  is_system: proc.is_system
+                                })}
+                                className="px-2.5 py-1 text-[11px] font-mono font-medium rounded-lg bg-[#FEE2E2] hover:bg-[#FCA5A5] text-[#C53030] border border-[#FCA5A5] transition-colors min-h-[32px] inline-flex items-center justify-center cursor-pointer"
+                                title="Hentikan Proses (Terminate)"
+                                type="button"
+                              >
+                                Hentikan
+                              </button>
+                            ) : (
+                              <span className="text-[#7A6A5C] text-[11px]">—</span>
+                            )}
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

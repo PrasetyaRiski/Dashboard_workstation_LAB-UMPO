@@ -17,37 +17,39 @@ export default function AdminPinModal({ isOpen, onSuccess, onClose }) {
 
     if (loginMode === 'simtik') {
       if (!nim.trim() || !password) {
-        setErrorMsg('Harap masukkan NIM dan Password SIMTIK.');
+        setErrorMsg('NIM dan Password wajib diisi.');
         return;
       }
     } else {
       if (!pin.trim()) {
-        setErrorMsg('Harap masukkan PIN Master Admin.');
+        setErrorMsg('PIN Operator wajib diisi.');
         return;
       }
     }
 
     setIsLoading(true);
     try {
-      const payload = loginMode === 'simtik'
-        ? { nim: nim.trim(), password }
-        : { pin: pin.trim() };
+      let res, data;
+      if (loginMode === 'simtik') {
+        res = await fetch('/api/admin/login-simtik', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nim: nim.trim(), password }),
+        });
+      } else {
+        res = await fetch('/api/admin/verify-pin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pin: pin.trim() }),
+        });
+      }
 
-      const res = await fetch('/api/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
+      data = await res.json();
       if (res.ok && data.success) {
         onSuccess(data.token, data.role || 'admin', data.user || null);
-        setNim('');
-        setPassword('');
-        setPin('');
         onClose();
       } else {
-        setErrorMsg(data.detail || 'Login gagal. Periksa kembali kredensial Anda.');
+        setErrorMsg(data.detail || data.message || 'Autentikasi gagal. Periksa kembali kredensial Anda.');
       }
     } catch {
       setErrorMsg('Gagal terhubung ke server backend atau sistem SIMTIK.');
@@ -57,150 +59,143 @@ export default function AdminPinModal({ isOpen, onSuccess, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 motion-backdrop">
-      <div className="w-full max-w-md bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden flex flex-col motion-modal-pop">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#2E2018]/60 backdrop-blur-xs font-sans">
+      <div className="w-full max-w-md bg-[#F3EBDD] border border-[#E4D8C3] rounded-2xl shadow-warm-modal overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white">
+        <div className="flex items-center justify-between p-4 border-b border-[#E4D8C3] bg-[#FAF6EF]">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-50 border border-slate-200 text-[#1a73e8] shrink-0">
+            <div className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#F3EBDD] border border-[#E4D8C3] text-[#6F4E37] shrink-0 shadow-xs">
               <Lock className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-bold text-sm text-slate-900 tracking-tight">
+              <h3 className="font-serif font-bold text-sm sm:text-base text-[#2E2018] tracking-tight">
                 Autentikasi Hak Akses Lab
               </h3>
-              <p className="text-xs text-slate-500 font-sans">
-                Lab Komputasi AI & Riset — TI UMPO
+              <p className="text-xs text-[#7A6A5C]">
+                Login asisten lab atau administrator sistem
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center rounded-md bg-white hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-colors border border-slate-200"
+            className="w-8 h-8 flex items-center justify-center text-[#7A6A5C] hover:text-[#2E2018] hover:bg-[#EFE6D8] rounded-xl transition-colors cursor-pointer"
             type="button"
-            aria-label="Tutup Dialog"
+            aria-label="Tutup Modal"
           >
-            <X className="w-3.5 h-3.5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Mode Selector Tabs (Google Cloud Style) */}
-        <div className="flex border-b border-slate-200 bg-slate-50 p-1 gap-1">
+        {/* Tab Mode Switcher */}
+        <div className="flex border-b border-[#E4D8C3] bg-[#EFE6D8]/60 p-1.5 gap-1.5">
           <button
             type="button"
             onClick={() => { setLoginMode('simtik'); setErrorMsg(''); }}
-            className={`flex-1 py-1.5 px-3 rounded-md text-xs font-mono font-medium transition-colors flex items-center justify-center gap-2 ${
+            className={`flex-1 py-2 text-xs font-medium rounded-xl flex items-center justify-center gap-1.5 transition-all min-h-[40px] ${
               loginMode === 'simtik'
-                ? 'bg-white text-blue-700 border border-slate-200 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-[#6F4E37] text-[#FAF6EF] shadow-xs font-semibold'
+                : 'text-[#3B2E26] hover:bg-[#EFE6D8]'
             }`}
           >
-            <UserCheck className="w-3.5 h-3.5 text-[#1a73e8]" />
-            <span>Akun SIMTIK (Aslab)</span>
+            <UserCheck className="w-3.5 h-3.5" />
+            <span>Akun SIMTIK (SSO)</span>
           </button>
           <button
             type="button"
             onClick={() => { setLoginMode('pin'); setErrorMsg(''); }}
-            className={`flex-1 py-1.5 px-3 rounded-md text-xs font-mono font-medium transition-colors flex items-center justify-center gap-2 ${
+            className={`flex-1 py-2 text-xs font-medium rounded-xl flex items-center justify-center gap-1.5 transition-all min-h-[40px] ${
               loginMode === 'pin'
-                ? 'bg-white text-amber-800 border border-slate-200 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-[#6F4E37] text-[#FAF6EF] shadow-xs font-semibold'
+                : 'text-[#3B2E26] hover:bg-[#EFE6D8]'
             }`}
           >
-            <Key className="w-3.5 h-3.5 text-amber-600" />
-            <span>PIN Master (Admin)</span>
+            <Key className="w-3.5 h-3.5" />
+            <span>PIN Root Operator</span>
           </button>
         </div>
 
         {/* Form Body */}
-        <div className="p-5">
-          <p className="text-xs text-slate-500 mb-4 leading-relaxed font-sans">
-            {loginMode === 'simtik'
-              ? 'Gunakan akun SIMTIK untuk mengaktifkan wewenang operator monitoring dan pengelolaan sesi mahasiswa.'
-              : 'Gunakan PIN Master Teknisi untuk pemeliharaan inti dan wewenang penuh klaster.'
-            }
-          </p>
-
-          <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
-            {loginMode === 'simtik' ? (
-              <>
-                <div>
-                  <label className="block text-[11px] font-mono font-medium text-slate-600 mb-1 uppercase tracking-wider">
-                    NIM Mahasiswa / Akun Aslab
-                  </label>
-                  <input
-                    type="text"
-                    value={nim}
-                    onChange={e => setNim(e.target.value)}
-                    placeholder="Contoh: 22533..."
-                    className="w-full bg-white border border-slate-300 focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] rounded-md py-2 px-3 text-xs font-mono text-slate-900 outline-none transition-colors"
-                    autoFocus
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-mono font-medium text-slate-600 mb-1 uppercase tracking-wider">
-                    Password SIMTIK
-                  </label>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    placeholder="Masukkan password SSO..."
-                    className="w-full bg-white border border-slate-300 focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] rounded-md py-2 px-3 text-xs text-slate-900 outline-none transition-colors"
-                  />
-                </div>
-              </>
-            ) : (
-              <div>
-                <label className="block text-[11px] font-mono font-medium text-slate-600 mb-1 uppercase tracking-wider">
-                  PIN Master Admin
-                </label>
-                <div className="relative">
-                  <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input
-                    type="password"
-                    value={pin}
-                    onChange={e => setPin(e.target.value)}
-                    placeholder="Ketik PIN Master…"
-                    className="w-full bg-white border border-slate-300 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-md py-2 pl-9 pr-3 text-xs font-mono tracking-widest text-slate-900 outline-none transition-colors"
-                    autoFocus
-                  />
-                </div>
-              </div>
-            )}
-
-            {errorMsg && (
-              <div className="flex items-center gap-2 p-2.5 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-xs">
-                <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
-                <span className="font-medium">{errorMsg}</span>
-              </div>
-            )}
-
-            <div className="flex items-center justify-end gap-2.5 pt-2">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-3.5 py-1.5 rounded-md bg-white hover:bg-slate-50 text-xs font-medium text-slate-700 border border-slate-300 transition-colors motion-press"
-              >
-                Batal
-              </button>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="px-4 py-1.5 rounded-md bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-medium transition-colors motion-press flex items-center gap-1.5 disabled:opacity-50"
-              >
-                {isLoading ? (
-                  'Memverifikasi…'
-                ) : (
-                  <>
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                    <span>Masuk Konsol</span>
-                  </>
-                )}
-              </button>
+        <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4">
+          {errorMsg && (
+            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-[#FEE2E2] border border-[#FCA5A5] text-[#C53030] text-xs leading-relaxed">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>{errorMsg}</span>
             </div>
-          </form>
-        </div>
+          )}
+
+          {loginMode === 'simtik' ? (
+            <>
+              <div>
+                <label className="block text-xs font-semibold text-[#2E2018] mb-1.5">
+                  NIM Mahasiswa / Asisten
+                </label>
+                <input
+                  type="text"
+                  value={nim}
+                  onChange={(e) => setNim(e.target.value)}
+                  placeholder="Contoh: 21533001"
+                  className="w-full bg-[#FAF6EF] border border-[#E4D8C3] focus:border-[#6F4E37] focus:ring-2 focus:ring-[#6F4E37]/20 rounded-xl px-3.5 py-2 text-xs font-mono text-[#2E2018] placeholder:text-[#7A6A5C] outline-none transition-all min-h-[44px]"
+                  autoFocus
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#2E2018] mb-1.5">
+                  Password SIMTIK
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full bg-[#FAF6EF] border border-[#E4D8C3] focus:border-[#6F4E37] focus:ring-2 focus:ring-[#6F4E37]/20 rounded-xl px-3.5 py-2 text-xs font-mono text-[#2E2018] placeholder:text-[#7A6A5C] outline-none transition-all min-h-[44px]"
+                />
+              </div>
+            </>
+          ) : (
+            <div>
+              <label className="block text-xs font-semibold text-[#2E2018] mb-1.5">
+                PIN Master Server
+              </label>
+              <input
+                type="password"
+                value={pin}
+                onChange={(e) => setPin(e.target.value)}
+                placeholder="Masukkan kode otorisasi PIN…"
+                className="w-full bg-[#FAF6EF] border border-[#E4D8C3] focus:border-[#6F4E37] focus:ring-2 focus:ring-[#6F4E37]/20 rounded-xl px-3.5 py-2 text-xs font-mono text-[#2E2018] placeholder:text-[#7A6A5C] outline-none transition-all min-h-[44px]"
+                autoFocus
+              />
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#E4D8C3]">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#3B2E26] hover:bg-[#EFE6D8] border border-[#E4D8C3] transition-colors min-h-[44px] cursor-pointer"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="px-5 py-2 rounded-xl text-xs font-semibold bg-[#6F4E37] hover:bg-[#4A3426] text-[#FAF6EF] transition-colors shadow-xs flex items-center gap-2 disabled:opacity-50 min-h-[44px] cursor-pointer"
+            >
+              {isLoading ? (
+                <>
+                  <span className="w-3.5 h-3.5 border-2 border-[#FAF6EF]/30 border-t-[#FAF6EF] rounded-full animate-spin" />
+                  <span>Memverifikasi...</span>
+                </>
+              ) : (
+                <>
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>Masuk Konsol</span>
+                </>
+              )}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

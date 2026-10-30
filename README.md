@@ -254,3 +254,30 @@ Untuk menjalankan dashboard di workstation lab secara permanen (24/7 dan otomati
 Proyek ini dilisensikan di bawah lisensi **[MIT License](LICENSE)** — bebas digunakan, dikembangkan, dan didistribusikan untuk keperluan akademik maupun institusional.
 
 © 2026 **Prasetya Riski** — *Laboratorium Komputasi AI, Program Studi Teknik Informatika, Universitas Muhammadiyah Ponorogo*.
+
+---
+
+## 🎨 Design System & Build Instructions (Redesign 2026)
+
+### 1. Palet Warna Warm Cream & Brown
+- **Background Utama (Krim)**: `#FAF6EF`
+- **Background Sekunder / Kartu**: `#F3EBDD`
+- **Border Halus**: `#E4D8C3`
+- **Coklat Utama (Primary)**: `#6F4E37`
+- **Coklat Gelap (Hover / Teks)**: `#4A3426`
+- **Coklat Sangat Gelap (Judul)**: `#2E2018`
+- **Aksen Terakota**: `#C8794A`
+- **Teks Body**: `#3B2E26`
+- **Teks Muted**: `#7A6A5C`
+
+### 2. Tipografi Lokal (Zero External Request)
+- **Headings / Judul**: *Source Serif 4* (fallback: Georgia, serif)
+- **Body / UI**: *Inter* (fallback: system-ui, sans-serif)
+- Semua font di-host 100% secara lokal dalam format `.woff2` di `/frontend/public/fonts/`. Tidak ada ketergantungan CDN atau Google Fonts eksternal.
+
+### 3. Cara Menjalankan Build (Satu Perintah)
+Untuk mem-build seluruh aset CSS dan bundle frontend ke folder produksi `dist`:
+```bash
+cd /home/public/web/panel-lab/frontend && npm run build
+```
+Hasil build akan langsung otomatis di-serve oleh backend FastAPI dan Nginx di port 80 / domain `labai.local`.

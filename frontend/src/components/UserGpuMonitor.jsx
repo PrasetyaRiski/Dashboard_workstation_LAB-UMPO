@@ -135,7 +135,7 @@ function UserCard({ user, isAdmin, onOpenKillModal, onKillAllUser, onOpenReset }
           },
           {
             label: 'RAM',
-            value: `${user.ram_used_mb || 0} MB / ${user.ram_max_mb || (isRiset ? 61440 : 6144)} MB (${ramPct}%)`,
+            value: `${user.ram_used_mb || 0} MB / ${user.ram_max_mb || (isRiset ? 61440 : 3072)} MB (${ramPct}%)`,
             percent: ramPct,
             barColor: ramPct > 85 ? 'var(--accent-rose)' : ramPct > 65 ? 'var(--accent-amber)' : 'var(--accent-blue)',
           },

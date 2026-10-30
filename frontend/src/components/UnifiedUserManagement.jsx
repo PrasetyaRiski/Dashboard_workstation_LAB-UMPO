@@ -445,7 +445,7 @@ export default function UnifiedUserManagement({
         is_online: isOnline,
         os_user: osUser || null,
         ram_used_mb: osUser?.ram_used_mb || 0,
-        ram_max_mb: osUser?.ram_max_mb || (st.is_priority ? 61440 : 6144),
+        ram_max_mb: osUser?.ram_max_mb || (st.is_priority ? 61440 : 3072),
         gpu_index: gpuIndex,
         gpu_total_mb: gpuTotalMb,
         vram_used_mb: vramUsedMb,
@@ -852,7 +852,7 @@ export default function UnifiedUserManagement({
               ) : (
                 filteredData.map((item) => {
                   if (item.type === 'student') {
-                    const ramMaxMb = item.is_priority ? 61440 : (item.ram_max_mb || 6144);
+                    const ramMaxMb = item.is_priority ? 61440 : (item.ram_max_mb || 3072);
                     const ramUsedGb = ((item.ram_used_mb || 0) / 1024).toFixed(1);
                     const ramMaxGb = (ramMaxMb / 1024).toFixed(0);
                     const ramPct = item.is_online ? Math.min(100, Math.round(((item.ram_used_mb || 0) / ramMaxMb) * 100)) : 0;
@@ -1159,7 +1159,7 @@ export default function UnifiedUserManagement({
                   // System Users (training1-10, labriset)
                   const isRiset = item.username === 'labriset';
                   const isOnline = item.is_online || (item.total_process_count > 0);
-                  const ramMaxMb = isRiset ? 61440 : (item.ram_max_mb || 6144);
+                  const ramMaxMb = isRiset ? 61440 : (item.ram_max_mb || 3072);
                   const ramUsedGb = ((item.ram_used_mb || 0) / 1024).toFixed(1);
                   const ramMaxGb = (ramMaxMb / 1024).toFixed(0);
                   const ramPct = isOnline ? Math.min(100, Math.round(((item.ram_used_mb || 0) / ramMaxMb) * 100)) : 0;

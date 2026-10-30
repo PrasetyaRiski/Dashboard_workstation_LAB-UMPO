@@ -481,7 +481,7 @@ def get_user_telemetry(username: str):
             "cpu_cores_limit": 20 if is_priority else 2,
             "cpu_quota_percent": 0.0,
             "ram_used_mb": 0.0,
-            "ram_max_mb": 61440.0 if is_priority else 6144.0,
+            "ram_max_mb": 61440.0 if is_priority else 3072.0,
             "ram_percent": 0.0,
             "disk_used_mb": disk_info["disk_used_mb"],
             "disk_quota_gb": disk_info["disk_quota_gb"],

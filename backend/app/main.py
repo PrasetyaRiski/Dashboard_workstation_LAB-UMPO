@@ -1675,8 +1675,14 @@ if os.path.exists(FRONTEND_DIST):
         if target_path != base_dir and not target_path.startswith(base_dir_sep):
             raise HTTPException(status_code=403, detail="Akses ditolak: Percobaan path traversal terdeteksi.")
         if os.path.isfile(target_path):
-            return FileResponse(target_path)
+            cache_headers = (
+                {"Cache-Control": "no-cache, must-revalidate"}
+                if target_path.endswith(".html")
+                else None
+            )
+            return FileResponse(target_path, headers=cache_headers)
         index_file = os.path.join(base_dir, "index.html")
         if os.path.isfile(index_file):
-            return FileResponse(index_file)
+            # index.html tidak boleh di-cache agar update frontend langsung terpakai.
+            return FileResponse(index_file, headers={"Cache-Control": "no-cache, must-revalidate"})
         raise HTTPException(status_code=404, detail="File frontend tidak ditemukan.")

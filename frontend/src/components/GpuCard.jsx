@@ -1,9 +1,10 @@
 import React, { memo, useState } from 'react';
-import { Shield, Copy, Check } from 'lucide-react';
+import { Shield, Copy, Check, Sparkles, Loader2 } from 'lucide-react';
 
-function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
+function GpuCard({ gpu, onOpenKillModal, isAdmin = false, onSweepZombies }) {
   const [copiedPid, setCopiedPid] = useState(null);
   const [hoveredBlock, setHoveredBlock] = useState(null);
+  const [isSweeping, setIsSweeping] = useState(false);
 
   if (!gpu) return null;
 
@@ -29,6 +30,21 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
     navigator.clipboard?.writeText?.(String(text));
     setCopiedPid(pid);
     setTimeout(() => setCopiedPid(null), 1500);
+  };
+
+  const handleSweepZombies = async () => {
+    if (!onSweepZombies || isSweeping) return;
+    if (!confirm(
+      'Sapu proses Python/IPython orphan di GPU 1?\n\n' +
+      'Hanya proses milik mahasiswa yang sesi notebook-nya sudah tidak aktif yang akan dihentikan. ' +
+      'Sesi yang masih berjalan, akun aslab, dan mahasiswa Level 1 tidak disentuh.'
+    )) return;
+    setIsSweeping(true);
+    try {
+      await onSweepZombies();
+    } finally {
+      setIsSweeping(false);
+    }
   };
 
   // Generate 32 VRAM blocks representation
@@ -106,6 +122,23 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false }) {
             <span className="font-bold">{power}W</span>
             <span className="text-[10px] text-[#7A6A5C]">/{maxPower}W</span>
           </div>
+
+          {gpu.index === 1 && isAdmin && onSweepZombies && (
+            <button
+              onClick={handleSweepZombies}
+              disabled={isSweeping}
+              className="px-2.5 py-1 rounded-xl border bg-[#FAF6EF] hover:bg-[#EFE6D8] text-[#6F4E37] hover:text-[#2E2018] border-[#E4D8C3] shadow-warm-xs transition-all active:translate-y-0.5 flex items-center gap-1.5 font-sans font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              type="button"
+              title="Bersihkan proses zombie/orphan yang menahan VRAM di GPU 1"
+            >
+              {isSweeping ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Sparkles className="w-3.5 h-3.5 text-[#B45309]" />
+              )}
+              <span className="text-[10px] uppercase tracking-wide">Sapu Zombie</span>
+            </button>
+          )}
         </div>
       </div>
 

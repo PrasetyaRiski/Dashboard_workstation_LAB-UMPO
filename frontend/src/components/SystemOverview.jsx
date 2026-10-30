@@ -1,7 +1,7 @@
-import React, { memo } from 'react';
+import React, { memo, useState } from 'react';
 import { 
   Cpu, HardDrive, ShieldCheck, DatabaseBackup, Loader2, Layers, 
-  Zap, Users
+  Zap, Users, UserCheck
 } from 'lucide-react';
 
 function SystemOverview({ 
@@ -12,8 +12,12 @@ function SystemOverview({
   onTriggerBackup, 
   isBackingUp, 
   backups = [], 
-  isAdmin 
+  isAdmin,
+  level2Slots = {},
+  onEmergencyReleaseIdle
 }) {
+  const [isReleasing, setIsReleasing] = useState(false);
+
   if (!system) return null;
 
   const cpu = system?.cpu || {};
@@ -63,6 +67,26 @@ function SystemOverview({
 
   const latestBackup = backups && backups.length > 0 ? backups[0] : null;
 
+  // Level 2 Practical Student Slots (Max 30)
+  const maxSlots = level2Slots?.max_slots || 30;
+  const activeSlots = level2Slots?.active_count ?? 0;
+  const availableSlots = level2Slots?.available_slots ?? Math.max(0, maxSlots - activeSlots);
+  const slotPercent = Math.min(100, Math.round((activeSlots / maxSlots) * 100));
+
+  const handleReleaseClick = async () => {
+    if (!isAdmin || isReleasing) return;
+    if (!confirm("Bebaskan sesi mahasiswa praktikum yang idle (komputasi 0% / ditinggalkan)?\nAkun Dosen, Aslab, dan Mahasiswa Riset (Level 1) tidak akan terpengaruh.")) return;
+    
+    setIsReleasing(true);
+    try {
+      if (onEmergencyReleaseIdle) {
+        await onEmergencyReleaseIdle();
+      }
+    } finally {
+      setIsReleasing(false);
+    }
+  };
+
   return (
     <section className="flex flex-col gap-4 font-sans">
       {/* Header bar */}
@@ -81,6 +105,73 @@ function SystemOverview({
           <span className={`w-2 h-2 rounded-full pulse-dot ${dotClass}`} />
           <span className="font-semibold">{healthLabel}</span>
         </div>
+      </div>
+
+      {/* Level 2 Slot Praktikum (30 Kuota) Banner & Emergency Release */}
+      <div className="bg-[#F3EBDD] p-4 rounded-2xl border border-[#E4D8C3] shadow-warm-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5 flex-1 min-w-0">
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
+            activeSlots >= 29 
+              ? 'bg-[#FEE2E2] text-[#C53030] border-[#FCA5A5]' 
+              : activeSlots >= 20 
+              ? 'bg-[#FEF3C7] text-[#B45309] border-[#FDE68A]' 
+              : 'bg-[#E8F5E9] text-[#2E7D32] border-[#2E7D32]/30'
+          }`}>
+            <UserCheck className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-serif text-sm font-bold text-[#2E2018]">
+                Slot Praktikum Kelas (Level 2 Shared GPU 1)
+              </span>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
+                activeSlots >= 29 
+                  ? 'bg-[#FEE2E2] text-[#C53030] border-[#FCA5A5]' 
+                  : activeSlots >= 20 
+                  ? 'bg-[#FEF3C7] text-[#B45309] border-[#FDE68A]' 
+                  : 'bg-[#E8F5E9] text-[#2E7D32] border-[#2E7D32]/30'
+              }`}>
+                {activeSlots >= 30 ? 'KUOTA PENUH' : `${availableSlots} SLOT TERSEDIA`}
+              </span>
+            </div>
+            
+            <div className="flex items-center gap-3 mt-1.5">
+              <div className="w-48 sm:w-64 bg-[#FAF6EF] h-2 rounded-full overflow-hidden border border-[#E4D8C3]">
+                <div 
+                  className={`h-full rounded-full transition-all duration-300 ${
+                    activeSlots >= 29 ? 'bg-[#C53030]' : activeSlots >= 20 ? 'bg-[#B45309]' : 'bg-[#2E7D32]'
+                  }`}
+                  style={{ width: `${Math.max(slotPercent, 3)}%` }}
+                />
+              </div>
+              <span className="font-mono text-xs font-bold text-[#2E2018] tabular-nums">
+                {activeSlots} <span className="text-[#7A6A5C] font-normal">/ {maxSlots} Sesi</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {isAdmin && (
+          <button
+            onClick={handleReleaseClick}
+            disabled={isReleasing || activeSlots === 0}
+            className="px-3.5 py-2 rounded-xl text-xs font-semibold font-mono bg-[#FAF6EF] hover:bg-[#EFE6D8] text-[#6F4E37] border border-[#E4D8C3] hover:border-[#6F4E37] shadow-warm-xs transition-all active:translate-y-0.5 flex items-center justify-center gap-2 shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
+            type="button"
+            title="Hentikan sesi mahasiswa praktikum yang idle untuk membuka slot antrean"
+          >
+            {isReleasing ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-[#6F4E37]" />
+                <span>Membebaskan...</span>
+              </>
+            ) : (
+              <>
+                <Zap className="w-3.5 h-3.5 text-[#B45309]" />
+                <span>Bebaskan Slot Idle</span>
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       {/* Cluster Workload & Priority Slot Strip */}

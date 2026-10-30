@@ -407,6 +407,30 @@ def get_full_snapshot():
     from app.db import get_audit_logs
     s["audit_logs"] = get_audit_logs(60)
     s["admin_pin_required"] = False
+
+    # ---------------------------------------------------------
+    # Hitung slot praktikum Level 2 aktif (maksimal 30 mahasiswa)
+    # Admin, Aslab, dan mahasiswa Level 1 (prioritas riset) di-bypass.
+    # ---------------------------------------------------------
+    try:
+        from app import lab_policy
+
+        level2_active_count = lab_policy.count_active_level2_students()
+        level2_max_slots = lab_policy.LEVEL2_MAX_SLOTS
+        idle_release_minutes = lab_policy.IDLE_RELEASE_MINUTES
+    except Exception as e:
+        logger.warning(f"Error calculating level2 slots: {e}")
+        level2_active_count = 0
+        level2_max_slots = 30
+        idle_release_minutes = 10
+
+    s["level2_slots"] = {
+        "max_slots": level2_max_slots,
+        "active_count": level2_active_count,
+        "available_slots": max(0, level2_max_slots - level2_active_count),
+        "idle_release_minutes": idle_release_minutes,
+    }
+
     return s
 
 @app.get("/api/status")
@@ -604,6 +628,188 @@ def kill_user_all(req: KillUserAllRequest, request: Request, session: Dict[str, 
         return {"success": True, "message": f"Seluruh sesi dan proses komputasi milik user '{req.username}' berhasil dihentikan."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/admin/emergency-release-idle")
+def emergency_release_idle(request: Request, session: Dict[str, Any] = Depends(verify_operator_or_admin)):
+    """
+    Fitur darurat Admin/Aslab:
+    Membebaskan slot praktikum Level 2 dengan menghentikan sesi mahasiswa yang
+    benar-benar idle (tidak ada aktivitas komputasi dan tidak ada aktivitas
+    notebook dalam `IDLE_RELEASE_MINUTES` menit terakhir).
+
+    Akun Dosen, Aslab, dan Mahasiswa Prioritas Riset (Level 1) selalu di-bypass.
+    """
+    from app import lab_policy
+
+    try:
+        sessions = lab_policy.get_active_level2_sessions()
+        snapshot = get_full_snapshot()
+        users_by_name = {u.get("username"): u for u in snapshot.get("users", [])}
+
+        stopped_users = []
+        skipped_busy = []
+        skipped_recent = []
+        freed_vram_mb = 0.0
+
+        for sess in sessions:
+            uname = sess["username"]
+            nim = sess["nim"]
+            u = users_by_name.get(uname)
+
+            # Tidak ada data telemetri: kemungkinan server baru start / sedang rusak.
+            # Jangan sentuh agar tidak memutus sesi yang sedang bersiap.
+            if not u:
+                continue
+
+            proc_cpu = float(u.get("cpu_percent") or 0.0)
+            gpu_proc_cpu = sum(float(p.get("cpu_percent") or 0.0) for p in u.get("processes", []))
+            vram_mb = float(u.get("vram_used_mb") or 0.0)
+
+            # Sedang komputasi aktif -> jangan pernah dimatikan.
+            if proc_cpu >= 5.0 or gpu_proc_cpu >= 5.0 or vram_mb >= 1024.0:
+                skipped_busy.append(uname)
+                continue
+
+            idle_m = lab_policy.idle_minutes(sess.get("last_activity"))
+            if idle_m < lab_policy.IDLE_RELEASE_MINUTES:
+                skipped_recent.append(uname)
+                continue
+
+            # 1. Hentikan service singleuser (SystemdSpawner)
+            for unit in (
+                f"jupyter-{uname}-singleuser.service",
+                f"jupyter-{uname}.service",
+            ):
+                try:
+                    subprocess.run(["systemctl", "stop", unit], check=False, timeout=5)
+                except Exception:
+                    pass
+
+            # 2. Hentikan seluruh proses milik user (notebook, kernel, dsb.)
+            subprocess.run(["pkill", "-u", uname], check=False)
+            time.sleep(0.2)
+            subprocess.run(["pkill", "-9", "-u", uname], check=False)
+
+            # 3. Lepaskan sesi perangkat di database dashboard
+            try:
+                from app.db import clear_user_active_session
+
+                clear_user_active_session(nim)
+            except Exception:
+                pass
+
+            freed_vram_mb += vram_mb
+            stopped_users.append(uname)
+
+        actor_name = session.get("nama") or "Operator"
+        count = len(stopped_users)
+        detail_msg = (
+            f"Emergency Slot Release oleh {actor_name}: {count} sesi idle dihentikan "
+            f"({freed_vram_mb:.0f} MB VRAM dibebaskan, {len(skipped_busy)} sesi komputasi aktif "
+            f"dan {len(skipped_recent)} sesi baru dipertahankan)."
+        )
+        record_audit(
+            target="LEVEL2_POOL",
+            action="EMERGENCY_RELEASE_IDLE",
+            detail=detail_msg,
+            log_type="warning" if count else "info",
+        )
+
+        return {
+            "success": True,
+            "message": detail_msg,
+            "released_count": count,
+            "skipped_busy": len(skipped_busy),
+            "skipped_recent": len(skipped_recent),
+            "freed_vram_mb": round(freed_vram_mb, 1),
+            "users": stopped_users,
+        }
+    except Exception as e:
+        logger.error(f"Error emergency release idle: {e}")
+        raise HTTPException(status_code=500, detail=f"Gagal membebaskan sesi idle: {str(e)}")
+
+@app.post("/api/gpu/sweep-zombies")
+def sweep_gpu_zombies(request: Request, session: Dict[str, Any] = Depends(verify_operator_or_admin)):
+    """
+    Reclaim VRAM GPU 1 (pool praktikum):
+    Hanya membunuh proses Python/IPython milik mahasiswa yang TIDAK memiliki sesi
+    notebook aktif lagi (orphan/zombie). Sesi yang masih berjalan, akun sistem,
+    aslab, dan mahasiswa Level 1 tidak disentuh.
+    """
+    from app import lab_policy
+
+    try:
+        snapshot = get_full_snapshot()
+        gpus = snapshot.get("gpus", [])
+
+        active_users = {
+            s["username"] for s in lab_policy.get_active_level2_sessions(include_bypass=True)
+        }
+
+        reclaimed_vram_mb = 0.0
+        killed_pids = []
+        protected_active = []
+
+        for gpu in gpus:
+            if gpu.get("index") != 1:
+                continue
+            for p in gpu.get("processes", []):
+                pid = p.get("pid")
+                uname = (p.get("username") or "").strip()
+                pname = (p.get("name") or "").lower()
+
+                if pid is None:
+                    continue
+                if p.get("is_system") or not p.get("is_killable"):
+                    continue
+                if not lab_policy.is_level2_student(uname):
+                    continue
+                # Sesi masih hidup -> ini proses normal, bukan zombie.
+                if uname in active_users:
+                    protected_active.append(f"{uname}:{pid}")
+                    continue
+                if "python" not in pname and "ipykernel" not in pname and "jupyter" not in pname:
+                    continue
+
+                try:
+                    proc_obj = psutil.Process(pid)
+                    proc_obj.terminate()
+                    try:
+                        proc_obj.wait(timeout=1.5)
+                    except psutil.TimeoutExpired:
+                        proc_obj.kill()
+                        proc_obj.wait(timeout=1.0)
+
+                    killed_pids.append(pid)
+                    reclaimed_vram_mb += float(p.get("vram_mb") or 0.0)
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.TimeoutExpired):
+                    continue
+
+        actor_name = session.get("nama") or "Operator"
+        count = len(killed_pids)
+        detail_msg = (
+            f"Sweep Zombie GPU 1 oleh {actor_name}: {count} proses orphan dibersihkan "
+            f"({reclaimed_vram_mb:.0f} MB VRAM dibebaskan, {len(protected_active)} proses "
+            f"milik sesi aktif dipertahankan)."
+        )
+        record_audit(
+            target="GPU_1",
+            action="SWEEP_GPU_ZOMBIES",
+            detail=detail_msg,
+            log_type="warning" if count else "info",
+        )
+
+        return {
+            "success": True,
+            "message": detail_msg,
+            "killed_count": count,
+            "reclaimed_vram_mb": round(reclaimed_vram_mb, 1),
+            "protected_active": len(protected_active),
+            "pids": killed_pids,
+        }
+    except Exception as e:
+        logger.error(f"Error sweep GPU zombies: {e}")
+        raise HTTPException(status_code=500, detail=f"Gagal menyapu zombie GPU: {str(e)}")
 
 @app.post("/api/reset-password")
 def reset_password(req: ResetPasswordRequest, request: Request, session: Dict[str, Any] = Depends(verify_super_admin)):
@@ -839,6 +1045,15 @@ def clear_user_cache(req: UserActionRequest, request: Request, session: Dict[str
                     cmd_c = ["sudo", "-n"] + cmd_c
                 subprocess.run(cmd_c, check=False)
                 deleted_items.append(f"Cache {sub_cache.capitalize()}")
+
+        # 4. Bersihkan berkas sementara > 1 hari di ~/.tmp (aman untuk sesi berjalan)
+        tmp_dir = f"{home_dir}/.tmp"
+        if os.path.isdir(tmp_dir):
+            cmd_tmp = ["find", tmp_dir, "-mindepth", "1", "-mtime", "+1", "-exec", "rm", "-rf", "{}", "+"]
+            if os.geteuid() != 0:
+                cmd_tmp = ["sudo", "-n"] + cmd_tmp
+            subprocess.run(cmd_tmp, check=False)
+            deleted_items.append("Tmp > 1 Hari")
         
         operator = session.get("nama") or session.get("nim") or "Admin"
         items_desc = ", ".join(deleted_items) if deleted_items else "Cache sudah bersih"

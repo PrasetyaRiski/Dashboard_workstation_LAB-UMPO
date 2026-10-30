@@ -173,7 +173,7 @@ export default function UnifiedUserManagement({
 
 
   const handleClearCache = async (nim) => {
-    if (!confirm(`Bersihkan cache disk (PIP & Checkpoints) untuk NIM ${nim}?`)) return;
+    if (!confirm(`Bersihkan cache disk untuk NIM ${nim}?\n\n• Cache PIP, Torch, dan HuggingFace\n• Checkpoint notebook (.ipynb_checkpoints)\n• Berkas sementara di ~/.tmp yang lebih dari 1 hari\n\nSesi notebook yang sedang berjalan tidak akan dihentikan.`)) return;
     try {
       const res = await fetch('/api/users/clear-cache', {
         method: 'POST',

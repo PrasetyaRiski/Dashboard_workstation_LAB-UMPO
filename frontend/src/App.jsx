@@ -295,6 +295,56 @@ export default function App() {
     ...(adminToken ? { 'Authorization': `Bearer ${adminToken}` } : {})
   });
 
+  const handleEmergencyReleaseIdle = async () => {
+    if (!isAdmin) {
+      setLoginModalOpen(true);
+      return;
+    }
+    try {
+      const res = await fetch('/api/admin/emergency-release-idle', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        showToast(
+          json.message || 'Sesi idle berhasil dibebaskan.',
+          json.released_count > 0 ? 'success' : 'info'
+        );
+        fetchStatus();
+      } else {
+        showToast(json.detail || 'Gagal membebaskan slot idle', 'error');
+      }
+    } catch (e) {
+      showToast('Error: ' + e.message, 'error');
+    }
+  };
+
+  const handleSweepZombies = async () => {
+    if (!isAdmin) {
+      setLoginModalOpen(true);
+      return;
+    }
+    try {
+      const res = await fetch('/api/gpu/sweep-zombies', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        showToast(
+          json.message || 'Sweep zombie GPU selesai.',
+          json.killed_count > 0 ? 'success' : 'info'
+        );
+        fetchStatus();
+      } else {
+        showToast(json.detail || 'Gagal menyapu zombie GPU', 'error');
+      }
+    } catch (e) {
+      showToast('Error: ' + e.message, 'error');
+    }
+  };
+
   const handleOpenKillModal = (proc) => {
     if (staleSeconds > 15) {
       showToast('Aksi dinonaktifkan: Data telemetri basi (>15 detik). Sambungkan ulang server.', 'error');
@@ -547,6 +597,8 @@ export default function App() {
                     isBackingUp={isBackingUp}
                     backups={backups}
                     isAdmin={isAdmin && !isDataStale}
+                    level2Slots={data?.level2_slots}
+                    onEmergencyReleaseIdle={handleEmergencyReleaseIdle}
                   />
                   <LiveChart history={data?.history} />
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -559,6 +611,7 @@ export default function App() {
                       gpu={data?.gpus?.[1]}
                       isAdmin={isAdmin && !isDataStale}
                       onOpenKillModal={handleOpenKillModal}
+                      onSweepZombies={handleSweepZombies}
                     />
                   </div>
                 </div>

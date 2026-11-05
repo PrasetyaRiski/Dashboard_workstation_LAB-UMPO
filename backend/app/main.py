@@ -482,16 +482,16 @@ def get_lab_profile_api():
 @app.post("/api/lab/profile")
 def set_lab_profile_api(req: SetLabProfileRequest, session: Dict[str, Any] = Depends(verify_operator_or_admin)):
     """Mengubah profil operasional Lab AI ('ai' atau 'basic') - Khusus Aslab / Admin"""
-    from app.db import set_lab_profile, record_audit
+    from app.db import set_lab_profile
     try:
         updated = set_lab_profile(req.mode)
         actor = session.get("nama") or session.get("nim") or "Operator"
         role_label = "Super Admin" if session.get("role") == "admin" else "Aslab"
         record_audit(
-            nim=session.get("nim", "OPERATOR"),
+            target="SYSTEM_PROFILE",
             action="CHANGE_LAB_PROFILE",
             detail=f"Mode Lab diubah ke '{updated['name']}' ({updated['max_slots']} Slot, {updated['gpu_name']}, RAM {updated['ram_limit_gb']}GB) oleh {role_label} ({actor}).",
-            target="SYSTEM_PROFILE"
+            log_type="info"
         )
         return {
             "success": True,

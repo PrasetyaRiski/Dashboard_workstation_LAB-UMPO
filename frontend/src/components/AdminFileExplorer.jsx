@@ -295,7 +295,7 @@ export default function AdminFileExplorer({
 
   if (!isAdmin) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[460px] p-8 bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl shadow-xs text-center">
+      <div className="flex flex-col items-center justify-center min-h-[460px] p-8 bg-[#FFFFFF] border border-[#E2E8F0] rounded-xl shadow-xs text-center">
         <div className="w-16 h-16 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center text-[#0284C7] mb-4 shadow-xs">
           <Folder className="w-8 h-8" />
         </div>
@@ -348,7 +348,7 @@ export default function AdminFileExplorer({
 
       <div className="flex flex-col lg:flex-row min-h-[580px] gap-5 w-full">
         {/* Left Pane - User Directory List */}
-        <div className={`w-full lg:w-1/3 lg:min-w-[320px] lg:max-w-sm flex flex-col bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl shadow-xs overflow-hidden ${selectedUserForFiles ? 'hidden lg:flex' : 'flex'}`}>
+        <div className={`w-full lg:w-1/3 lg:min-w-[320px] lg:max-w-sm flex flex-col bg-[#FFFFFF] border border-[#E2E8F0] rounded-xl shadow-xs overflow-hidden ${selectedUserForFiles ? 'hidden lg:flex' : 'flex'}`}>
           <div className="p-4 border-b border-[#E2E8F0] bg-[#F1F5F9]/60">
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-bold text-[#0F172A] flex items-center gap-2">
@@ -429,7 +429,7 @@ export default function AdminFileExplorer({
         </div>
 
         {/* Right Pane - Active Workspace Explorer */}
-        <div className={`flex-1 flex flex-col bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl shadow-xs overflow-hidden ${!selectedUserForFiles ? 'hidden lg:flex' : 'flex'}`}>
+        <div className={`flex-1 flex flex-col bg-[#FFFFFF] border border-[#E2E8F0] rounded-xl shadow-xs overflow-hidden ${!selectedUserForFiles ? 'hidden lg:flex' : 'flex'}`}>
           {selectedUserForFiles ? (
             <>
               {/* Header Navigation Strip */}

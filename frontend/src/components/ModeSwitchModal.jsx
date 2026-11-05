@@ -111,8 +111,8 @@ export default function ModeSwitchModal({
   const IconHeader = modeConfig.icon;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs font-sans">
-      <div className="w-full max-w-lg bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden flex flex-col motion-card">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 font-sans">
+      <div className="w-full max-w-lg bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden flex flex-col motion-card">
         
         {/* Header Modal */}
         <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-100 bg-white">

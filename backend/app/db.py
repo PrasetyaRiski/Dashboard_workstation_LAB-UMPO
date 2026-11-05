@@ -91,6 +91,9 @@ def get_connection():
         conn.execute("""CREATE TABLE IF NOT EXISTS audit_logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT, nim TEXT, action TEXT, detail TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)""")
+        conn.execute("""CREATE TABLE IF NOT EXISTS system_settings (
+            key TEXT PRIMARY KEY, value TEXT,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)""")
         conn.commit()
 
         # Migrasi kolom 'role' jika tabel lama belum memilikinya

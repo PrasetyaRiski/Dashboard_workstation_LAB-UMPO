@@ -6,10 +6,10 @@ export default function KillConfirmModal({ isOpen, processInfo, onConfirm, onClo
   const { pid, username, procName, cmdline, vramMb, is_system } = processInfo;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs font-sans">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 font-sans">
       <div className={`w-full max-w-md bg-white border ${
         is_system ? 'border-amber-200' : 'border-rose-200'
-      } rounded-2xl shadow-xl overflow-hidden flex flex-col`}>
+      } rounded-xl shadow-xl overflow-hidden flex flex-col`}>
         {/* Header */}
         <div className={`flex items-center justify-between p-4 border-b ${
           is_system ? 'border-amber-200 bg-amber-50' : 'border-rose-200 bg-rose-50'

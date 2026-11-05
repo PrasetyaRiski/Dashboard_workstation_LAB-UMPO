@@ -124,7 +124,7 @@ export default function AuditLogView({ logs = [] }) {
   return (
     <div className="flex flex-col gap-4 font-sans">
       {/* Integrity Compliance Info Bar */}
-      <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
           <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-800 shrink-0 shadow-xs">
             <ShieldCheck className="w-5 h-5 text-emerald-600" />
@@ -152,7 +152,7 @@ export default function AuditLogView({ logs = [] }) {
       </div>
 
       {/* Main Table / Stream Container */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden flex flex-col">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden flex flex-col">
         {/* Filters and Search Bar */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-b border-slate-100 bg-slate-50/70">
           <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto p-1 bg-white rounded-xl border border-slate-200 shadow-xs">

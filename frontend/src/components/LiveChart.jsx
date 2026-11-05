@@ -86,7 +86,7 @@ function LiveChart({ history = [] }) {
   const togglePause = () => setIsPaused(!isPaused);
 
   return (
-    <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs flex flex-col gap-4 font-sans hover:border-slate-300 transition-all">
+    <div className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200 shadow-xs flex flex-col gap-4 font-sans hover:border-slate-300 transition-all">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>

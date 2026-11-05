@@ -596,7 +596,7 @@ export default function UnifiedUserManagement({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
         {/* Card 1: Total Akun Terdaftar */}
-        <div className="bg-[#FFFFFF] rounded-2xl p-5 border border-[#E2E8F0] shadow-xs motion-card flex flex-col justify-between">
+        <div className="bg-[#FFFFFF] rounded-xl p-5 border border-[#E2E8F0] shadow-xs motion-card flex flex-col justify-between">
           <div className="flex items-start justify-between mb-2">
             <div>
               <span className="text-xs font-bold text-[#0F172A]">Total Akun Terdaftar</span>
@@ -633,7 +633,7 @@ export default function UnifiedUserManagement({
         </div>
 
         {/* Card 2: Akun Riset & Prioritas Aktif */}
-        <div className="bg-[#FFFFFF] rounded-2xl p-5 border border-[#E2E8F0] shadow-xs motion-card flex flex-col justify-between">
+        <div className="bg-[#FFFFFF] rounded-xl p-5 border border-[#E2E8F0] shadow-xs motion-card flex flex-col justify-between">
           <div className="flex items-start justify-between mb-2">
             <div>
               <span className="text-xs font-bold text-[#0F172A]">Akun Riset & Prioritas</span>
@@ -666,7 +666,7 @@ export default function UnifiedUserManagement({
         </div>
 
         {/* Card 3: Beban Komputasi GPU */}
-        <div className="bg-[#FFFFFF] rounded-2xl p-5 border border-[#E2E8F0] shadow-xs motion-card flex flex-col justify-between">
+        <div className="bg-[#FFFFFF] rounded-xl p-5 border border-[#E2E8F0] shadow-xs motion-card flex flex-col justify-between">
           <div className="flex items-start justify-between mb-2">
             <div>
               <span className="text-xs font-bold text-[#0F172A]">Beban Komputasi GPU</span>
@@ -709,7 +709,7 @@ export default function UnifiedUserManagement({
         </div>
 
         {/* Card 4: Peringatan Storage (Over Quota) */}
-        <div className="bg-[#FFFFFF] rounded-2xl p-5 border border-[#E2E8F0] shadow-xs motion-card flex flex-col justify-between">
+        <div className="bg-[#FFFFFF] rounded-xl p-5 border border-[#E2E8F0] shadow-xs motion-card flex flex-col justify-between">
           <div className="flex items-start justify-between mb-2">
             <div>
               <span className="text-xs font-bold text-[#0F172A]">Peringatan Storage</span>

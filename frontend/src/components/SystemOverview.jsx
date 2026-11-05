@@ -94,7 +94,7 @@ function SystemOverview({
   return (
     <section className="flex flex-col gap-4 font-sans">
       {/* Header bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border border-slate-200 p-4 sm:p-5 rounded-2xl shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border border-slate-200 p-4 sm:p-5 rounded-xl shadow-xs">
         <div>
           <h1 className="font-sans text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
             Ringkasan Sistem & Klaster Komputasi
@@ -112,7 +112,7 @@ function SystemOverview({
       </div>
 
       {/* Profil Operasional Lab (Mode Switcher) & Level 2 Slot Praktikum Banner */}
-      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col gap-4">
+      <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-xs flex flex-col gap-4">
         {/* Row 1: Profile Mode Switcher */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-slate-100">
           <div className="flex items-center gap-2.5 flex-wrap">
@@ -244,7 +244,7 @@ function SystemOverview({
       {/* Cluster Workload & Priority Slot Strip */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {/* Slot Prioritas GPU 0 */}
-        <div className="bg-white px-4 py-3.5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+        <div className="bg-white px-4 py-3.5 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${
               priorityStudent 
@@ -285,7 +285,7 @@ function SystemOverview({
         </div>
 
         {/* Pengguna & Beban Sesi Komputasi */}
-        <div className="bg-white px-4 py-3.5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+        <div className="bg-white px-4 py-3.5 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-slate-50 text-slate-700 border border-slate-200 flex items-center justify-center shrink-0">
               <Users className="w-4 h-4 text-sky-600" />
@@ -315,7 +315,7 @@ function SystemOverview({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* Metric 1: CPU & RAM Host */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between">
+        <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-xs font-semibold text-slate-900 flex items-center gap-1.5">
               <Cpu className="w-4 h-4 text-sky-600" /> Beban Komputasi Host
@@ -365,7 +365,7 @@ function SystemOverview({
         </div>
 
         {/* Metric 2: Penyimpanan Disk Host */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between">
+        <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-xs font-semibold text-slate-900 flex items-center gap-1.5">
               <HardDrive className="w-4 h-4 text-cyan-600" /> Penyimpanan NVMe
@@ -401,7 +401,7 @@ function SystemOverview({
         </div>
 
         {/* Metric 3: Status GPU Klaster */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between">
+        <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-xs font-semibold text-slate-900 flex items-center gap-1.5">
               <Layers className="w-4 h-4 text-emerald-600" /> Akselerator GPU
@@ -437,7 +437,7 @@ function SystemOverview({
         </div>
 
         {/* Metric 4: Backup Snapshot System */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between">
+        <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-xs font-semibold text-slate-900 flex items-center gap-1.5">
               <ShieldCheck className="w-4 h-4 text-emerald-600" /> Database & Backup

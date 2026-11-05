@@ -77,7 +77,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, onSweepZombies }) {
   });
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-xs flex flex-col gap-4 font-sans hover:border-slate-300 transition-all">
+    <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-5 shadow-xs flex flex-col gap-4 font-sans hover:border-slate-300 transition-all">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
         <div className="flex items-center gap-3">
@@ -210,7 +210,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, onSweepZombies }) {
                 key={b.id}
                 onMouseEnter={() => setHoveredBlock(b)}
                 onMouseLeave={() => setHoveredBlock(null)}
-                className={`h-4 sm:h-5 rounded-[4px] border transition-all duration-150 cursor-pointer hover:scale-110 ${color}`}
+                className={`h-4 sm:h-5 rounded-[4px] border transition-colors duration-150 cursor-pointer hover:brightness-110 hover:border-slate-400 ${color}`}
                 title={b.label}
               />
             );

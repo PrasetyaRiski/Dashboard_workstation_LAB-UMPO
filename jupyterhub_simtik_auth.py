@@ -509,8 +509,18 @@ def simtik_pre_spawn_hook(spawner):
     user_tmp = f"{user_home}/.tmp"
 
     if priority:
-        logger.info(f"[QoS] {username} -> LEVEL 1 (20 core, 60G, Dedicated GPU 0)")
-        spawner.unit_extra_properties = {"Slice": "compute-level1.slice"}
+        logger.info(f"[QoS] {username} -> LEVEL 1 (20 core, 60G, Dedicated GPU 0 - Hardware Isolated)")
+        spawner.unit_extra_properties = {
+            "Slice": "compute-level1.slice",
+            # Hardware-Level Cgroup Device Isolation: Kunci ke GPU 0 di tingkat kernel Linux
+            "DeviceAllow": [
+                "/dev/nvidia0 rw",
+                "/dev/nvidiactl rw",
+                "/dev/nvidia-uvm rw",
+                "/dev/nvidia-uvm-tools rw",
+                "/dev/nvidia-modeset rw",
+            ],
+        }
         spawner.cpu_limit = 20.0
         spawner.mem_limit = "60G"
         if not hasattr(spawner, "environment") or spawner.environment is None:
@@ -532,8 +542,12 @@ def simtik_pre_spawn_hook(spawner):
     else:
         # Konfigurasi Level 2 Adaptif sesuai Mode Lab yang Aktif
         if lab_mode == "basic":
-            logger.info(f"[QoS] {username} -> LEVEL 2 MODE DASAR (CPU Only, 2 core, 2G, GPU Standby)")
-            spawner.unit_extra_properties = {"Slice": "compute-level2.slice"}
+            logger.info(f"[QoS] {username} -> LEVEL 2 MODE DASAR (CPU Only, 2 core, 2G, GPU Blocked at Kernel)")
+            spawner.unit_extra_properties = {
+                "Slice": "compute-level2.slice",
+                # Hardware-Level Cgroup Device Isolation: Blokir total seluruh file /dev/nvidia* di tingkat kernel
+                "DevicePolicy": "closed",
+            }
             spawner.cpu_limit = 2.0
             spawner.mem_limit = "2G"
             if not hasattr(spawner, "environment") or spawner.environment is None:
@@ -543,14 +557,24 @@ def simtik_pre_spawn_hook(spawner):
                 "OPENBLAS_NUM_THREADS": "2",
                 "MKL_NUM_THREADS": "2",
                 "CUDA_DEVICE_ORDER": "PCI_BUS_ID",
-                "CUDA_VISIBLE_DEVICES": "",  # Nonaktifkan CUDA context agar VRAM GPU 1 tetap 0 MB
+                "CUDA_VISIBLE_DEVICES": "",  # Nonaktifkan CUDA context
                 "TMPDIR": user_tmp,
                 "TEMP": user_tmp,
                 "TMP": user_tmp,
             })
         else:
-            logger.info(f"[QoS] {username} -> LEVEL 2 MODE AI (GPU 1 Shared Anti-OOM, 2 core, 3G)")
-            spawner.unit_extra_properties = {"Slice": "compute-level2.slice"}
+            logger.info(f"[QoS] {username} -> LEVEL 2 MODE AI (GPU 1 Shared Anti-OOM, 2 core, 3G - GPU 0 Blocked at Kernel)")
+            spawner.unit_extra_properties = {
+                "Slice": "compute-level2.slice",
+                # Hardware-Level Cgroup Device Isolation: Hanya izinkan GPU 1, blokir GPU 0 (milik riset) di kernel
+                "DeviceAllow": [
+                    "/dev/nvidia1 rw",
+                    "/dev/nvidiactl rw",
+                    "/dev/nvidia-uvm rw",
+                    "/dev/nvidia-uvm-tools rw",
+                    "/dev/nvidia-modeset rw",
+                ],
+            }
             spawner.cpu_limit = 2.0
             spawner.mem_limit = "3G"
             if not hasattr(spawner, "environment") or spawner.environment is None:

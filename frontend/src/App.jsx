@@ -518,7 +518,7 @@ export default function App() {
       {isMobile && isSidebarOpen && (
         <div
           onClick={() => setIsSidebarOpen(false)}
-          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-30 lg:hidden transition-opacity"
+          className="fixed inset-0 bg-slate-900/50 z-30 lg:hidden transition-opacity"
           aria-hidden="true"
         />
       )}
@@ -548,7 +548,7 @@ export default function App() {
       >
         {/* Enterprise Fixed Top Bar (Modern Cloud Console Style) */}
         <header
-          className="fixed top-0 right-0 h-16 bg-white/95 backdrop-blur-md border-b border-slate-200 z-40 flex items-center justify-between px-3 sm:px-6 transition-all duration-200 shadow-xs"
+          className="fixed top-0 right-0 h-16 bg-white border-b border-slate-200 z-40 flex items-center justify-between px-3 sm:px-6 transition-all duration-200 shadow-xs"
           style={{ left: (!isMobile && isSidebarOpen) ? '16rem' : '0' }}
         >
           {/* Breadcrumbs & Mobile Hamburger */}
@@ -745,7 +745,7 @@ export default function App() {
       {/* Floating Modern Toast Notification */}
       {toast && (
         <div className="fixed bottom-5 right-5 z-50 max-w-md w-full px-4 sm:px-0 motion-view-enter">
-          <div className={`p-4 rounded-2xl border shadow-xl flex items-start gap-3.5 bg-white transition-all ${
+          <div className={`p-4 rounded-xl border shadow-lg flex items-start gap-3.5 bg-white transition-all ${
             toast.type === 'success' ? 'border-emerald-200' :
             toast.type === 'error' ? 'border-rose-200' :
             toast.type === 'warning' ? 'border-amber-200' :

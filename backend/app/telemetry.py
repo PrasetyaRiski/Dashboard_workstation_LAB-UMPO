@@ -407,7 +407,7 @@ def get_per_user_gpu_metrics(gpus: List[Dict[str, Any]]) -> List[Dict[str, Any]]
 
         # Determine compute state
         if total_vram_mb > 0:
-            if not is_priority_user and total_vram_mb > vram_recommended_limit_mb:
+            if not is_priority_user and vram_recommended_limit_mb > 0 and total_vram_mb > vram_recommended_limit_mb:
                 status = "VRAM Exceeded (>30%)"
                 status_color = "red"
             else:
@@ -435,7 +435,7 @@ def get_per_user_gpu_metrics(gpus: List[Dict[str, Any]]) -> List[Dict[str, Any]]
             "vram_used_mb": total_vram_mb,
             "vram_limit_mb": vram_recommended_limit_mb,
             "vram_percent_of_gpu": round((total_vram_mb / 16311.0) * 100, 1),
-            "vram_percent_of_quota": round((total_vram_mb / vram_recommended_limit_mb) * 100, 1),
+            "vram_percent_of_quota": round((total_vram_mb / vram_recommended_limit_mb) * 100, 1) if vram_recommended_limit_mb > 0 else 0.0,
             "cpu_percent": cpu_percent,
             "cpu_cores_used": cores_used,
             "cpu_cores_limit": cores_limit,

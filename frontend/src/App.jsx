@@ -347,6 +347,7 @@ export default function App() {
 
   const handleSwitchLabMode = async (newMode) => {
     if (!isAdmin) {
+      showToast('Silakan login sebagai Admin/Aslab untuk mengubah mode operasional lab.', 'info');
       setLoginModalOpen(true);
       return;
     }

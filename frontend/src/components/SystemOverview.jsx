@@ -133,43 +133,39 @@ function SystemOverview({
             </span>
           </div>
 
-          {/* Toggle Buttons (Admin/Aslab only) */}
-          {isAdmin ? (
-            <div className="inline-flex items-center p-1 bg-[#FAF6EF] border border-[#E4D8C3] rounded-xl self-start sm:self-auto shadow-warm-xs">
-              <button
-                type="button"
-                onClick={() => onSwitchLabMode && onSwitchLabMode('ai')}
-                disabled={!isBasicMode}
-                className={`px-3 py-1 rounded-lg text-xs font-medium font-mono transition-all flex items-center gap-1.5 active:translate-y-0.5 ${
-                  !isBasicMode
-                    ? 'bg-white text-[#6F4E37] font-bold shadow-xs border border-[#E4D8C3]'
-                    : 'text-[#7A6A5C] hover:text-[#2E2018]'
-                }`}
-                title="Batas 30 mahasiswa, akses GPU 1 diaktifkan untuk PyTorch / Deep Learning"
-              >
-                <Sparkles className="w-3 h-3 text-[#7C3AED]" />
-                <span>Praktikum AI (30)</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => onSwitchLabMode && onSwitchLabMode('basic')}
-                disabled={isBasicMode}
-                className={`px-3 py-1 rounded-lg text-xs font-medium font-mono transition-all flex items-center gap-1.5 active:translate-y-0.5 ${
-                  isBasicMode
-                    ? 'bg-white text-[#0369A1] font-bold shadow-xs border border-[#BAE6FD]'
-                    : 'text-[#7A6A5C] hover:text-[#2E2018]'
-                }`}
-                title="Batas 60 mahasiswa (2 kelas), GPU dinonaktifkan (murni CPU & RAM)"
-              >
-                <Terminal className="w-3 h-3 text-[#0284C7]" />
-                <span>Dasar / 2 Kelas (60)</span>
-              </button>
-            </div>
-          ) : (
-            <span className="text-[11px] font-mono text-[#7A6A5C]">
-              {isBasicMode ? 'GPU 1 Standby · 2 GB RAM/User' : 'GPU 1 Shared · 3 GB RAM/User'}
-            </span>
-          )}
+          {/* Toggle Buttons (Always visible, prompts login if guest) */}
+          <div className="inline-flex items-center p-1 bg-[#FAF6EF] border border-[#E4D8C3] rounded-xl self-start sm:self-auto shadow-warm-xs">
+            <button
+              type="button"
+              onClick={() => onSwitchLabMode && onSwitchLabMode('ai')}
+              disabled={!isBasicMode}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium font-mono transition-all flex items-center gap-1.5 active:translate-y-0.5 cursor-pointer disabled:cursor-default ${
+                !isBasicMode
+                  ? 'bg-white text-[#6F4E37] font-bold shadow-xs border border-[#E4D8C3]'
+                  : 'text-[#7A6A5C] hover:text-[#2E2018]'
+              }`}
+              title={isAdmin ? "Batas 30 mahasiswa, akses GPU 1 diaktifkan untuk PyTorch / Deep Learning" : "Klik untuk beralih ke Mode Praktikum AI (Perlu Login Admin)"}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-[#7C3AED]" />
+              <span>Praktikum AI (30)</span>
+              {!isBasicMode && <span className="w-1.5 h-1.5 rounded-full bg-[#7C3AED]" />}
+            </button>
+            <button
+              type="button"
+              onClick={() => onSwitchLabMode && onSwitchLabMode('basic')}
+              disabled={isBasicMode}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium font-mono transition-all flex items-center gap-1.5 active:translate-y-0.5 cursor-pointer disabled:cursor-default ${
+                isBasicMode
+                  ? 'bg-white text-[#0369A1] font-bold shadow-xs border border-[#BAE6FD]'
+                  : 'text-[#7A6A5C] hover:text-[#2E2018]'
+              }`}
+              title={isAdmin ? "Batas 60 mahasiswa (2 kelas), GPU dinonaktifkan (murni CPU & RAM)" : "Klik untuk beralih ke Mode Pemrograman Dasar (Perlu Login Admin)"}
+            >
+              <Terminal className="w-3.5 h-3.5 text-[#0284C7]" />
+              <span>Dasar / 2 Kelas (60)</span>
+              {isBasicMode && <span className="w-1.5 h-1.5 rounded-full bg-[#0284C7]" />}
+            </button>
+          </div>
         </div>
 
         {/* Row 2: Slot Progress & Emergency Release */}

@@ -26,6 +26,24 @@ for _p in ("/home/public/web/backend", "/home/public/web/panel-lab/backend",
 
 logger = logging.getLogger("jupyterhub_simtik")
 
+# Monkeypatch SystemdSpawner._expand_user_vars untuk mendukung list di unit_extra_properties (seperti DeviceAllow)
+try:
+    from systemdspawner import SystemdSpawner
+
+    def _safe_expand_user_vars(self, string):
+        if isinstance(string, (list, tuple)):
+            return [_safe_expand_user_vars(self, s) for s in string]
+        if isinstance(string, str):
+            u = getattr(self, "user", None)
+            uname = getattr(u, "name", "") if u else ""
+            uid = getattr(u, "id", "") if u else ""
+            return string.format(USERNAME=uname, USERID=uid)
+        return string
+
+    SystemdSpawner._expand_user_vars = _safe_expand_user_vars
+except Exception as _patch_err:
+    logger.warning(f"Gagal monkeypatch SystemdSpawner._expand_user_vars: {_patch_err}")
+
 USER_PREFIX = "m"
 SYSTEM_ACCOUNTS = {"labriset", "edy", "labadmin"}
 LEVEL1_SYSTEM = {"labriset"}

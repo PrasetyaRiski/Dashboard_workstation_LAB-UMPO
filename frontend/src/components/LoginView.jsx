@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { 
-  Lock, Key, AlertCircle, ShieldCheck, UserCheck, 
-  Layers, Cpu, HardDrive, ArrowRight, Loader2, Sparkles
+  Lock, Key, AlertCircle, ShieldCheck, UserCheck, Loader2
 } from 'lucide-react';
 
 export default function LoginView({ onLoginSuccess }) {
@@ -88,12 +87,6 @@ export default function LoginView({ onLoginSuccess }) {
             <p className="text-xs text-slate-500 font-medium mt-0.5">
               Teknik Informatika · Universitas Muhammadiyah Ponorogo
             </p>
-          </div>
-
-          {/* Workstation Hardware Badge */}
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 font-mono text-[10.5px] text-slate-600 mt-1">
-            <Sparkles className="w-3 h-3 text-sky-600" />
-            <span>Dual RTX 5060 Ti · 24 Cores · 128 GB RAM</span>
           </div>
         </div>
 
@@ -203,9 +196,6 @@ export default function LoginView({ onLoginSuccess }) {
         <div className="pt-3 border-t border-slate-100 flex flex-col gap-1.5 text-center">
           <p className="text-[11px] text-slate-400">
             Akses Terbatas: Hanya Asisten Laboratorium dan Administrator yang berhak masuk.
-          </p>
-          <p className="text-[10px] font-mono text-slate-400">
-            Single-Session Policy & Immutable Audit Trail aktif
           </p>
         </div>
       </div>

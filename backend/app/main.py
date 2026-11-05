@@ -227,6 +227,19 @@ def admin_logout(credentials: Optional[HTTPAuthorizationCredentials] = Depends(s
         ACTIVE_SESSIONS.pop(credentials.credentials, None)
     return {"success": True}
 
+@app.get("/api/admin/session")
+def check_admin_session(session: Dict[str, Any] = Depends(verify_operator_or_admin)):
+    """Verifikasi apakah token sesi admin/aslab masih aktif dan valid."""
+    return {
+        "authenticated": True,
+        "role": session.get("role"),
+        "user": {
+            "nim": session.get("nim"),
+            "nama": session.get("nama"),
+            "role": session.get("role"),
+        }
+    }
+
 @app.post("/api/users/set-role")
 def set_role_api(req: SetRoleRequest, session: Dict[str, Any] = Depends(verify_super_admin)):
     """Mengubah role pengguna: 'mahasiswa', 'aslab', atau 'admin' (Hanya Super Admin)"""

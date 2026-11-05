@@ -11,6 +11,7 @@ import AdminPinModal from './components/AdminPinModal';
 import ModeSwitchModal from './components/ModeSwitchModal';
 import CommandPalette from './components/CommandPalette';
 import ErrorBoundary from './components/ErrorBoundary';
+import LoginView from './components/LoginView';
 
 import {
   Menu, WifiOff, RefreshCw, ShieldCheck,
@@ -31,6 +32,7 @@ export default function App() {
     }
   });
 
+  const [isAuthChecked, setIsAuthChecked]           = useState(() => !localStorage.getItem('adminToken'));
   const isAdmin = Boolean(adminToken && (adminRole === 'admin' || adminRole === 'aslab'));
   const isSuperAdmin = Boolean(adminToken && adminRole === 'admin');
   const isOperator = Boolean(adminToken && adminRole === 'aslab');
@@ -119,17 +121,65 @@ export default function App() {
         console.error('Logout error:', e);
       }
     }
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
+    }
     localStorage.removeItem('adminToken');
     localStorage.removeItem('adminRole');
     localStorage.removeItem('adminUser');
     setAdminToken('');
     setAdminRole('');
     setAdminUser(null);
+    setData(null);
+    setStudents([]);
     setActiveTab('overview');
-    showToast('Logout berhasil. Mode monitoring publik aktif.', 'info');
+    showToast('Logout berhasil. Silakan login untuk masuk ke konsol admin.', 'info');
   };
 
+  // Verifikasi Sesi Admin saat pertama kali memuat halaman
+  useEffect(() => {
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+      setIsAuthChecked(true);
+      return;
+    }
+
+    fetch('/api/admin/session', {
+      headers: { 'Authorization': `Bearer ${token}` },
+      cache: 'no-store'
+    })
+      .then(async (res) => {
+        if (res.ok) {
+          const json = await res.json();
+          if (json.authenticated) {
+            setAdminRole(json.role || 'admin');
+            if (json.user) {
+              setAdminUser(json.user);
+              localStorage.setItem('adminUser', JSON.stringify(json.user));
+            }
+          }
+        } else {
+          // Token kedaluwarsa atau tidak valid di backend
+          localStorage.removeItem('adminToken');
+          localStorage.removeItem('adminRole');
+          localStorage.removeItem('adminUser');
+          setAdminToken('');
+          setAdminRole('');
+          setAdminUser(null);
+          showToast('Sesi Anda telah kedaluwarsa. Silakan login kembali.', 'warning');
+        }
+      })
+      .catch((err) => {
+        console.error('Session validation error:', err);
+      })
+      .finally(() => {
+        setIsAuthChecked(true);
+      });
+  }, [showToast]);
+
   const fetchStudents = useCallback(async () => {
+    if (!isAdmin) return;
     try {
       const headers = adminToken ? { 'Authorization': `Bearer ${adminToken}` } : {};
       const res = await fetch(`/api/users/students?_t=${Date.now()}`, { 
@@ -143,18 +193,23 @@ export default function App() {
     } catch (e) {
       console.error('Fetch students error:', e);
     }
-  }, [adminToken]);
+  }, [isAdmin, adminToken]);
 
   useEffect(() => {
+    if (!isAdmin) return;
     fetchStudents();
     const interval = setInterval(fetchStudents, 5000);
     return () => clearInterval(interval);
-  }, [fetchStudents]);
+  }, [isAdmin, fetchStudents]);
 
   const fetchStatus = useCallback(async () => {
+    if (!isAdmin) return;
     setIsRefreshing(true);
     try {
-      const res = await fetch(`/api/status?_t=${Date.now()}`, { cache: 'no-store' });
+      const res = await fetch(`/api/status?_t=${Date.now()}`, { 
+        headers: adminToken ? { 'Authorization': `Bearer ${adminToken}` } : {},
+        cache: 'no-store' 
+      });
       if (res.ok) {
         const json = await res.json();
         setData(json);
@@ -165,7 +220,7 @@ export default function App() {
     } finally {
       setIsRefreshing(false);
     }
-  }, []);
+  }, [isAdmin, adminToken]);
 
   // Fetch Backups
   const fetchBackups = useCallback(async () => {
@@ -228,8 +283,17 @@ export default function App() {
     return () => clearInterval(timer);
   }, [lastDataTimestamp]);
 
-  // WebSocket Telemetry Stream
+  // WebSocket Telemetry Stream (Hanya terhubung saat Admin/Operator login)
   useEffect(() => {
+    if (!isAdmin) {
+      setIsConnected(false);
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
+      return;
+    }
+
     let ws;
     let timer;
 
@@ -265,12 +329,17 @@ export default function App() {
       if (timer) clearTimeout(timer);
       if (ws) ws.close();
     };
-  }, []);
+  }, [isAdmin]);
 
-  useEffect(() => { fetchStatus(); }, [fetchStatus]);
-
-  // Global Keyboard Shortcuts
   useEffect(() => {
+    if (isAdmin) {
+      fetchStatus();
+    }
+  }, [isAdmin, fetchStatus]);
+
+  // Global Keyboard Shortcuts (Hanya aktif saat login)
+  useEffect(() => {
+    if (!isAdmin) return;
     const handleKeyDown = (e) => {
       const isInputFocused = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName);
 
@@ -511,6 +580,71 @@ export default function App() {
   );
 
   const isDataStale = staleSeconds > 15;
+
+  if (!isAuthChecked) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 font-sans text-slate-700">
+        <div className="w-8 h-8 border-2 border-slate-900 border-t-transparent rounded-full animate-spin mb-3" />
+        <span className="text-xs font-mono text-slate-500">Memverifikasi sesi konsol admin...</span>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <>
+        <LoginView onLoginSuccess={handleLoginSuccess} />
+        {/* Floating Modern Toast Notification */}
+        {toast && (
+          <div className="fixed bottom-5 right-5 z-50 max-w-md w-full px-4 sm:px-0 motion-view-enter">
+            <div className={`p-4 rounded-xl border shadow-lg flex items-start gap-3.5 bg-white transition-all ${
+              toast.type === 'success' ? 'border-emerald-200' :
+              toast.type === 'error' ? 'border-rose-200' :
+              toast.type === 'warning' ? 'border-amber-200' :
+              'border-sky-200'
+            }`}>
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5 shadow-xs ${
+                toast.type === 'success' ? 'bg-emerald-50 text-emerald-600' :
+                toast.type === 'error' ? 'bg-rose-50 text-rose-600' :
+                toast.type === 'warning' ? 'bg-amber-50 text-amber-600' :
+                'bg-sky-50 text-sky-600'
+              }`}>
+                {toast.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> :
+                 toast.type === 'error' ? <AlertCircle className="w-4 h-4" /> :
+                 toast.type === 'warning' ? <AlertCircle className="w-4 h-4" /> :
+                 <Info className="w-4 h-4" />}
+              </div>
+
+              <div className="flex-1 min-w-0">
+                {toast.title && (
+                  <h4 className="font-sans font-bold text-xs text-slate-900 tracking-tight mb-0.5">
+                    {toast.title}
+                  </h4>
+                )}
+                <p className="font-sans text-xs text-slate-700 leading-relaxed">
+                  {toast.message}
+                </p>
+                {toast.details && (
+                  <p className="font-sans text-[11px] text-slate-500 mt-1.5 leading-normal border-t border-slate-100 pt-1.5">
+                    {toast.details}
+                  </p>
+                )}
+              </div>
+
+              <button
+                onClick={() => setToast(null)}
+                className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition-colors shrink-0 cursor-pointer"
+                type="button"
+                aria-label="Tutup Notifikasi"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-700 font-sans antialiased selection:bg-slate-200 selection:text-slate-900">

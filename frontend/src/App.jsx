@@ -8,6 +8,7 @@ import KillConfirmModal from './components/KillConfirmModal';
 import UnifiedUserManagement from './components/UnifiedUserManagement';
 import AdminFileExplorer from './components/AdminFileExplorer';
 import AdminPinModal from './components/AdminPinModal';
+import ModeSwitchModal from './components/ModeSwitchModal';
 import CommandPalette from './components/CommandPalette';
 import ErrorBoundary from './components/ErrorBoundary';
 
@@ -68,11 +69,27 @@ export default function App() {
     isSubmitting: false
   });
 
+  // Mode Switch Modal
+  const [modeSwitchModal, setModeSwitchModal] = useState({
+    isOpen: false,
+    targetMode: null,
+    isSubmitting: false
+  });
+
   const wsRef = useRef(null);
 
-  const showToast = useCallback((message, type = 'info') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 4000);
+  const showToast = useCallback((toastData, type = 'info') => {
+    if (typeof toastData === 'string') {
+      setToast({ message: toastData, type });
+    } else if (toastData && typeof toastData === 'object') {
+      setToast({
+        title: toastData.title,
+        message: toastData.message || '',
+        details: toastData.details || '',
+        type: toastData.type || type,
+      });
+    }
+    setTimeout(() => setToast(null), 5500);
   }, []);
 
   const handleLoginSuccess = (token, role = 'admin', user = null) => {
@@ -345,20 +362,28 @@ export default function App() {
     }
   };
 
-  const handleSwitchLabMode = async (newMode) => {
+  const handleSwitchLabMode = (newMode) => {
     if (!isAdmin) {
-      showToast('Silakan login sebagai Admin/Aslab untuk mengubah mode operasional lab.', 'info');
+      showToast({
+        title: 'Akses Dibatasi',
+        message: 'Silakan login sebagai Admin atau Asisten Lab untuk mengubah mode operasional lab.',
+        type: 'warning'
+      });
       setLoginModalOpen(true);
       return;
     }
+    setModeSwitchModal({
+      isOpen: true,
+      targetMode: newMode,
+      isSubmitting: false,
+    });
+  };
+
+  const handleConfirmModeSwitch = async () => {
+    if (!modeSwitchModal.targetMode) return;
+    setModeSwitchModal((prev) => ({ ...prev, isSubmitting: true }));
+    const newMode = modeSwitchModal.targetMode;
     const modeLabel = newMode === 'basic' ? 'Mode Pemrograman Dasar (60 Slot)' : 'Mode Praktikum AI (30 Slot)';
-    if (!confirm(`Ubah konfigurasi operasional lab ke ${modeLabel}?\n\n${
-      newMode === 'basic'
-        ? '• Kapasitas dibuka hingga 60 slot (bisa menampung 2 kelas sekaligus).\n• Akses GPU 1 untuk Level 2 dinonaktifkan (murni CPU & RAM agar GPU tidak OOM).\n• Jatah RAM per mahasiswa: 2 GB.'
-        : '• Kapasitas dibatasi 30 slot (1 kelas praktikum AI).\n• Akses akselerasi GPU 1 (Shared Pool) diaktifkan untuk PyTorch/TensorFlow.\n• Jatah RAM per mahasiswa: 3 GB.'
-    }`)) {
-      return;
-    }
 
     try {
       const res = await fetch('/api/lab/profile', {
@@ -368,13 +393,31 @@ export default function App() {
       });
       const json = await res.json();
       if (res.ok && json.success) {
-        showToast(json.message || `Mode Lab berhasil diubah ke ${modeLabel}`, 'success');
+        setModeSwitchModal({ isOpen: false, targetMode: null, isSubmitting: false });
+        showToast({
+          title: 'Mode Operasional Klaster Diperbarui',
+          message: json.message || `Mode Lab berhasil dialihkan ke ${modeLabel}`,
+          details: newMode === 'basic' 
+            ? 'Kapasitas 60 Slot aktif (Murni CPU & RAM). Akses GPU 1 dialihkan ke status Standby untuk mencegah OOM.' 
+            : 'Kapasitas 30 Slot aktif dengan akselerasi GPU 1 (NVIDIA RTX 5060 Ti) untuk praktikum AI.',
+          type: 'success',
+        });
         fetchStatus();
       } else {
-        showToast(json.detail || 'Gagal mengubah mode lab', 'error');
+        showToast({
+          title: 'Gagal Mengubah Mode Lab',
+          message: json.detail || 'Terjadi kendala saat memperbarui profil lab.',
+          type: 'error',
+        });
+        setModeSwitchModal((prev) => ({ ...prev, isSubmitting: false }));
       }
     } catch (e) {
-      showToast('Error: ' + e.message, 'error');
+      showToast({
+        title: 'Error Koneksi Server',
+        message: e.message || 'Gagal terhubung ke API profil lab.',
+        type: 'error',
+      });
+      setModeSwitchModal((prev) => ({ ...prev, isSubmitting: false }));
     }
   };
 
@@ -699,21 +742,46 @@ export default function App() {
         </main>
       </div>
 
-      {/* Floating Toast Notification */}
+      {/* Floating Modern Toast Notification */}
       {toast && (
-        <div className="fixed bottom-5 right-5 z-50">
-          <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white border border-slate-200 shadow-md text-xs font-mono text-slate-800">
-            {toast.type === 'success' ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-            ) : toast.type === 'error' ? (
-              <AlertCircle className="w-4 h-4 text-[#B45309] shrink-0" />
-            ) : (
-              <Info className="w-4 h-4 text-[#1a73e8] shrink-0" />
-            )}
-            <span className="font-semibold">{toast.message}</span>
+        <div className="fixed bottom-5 right-5 z-50 max-w-md w-full px-4 sm:px-0 motion-view-enter">
+          <div className={`p-4 rounded-2xl border shadow-xl flex items-start gap-3.5 bg-white transition-all ${
+            toast.type === 'success' ? 'border-emerald-200' :
+            toast.type === 'error' ? 'border-rose-200' :
+            toast.type === 'warning' ? 'border-amber-200' :
+            'border-sky-200'
+          }`}>
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5 shadow-xs ${
+              toast.type === 'success' ? 'bg-emerald-50 text-emerald-600' :
+              toast.type === 'error' ? 'bg-rose-50 text-rose-600' :
+              toast.type === 'warning' ? 'bg-amber-50 text-amber-600' :
+              'bg-sky-50 text-sky-600'
+            }`}>
+              {toast.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> :
+               toast.type === 'error' ? <AlertCircle className="w-4 h-4" /> :
+               toast.type === 'warning' ? <AlertCircle className="w-4 h-4" /> :
+               <Info className="w-4 h-4" />}
+            </div>
+
+            <div className="flex-1 min-w-0">
+              {toast.title && (
+                <h4 className="font-sans font-bold text-xs text-slate-900 tracking-tight mb-0.5">
+                  {toast.title}
+                </h4>
+              )}
+              <p className="font-sans text-xs text-slate-700 leading-relaxed">
+                {toast.message}
+              </p>
+              {toast.details && (
+                <p className="font-sans text-[11px] text-slate-500 mt-1.5 leading-normal border-t border-slate-100 pt-1.5">
+                  {toast.details}
+                </p>
+              )}
+            </div>
+
             <button
               onClick={() => setToast(null)}
-              className="ml-2 text-[#7A6A5C] hover:text-slate-700 transition-colors"
+              className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition-colors shrink-0 cursor-pointer"
               type="button"
               aria-label="Tutup Notifikasi"
             >
@@ -738,6 +806,15 @@ export default function App() {
       />
 
       {/* Modals */}
+      <ModeSwitchModal
+        isOpen={modeSwitchModal.isOpen}
+        targetMode={modeSwitchModal.targetMode}
+        currentMode={data?.level2_slots?.lab_mode || 'ai'}
+        activeCount={data?.level2_slots?.active_count || 0}
+        onConfirm={handleConfirmModeSwitch}
+        onClose={() => setModeSwitchModal({ isOpen: false, targetMode: null, isSubmitting: false })}
+        isSubmitting={modeSwitchModal.isSubmitting}
+      />
       <AdminPinModal
         isOpen={loginModalOpen}
         onSuccess={handleLoginSuccess}

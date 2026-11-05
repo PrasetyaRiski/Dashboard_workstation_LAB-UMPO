@@ -47,6 +47,7 @@ export default function UnifiedUserManagement({
   students = [],
   systemUsers = [],
   gpus = [],
+  level2Slots = {},
   _onOpenKillModal,
   onResetPassword,
   onKillAllUser,
@@ -55,6 +56,8 @@ export default function UnifiedUserManagement({
 }) {
   const isSuperAdmin = Boolean(isAdmin && adminRole === 'admin');
   const isOperator   = Boolean(isAdmin && adminRole === 'aslab');
+  const isBasicMode  = Boolean(level2Slots?.lab_mode === 'basic');
+  const l2HardwareLabel = isBasicMode ? 'CPU Only | 2 Cores | 2GB' : 'GPU 1 (Shared Pool) | 2 Cores | 3GB';
 
   const [filterType, setFilterType] = useState('all'); // 'all' | 'mhs' | 'dosen' | 'overquota'
   const [searchQuery, setSearchQuery] = useState('');
@@ -993,7 +996,7 @@ export default function UnifiedUserManagement({
                         <td className="py-3.5 px-4">
                           <div className="flex flex-col gap-0.5">
                             <span className="font-mono text-xs text-[#2E2018] font-semibold">
-                              {item.is_priority ? 'GPU 0 (Dedicated) | 20 Cores | 60GB' : 'GPU 1 (Shared Pool) | 2 Cores | 3GB'}
+                              {item.is_priority ? 'GPU 0 (Dedicated) | 20 Cores | 60GB' : l2HardwareLabel}
                             </span>
                             {item.is_priority && item.priority_expires_at ? (
                               <div className="inline-flex items-center gap-1 text-[#B45309] font-mono text-xs font-bold">
@@ -1256,7 +1259,7 @@ export default function UnifiedUserManagement({
                       <td className="py-3.5 px-4">
                         <div className="flex flex-col gap-0.5">
                           <span className="font-mono text-xs text-[#2E2018] font-semibold">
-                            {isRiset ? 'GPU 0 (Dedicated) | 20 Cores | 60GB' : 'GPU 1 (Shared Pool) | 2 Cores | 3GB'}
+                            {isRiset ? 'GPU 0 (Dedicated) | 20 Cores | 60GB' : l2HardwareLabel}
                           </span>
                           <span className="font-mono text-xs text-[#7A6A5C]">
                             {isRiset ? 'Riset Dosen Tetap' : 'Batch Job Pipeline'}

@@ -463,21 +463,33 @@ def simtik_pre_spawn_hook(spawner):
             logger.warning(f"Cek prioritas gagal untuk {username}: {e}")
 
     # =========================================================================
-    # 2.5 ADMISSION CONTROL: Kuota Maksimal 30 Mahasiswa Praktikum (Level 2)
+    # 2.5 ADMISSION CONTROL: Kuota Dinamis Mahasiswa Praktikum (Level 2)
+    # - Mode Praktikum AI           : Maks 30 Slot (GPU 1 Aktif)
+    # - Mode Pemrograman Dasar      : Maks 60 Slot (CPU Only, GPU 1 Standby)
     # Akun Aslab, Admin, dan Mahasiswa Prioritas Skripsi (Level 1) DIBYPASS
     # =========================================================================
+    lab_mode = "ai"
+    max_level2_concurrent = 30
+    try:
+        from app.db import get_lab_profile
+        profile = get_lab_profile()
+        lab_mode = profile.get("mode", "ai")
+        max_level2_concurrent = int(profile.get("max_slots", 30))
+    except Exception as e:
+        logger.warning(f"[AdmissionControl] Gagal membaca profil lab dari database: {e}")
+
     if not priority and not is_privileged:
-        MAX_LEVEL2_CONCURRENT = 30
         active_l2 = count_active_level2_students(spawner, exclude_username=username)
-        if active_l2 >= MAX_LEVEL2_CONCURRENT:
+        if active_l2 >= max_level2_concurrent:
             from tornado import web
+            mode_label = "Pemrograman Dasar (2 Kelas)" if lab_mode == "basic" else "Praktikum AI"
             logger.warning(
-                f"[AdmissionControl] Spawn ditolak untuk {username}: Kuota 30 mahasiswa praktikum Level 2 penuh ({active_l2}/{MAX_LEVEL2_CONCURRENT})."
+                f"[AdmissionControl] Spawn ditolak untuk {username}: Kuota {max_level2_concurrent} mahasiswa ({mode_label}) penuh ({active_l2}/{max_level2_concurrent})."
             )
             raise web.HTTPError(
                 429,
-                f"Kapasitas Lab Penuh ({active_l2}/{MAX_LEVEL2_CONCURRENT} Mahasiswa Aktif): "
-                f"Batas kuota 30 mahasiswa praktikum aktif sedang tercapai. "
+                f"Kapasitas Lab Penuh ({active_l2}/{max_level2_concurrent} Mahasiswa Aktif - {mode_label}): "
+                f"Batas kuota {max_level2_concurrent} mahasiswa praktikum aktif sedang tercapai. "
                 f"Silakan tunggu beberapa saat hingga ada mahasiswa lain yang selesai atau sesi otomatis terlepas."
             )
 
@@ -518,26 +530,45 @@ def simtik_pre_spawn_hook(spawner):
             "TMP": user_tmp,
         })
     else:
-        logger.info(f"[QoS] {username} -> LEVEL 2 (GPU 1 Shared Anti-OOM, 2 core, 3G)")
-        spawner.unit_extra_properties = {"Slice": "compute-level2.slice"}
-        spawner.cpu_limit = 2.0
-        spawner.mem_limit = "3G"
-        if not hasattr(spawner, "environment") or spawner.environment is None:
-            spawner.environment = {}
-        spawner.environment.update({
-            "OMP_NUM_THREADS": "2",
-            "OPENBLAS_NUM_THREADS": "2",
-            "MKL_NUM_THREADS": "2",
-            "CUDA_DEVICE_ORDER": "PCI_BUS_ID",
-            "CUDA_VISIBLE_DEVICES": "1",
-            # Optimasi Framework AI Anti-OOM
-            "TF_FORCE_GPU_ALLOW_GROWTH": "true",
-            "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True",
-            # Isolasi folder cache sementara per user
-            "TMPDIR": user_tmp,
-            "TEMP": user_tmp,
-            "TMP": user_tmp,
-        })
+        # Konfigurasi Level 2 Adaptif sesuai Mode Lab yang Aktif
+        if lab_mode == "basic":
+            logger.info(f"[QoS] {username} -> LEVEL 2 MODE DASAR (CPU Only, 2 core, 2G, GPU Standby)")
+            spawner.unit_extra_properties = {"Slice": "compute-level2.slice"}
+            spawner.cpu_limit = 2.0
+            spawner.mem_limit = "2G"
+            if not hasattr(spawner, "environment") or spawner.environment is None:
+                spawner.environment = {}
+            spawner.environment.update({
+                "OMP_NUM_THREADS": "2",
+                "OPENBLAS_NUM_THREADS": "2",
+                "MKL_NUM_THREADS": "2",
+                "CUDA_DEVICE_ORDER": "PCI_BUS_ID",
+                "CUDA_VISIBLE_DEVICES": "",  # Nonaktifkan CUDA context agar VRAM GPU 1 tetap 0 MB
+                "TMPDIR": user_tmp,
+                "TEMP": user_tmp,
+                "TMP": user_tmp,
+            })
+        else:
+            logger.info(f"[QoS] {username} -> LEVEL 2 MODE AI (GPU 1 Shared Anti-OOM, 2 core, 3G)")
+            spawner.unit_extra_properties = {"Slice": "compute-level2.slice"}
+            spawner.cpu_limit = 2.0
+            spawner.mem_limit = "3G"
+            if not hasattr(spawner, "environment") or spawner.environment is None:
+                spawner.environment = {}
+            spawner.environment.update({
+                "OMP_NUM_THREADS": "2",
+                "OPENBLAS_NUM_THREADS": "2",
+                "MKL_NUM_THREADS": "2",
+                "CUDA_DEVICE_ORDER": "PCI_BUS_ID",
+                "CUDA_VISIBLE_DEVICES": "1",
+                # Optimasi Framework AI Anti-OOM
+                "TF_FORCE_GPU_ALLOW_GROWTH": "true",
+                "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True",
+                # Isolasi folder cache sementara per user
+                "TMPDIR": user_tmp,
+                "TEMP": user_tmp,
+                "TMP": user_tmp,
+            })
 
 
 def simtik_post_stop_hook(spawner):

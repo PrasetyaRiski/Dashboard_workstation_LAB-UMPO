@@ -22,9 +22,45 @@ from datetime import datetime, timezone
 
 logger = logging.getLogger("lab_policy")
 
-LEVEL2_MAX_SLOTS = int(os.getenv("LAB_LEVEL2_MAX_SLOTS", "30"))
-IDLE_RELEASE_MINUTES = int(os.getenv("LAB_IDLE_RELEASE_MINUTES", "10"))
 JH_DB_PATH = os.getenv("JUPYTERHUB_DB_PATH", "/opt/jupyterhub/etc/jupyterhub.sqlite")
+
+
+def get_lab_profile_info() -> dict:
+    """Mengambil konfigurasi profil aktif lab (Mode AI 30 slot vs Mode Dasar 60 slot)."""
+    try:
+        from app.db import get_lab_profile
+        return get_lab_profile()
+    except Exception as e:
+        logger.debug(f"Fallback get_lab_profile: {e}")
+        return {
+            "mode": "ai",
+            "name": "Mode Praktikum AI",
+            "short_name": "Praktikum AI (30 Slot)",
+            "description": "Praktikum Machine Learning & Deep Learning (GPU 1 Shared)",
+            "max_slots": int(os.getenv("LAB_LEVEL2_MAX_SLOTS", "30")),
+            "gpu_enabled": True,
+            "gpu_name": "GPU 1 (Shared Pool)",
+            "ram_limit_gb": 3.0,
+            "ram_limit_mb": 3072.0,
+            "cpu_limit_cores": 2.0,
+            "idle_release_minutes": int(os.getenv("LAB_IDLE_RELEASE_MINUTES", "15")),
+        }
+
+
+def get_level2_max_slots() -> int:
+    return int(get_lab_profile_info().get("max_slots", 30))
+
+
+def get_idle_release_minutes() -> int:
+    return int(get_lab_profile_info().get("idle_release_minutes", 15))
+
+
+def __getattr__(name: str):
+    if name == "LEVEL2_MAX_SLOTS":
+        return get_level2_max_slots()
+    if name == "IDLE_RELEASE_MINUTES":
+        return get_idle_release_minutes()
+    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 # Akun sistem (disamakan dengan jupyterhub_simtik_auth.py)
 SYSTEM_ACCOUNTS = {"labriset", "edy", "labadmin"} | {f"training{i}" for i in range(1, 11)}

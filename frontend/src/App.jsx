@@ -345,6 +345,38 @@ export default function App() {
     }
   };
 
+  const handleSwitchLabMode = async (newMode) => {
+    if (!isAdmin) {
+      setLoginModalOpen(true);
+      return;
+    }
+    const modeLabel = newMode === 'basic' ? 'Mode Pemrograman Dasar (60 Slot)' : 'Mode Praktikum AI (30 Slot)';
+    if (!confirm(`Ubah konfigurasi operasional lab ke ${modeLabel}?\n\n${
+      newMode === 'basic'
+        ? '• Kapasitas dibuka hingga 60 slot (bisa menampung 2 kelas sekaligus).\n• Akses GPU 1 untuk Level 2 dinonaktifkan (murni CPU & RAM agar GPU tidak OOM).\n• Jatah RAM per mahasiswa: 2 GB.'
+        : '• Kapasitas dibatasi 30 slot (1 kelas praktikum AI).\n• Akses akselerasi GPU 1 (Shared Pool) diaktifkan untuk PyTorch/TensorFlow.\n• Jatah RAM per mahasiswa: 3 GB.'
+    }`)) {
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/lab/profile', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ mode: newMode }),
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        showToast(json.message || `Mode Lab berhasil diubah ke ${modeLabel}`, 'success');
+        fetchStatus();
+      } else {
+        showToast(json.detail || 'Gagal mengubah mode lab', 'error');
+      }
+    } catch (e) {
+      showToast('Error: ' + e.message, 'error');
+    }
+  };
+
   const handleOpenKillModal = (proc) => {
     if (staleSeconds > 15) {
       showToast('Aksi dinonaktifkan: Data telemetri basi (>15 detik). Sambungkan ulang server.', 'error');
@@ -599,6 +631,7 @@ export default function App() {
                     isAdmin={isAdmin && !isDataStale}
                     level2Slots={data?.level2_slots}
                     onEmergencyReleaseIdle={handleEmergencyReleaseIdle}
+                    onSwitchLabMode={handleSwitchLabMode}
                   />
                   <LiveChart history={data?.history} />
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -629,6 +662,7 @@ export default function App() {
                   students={students}
                   systemUsers={data?.users || []}
                   gpus={data?.gpus || []}
+                  level2Slots={data?.level2_slots}
                   onOpenKillModal={handleOpenKillModal}
                   onResetPassword={handleResetPassword}
                   onKillAllUser={handleKillAllUser}

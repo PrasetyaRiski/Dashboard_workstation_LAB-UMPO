@@ -115,6 +115,9 @@ class SetRoleRequest(BaseModel):
     nim: str
     role: str
 
+class SetLabProfileRequest(BaseModel):
+    mode: str  # "ai" | "basic"
+
 def get_client_ip(request: Request) -> str:
     """Mendapatkan alamat IP klien nyata dengan dukungan Reverse Proxy / Tunnels"""
     forwarded = request.headers.get("x-forwarded-for")
@@ -422,26 +425,46 @@ def get_full_snapshot():
     s["admin_pin_required"] = False
 
     # ---------------------------------------------------------
-    # Hitung slot praktikum Level 2 aktif (maksimal 30 mahasiswa)
+    # Hitung slot praktikum Level 2 aktif (Kapasitas Dinamis: 30 / 60 mahasiswa)
     # Admin, Aslab, dan mahasiswa Level 1 (prioritas riset) di-bypass.
     # ---------------------------------------------------------
     try:
         from app import lab_policy
+        from app.db import get_lab_profile
 
+        profile = get_lab_profile()
         level2_active_count = lab_policy.count_active_level2_students()
-        level2_max_slots = lab_policy.LEVEL2_MAX_SLOTS
-        idle_release_minutes = lab_policy.IDLE_RELEASE_MINUTES
+        level2_max_slots = profile.get("max_slots", 30)
+        idle_release_minutes = profile.get("idle_release_minutes", 15)
+        lab_mode = profile.get("mode", "ai")
+        mode_name = profile.get("name", "Mode Praktikum AI")
+        short_name = profile.get("short_name", "Praktikum AI (30 Slot)")
+        gpu_enabled = profile.get("gpu_enabled", True)
+        gpu_name = profile.get("gpu_name", "GPU 1 (Shared Pool)")
+        ram_limit_gb = profile.get("ram_limit_gb", 3.0)
     except Exception as e:
         logger.warning(f"Error calculating level2 slots: {e}")
         level2_active_count = 0
         level2_max_slots = 30
-        idle_release_minutes = 10
+        idle_release_minutes = 15
+        lab_mode = "ai"
+        mode_name = "Mode Praktikum AI"
+        short_name = "Praktikum AI (30 Slot)"
+        gpu_enabled = True
+        gpu_name = "GPU 1 (Shared Pool)"
+        ram_limit_gb = 3.0
 
     s["level2_slots"] = {
         "max_slots": level2_max_slots,
         "active_count": level2_active_count,
         "available_slots": max(0, level2_max_slots - level2_active_count),
         "idle_release_minutes": idle_release_minutes,
+        "lab_mode": lab_mode,
+        "mode_name": mode_name,
+        "short_name": short_name,
+        "gpu_enabled": gpu_enabled,
+        "gpu_name": gpu_name,
+        "ram_limit_gb": ram_limit_gb,
     }
 
     return s
@@ -449,6 +472,36 @@ def get_full_snapshot():
 @app.get("/api/status")
 def get_status():
     return get_full_snapshot()
+
+@app.get("/api/lab/profile")
+def get_lab_profile_api():
+    """Mengambil konfigurasi profil operasional Lab AI (Mode AI 30 slot vs Mode Dasar 60 slot)"""
+    from app.db import get_lab_profile
+    return get_lab_profile()
+
+@app.post("/api/lab/profile")
+def set_lab_profile_api(req: SetLabProfileRequest, session: Dict[str, Any] = Depends(verify_operator_or_admin)):
+    """Mengubah profil operasional Lab AI ('ai' atau 'basic') - Khusus Aslab / Admin"""
+    from app.db import set_lab_profile, record_audit
+    try:
+        updated = set_lab_profile(req.mode)
+        actor = session.get("nama") or session.get("nim") or "Operator"
+        role_label = "Super Admin" if session.get("role") == "admin" else "Aslab"
+        record_audit(
+            nim=session.get("nim", "OPERATOR"),
+            action="CHANGE_LAB_PROFILE",
+            detail=f"Mode Lab diubah ke '{updated['name']}' ({updated['max_slots']} Slot, {updated['gpu_name']}, RAM {updated['ram_limit_gb']}GB) oleh {role_label} ({actor}).",
+            target="SYSTEM_PROFILE"
+        )
+        return {
+            "success": True,
+            "message": f"Mode Lab AI berhasil diubah ke {updated['name']} ({updated['max_slots']} Slot).",
+            "profile": updated
+        }
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/user-telemetry/{username}")
 def get_user_telemetry(username: str):

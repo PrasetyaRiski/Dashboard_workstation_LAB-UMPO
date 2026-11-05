@@ -1,7 +1,7 @@
 import React, { memo, useState } from 'react';
 import { 
   Cpu, HardDrive, ShieldCheck, DatabaseBackup, Loader2, Layers, 
-  Zap, Users, UserCheck
+  Zap, Users, UserCheck, SlidersHorizontal, Sparkles, Terminal
 } from 'lucide-react';
 
 function SystemOverview({ 
@@ -14,7 +14,8 @@ function SystemOverview({
   backups = [], 
   isAdmin,
   level2Slots = {},
-  onEmergencyReleaseIdle
+  onEmergencyReleaseIdle,
+  onSwitchLabMode,
 }) {
   const [isReleasing, setIsReleasing] = useState(false);
 
@@ -67,15 +68,18 @@ function SystemOverview({
 
   const latestBackup = backups && backups.length > 0 ? backups[0] : null;
 
-  // Level 2 Practical Student Slots (Max 30)
-  const maxSlots = level2Slots?.max_slots || 30;
+  // Level 2 Practical Student Slots (Kapasitas Dinamis: Mode AI 30 vs Mode Dasar 60)
+  const labMode = level2Slots?.lab_mode || 'ai';
+  const isBasicMode = labMode === 'basic';
+  const maxSlots = level2Slots?.max_slots || (isBasicMode ? 60 : 30);
   const activeSlots = level2Slots?.active_count ?? 0;
   const availableSlots = level2Slots?.available_slots ?? Math.max(0, maxSlots - activeSlots);
   const slotPercent = Math.min(100, Math.round((activeSlots / maxSlots) * 100));
+  const idleMinutesSetting = level2Slots?.idle_release_minutes || 15;
 
   const handleReleaseClick = async () => {
     if (!isAdmin || isReleasing) return;
-    if (!confirm("Bebaskan sesi mahasiswa praktikum yang idle (komputasi 0% / ditinggalkan)?\nAkun Dosen, Aslab, dan Mahasiswa Riset (Level 1) tidak akan terpengaruh.")) return;
+    if (!confirm(`Bebaskan sesi mahasiswa praktikum yang idle (≥${idleMinutesSetting} menit komputasi 0% / ditinggalkan)?\nAkun Dosen, Aslab, dan Mahasiswa Riset (Level 1) tidak akan terpengaruh.`)) return;
     
     setIsReleasing(true);
     try {
@@ -107,71 +111,138 @@ function SystemOverview({
         </div>
       </div>
 
-      {/* Level 2 Slot Praktikum (30 Kuota) Banner & Emergency Release */}
-      <div className="bg-[#F3EBDD] p-4 rounded-2xl border border-[#E4D8C3] shadow-warm-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5 flex-1 min-w-0">
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
-            activeSlots >= 29 
-              ? 'bg-[#FEE2E2] text-[#C53030] border-[#FCA5A5]' 
-              : activeSlots >= 20 
-              ? 'bg-[#FEF3C7] text-[#B45309] border-[#FDE68A]' 
-              : 'bg-[#E8F5E9] text-[#2E7D32] border-[#2E7D32]/30'
-          }`}>
-            <UserCheck className="w-5 h-5" />
+      {/* Profil Operasional Lab (Mode Switcher) & Level 2 Slot Praktikum Banner */}
+      <div className="bg-[#F3EBDD] p-4 rounded-2xl border border-[#E4D8C3] shadow-warm-xs flex flex-col gap-4">
+        {/* Row 1: Profile Mode Switcher */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-[#E4D8C3]/70">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <span className="text-xs font-mono font-bold text-[#7A6A5C] uppercase tracking-wider flex items-center gap-1.5">
+              <SlidersHorizontal className="w-3.5 h-3.5 text-[#6F4E37]" />
+              Mode Lab:
+            </span>
+            <span className={`px-2.5 py-0.5 rounded-full text-xs font-mono font-bold border flex items-center gap-1.5 ${
+              isBasicMode
+                ? 'bg-[#E0F2FE] text-[#0369A1] border-[#BAE6FD]'
+                : 'bg-[#EDE9FE] text-[#6D28D9] border-[#DDD6FE]'
+            }`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${isBasicMode ? 'bg-[#0284C7]' : 'bg-[#7C3AED]'}`} />
+              {isBasicMode ? 'Mode Pemrograman Dasar (60 Slot)' : 'Mode Praktikum AI (30 Slot)'}
+            </span>
+            <span className="text-[11px] font-mono text-[#7A6A5C] hidden md:inline">
+              {isBasicMode ? '• 2 Kelas (Murni CPU & RAM, GPU Standby)' : '• 1 Kelas AI (Akselerasi GPU 1 Shared Pool)'}
+            </span>
           </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-serif text-sm font-bold text-[#2E2018]">
-                Slot Praktikum Kelas (Level 2 Shared GPU 1)
-              </span>
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
-                activeSlots >= 29 
-                  ? 'bg-[#FEE2E2] text-[#C53030] border-[#FCA5A5]' 
-                  : activeSlots >= 20 
-                  ? 'bg-[#FEF3C7] text-[#B45309] border-[#FDE68A]' 
-                  : 'bg-[#E8F5E9] text-[#2E7D32] border-[#2E7D32]/30'
-              }`}>
-                {activeSlots >= 30 ? 'KUOTA PENUH' : `${availableSlots} SLOT TERSEDIA`}
-              </span>
+
+          {/* Toggle Buttons (Admin/Aslab only) */}
+          {isAdmin ? (
+            <div className="inline-flex items-center p-1 bg-[#FAF6EF] border border-[#E4D8C3] rounded-xl self-start sm:self-auto shadow-warm-xs">
+              <button
+                type="button"
+                onClick={() => onSwitchLabMode && onSwitchLabMode('ai')}
+                disabled={!isBasicMode}
+                className={`px-3 py-1 rounded-lg text-xs font-medium font-mono transition-all flex items-center gap-1.5 active:translate-y-0.5 ${
+                  !isBasicMode
+                    ? 'bg-white text-[#6F4E37] font-bold shadow-xs border border-[#E4D8C3]'
+                    : 'text-[#7A6A5C] hover:text-[#2E2018]'
+                }`}
+                title="Batas 30 mahasiswa, akses GPU 1 diaktifkan untuk PyTorch / Deep Learning"
+              >
+                <Sparkles className="w-3 h-3 text-[#7C3AED]" />
+                <span>Praktikum AI (30)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => onSwitchLabMode && onSwitchLabMode('basic')}
+                disabled={isBasicMode}
+                className={`px-3 py-1 rounded-lg text-xs font-medium font-mono transition-all flex items-center gap-1.5 active:translate-y-0.5 ${
+                  isBasicMode
+                    ? 'bg-white text-[#0369A1] font-bold shadow-xs border border-[#BAE6FD]'
+                    : 'text-[#7A6A5C] hover:text-[#2E2018]'
+                }`}
+                title="Batas 60 mahasiswa (2 kelas), GPU dinonaktifkan (murni CPU & RAM)"
+              >
+                <Terminal className="w-3 h-3 text-[#0284C7]" />
+                <span>Dasar / 2 Kelas (60)</span>
+              </button>
             </div>
-            
-            <div className="flex items-center gap-3 mt-1.5">
-              <div className="w-48 sm:w-64 bg-[#FAF6EF] h-2 rounded-full overflow-hidden border border-[#E4D8C3]">
-                <div 
-                  className={`h-full rounded-full transition-all duration-300 ${
-                    activeSlots >= 29 ? 'bg-[#C53030]' : activeSlots >= 20 ? 'bg-[#B45309]' : 'bg-[#2E7D32]'
-                  }`}
-                  style={{ width: `${Math.max(slotPercent, 3)}%` }}
-                />
-              </div>
-              <span className="font-mono text-xs font-bold text-[#2E2018] tabular-nums">
-                {activeSlots} <span className="text-[#7A6A5C] font-normal">/ {maxSlots} Sesi</span>
-              </span>
-            </div>
-          </div>
+          ) : (
+            <span className="text-[11px] font-mono text-[#7A6A5C]">
+              {isBasicMode ? 'GPU 1 Standby · 2 GB RAM/User' : 'GPU 1 Shared · 3 GB RAM/User'}
+            </span>
+          )}
         </div>
 
-        {isAdmin && (
-          <button
-            onClick={handleReleaseClick}
-            disabled={isReleasing || activeSlots === 0}
-            className="px-3.5 py-2 rounded-xl text-xs font-semibold font-mono bg-[#FAF6EF] hover:bg-[#EFE6D8] text-[#6F4E37] border border-[#E4D8C3] hover:border-[#6F4E37] shadow-warm-xs transition-all active:translate-y-0.5 flex items-center justify-center gap-2 shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
-            type="button"
-            title="Hentikan sesi mahasiswa praktikum yang idle untuk membuka slot antrean"
-          >
-            {isReleasing ? (
-              <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin text-[#6F4E37]" />
-                <span>Membebaskan...</span>
-              </>
-            ) : (
-              <>
-                <Zap className="w-3.5 h-3.5 text-[#B45309]" />
-                <span>Bebaskan Slot Idle</span>
-              </>
-            )}
-          </button>
-        )}
+        {/* Row 2: Slot Progress & Emergency Release */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5 flex-1 min-w-0">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
+              activeSlots >= maxSlots - 1
+                ? 'bg-[#FEE2E2] text-[#C53030] border-[#FCA5A5]' 
+                : activeSlots >= maxSlots * 0.7 
+                ? 'bg-[#FEF3C7] text-[#B45309] border-[#FDE68A]' 
+                : 'bg-[#E8F5E9] text-[#2E7D32] border-[#2E7D32]/30'
+            }`}>
+              <UserCheck className="w-5 h-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-serif text-sm font-bold text-[#2E2018]">
+                  {isBasicMode
+                    ? 'Slot Praktikum Kelas (Level 2 CPU Only - 2 Kelas)'
+                    : 'Slot Praktikum Kelas (Level 2 Shared GPU 1)'}
+                </span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
+                  activeSlots >= maxSlots 
+                    ? 'bg-[#FEE2E2] text-[#C53030] border-[#FCA5A5]' 
+                    : activeSlots >= maxSlots * 0.7 
+                    ? 'bg-[#FEF3C7] text-[#B45309] border-[#FDE68A]' 
+                    : 'bg-[#E8F5E9] text-[#2E7D32] border-[#2E7D32]/30'
+                }`}>
+                  {activeSlots >= maxSlots ? 'KUOTA PENUH' : `${availableSlots} SLOT TERSEDIA`}
+                </span>
+              </div>
+              
+              <div className="flex items-center gap-3 mt-1.5 flex-wrap sm:flex-nowrap">
+                <div className="w-48 sm:w-64 bg-[#FAF6EF] h-2 rounded-full overflow-hidden border border-[#E4D8C3]">
+                  <div 
+                    className={`h-full rounded-full transition-all duration-300 ${
+                      activeSlots >= maxSlots - 1 ? 'bg-[#C53030]' : activeSlots >= maxSlots * 0.7 ? 'bg-[#B45309]' : 'bg-[#2E7D32]'
+                    }`}
+                    style={{ width: `${Math.max(slotPercent, 3)}%` }}
+                  />
+                </div>
+                <span className="font-mono text-xs font-bold text-[#2E2018] tabular-nums">
+                  {activeSlots} <span className="text-[#7A6A5C] font-normal">/ {maxSlots} Sesi</span>
+                </span>
+                <span className="text-[10px] font-mono text-[#7A6A5C] hidden sm:inline">
+                  • {isBasicMode ? 'Jatah 2 GB RAM (CPU Only)' : 'Jatah 3 GB RAM + GPU 1 Shared'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {isAdmin && (
+            <button
+              onClick={handleReleaseClick}
+              disabled={isReleasing || activeSlots === 0}
+              className="px-3.5 py-2 rounded-xl text-xs font-semibold font-mono bg-[#FAF6EF] hover:bg-[#EFE6D8] text-[#6F4E37] border border-[#E4D8C3] hover:border-[#6F4E37] shadow-warm-xs transition-all active:translate-y-0.5 flex items-center justify-center gap-2 shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
+              type="button"
+              title={`Hentikan sesi mahasiswa praktikum yang idle (≥${idleMinutesSetting} menit) untuk membuka slot antrean`}
+            >
+              {isReleasing ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-[#6F4E37]" />
+                  <span>Membebaskan...</span>
+                </>
+              ) : (
+                <>
+                  <Zap className="w-3.5 h-3.5 text-[#B45309]" />
+                  <span>Bebaskan Slot Idle</span>
+                </>
+              )}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Cluster Workload & Priority Slot Strip */}

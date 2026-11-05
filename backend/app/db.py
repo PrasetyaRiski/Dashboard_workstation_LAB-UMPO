@@ -143,6 +143,11 @@ def init_db():
                     detail TEXT,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
+                CREATE TABLE IF NOT EXISTS system_settings (
+                    key VARCHAR(100) PRIMARY KEY,
+                    value TEXT,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
             """)
         else:
             cur.execute("""
@@ -167,6 +172,13 @@ def init_db():
                     action TEXT,
                     detail TEXT,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS system_settings (
+                    key TEXT PRIMARY KEY,
+                    value TEXT,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
             """)
         conn.commit()
@@ -777,4 +789,97 @@ def list_database_backups() -> List[Dict[str, Any]]:
                     pass
     results.sort(key=lambda x: x["created_at"], reverse=True)
     return results
+
+
+def get_setting(key: str, default: str = "") -> str:
+    """Mengambil nilai konfigurasi dari tabel system_settings."""
+    try:
+        conn, engine = get_connection()
+        cur = conn.cursor()
+        placeholder = "%s" if engine == "postgres" else "?"
+        cur.execute(f"SELECT value FROM system_settings WHERE key = {placeholder}", (key,))
+        row = cur.fetchone()
+        cur.close()
+        conn.close()
+        if row:
+            return str(row[0]) if not isinstance(row, dict) else str(row.get("value", default))
+        return default
+    except Exception as e:
+        logger.warning(f"Gagal membaca setting {key}: {e}")
+        return default
+
+
+def set_setting(key: str, value: str) -> None:
+    """Menyimpan atau memperbarui konfigurasi pada tabel system_settings."""
+    conn, engine = get_connection()
+    cur = conn.cursor()
+    try:
+        if engine == "postgres":
+            cur.execute("""
+                INSERT INTO system_settings (key, value, updated_at)
+                VALUES (%s, %s, CURRENT_TIMESTAMP)
+                ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP
+            """, (key, str(value)))
+        else:
+            cur.execute("""
+                INSERT INTO system_settings (key, value, updated_at)
+                VALUES (?, ?, CURRENT_TIMESTAMP)
+                ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = CURRENT_TIMESTAMP
+            """, (key, str(value)))
+        conn.commit()
+    finally:
+        cur.close()
+        conn.close()
+
+
+def get_lab_profile() -> Dict[str, Any]:
+    """
+    Mengambil profil operasional Lab AI UMPO:
+    - 'ai'    : Mode Praktikum AI (Maks 30 Slot, GPU 1 Shared Pool, RAM 3 GB)
+    - 'basic' : Mode Pemrograman Dasar (Maks 60 Slot, CPU Only / GPU Dinonaktifkan, RAM 2 GB)
+    """
+    mode = get_setting("lab_profile_mode", "ai").strip().lower()
+    if mode not in ("ai", "basic"):
+        mode = "ai"
+
+    if mode == "basic":
+        return {
+            "mode": "basic",
+            "name": "Mode Pemrograman Dasar",
+            "short_name": "Dasar (60 Slot)",
+            "description": "2 Kelas Pemrograman Dasar / Struktur Data (CPU Only, GPU Standby)",
+            "max_slots": 60,
+            "gpu_enabled": False,
+            "gpu_device": "",
+            "gpu_name": "CPU Only (GPU Standby)",
+            "ram_limit_gb": 2.0,
+            "ram_limit_mb": 2048.0,
+            "cpu_limit_cores": 2.0,
+            "idle_release_minutes": 15,
+        }
+    return {
+        "mode": "ai",
+        "name": "Mode Praktikum AI",
+        "short_name": "Praktikum AI (30 Slot)",
+        "description": "Praktikum Machine Learning & Deep Learning (GPU 1 Shared)",
+        "max_slots": 30,
+        "gpu_enabled": True,
+        "gpu_device": "1",
+        "gpu_name": "GPU 1 (Shared Pool)",
+        "ram_limit_gb": 3.0,
+        "ram_limit_mb": 3072.0,
+        "cpu_limit_cores": 2.0,
+        "idle_release_minutes": 15,
+    }
+
+
+def set_lab_profile(mode: str) -> Dict[str, Any]:
+    """Mengubah profil operasional Lab AI UMPO ('ai' atau 'basic')."""
+    clean_mode = str(mode).strip().lower()
+    if clean_mode not in ("ai", "basic"):
+        raise ValueError("Mode profil lab harus 'ai' atau 'basic'")
+    set_setting("lab_profile_mode", clean_mode)
+    logger.info(f"[LabProfile] Mode operasional lab diubah menjadi: {clean_mode.upper()}")
+    return get_lab_profile()
+
 

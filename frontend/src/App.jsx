@@ -470,12 +470,12 @@ export default function App() {
   const isDataStale = staleSeconds > 15;
 
   return (
-    <div className="min-h-screen bg-[#FAF6EF] text-[#3B2E26] font-sans antialiased selection:bg-[#E4D8C3] selection:text-[#2E2018]">
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-700 font-sans antialiased selection:bg-slate-200 selection:text-slate-900">
       {/* Mobile Drawer Overlay */}
       {isMobile && isSidebarOpen && (
         <div
           onClick={() => setIsSidebarOpen(false)}
-          className="fixed inset-0 bg-[#2E2018]/60 backdrop-blur-xs z-30 lg:hidden transition-opacity"
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-30 lg:hidden transition-opacity"
           aria-hidden="true"
         />
       )}
@@ -503,9 +503,9 @@ export default function App() {
         className="flex flex-col min-h-screen transition-all duration-200"
         style={{ paddingLeft: (!isMobile && isSidebarOpen) ? '16rem' : '0' }}
       >
-        {/* Enterprise Fixed Top Bar (GCP Style) */}
+        {/* Enterprise Fixed Top Bar (Modern Cloud Console Style) */}
         <header
-          className="fixed top-0 right-0 h-16 bg-[#FAF6EF]/95 backdrop-blur-md border-b border-[#E4D8C3] z-40 flex items-center justify-between px-3 sm:px-6 transition-all duration-200 shadow-warm-xs"
+          className="fixed top-0 right-0 h-16 bg-white/95 backdrop-blur-md border-b border-slate-200 z-40 flex items-center justify-between px-3 sm:px-6 transition-all duration-200 shadow-xs"
           style={{ left: (!isMobile && isSidebarOpen) ? '16rem' : '0' }}
         >
           {/* Breadcrumbs & Mobile Hamburger */}
@@ -513,19 +513,19 @@ export default function App() {
             {isMobile && (
               <button
                 onClick={() => setIsSidebarOpen(true)}
-                className="min-w-[44px] min-h-[44px] flex items-center justify-center p-2 rounded-xl text-[#3B2E26] hover:bg-[#EFE6D8] hover:text-[#2E2018] border border-[#E4D8C3] mr-1"
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center p-2 rounded-xl text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-slate-200 mr-1 cursor-pointer"
                 aria-label="Buka Menu Navigasi"
                 type="button"
               >
-                <Menu className="w-5 h-5 text-[#6F4E37]" />
+                <Menu className="w-5 h-5 text-slate-800" />
               </button>
             )}
-            <span className="text-xs font-semibold text-[#2E2018] font-serif font-bold tracking-tight truncate">
+            <span className="text-xs font-semibold text-slate-900 font-sans font-bold tracking-tight truncate">
               <span className="hidden sm:inline">Lab Komputasi AI UMPO</span>
               <span className="sm:hidden">Lab AI UMPO</span>
             </span>
-            <span className="text-[#D5C5AC] text-xs">/</span>
-            <span className="text-xs font-semibold text-[#6F4E37] truncate">
+            <span className="text-slate-300 text-xs">/</span>
+            <span className="text-xs font-semibold text-sky-600 truncate">
               {activeTab === 'overview' ? 'Ringkasan Sistem' : activeTab === 'students' ? 'Manajemen Pengguna' : activeTab === 'files' ? 'File Explorer' : 'Log Audit'}
             </span>
           </div>
@@ -535,23 +535,23 @@ export default function App() {
             {/* Command Palette Trigger */}
             <button
               onClick={() => setCommandPaletteOpen(true)}
-              className="hidden md:flex items-center gap-2 px-3 py-1.5 text-xs text-[#7A6A5C] bg-[#F3EBDD] hover:bg-[#EFE6D8] border border-[#E4D8C3] hover:border-[#6F4E37] rounded-xl font-mono transition-colors"
+              className="hidden md:flex items-center gap-2 px-3 py-1.5 text-xs text-slate-500 bg-slate-50 hover:bg-slate-100 border border-slate-200 hover:border-slate-300 rounded-xl font-mono transition-colors cursor-pointer"
               title="Buka Command Palette (Ctrl+K)"
               type="button"
             >
-              <Search className="w-3.5 h-3.5 text-[#7A6A5C]" />
+              <Search className="w-3.5 h-3.5 text-slate-400" />
               <span>Cari proses / pintasan...</span>
-              <kbd className="px-1.5 py-0.2 text-[10px] bg-white border border-slate-200 rounded text-[#7A6A5C]">⌘K</kbd>
+              <kbd className="px-1.5 py-0.2 text-[10px] bg-white border border-slate-200 rounded text-slate-500 shadow-xs">⌘K</kbd>
             </button>
 
             {/* Connection Warning */}
             {isDataStale ? (
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#FEE2E2] border border-[#FCA5A5] text-[#C53030] text-xs font-mono">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-xs font-mono">
                 <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
                 <span>Data Stale · {staleSeconds}s</span>
               </div>
             ) : !isConnected ? (
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#FEF3C7] border border-[#FDE68A] text-[#B45309] text-xs font-mono">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50 border border-amber-200 text-amber-700 text-xs font-mono">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                 <span>Menyambung ulang…</span>
               </div>
@@ -559,13 +559,13 @@ export default function App() {
 
             {/* User Role Indicator */}
             {isOperator ? (
-              <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#EFE6D8] text-[#2E2018] border border-[#E4D8C3] text-xs font-mono">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#6F4E37]" />
+              <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 text-slate-800 border border-slate-200 text-xs font-mono">
+                <ShieldCheck className="w-3.5 h-3.5 text-sky-600" />
                 <span>Operator: {adminUser?.nama ? adminUser.nama.split(' ')[0] : 'Aslab'}</span>
               </div>
             ) : isSuperAdmin ? (
-              <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#EFE6D8] text-[#2E2018] border border-[#E4D8C3] text-xs font-mono">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#1a73e8]" />
+              <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 text-slate-800 border border-slate-200 text-xs font-mono">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                 <span>Super Admin</span>
               </div>
             ) : null}
@@ -574,17 +574,17 @@ export default function App() {
             {!isAdmin ? (
               <button
                 onClick={() => setLoginModalOpen(true)}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#6F4E37] hover:bg-[#4A3426] text-[#FAF6EF] text-xs font-semibold transition-colors shadow-xs min-h-[40px] cursor-pointer"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition-colors shadow-xs min-h-[40px] cursor-pointer"
                 title="Login Operator / Admin"
                 type="button"
               >
-                <ShieldCheck className="w-3.5 h-3.5" />
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Login Admin</span>
               </button>
             ) : (
               <button
                 onClick={handleLogout}
-                className="min-w-[40px] min-h-[40px] flex items-center justify-center rounded-xl text-[#7A6A5C] hover:text-[#C53030] hover:bg-[#FEE2E2] border border-[#E4D8C3] transition-colors cursor-pointer"
+                className="min-w-[40px] min-h-[40px] flex items-center justify-center rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition-colors cursor-pointer"
                 title="Keluar dari Konsol"
                 type="button"
                 aria-label="Logout"
@@ -598,14 +598,14 @@ export default function App() {
         {/* Telemetry Disconnected Banner */}
         {!isConnected && (
           <div className="pt-16 px-6">
-            <div className="flex items-center justify-between gap-3 px-4 py-2.5 rounded-lg bg-[#FEE2E2] border border-[#FCA5A5] text-[#C53030] text-xs font-mono">
+            <div className="flex items-center justify-between gap-3 px-4 py-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-mono">
               <div className="flex items-center gap-2">
                 <WifiOff className="w-4 h-4 shrink-0" />
                 <span>Koneksi telemetri terputus — mencoba menghubungkan kembali secara otomatis…</span>
               </div>
               <button
                 onClick={fetchStatus}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#FAF6EF] hover:bg-[#FDE68A] text-[#B45309] border border-[#FDE68A] font-semibold transition-colors"
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-white hover:bg-amber-50 text-amber-800 border border-amber-200 font-semibold transition-colors cursor-pointer"
                 type="button"
               >
                 <RefreshCw className="w-3 h-3" />

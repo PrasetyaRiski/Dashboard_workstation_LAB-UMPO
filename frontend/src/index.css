@@ -59,59 +59,59 @@
 @import "tailwindcss";
 
 @theme {
-  /* ── Warm Cream & Brown Design System Palette ── */
-  --color-warm-bg: #FAF6EF;
-  --color-warm-card: #F3EBDD;
-  --color-warm-border: #E4D8C3;
-  --color-warm-primary: #6F4E37;
-  --color-warm-primary-hover: #4A3426;
-  --color-warm-title: #2E2018;
-  --color-warm-accent: #C8794A;
-  --color-warm-body: #3B2E26;
-  --color-warm-muted: #7A6A5C;
-  --color-warm-subtle: #EFE6D8;
+  /* ── Modern Cloud Console (NVIDIA DGX Style) Palette ── */
+  --color-warm-bg: #F8FAFC;
+  --color-warm-card: #FFFFFF;
+  --color-warm-border: #E2E8F0;
+  --color-warm-primary: #0F172A;
+  --color-warm-primary-hover: #1E293B;
+  --color-warm-title: #0F172A;
+  --color-warm-accent: #0284C7;
+  --color-warm-body: #334155;
+  --color-warm-muted: #64748B;
+  --color-warm-subtle: #F1F5F9;
   --color-warm-surface: #FFFFFF;
 
-  /* Semantic status colors tuned to warm aesthetic */
-  --color-warm-success: #2E7D32;
-  --color-warm-success-bg: #E8F5E9;
-  --color-warm-warning: #B45309;
+  /* Semantic status colors tuned to modern console */
+  --color-warm-success: #10B981;
+  --color-warm-success-bg: #ECFDF5;
+  --color-warm-warning: #F59E0B;
   --color-warm-warning-bg: #FEF3C7;
-  --color-warm-danger: #C53030;
+  --color-warm-danger: #EF4444;
   --color-warm-danger-bg: #FEE2E2;
 
   /* Backward Compatibility Mappings */
-  --color-bg-app: #FAF6EF;
-  --color-bg-surface: #F3EBDD;
-  --color-bg-elevated: #F3EBDD;
-  --color-bg-subtle: #EFE6D8;
-  --color-border-subtle: #E4D8C3;
-  --color-border-strong: #D5C5AC;
-  --color-text-primary: #2E2018;
-  --color-text-secondary: #3B2E26;
-  --color-text-muted: #7A6A5C;
-  --color-primary: #6F4E37;
-  --color-primary-hover: #4A3426;
-  --color-accent-blue: #6F4E37;
-  --color-accent-blue-hover: #4A3426;
-  --color-accent-amber: #C8794A;
-  --color-accent-rose: #C53030;
-  --color-accent-emerald: #2E7D32;
-  --color-focus-ring: #6F4E37;
+  --color-bg-app: #F8FAFC;
+  --color-bg-surface: #FFFFFF;
+  --color-bg-elevated: #FFFFFF;
+  --color-bg-subtle: #F1F5F9;
+  --color-border-subtle: #E2E8F0;
+  --color-border-strong: #CBD5E1;
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #334155;
+  --color-text-muted: #64748B;
+  --color-primary: #0F172A;
+  --color-primary-hover: #1E293B;
+  --color-accent-blue: #0284C7;
+  --color-accent-blue-hover: #0369A1;
+  --color-accent-amber: #F59E0B;
+  --color-accent-rose: #EF4444;
+  --color-accent-emerald: #10B981;
+  --color-focus-ring: #0284C7;
 
   /* Legacy surface tokens */
-  --color-surface-dim: #FAF6EF;
-  --color-surface-1: #F3EBDD;
-  --color-surface-2: #EFE6D8;
-  --color-surface-3: #E4D8C3;
-  --color-surface-container: #F3EBDD;
-  --color-surface-container-low: #F3EBDD;
-  --color-surface-container-lowest: #FAF6EF;
-  --color-surface-container-high: #EFE6D8;
-  --color-surface-container-highest: #E4D8C3;
+  --color-surface-dim: #F8FAFC;
+  --color-surface-1: #FFFFFF;
+  --color-surface-2: #F1F5F9;
+  --color-surface-3: #E2E8F0;
+  --color-surface-container: #FFFFFF;
+  --color-surface-container-low: #FFFFFF;
+  --color-surface-container-lowest: #F8FAFC;
+  --color-surface-container-high: #F1F5F9;
+  --color-surface-container-highest: #E2E8F0;
 
   /* Typography Scale */
-  --font-serif: "Source Serif 4", Georgia, serif;
+  --font-serif: "Inter", system-ui, -apple-system, sans-serif;
   --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, Menlo, Consolas, monospace;
 
@@ -121,15 +121,15 @@
   --r-lg: 14px;
   --r-xl: 18px;
 
-  /* Warm subtle shadows */
-  --shadow-warm-xs: 0 1px 2px 0 rgba(74, 52, 38, 0.05);
-  --shadow-warm-sm: 0 1px 3px 0 rgba(74, 52, 38, 0.08), 0 1px 2px -1px rgba(74, 52, 38, 0.08);
-  --shadow-warm-md: 0 4px 6px -1px rgba(74, 52, 38, 0.08), 0 2px 4px -2px rgba(74, 52, 38, 0.06);
-  --shadow-warm-lg: 0 10px 15px -3px rgba(74, 52, 38, 0.08), 0 4px 6px -4px rgba(74, 52, 38, 0.06);
-  --shadow-warm-modal: 0 20px 25px -5px rgba(46, 32, 24, 0.15), 0 8px 10px -6px rgba(46, 32, 24, 0.1);
-  --shadow-gcp-card: 0 1px 3px 0 rgba(74, 52, 38, 0.06);
-  --shadow-gcp-dropdown: 0 4px 6px -1px rgba(74, 52, 38, 0.1), 0 2px 4px -2px rgba(74, 52, 38, 0.06);
-  --shadow-gcp-modal: 0 20px 25px -5px rgba(46, 32, 24, 0.15), 0 8px 10px -6px rgba(46, 32, 24, 0.1);
+  /* Modern subtle shadows */
+  --shadow-warm-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  --shadow-warm-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.06);
+  --shadow-warm-md: 0 4px 6px -1px rgba(15, 23, 42, 0.06), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+  --shadow-warm-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.06), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+  --shadow-warm-modal: 0 20px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.06);
+  --shadow-gcp-card: 0 1px 3px 0 rgba(15, 23, 42, 0.05);
+  --shadow-gcp-dropdown: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+  --shadow-gcp-modal: 0 20px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.06);
 
   /* Transitions & Motion Tokens */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -141,19 +141,19 @@
 }
 
 :root {
-  --bg-app: #FAF6EF;
-  --bg-surface: #F3EBDD;
-  --bg-elevated: #F3EBDD;
-  --bg-subtle: #EFE6D8;
-  --border-subtle: #E4D8C3;
-  --border-strong: #D5C5AC;
-  --text-primary: #2E2018;
-  --text-secondary: #3B2E26;
-  --text-muted: #7A6A5C;
-  --primary: #6F4E37;
-  --primary-hover: #4A3426;
-  --accent: #C8794A;
-  --focus-ring: #6F4E37;
+  --bg-app: #F8FAFC;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #FFFFFF;
+  --bg-subtle: #F1F5F9;
+  --border-subtle: #E2E8F0;
+  --border-strong: #CBD5E1;
+  --text-primary: #0F172A;
+  --text-secondary: #334155;
+  --text-muted: #64748B;
+  --primary: #0F172A;
+  --primary-hover: #1E293B;
+  --accent: #0284C7;
+  --focus-ring: #0284C7;
 }
 
 @layer base {
@@ -178,9 +178,11 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-serif);
+    font-family: var(--font-sans);
+    font-weight: 700;
     color: var(--text-primary);
     line-height: 1.3;
+    letter-spacing: -0.02em;
   }
 
   .tabular-nums, .font-mono, code, pre, kbd {
@@ -197,24 +199,24 @@
 }
 
 /* ─────────────────────────────────────────────────────────────────
-   WARM MODERN DESIGN SYSTEM UTILITIES
+   MODERN CLOUD CONSOLE DESIGN SYSTEM UTILITIES
    ───────────────────────────────────────────────────────────────── */
 .warm-card, .gcp-card {
-  background-color: #F3EBDD;
+  background-color: #FFFFFF;
   border-radius: 0.875rem; /* rounded-xl */
-  border: 1px solid #E4D8C3;
-  box-shadow: 0 1px 3px 0 rgba(74, 52, 38, 0.05);
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04);
   transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
 }
 
 .warm-card:hover, .gcp-card:hover {
-  border-color: #D5C5AC;
-  box-shadow: 0 3px 8px -2px rgba(74, 52, 38, 0.08);
+  border-color: #CBD5E1;
+  box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.08);
 }
 
 .warm-btn-primary, .gcp-btn-primary {
-  background-color: #6F4E37;
-  color: #FAF6EF;
+  background-color: #0F172A;
+  color: #FFFFFF;
   font-weight: 600;
   border-radius: 0.625rem;
   padding: 0.5rem 1rem;
@@ -229,7 +231,7 @@
 }
 
 .warm-btn-primary:hover, .gcp-btn-primary:hover {
-  background-color: #4A3426;
+  background-color: #1E293B;
 }
 
 .warm-btn-primary:active, .gcp-btn-primary:active {
@@ -237,9 +239,9 @@
 }
 
 .warm-btn-secondary, .gcp-btn-secondary {
-  background-color: #FAF6EF;
-  color: #3B2E26;
-  border: 1px solid #E4D8C3;
+  background-color: #FFFFFF;
+  color: #334155;
+  border: 1px solid #E2E8F0;
   font-weight: 500;
   border-radius: 0.625rem;
   padding: 0.5rem 1rem;
@@ -253,9 +255,9 @@
 }
 
 .warm-btn-secondary:hover, .gcp-btn-secondary:hover {
-  background-color: #EFE6D8;
-  border-color: #D5C5AC;
-  color: #2E2018;
+  background-color: #F8FAFC;
+  border-color: #CBD5E1;
+  color: #0F172A;
 }
 
 /* Animations */
@@ -276,18 +278,18 @@
   }
 }
 
-/* Warm Scrollbars */
+/* Modern Slate Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #FAF6EF;
+  background: #F8FAFC;
 }
 ::-webkit-scrollbar-thumb {
-  background: #D5C5AC;
+  background: #CBD5E1;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #B09B82;
+  background: #94A3B8;
 }

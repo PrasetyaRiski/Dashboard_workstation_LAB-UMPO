@@ -172,31 +172,31 @@ export default function CommandPalette({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 bg-[#2E2018]/60 backdrop-blur-xs font-sans">
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 bg-slate-900/40 backdrop-blur-xs font-sans">
       <div 
-        className="w-full max-w-xl bg-[#F3EBDD] border border-[#E4D8C3] rounded-2xl shadow-warm-modal overflow-hidden flex flex-col"
+        className="w-full max-w-xl bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden flex flex-col"
         onKeyDown={handleKeyDown}
       >
         {/* Search Input Bar */}
-        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[#E4D8C3] bg-[#FAF6EF]">
-          <Search className="w-4 h-4 text-[#7A6A5C] shrink-0" />
+        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-slate-100 bg-white">
+          <Search className="w-4 h-4 text-slate-400 shrink-0" />
           <input
             ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => { setQuery(e.target.value); setSelectedIndex(0); }}
             placeholder="Cari perintah, navigasi tab, atau PID proses… (↑ ↓ Enter)"
-            className="flex-1 bg-transparent text-xs text-[#2E2018] placeholder:text-[#7A6A5C] outline-none font-medium"
+            className="flex-1 bg-transparent text-xs text-slate-900 placeholder:text-slate-400 outline-none font-medium"
           />
-          <kbd className="px-2 py-0.5 text-[10px] font-mono bg-[#EFE6D8] text-[#3B2E26] rounded-md border border-[#E4D8C3]">
+          <kbd className="px-2 py-0.5 text-[10px] font-mono bg-slate-100 text-slate-600 rounded-md border border-slate-200">
             ESC
           </kbd>
         </div>
 
         {/* Command list */}
-        <div className="max-h-80 overflow-y-auto p-2 divide-y divide-[#E4D8C3] bg-[#FAF6EF]">
+        <div className="max-h-80 overflow-y-auto p-2 divide-y divide-slate-100 bg-white">
           {filtered.length === 0 ? (
-            <div className="p-8 text-center text-xs text-[#7A6A5C]">
+            <div className="p-8 text-center text-xs text-slate-400">
               Tidak ada hasil yang cocok dengan &quot;{query}&quot;
             </div>
           ) : (
@@ -210,26 +210,26 @@ export default function CommandPalette({
                   onMouseEnter={() => setSelectedIndex(idx)}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-xs transition-colors min-h-[44px] cursor-pointer ${
                     isSelected 
-                      ? 'bg-[#6F4E37] text-[#FAF6EF] font-semibold shadow-xs' 
-                      : 'text-[#3B2E26] hover:bg-[#F3EBDD]'
+                      ? 'bg-slate-900 text-white font-semibold shadow-xs' 
+                      : 'text-slate-700 hover:bg-slate-50'
                   }`}
                   type="button"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <Icon className={`w-4 h-4 shrink-0 ${isSelected ? 'text-[#FAF6EF]' : 'text-[#6F4E37]'}`} />
+                    <Icon className={`w-4 h-4 shrink-0 ${isSelected ? 'text-white' : 'text-slate-500'}`} />
                     <span className="truncate">{item.label}</span>
                   </div>
                   <div className="flex items-center gap-2 shrink-0 ml-3">
                     <span className={`text-[10px] uppercase tracking-wider font-mono ${
-                      isSelected ? 'text-[#FAF6EF]/80' : 'text-[#7A6A5C]'
+                      isSelected ? 'text-slate-300' : 'text-slate-400'
                     }`}>
                       {item.category}
                     </span>
                     {item.shortcut && (
                       <kbd className={`px-2 py-0.5 text-[10px] font-mono rounded border ${
                         isSelected 
-                          ? 'bg-[#FAF6EF]/20 border-[#FAF6EF]/30 text-[#FAF6EF]' 
-                          : 'bg-[#EFE6D8] text-[#3B2E26] border-[#E4D8C3]'
+                          ? 'bg-white/20 border-white/30 text-white' 
+                          : 'bg-slate-100 text-slate-600 border border-slate-200'
                       }`}>
                         {item.shortcut}
                       </kbd>
@@ -242,13 +242,13 @@ export default function CommandPalette({
         </div>
 
         {/* Footer shortcuts helper */}
-        <div className="px-4 py-2.5 bg-[#EFE6D8]/60 border-t border-[#E4D8C3] flex items-center justify-between text-[11px] text-[#7A6A5C] font-mono">
+        <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-mono">
           <div className="flex items-center gap-3">
             <span>↑↓ Navigasi</span>
             <span>↵ Eksekusi</span>
             <span>Esc Tutup</span>
           </div>
-          <span className="text-[#3B2E26] font-medium hidden sm:inline">Lab Komputasi AI · TI UMPO</span>
+          <span className="text-slate-700 font-medium hidden sm:inline">Lab Komputasi AI · TI UMPO</span>
         </div>
       </div>
     </div>

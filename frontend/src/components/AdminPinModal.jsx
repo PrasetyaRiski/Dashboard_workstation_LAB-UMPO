@@ -59,26 +59,26 @@ export default function AdminPinModal({ isOpen, onSuccess, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#2E2018]/60 backdrop-blur-xs font-sans">
-      <div className="w-full max-w-md bg-[#F3EBDD] border border-[#E4D8C3] rounded-2xl shadow-warm-modal overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs font-sans">
+      <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-[#E4D8C3] bg-[#FAF6EF]">
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-100 bg-white">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#F3EBDD] border border-[#E4D8C3] text-[#6F4E37] shrink-0 shadow-xs">
+            <div className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 border border-slate-200 text-slate-800 shrink-0 shadow-xs">
               <Lock className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-serif font-bold text-sm sm:text-base text-[#2E2018] tracking-tight">
+              <h3 className="font-sans font-bold text-sm sm:text-base text-slate-900 tracking-tight">
                 Autentikasi Hak Akses Lab
               </h3>
-              <p className="text-xs text-[#7A6A5C]">
+              <p className="text-xs text-slate-500">
                 Login asisten lab atau administrator sistem
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center text-[#7A6A5C] hover:text-[#2E2018] hover:bg-[#EFE6D8] rounded-xl transition-colors cursor-pointer"
+            className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
             type="button"
             aria-label="Tutup Modal"
           >
@@ -87,14 +87,14 @@ export default function AdminPinModal({ isOpen, onSuccess, onClose }) {
         </div>
 
         {/* Tab Mode Switcher */}
-        <div className="flex border-b border-[#E4D8C3] bg-[#EFE6D8]/60 p-1.5 gap-1.5">
+        <div className="flex border-b border-slate-100 bg-slate-50/70 p-1.5 gap-1.5">
           <button
             type="button"
             onClick={() => { setLoginMode('simtik'); setErrorMsg(''); }}
-            className={`flex-1 py-2 text-xs font-medium rounded-xl flex items-center justify-center gap-1.5 transition-all min-h-[40px] ${
+            className={`flex-1 py-2 text-xs font-medium rounded-xl flex items-center justify-center gap-1.5 transition-all min-h-[40px] cursor-pointer ${
               loginMode === 'simtik'
-                ? 'bg-[#6F4E37] text-[#FAF6EF] shadow-xs font-semibold'
-                : 'text-[#3B2E26] hover:bg-[#EFE6D8]'
+                ? 'bg-slate-900 text-white shadow-xs font-semibold'
+                : 'text-slate-600 hover:bg-slate-100'
             }`}
           >
             <UserCheck className="w-3.5 h-3.5" />
@@ -103,10 +103,10 @@ export default function AdminPinModal({ isOpen, onSuccess, onClose }) {
           <button
             type="button"
             onClick={() => { setLoginMode('pin'); setErrorMsg(''); }}
-            className={`flex-1 py-2 text-xs font-medium rounded-xl flex items-center justify-center gap-1.5 transition-all min-h-[40px] ${
+            className={`flex-1 py-2 text-xs font-medium rounded-xl flex items-center justify-center gap-1.5 transition-all min-h-[40px] cursor-pointer ${
               loginMode === 'pin'
-                ? 'bg-[#6F4E37] text-[#FAF6EF] shadow-xs font-semibold'
-                : 'text-[#3B2E26] hover:bg-[#EFE6D8]'
+                ? 'bg-slate-900 text-white shadow-xs font-semibold'
+                : 'text-slate-600 hover:bg-slate-100'
             }`}
           >
             <Key className="w-3.5 h-3.5" />
@@ -117,7 +117,7 @@ export default function AdminPinModal({ isOpen, onSuccess, onClose }) {
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4">
           {errorMsg && (
-            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-[#FEE2E2] border border-[#FCA5A5] text-[#C53030] text-xs leading-relaxed">
+            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs leading-relaxed">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{errorMsg}</span>
             </div>
@@ -126,7 +126,7 @@ export default function AdminPinModal({ isOpen, onSuccess, onClose }) {
           {loginMode === 'simtik' ? (
             <>
               <div>
-                <label className="block text-xs font-semibold text-[#2E2018] mb-1.5">
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                   NIM Mahasiswa / Asisten
                 </label>
                 <input
@@ -134,13 +134,13 @@ export default function AdminPinModal({ isOpen, onSuccess, onClose }) {
                   value={nim}
                   onChange={(e) => setNim(e.target.value)}
                   placeholder="Contoh: 21533001"
-                  className="w-full bg-[#FAF6EF] border border-[#E4D8C3] focus:border-[#6F4E37] focus:ring-2 focus:ring-[#6F4E37]/20 rounded-xl px-3.5 py-2 text-xs font-mono text-[#2E2018] placeholder:text-[#7A6A5C] outline-none transition-all min-h-[44px]"
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white focus:ring-2 focus:ring-sky-500/20 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-900 placeholder:text-slate-400 outline-none transition-all min-h-[44px]"
                   autoFocus
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#2E2018] mb-1.5">
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                   Password SIMTIK
                 </label>
                 <input
@@ -148,13 +148,13 @@ export default function AdminPinModal({ isOpen, onSuccess, onClose }) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-[#FAF6EF] border border-[#E4D8C3] focus:border-[#6F4E37] focus:ring-2 focus:ring-[#6F4E37]/20 rounded-xl px-3.5 py-2 text-xs font-mono text-[#2E2018] placeholder:text-[#7A6A5C] outline-none transition-all min-h-[44px]"
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white focus:ring-2 focus:ring-sky-500/20 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-900 placeholder:text-slate-400 outline-none transition-all min-h-[44px]"
                 />
               </div>
             </>
           ) : (
             <div>
-              <label className="block text-xs font-semibold text-[#2E2018] mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 PIN Master Server
               </label>
               <input
@@ -162,34 +162,34 @@ export default function AdminPinModal({ isOpen, onSuccess, onClose }) {
                 value={pin}
                 onChange={(e) => setPin(e.target.value)}
                 placeholder="Masukkan kode otorisasi PIN…"
-                className="w-full bg-[#FAF6EF] border border-[#E4D8C3] focus:border-[#6F4E37] focus:ring-2 focus:ring-[#6F4E37]/20 rounded-xl px-3.5 py-2 text-xs font-mono text-[#2E2018] placeholder:text-[#7A6A5C] outline-none transition-all min-h-[44px]"
+                className="w-full bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white focus:ring-2 focus:ring-sky-500/20 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-900 placeholder:text-slate-400 outline-none transition-all min-h-[44px]"
                 autoFocus
               />
             </div>
           )}
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#E4D8C3]">
+          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#3B2E26] hover:bg-[#EFE6D8] border border-[#E4D8C3] transition-colors min-h-[44px] cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 border border-slate-200 transition-colors min-h-[44px] cursor-pointer"
             >
               Batal
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="px-5 py-2 rounded-xl text-xs font-semibold bg-[#6F4E37] hover:bg-[#4A3426] text-[#FAF6EF] transition-colors shadow-xs flex items-center gap-2 disabled:opacity-50 min-h-[44px] cursor-pointer"
+              className="px-5 py-2 rounded-xl text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white transition-colors shadow-xs flex items-center gap-2 disabled:opacity-50 min-h-[44px] cursor-pointer"
             >
               {isLoading ? (
                 <>
-                  <span className="w-3.5 h-3.5 border-2 border-[#FAF6EF]/30 border-t-[#FAF6EF] rounded-full animate-spin" />
+                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   <span>Memverifikasi...</span>
                 </>
               ) : (
                 <>
-                  <ShieldCheck className="w-4 h-4" />
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
                   <span>Masuk Konsol</span>
                 </>
               )}

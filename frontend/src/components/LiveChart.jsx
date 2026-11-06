@@ -116,13 +116,13 @@ function LiveChart({ history = [] }) {
           )}
 
           {/* Metric Filter Segmented Control */}
-          <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 font-mono text-xs">
+          <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-300 font-mono text-xs gap-1">
             <button
               onClick={() => setMetricFilter('ALL')}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-[11px] transition-all cursor-pointer ${
                 metricFilter === 'ALL'
-                  ? 'bg-slate-900 text-white shadow-xs font-semibold'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-slate-900 text-white shadow-xs font-bold'
+                  : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 shadow-2xs font-semibold'
               }`}
               type="button"
             >
@@ -130,10 +130,10 @@ function LiveChart({ history = [] }) {
             </button>
             <button
               onClick={() => setMetricFilter('GPU')}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-[11px] transition-all cursor-pointer ${
                 metricFilter === 'GPU'
-                  ? 'bg-slate-900 text-white shadow-xs font-semibold'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-slate-900 text-white shadow-xs font-bold'
+                  : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 shadow-2xs font-semibold'
               }`}
               type="button"
             >
@@ -141,10 +141,10 @@ function LiveChart({ history = [] }) {
             </button>
             <button
               onClick={() => setMetricFilter('HOST')}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-[11px] transition-all cursor-pointer ${
                 metricFilter === 'HOST'
-                  ? 'bg-slate-900 text-white shadow-xs font-semibold'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-slate-900 text-white shadow-xs font-bold'
+                  : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 shadow-2xs font-semibold'
               }`}
               type="button"
             >
@@ -152,31 +152,40 @@ function LiveChart({ history = [] }) {
             </button>
           </div>
 
-          {/* Pause Button */}
+          {/* Pause / Stream Button */}
           <button
             onClick={togglePause}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-xl border text-xs font-mono font-medium transition-colors min-h-[32px] cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border-2 text-xs font-mono transition-all min-h-[34px] cursor-pointer shadow-xs active:scale-[0.98] ${
               isPaused
-                ? 'bg-amber-50 border-amber-200 text-amber-700'
-                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                ? 'bg-amber-50 hover:bg-amber-100 border-amber-400 text-amber-900 font-bold'
+                : 'bg-emerald-50 hover:bg-emerald-100 border-emerald-400 text-emerald-900 font-bold'
             }`}
-            title={isPaused ? 'Lanjutkan Stream' : 'Jeda Grafik'}
+            title={isPaused ? 'Lanjutkan Stream Telemetri' : 'Jeda Stream Telemetri'}
             type="button"
           >
-            {isPaused ? <Play className="w-3.5 h-3.5 text-amber-600" /> : <Pause className="w-3.5 h-3.5 text-slate-600" />}
-            <span>{isPaused ? 'Jeda' : 'Stream'}</span>
+            {isPaused ? (
+              <>
+                <Play className="w-3.5 h-3.5 text-amber-600 fill-amber-600" />
+                <span>Jeda</span>
+              </>
+            ) : (
+              <>
+                <span className="w-2 h-2 rounded-full bg-emerald-500 pulse-dot" />
+                <span>Stream</span>
+              </>
+            )}
           </button>
 
           {/* Segmented Range Control */}
-          <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 font-mono text-xs">
+          <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-300 font-mono text-xs gap-1">
             {RANGE_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
                 onClick={() => setRange(opt.value)}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors cursor-pointer ${
+                className={`px-2.5 py-1.5 rounded-lg text-[11px] transition-all cursor-pointer ${
                   range === opt.value
-                    ? 'bg-slate-900 text-white shadow-xs font-semibold'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-slate-900 text-white shadow-xs font-bold'
+                    : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 shadow-2xs font-semibold'
                 }`}
                 type="button"
               >

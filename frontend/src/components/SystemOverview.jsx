@@ -134,36 +134,36 @@ function SystemOverview({
           </div>
 
           {/* Toggle Buttons (Always visible, prompts login if guest) */}
-          <div className="inline-flex items-center p-1 bg-slate-100 border border-slate-200 rounded-xl self-start sm:self-auto shadow-xs">
+          <div className="inline-flex items-center p-1.5 bg-slate-100 border border-slate-300 rounded-xl self-start sm:self-auto shadow-xs gap-1.5">
             <button
               type="button"
               onClick={() => onSwitchLabMode && onSwitchLabMode('ai')}
               disabled={!isBasicMode}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium font-mono transition-all flex items-center gap-1.5 active:translate-y-0.5 cursor-pointer disabled:cursor-default ${
+              className={`px-3.5 py-2 rounded-lg text-xs font-mono transition-all flex items-center gap-2 cursor-pointer disabled:cursor-default ${
                 !isBasicMode
-                  ? 'bg-white text-violet-700 font-bold shadow-xs border border-violet-200'
-                  : 'text-slate-500 hover:text-slate-900'
+                  ? 'bg-violet-600 text-white font-bold shadow-xs border border-violet-700'
+                  : 'bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 font-semibold border border-slate-300 hover:border-slate-400 shadow-2xs'
               }`}
               title={isAdmin ? "Batas 30 mahasiswa, akses GPU 1 diaktifkan untuk PyTorch / Deep Learning" : "Klik untuk beralih ke Mode Praktikum AI (Perlu Login Admin)"}
             >
-              <Sparkles className="w-3.5 h-3.5 text-violet-600" />
+              <Sparkles className={`w-3.5 h-3.5 ${!isBasicMode ? 'text-white' : 'text-violet-600'}`} />
               <span>Praktikum AI (30)</span>
-              {!isBasicMode && <span className="w-1.5 h-1.5 rounded-full bg-violet-600" />}
+              {!isBasicMode && <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
             </button>
             <button
               type="button"
               onClick={() => onSwitchLabMode && onSwitchLabMode('basic')}
               disabled={isBasicMode}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium font-mono transition-all flex items-center gap-1.5 active:translate-y-0.5 cursor-pointer disabled:cursor-default ${
+              className={`px-3.5 py-2 rounded-lg text-xs font-mono transition-all flex items-center gap-2 cursor-pointer disabled:cursor-default ${
                 isBasicMode
-                  ? 'bg-white text-sky-700 font-bold shadow-xs border border-sky-200'
-                  : 'text-slate-500 hover:text-slate-900'
+                  ? 'bg-sky-600 text-white font-bold shadow-xs border border-sky-700'
+                  : 'bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 font-semibold border border-slate-300 hover:border-slate-400 shadow-2xs'
               }`}
               title={isAdmin ? "Batas 60 mahasiswa (2 kelas), GPU dinonaktifkan (murni CPU & RAM)" : "Klik untuk beralih ke Mode Pemrograman Dasar (Perlu Login Admin)"}
             >
-              <Terminal className="w-3.5 h-3.5 text-sky-600" />
+              <Terminal className={`w-3.5 h-3.5 ${isBasicMode ? 'text-white' : 'text-sky-600'}`} />
               <span>Dasar / 2 Kelas (60)</span>
-              {isBasicMode && <span className="w-1.5 h-1.5 rounded-full bg-sky-600" />}
+              {isBasicMode && <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
             </button>
           </div>
         </div>
@@ -199,7 +199,7 @@ function SystemOverview({
               </div>
               
               <div className="flex items-center gap-3 mt-1.5 flex-wrap sm:flex-nowrap">
-                <div className="w-48 sm:w-64 bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200">
+                <div className="w-48 sm:w-64 bg-slate-100 h-2.5 rounded-full overflow-hidden border border-slate-200">
                   <div 
                     className={`h-full rounded-full transition-all duration-300 ${
                       activeSlots >= maxSlots - 1 ? 'bg-rose-500' : activeSlots >= maxSlots * 0.7 ? 'bg-amber-500' : 'bg-emerald-500'
@@ -221,18 +221,18 @@ function SystemOverview({
             <button
               onClick={handleReleaseClick}
               disabled={isReleasing || activeSlots === 0}
-              className="px-3.5 py-2 rounded-xl text-xs font-semibold font-mono bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 hover:border-slate-300 shadow-xs transition-all active:translate-y-0.5 flex items-center justify-center gap-2 shrink-0 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              className="px-4 py-2.5 rounded-xl text-xs font-semibold font-mono bg-slate-900 hover:bg-slate-800 text-white border border-slate-950 shadow-sm transition-all flex items-center justify-center gap-2 shrink-0 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               type="button"
               title={`Hentikan sesi mahasiswa praktikum yang idle (≥${idleMinutesSetting} menit) untuk membuka slot antrean`}
             >
               {isReleasing ? (
                 <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-600" />
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
                   <span>Membebaskan...</span>
                 </>
               ) : (
                 <>
-                  <Zap className="w-3.5 h-3.5 text-amber-500" />
+                  <Zap className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
                   <span>Bebaskan Slot Idle</span>
                 </>
               )}

@@ -128,20 +128,22 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, onSweepZombies }) {
           </div>
 
           {gpu.index === 1 && isAdmin && onSweepZombies && (
-            <button
-              onClick={handleSweepZombies}
-              disabled={isSweeping}
-              className="px-2.5 py-1 rounded-xl border bg-slate-50 hover:bg-slate-100 text-slate-700 hover:text-slate-900 border-slate-200 shadow-xs transition-all active:translate-y-0.5 flex items-center gap-1.5 font-sans font-semibold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              type="button"
-              title="Bersihkan proses zombie/orphan yang menahan VRAM di GPU 1"
-            >
-              {isSweeping ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-600" />
-              ) : (
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              )}
-              <span className="text-[10px] uppercase tracking-wide">Sapu Zombie</span>
-            </button>
+            <div className="flex items-center pl-1 border-l border-slate-200">
+              <button
+                onClick={handleSweepZombies}
+                disabled={isSweeping}
+                className="px-3 py-1.5 rounded-lg border-2 border-amber-400 hover:border-amber-500 bg-amber-50 hover:bg-amber-100 text-amber-900 shadow-xs transition-all active:scale-[0.98] flex items-center gap-1.5 font-mono text-xs font-bold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                type="button"
+                title="Bersihkan proses zombie/orphan yang menahan VRAM di GPU 1"
+              >
+                {isSweeping ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-700" />
+                ) : (
+                  <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                )}
+                <span>Sapu Zombie</span>
+              </button>
+            </div>
           )}
         </div>
       </div>

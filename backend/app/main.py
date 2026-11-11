@@ -22,7 +22,7 @@ from app.telemetry import (
     get_snapshot, TRAINING_UIDS, PROTECTED_PROCESS_NAMES,
     get_user_disk_metrics, update_all_user_disk_usage
 )
-from app.simtik_auth import verify_simtik_credentials
+from app.simtik_auth import verify_simtik_credentials, is_ti_nim
 import app.db as db
 from app.db import (
     init_db, get_or_create_user, list_users,
@@ -170,6 +170,13 @@ def admin_login(req: LoginRequest, request: Request):
         if not is_valid:
             FAILED_LOGIN_ATTEMPTS[client_ip].append(now_ts)
             raise HTTPException(status_code=401, detail=msg or "Kredensial SIMTIK salah atau layanan tidak dapat dihubungi.")
+
+        if not is_ti_nim(req.nim):
+            FAILED_LOGIN_ATTEMPTS[client_ip].append(now_ts)
+            raise HTTPException(
+                status_code=403,
+                detail="Akses ditolak: hanya mahasiswa Teknik Informatika (S1) yang diizinkan masuk."
+            )
 
         user = get_or_create_user(req.nim, user_data.get("nama"))
         if not user.get("is_active", True):
@@ -949,6 +956,15 @@ async def auth_simtik(req: SimtikLoginRequest):
     is_valid, msg, user_data = verify_simtik_credentials(req.nim, req.password)
     if not is_valid:
         return JSONResponse(status_code=401, content={"success": False, "message": msg})
+
+    if not is_ti_nim(req.nim):
+        return JSONResponse(
+            status_code=403,
+            content={
+                "success": False,
+                "message": "Akses ditolak: hanya mahasiswa Teknik Informatika (S1) yang diizinkan."
+            }
+        )
     
     # Daftarkan/update user ke database lokal
     nama = user_data.get("nama", f"Mahasiswa {req.nim}")

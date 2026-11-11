@@ -18,6 +18,19 @@ logging.basicConfig(level=logging.INFO)
 SIMTIK_BASE_URL = "https://simtik.umpo.ac.id"
 SIMTIK_LOGIN_ACTION = "https://simtik.umpo.ac.id/apps/action/login.user.php"
 
+# Kebijakan Prodi Lab AI UMPO:
+# Hanya mahasiswa Teknik Informatika (S1) yang diizinkan masuk.
+# Struktur NIM UMPO: YYPPNNNN (8 digit), dengan PP = kode prodi.
+# Contoh: 21533045 -> angkatan 2021, prodi 53 (Teknik Informatika), nomor 3045.
+PRODI_TI_CODE = "53"
+NIM_TI_REGEX = re.compile(r"^\d{2}53\d{4}$")
+
+
+def is_ti_nim(nim: str) -> bool:
+    """True jika NIM berformat 8 digit dan berkode prodi Teknik Informatika (53)."""
+    return bool(NIM_TI_REGEX.match(str(nim).strip()))
+
+
 def verify_simtik_credentials(nim: str, password: str, timeout: int = 10) -> tuple[bool, str, dict]:
     """
     Memverifikasi kredensial mahasiswa ke portal SIMTIK UMPO.

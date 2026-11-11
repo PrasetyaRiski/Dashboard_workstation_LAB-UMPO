@@ -300,11 +300,29 @@ class SimtikAuthenticator(Authenticator):
                 return None
 
             # Verifikasi kredensial ke SIMTIK
-            from app.simtik_auth import verify_simtik_credentials
+            from app.simtik_auth import verify_simtik_credentials, is_ti_nim
             is_valid, msg, user_data = await asyncio.to_thread(verify_simtik_credentials, nim, password)
             if not is_valid:
                 logger.warning(f"SIMTIK menolak NIM {nim}: {msg}")
                 return None
+
+            # =========================================================
+            # KEBIJAKAN PRODI: Hanya Teknik Informatika (kode 53) yang boleh masuk.
+            # Dicek setelah kredensial valid agar pesan penolakan tidak membocorkan
+            # daftar NIM TI ke pengguna tanpa kredensial sah.
+            # =========================================================
+            if not is_ti_nim(nim):
+                logger.warning(
+                    f"[ProdiFilter] Akses ditolak: NIM {nim} bukan prodi Teknik Informatika (kode 53)."
+                )
+                raise tornado.web.HTTPError(
+                    403,
+                    reason=(
+                        "Akses Ditolak: Lab AI ini hanya diperuntukkan bagi mahasiswa "
+                        "Teknik Informatika (S1). Akun Anda terdeteksi berasal dari program studi lain."
+                    ),
+                    log_message=f"NIM non-TI ditolak: {nim}"
+                )
 
             # Sinkron ke DB dashboard & Cek apakah user diblokir admin
             try:

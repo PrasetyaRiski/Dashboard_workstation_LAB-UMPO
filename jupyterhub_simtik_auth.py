@@ -750,17 +750,23 @@ def verify_miraigrid_sso_token(token: str):
 
 
 def _origin_allowed(handler) -> bool:
-    origin = (handler.request.headers.get("Origin") or "").rstrip("/")
+    raw_origin = handler.request.headers.get("Origin")
     referer = handler.request.headers.get("Referer") or ""
+    origin = (raw_origin or "").strip().rstrip("/")
 
-    if origin:
-        return origin in SSO_ALLOWED_ORIGINS
-    if referer:
-        return any(
-            referer == allowed or referer.startswith(allowed + "/")
-            for allowed in SSO_ALLOWED_ORIGINS
+    # Sebagian browser mengirim "Origin: null" untuk konteks opaque
+    # (sandboxed iframe, file://, atau kebijakan privasi) dan sebagian
+    # menghilangkan header Origin pada form POST lintas-origin. Token SSO
+    # tetap menjadi kredensial utama: HMAC, TTL 60 detik, jti sekali pakai.
+    if origin in ("", "null"):
+        logger.info(
+            "[SSO] Origin kosong/null diterima; referer=%r ua=%r",
+            referer,
+            (handler.request.headers.get("User-Agent") or "")[:80],
         )
-    return False
+        return True
+
+    return origin in SSO_ALLOWED_ORIGINS
 
 
 class MiraiGridSSOHandler(BaseHandler):

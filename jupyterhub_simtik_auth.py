@@ -710,6 +710,23 @@ def _sso_reject(reason: str, **details) -> None:
     logger.warning("[SSO] Token ditolak: %s | %s", reason, details)
 
 
+def _peek_claims(payload_b64: str) -> dict:
+    """Baca claims untuk diagnostik tanpa memvalidasi signature."""
+    try:
+        payload = json.loads(_b64url_decode(payload_b64))
+        sub = str(payload.get("sub", ""))
+        return {
+            "iss": payload.get("iss"),
+            "aud": payload.get("aud"),
+            "sub_masked": (sub[:2] + "****" + sub[-2:]) if len(sub) > 4 else "****",
+            "iat": payload.get("iat"),
+            "exp": payload.get("exp"),
+            "has_jti": bool(payload.get("jti")),
+        }
+    except Exception as exc:
+        return {"decode_error": repr(exc)}
+
+
 def verify_miraigrid_sso_token(token: str):
     """Verifikasi JWT HS256 dari MiraiGrid. Mengembalikan payload atau None."""
     secret = os.environ.get("SSO_SHARED_SECRET", "")
@@ -732,6 +749,8 @@ def verify_miraigrid_sso_token(token: str):
                 "signature_mismatch",
                 secret_fp=secret_fp,
                 sig_len=len(signature_b64),
+                now=int(time.time()),
+                claims=_peek_claims(payload_b64),
             )
             return None
 

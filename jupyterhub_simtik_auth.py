@@ -705,6 +705,11 @@ def _prune_used_jti(now: int) -> None:
     _SSO_LAST_PRUNE = now
 
 
+def _sso_reject(reason: str, **details) -> None:
+    """Catat alasan penolakan token tanpa menulis token atau secret."""
+    logger.warning("[SSO] Token ditolak: %s | %s", reason, details)
+
+
 def verify_miraigrid_sso_token(token: str):
     """Verifikasi JWT HS256 dari MiraiGrid. Mengembalikan payload atau None."""
     secret = os.environ.get("SSO_SHARED_SECRET", "")
@@ -712,40 +717,62 @@ def verify_miraigrid_sso_token(token: str):
         logger.error("SSO_SHARED_SECRET belum diset atau kurang dari 32 karakter.")
         return None
 
+    secret_fp = hashlib.sha256(secret.encode("utf-8")).hexdigest()[:12]
+
     try:
-        header_b64, payload_b64, signature_b64 = token.split(".")
+        parts = token.split(".")
+        if len(parts) != 3:
+            _sso_reject("malformed_token", parts=len(parts))
+            return None
+        header_b64, payload_b64, signature_b64 = parts
         signing_input = f"{header_b64}.{payload_b64}".encode("ascii")
         expected = hmac.new(secret.encode("utf-8"), signing_input, hashlib.sha256).digest()
         if not hmac.compare_digest(expected, _b64url_decode(signature_b64)):
+            _sso_reject(
+                "signature_mismatch",
+                secret_fp=secret_fp,
+                sig_len=len(signature_b64),
+            )
             return None
 
         header = json.loads(_b64url_decode(header_b64))
         payload = json.loads(_b64url_decode(payload_b64))
 
         if header.get("alg") != "HS256":
+            _sso_reject("bad_alg", alg=header.get("alg"))
             return None
         if payload.get("iss") != SSO_ISSUER or payload.get("aud") != SSO_AUDIENCE:
+            _sso_reject(
+                "bad_claims",
+                iss=payload.get("iss"),
+                aud=payload.get("aud"),
+            )
             return None
 
         now = int(time.time())
         iat = int(payload.get("iat", 0))
         exp = int(payload.get("exp", 0))
-        if iat > now + SSO_MAX_SKEW_SECONDS or exp < now - SSO_MAX_SKEW_SECONDS:
+        if iat > now + SSO_MAX_SKEW_SECONDS:
+            _sso_reject("iat_in_future", now=now, iat=iat)
+            return None
+        if exp < now - SSO_MAX_SKEW_SECONDS:
+            _sso_reject("expired", now=now, exp=exp, age=now - exp)
             return None
 
         jti = str(payload.get("jti") or "")
         if not jti:
+            _sso_reject("missing_jti")
             return None
 
         _prune_used_jti(now)
         if jti in _SSO_USED_JTI:
-            logger.warning(f"[SSO] Token replay ditolak (jti={jti}).")
+            _sso_reject("replay", jti=jti[:8])
             return None
         _SSO_USED_JTI[jti] = exp
 
         return payload
     except Exception as exc:
-        logger.warning(f"[SSO] Token tidak valid: {exc}")
+        _sso_reject("exception", error=repr(exc))
         return None
 
 

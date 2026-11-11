@@ -14,9 +14,16 @@ import pwd
 import subprocess
 import logging
 import asyncio
+import base64
+import hashlib
+import hmac
+import json
 import re
+import time
 import tornado.web
 from jupyterhub.auth import Authenticator
+from jupyterhub.handlers.base import BaseHandler
+from jupyterhub.utils import url_path_join
 
 for _p in ("/home/public/web/backend", "/home/public/web/panel-lab/backend",
            os.path.join(os.path.dirname(os.path.abspath(__file__)), "backend")):
@@ -661,3 +668,192 @@ try:
     logger.info("Spawner & SystemdSpawner options_form dinonaktifkan (login langsung tanpa pilihan profil).")
 except Exception as _e:
     pass
+
+
+# =========================================================
+# MIRAI GRID SSO (AUTO LOGIN DARI CPANEL KE JUPYTERHUB)
+# =========================================================
+# Alur: MiraiGrid backend menandatangani token HS256 berumur pendek, lalu
+# browser mengirim form POST ke /hub/sso/miraigrid. Handler memverifikasi
+# token, memeriksa prodi TI, menegakkan single-session, lalu memasang cookie
+# login JupyterHub dan mengarahkan ke JupyterLab pengguna.
+
+SSO_ISSUER = "miraigrid.web.id"
+SSO_AUDIENCE = "jupyterhub-lab.umpo"
+SSO_MAX_SKEW_SECONDS = 30
+SSO_ALLOWED_ORIGINS = {
+    "http://76.76.76.189:3000",
+    "https://miraigrid.web.id",
+}
+
+# Cache jti sekali pakai. Hub berjalan satu proses, jadi dict in-memory cukup.
+_SSO_USED_JTI = {}
+_SSO_LAST_PRUNE = 0
+
+
+def _b64url_decode(value: str) -> bytes:
+    return base64.urlsafe_b64decode(value + "=" * (-len(value) % 4))
+
+
+def _prune_used_jti(now: int) -> None:
+    global _SSO_LAST_PRUNE
+    if now - _SSO_LAST_PRUNE < 30:
+        return
+    expired = [jti for jti, exp in _SSO_USED_JTI.items() if exp < now - SSO_MAX_SKEW_SECONDS]
+    for jti in expired:
+        _SSO_USED_JTI.pop(jti, None)
+    _SSO_LAST_PRUNE = now
+
+
+def verify_miraigrid_sso_token(token: str):
+    """Verifikasi JWT HS256 dari MiraiGrid. Mengembalikan payload atau None."""
+    secret = os.environ.get("SSO_SHARED_SECRET", "")
+    if len(secret) < 32:
+        logger.error("SSO_SHARED_SECRET belum diset atau kurang dari 32 karakter.")
+        return None
+
+    try:
+        header_b64, payload_b64, signature_b64 = token.split(".")
+        signing_input = f"{header_b64}.{payload_b64}".encode("ascii")
+        expected = hmac.new(secret.encode("utf-8"), signing_input, hashlib.sha256).digest()
+        if not hmac.compare_digest(expected, _b64url_decode(signature_b64)):
+            return None
+
+        header = json.loads(_b64url_decode(header_b64))
+        payload = json.loads(_b64url_decode(payload_b64))
+
+        if header.get("alg") != "HS256":
+            return None
+        if payload.get("iss") != SSO_ISSUER or payload.get("aud") != SSO_AUDIENCE:
+            return None
+
+        now = int(time.time())
+        iat = int(payload.get("iat", 0))
+        exp = int(payload.get("exp", 0))
+        if iat > now + SSO_MAX_SKEW_SECONDS or exp < now - SSO_MAX_SKEW_SECONDS:
+            return None
+
+        jti = str(payload.get("jti") or "")
+        if not jti:
+            return None
+
+        _prune_used_jti(now)
+        if jti in _SSO_USED_JTI:
+            logger.warning(f"[SSO] Token replay ditolak (jti={jti}).")
+            return None
+        _SSO_USED_JTI[jti] = exp
+
+        return payload
+    except Exception as exc:
+        logger.warning(f"[SSO] Token tidak valid: {exc}")
+        return None
+
+
+def _origin_allowed(handler) -> bool:
+    origin = (handler.request.headers.get("Origin") or "").rstrip("/")
+    referer = handler.request.headers.get("Referer") or ""
+
+    if origin:
+        return origin in SSO_ALLOWED_ORIGINS
+    if referer:
+        return any(
+            referer == allowed or referer.startswith(allowed + "/")
+            for allowed in SSO_ALLOWED_ORIGINS
+        )
+    return False
+
+
+class MiraiGridSSOHandler(BaseHandler):
+    """Endpoint POST /hub/sso/miraigrid untuk auto-login dari MiraiGrid."""
+
+    def check_xsrf_cookie(self):
+        # Form POST berasal dari origin lain (MiraiGrid), sehingga XSRF token
+        # tidak tersedia. Keamanan dijaga oleh signature token + Origin check.
+        pass
+
+    def _json_error(self, status: int, error: str, message: str):
+        self.set_status(status)
+        self.set_header("Content-Type", "application/json; charset=UTF-8")
+        self.set_header("Cache-Control", "no-store")
+        self.finish({"error": error, "message": message})
+
+    async def get(self):
+        self.set_status(405)
+        self.set_header("Allow", "POST")
+        self.finish("Method Not Allowed")
+
+    async def post(self):
+        if not _origin_allowed(self):
+            logger.warning(
+                f"[SSO] Origin ditolak: {self.request.headers.get('Origin') or self.request.headers.get('Referer')}"
+            )
+            return self._json_error(403, "origin_not_allowed", "Origin tidak diizinkan.")
+
+        token = self.get_argument("token", "")
+        if not token:
+            return self._json_error(400, "missing_token", "Token SSO tidak ditemukan.")
+
+        payload = verify_miraigrid_sso_token(token)
+        if not payload:
+            return self._json_error(400, "invalid_token", "Token SSO tidak valid atau sudah kedaluwarsa.")
+
+        nim = str(payload.get("sub", "")).strip()
+        from app.simtik_auth import is_ti_nim
+        if not is_ti_nim(nim):
+            logger.warning(f"[SSO] NIM non-TI ditolak: {nim}")
+            return self._json_error(
+                403,
+                "not_teknik_informatika",
+                "Hanya mahasiswa Teknik Informatika (S1) yang diizinkan.",
+            )
+
+        linux_user = nim_to_username(nim)
+        client_ip = self.request.remote_ip
+
+        # Jika browser ini sudah punya sesi JupyterHub untuk user yang sama,
+        # lanjutkan tanpa membuat sesi baru.
+        current = await self.get_current_user()
+        if current and current.name == linux_user:
+            return self.redirect(url_path_join(self.hub.base_url, "user", linux_user, "lab"))
+
+        # Kebijakan single-session: tolak jika user sudah punya server aktif.
+        if is_user_process_running(self, linux_user):
+            logger.warning(f"[SSO] Sesi aktif sudah ada untuk {linux_user}; login baru ditolak (IP: {client_ip}).")
+            return self._json_error(
+                403,
+                "active_session_exists",
+                "Akun ini sedang aktif di perangkat lain. Logout dari perangkat sebelumnya terlebih dahulu.",
+            )
+
+        # Sinkronisasi database dashboard & cek status akun
+        try:
+            from app.db import get_or_create_user, set_user_active_session
+            rec = get_or_create_user(nim, payload.get("name"))
+            if rec and not rec.get("is_active", True):
+                return self._json_error(
+                    403,
+                    "account_disabled",
+                    "Akun Anda dinonaktifkan oleh administrator.",
+                )
+        except Exception as exc:
+            logger.warning(f"[SSO] Sinkronisasi DB gagal (diabaikan): {exc}")
+            set_user_active_session = None
+
+        if not ensure_linux_user(linux_user):
+            return self._json_error(
+                500,
+                "linux_user_provision_failed",
+                "Gagal menyiapkan akun Linux untuk pengguna.",
+            )
+
+        if set_user_active_session:
+            try:
+                set_user_active_session(nim, client_ip)
+            except Exception as exc:
+                logger.warning(f"[SSO] Gagal mencatat sesi aktif: {exc}")
+
+        user = self.user_from_username(linux_user)
+        self.set_login_cookie(user)
+
+        logger.info(f"[SSO] Login MiraiGrid sukses: NIM {nim} -> {linux_user} (IP: {client_ip})")
+        return self.redirect(url_path_join(self.hub.base_url, "user", user.name, "lab"))

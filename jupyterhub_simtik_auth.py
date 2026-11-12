@@ -21,6 +21,8 @@ import json
 import re
 import time
 import tornado.web
+from tornado import httpclient
+from urllib.parse import quote
 from jupyterhub.auth import Authenticator
 from jupyterhub.handlers.base import BaseHandler
 from jupyterhub.utils import url_path_join
@@ -909,3 +911,89 @@ class MiraiGridSSOHandler(BaseHandler):
 
         logger.info(f"[SSO] Login MiraiGrid sukses: NIM {nim} -> {linux_user} (IP: {client_ip})")
         return self.redirect(url_path_join(self.hub.base_url, "user", user.name, "lab"))
+
+
+# =========================================================
+# PROXY TELEMETRI USER (DASHBOARD PORT 8888)
+# =========================================================
+# Modal di JupyterLab memanggil endpoint ini. Handler mewajibkan login
+# JupyterHub dan hanya mengizinkan user membaca metrik akunnya sendiri
+# (admin JupyterHub boleh membaca akun lain). Permintaan diteruskan ke
+# dashboard dengan token internal, sehingga endpoint dashboard tidak
+# perlu terbuka untuk publik.
+
+class UserTelemetryProxyHandler(BaseHandler):
+    """Proxy metrik user dari dashboard, terikat pada sesi JupyterHub."""
+
+    def _json_error(self, status: int, error: str, message: str):
+        self.set_status(status)
+        self.set_header("Content-Type", "application/json; charset=UTF-8")
+        self.set_header("Cache-Control", "no-store")
+        self.finish({"error": error, "message": message})
+
+    async def get(self, username):
+        current = await self.get_current_user()
+        if not current:
+            return self._json_error(
+                403,
+                "login_required",
+                "Login JupyterHub diperlukan untuk membaca telemetri.",
+            )
+
+        requested = (username or "").strip().lower()
+        if requested.isdigit():
+            requested = f"m{requested}"
+
+        is_jupyter_admin = bool(getattr(current, "admin", False))
+        if not is_jupyter_admin and requested != current.name:
+            return self._json_error(
+                403,
+                "forbidden",
+                "Anda hanya dapat melihat telemetri akun sendiri.",
+            )
+
+        internal_token = os.environ.get("LAB_INTERNAL_TOKEN", "")
+        if len(internal_token) < 32:
+            logger.error("[TelemetryProxy] LAB_INTERNAL_TOKEN belum dikonfigurasi.")
+            return self._json_error(
+                500,
+                "internal_token_missing",
+                "Token internal dashboard belum dikonfigurasi.",
+            )
+
+        client = httpclient.AsyncHTTPClient()
+        upstream = (
+            f"http://127.0.0.1:8888/api/user-telemetry/{quote(requested, safe='')}"
+        )
+        proxy_request = httpclient.HTTPRequest(
+            upstream,
+            headers={
+                "X-Lab-Internal-Token": internal_token,
+                "X-Lab-Telemetry-User": requested,
+            },
+            request_timeout=10,
+            connect_timeout=5,
+        )
+
+        try:
+            response = await client.fetch(proxy_request)
+        except httpclient.HTTPError as exc:
+            status = getattr(exc, "code", None) or 502
+            body = exc.response.body if exc.response is not None else b'{"error":"upstream_error"}'
+            logger.warning(f"[TelemetryProxy] Dashboard menolak {requested}: HTTP {status}")
+            self.set_status(status)
+            self.set_header("Content-Type", "application/json; charset=UTF-8")
+            self.set_header("Cache-Control", "no-store")
+            self.write(body)
+            return
+        except Exception as exc:
+            logger.warning(f"[TelemetryProxy] Gagal menghubungi dashboard untuk {requested}: {exc}")
+            return self._json_error(
+                502,
+                "upstream_unreachable",
+                "Dashboard telemetri tidak dapat dihubungi.",
+            )
+
+        self.set_header("Content-Type", "application/json; charset=UTF-8")
+        self.set_header("Cache-Control", "no-store")
+        self.write(response.body)

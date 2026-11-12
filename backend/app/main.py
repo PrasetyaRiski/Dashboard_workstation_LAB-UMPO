@@ -4,6 +4,7 @@ import secrets
 import signal
 import subprocess
 import time
+import hmac
 import logging
 from datetime import datetime
 from collections import deque, defaultdict
@@ -34,48 +35,70 @@ from app.db import (
 )
 
 # Load .env file automatically jika tersedia di root direktori atau backend
+_CURR_DIR = os.path.dirname(os.path.abspath(__file__))
+_PROJ_ROOT = os.path.dirname(os.path.dirname(_CURR_DIR))
 try:
     from dotenv import load_dotenv
-    _CURR_DIR = os.path.dirname(os.path.abspath(__file__))
-    _PROJ_ROOT = os.path.dirname(os.path.dirname(_CURR_DIR))
     load_dotenv(os.path.join(_PROJ_ROOT, ".env"))
     load_dotenv(os.path.join(os.path.dirname(_CURR_DIR), ".env"))
     load_dotenv()
 except Exception:
     pass
 
+_ENV_CANDIDATES = [
+    os.path.join(_PROJ_ROOT, ".env"),
+    os.path.join(os.path.dirname(_CURR_DIR), ".env"),
+    os.path.join(_CURR_DIR, ".env"),
+    "/home/public/web/panel-lab/.env",
+    "/home/public/web/.env",
+]
+
+
+def _read_env_value(key: str) -> str:
+    """Ambil nilai dari environment atau file .env tanpa menimpa env systemd."""
+    value = os.getenv(key, "")
+    if value:
+        return value
+    for path in _ENV_CANDIDATES:
+        if not os.path.isfile(path):
+            continue
+        try:
+            with open(path, "r") as fh:
+                for line in fh:
+                    line = line.strip()
+                    if line.startswith(key + "="):
+                        return line.split("=", 1)[1].strip().strip('"').strip("'")
+        except Exception:
+            continue
+    return ""
+
+
 app = FastAPI(title="AI Lab Compute Dashboard", version="2.1.0")
 
 security = HTTPBearer(auto_error=False)
-ADMIN_PIN = os.getenv("ADMIN_PIN")
-if not ADMIN_PIN:
-    _env_candidates = [
-        os.path.join(_PROJ_ROOT, ".env"),
-        os.path.join(os.path.dirname(_CURR_DIR), ".env"),
-        os.path.join(_CURR_DIR, ".env"),
-        "/home/public/web/panel-lab/.env",
-        "/home/public/web/.env"
-    ]
-    for _ec in _env_candidates:
-        if os.path.isfile(_ec):
-            try:
-                with open(_ec, "r") as _ef:
-                    for _line in _ef:
-                        _line = _line.strip()
-                        if _line.startswith("ADMIN_PIN="):
-                            ADMIN_PIN = _line.split("=", 1)[1].strip().strip('"').strip("'")
-                            break
-            except Exception:
-                pass
-            if ADMIN_PIN:
-                break
-
+ADMIN_PIN = _read_env_value("ADMIN_PIN")
 if not ADMIN_PIN:
     logger.warning("PENTING: ADMIN_PIN belum dikonfigurasi di .env. Menggunakan kunci acak sementara.")
     ADMIN_PIN = secrets.token_hex(16)
+
+LAB_INTERNAL_TOKEN = _read_env_value("LAB_INTERNAL_TOKEN")
+if LAB_INTERNAL_TOKEN and len(LAB_INTERNAL_TOKEN) < 32:
+    logger.warning("LAB_INTERNAL_TOKEN kurang dari 32 karakter; telemetri internal dinonaktifkan.")
+    LAB_INTERNAL_TOKEN = ""
+elif not LAB_INTERNAL_TOKEN:
+    logger.warning("LAB_INTERNAL_TOKEN belum diset; telemetri internal JupyterLab akan ditolak.")
+
 ACTIVE_SESSIONS: Dict[str, Dict[str, Any]] = {}
 FAILED_LOGIN_ATTEMPTS: Dict[str, List[float]] = defaultdict(list)
+FAILED_LOGIN_BY_ACCOUNT: Dict[str, List[float]] = defaultdict(list)
 SESSION_MAX_AGE_SECONDS = 12 * 3600  # Maksimal 12 jam
+LOGIN_WINDOW_SECONDS = 300
+LOGIN_MAX_FAILURES_PER_IP = 5
+LOGIN_ACCOUNT_WINDOW_SECONDS = 900
+LOGIN_MAX_FAILURES_PER_ACCOUNT = 10
+WS_TICKETS: Dict[str, Dict[str, Any]] = {}
+WS_TICKET_TTL_SECONDS = 30
+WS_MAX_CONNECTIONS_PER_SESSION = 3
 
 def get_current_session(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)) -> Dict[str, Any]:
     if not credentials or not credentials.credentials:
@@ -134,20 +157,52 @@ def get_client_ip(request: Request) -> str:
 def admin_login(req: LoginRequest, request: Request):
     client_ip = get_client_ip(request)
     now_ts = time.time()
+    account_key = (req.nim or "").strip() or ("master-pin" if req.pin else "unknown")
 
-    # Rate limiting: Maksimal 5 kali kegagalan per IP dalam jendela 5 menit
-    recent_fails = [t for t in FAILED_LOGIN_ATTEMPTS[client_ip] if now_ts - t < 300]
+    # Rate limiting per IP: maksimal 5 kegagalan per 5 menit.
+    recent_fails = [
+        t for t in FAILED_LOGIN_ATTEMPTS[client_ip]
+        if now_ts - t < LOGIN_WINDOW_SECONDS
+    ]
     FAILED_LOGIN_ATTEMPTS[client_ip] = recent_fails
-    if len(recent_fails) >= 5:
+    if len(recent_fails) >= LOGIN_MAX_FAILURES_PER_IP:
         raise HTTPException(
             status_code=429,
-            detail="Terlalu banyak percobaan login yang gagal. Akses dibatasi sementara selama 5 menit demi keamanan."
+            detail="Terlalu banyak percobaan login yang gagal. Akses dibatasi sementara selama 5 menit demi keamanan.",
+            headers={"Retry-After": str(LOGIN_WINDOW_SECONDS)},
         )
+
+    # Rate limiting per akun: mencegah brute force terdistribusi dari banyak IP.
+    recent_account_fails = [
+        t for t in FAILED_LOGIN_BY_ACCOUNT[account_key]
+        if now_ts - t < LOGIN_ACCOUNT_WINDOW_SECONDS
+    ]
+    FAILED_LOGIN_BY_ACCOUNT[account_key] = recent_account_fails
+    if len(recent_account_fails) >= LOGIN_MAX_FAILURES_PER_ACCOUNT:
+        raise HTTPException(
+            status_code=429,
+            detail="Terlalu banyak percobaan untuk akun ini. Coba lagi dalam 15 menit.",
+            headers={"Retry-After": str(LOGIN_ACCOUNT_WINDOW_SECONDS)},
+        )
+
+    def _fail(reason: str):
+        FAILED_LOGIN_ATTEMPTS[client_ip].append(now_ts)
+        FAILED_LOGIN_BY_ACCOUNT[account_key].append(now_ts)
+        try:
+            record_audit(
+                target=f"NIM {req.nim}" if req.nim else "MASTER_PIN",
+                action="LOGIN_FAILED",
+                detail=f"Percobaan login gagal dari {client_ip}: {reason}",
+                log_type="warning",
+            )
+        except Exception:
+            pass
 
     # 1. Login via Master PIN (Super Admin)
     if req.pin:
-        if req.pin.strip() == ADMIN_PIN.strip():
+        if hmac.compare_digest(req.pin.strip(), ADMIN_PIN.strip()):
             FAILED_LOGIN_ATTEMPTS.pop(client_ip, None)
+            FAILED_LOGIN_BY_ACCOUNT.pop(account_key, None)
             token = secrets.token_hex(32)
             ACTIVE_SESSIONS[token] = {
                 "role": "admin",
@@ -161,18 +216,18 @@ def admin_login(req: LoginRequest, request: Request):
                 "role": "admin",
                 "user": {"nim": None, "nama": "Super Admin", "role": "admin"}
             }
-        FAILED_LOGIN_ATTEMPTS[client_ip].append(now_ts)
+        _fail("PIN Master Admin salah")
         raise HTTPException(status_code=401, detail="PIN Master Admin salah")
 
     # 2. Login via Akun SIMTIK (Aslab / Admin)
     if req.nim and req.password:
         is_valid, msg, user_data = verify_simtik_credentials(req.nim, req.password)
         if not is_valid:
-            FAILED_LOGIN_ATTEMPTS[client_ip].append(now_ts)
+            _fail(msg or "Kredensial SIMTIK salah atau layanan tidak dapat dihubungi.")
             raise HTTPException(status_code=401, detail=msg or "Kredensial SIMTIK salah atau layanan tidak dapat dihubungi.")
 
         if not is_ti_nim(req.nim):
-            FAILED_LOGIN_ATTEMPTS[client_ip].append(now_ts)
+            _fail("NIM bukan prodi Teknik Informatika")
             raise HTTPException(
                 status_code=403,
                 detail="Akses ditolak: hanya mahasiswa Teknik Informatika (S1) yang diizinkan masuk."
@@ -180,18 +235,19 @@ def admin_login(req: LoginRequest, request: Request):
 
         user = get_or_create_user(req.nim, user_data.get("nama"))
         if not user.get("is_active", True):
-            FAILED_LOGIN_ATTEMPTS[client_ip].append(now_ts)
+            _fail("Akun dinonaktifkan admin")
             raise HTTPException(status_code=403, detail="Akses ditolak: Akun Anda dinonaktifkan oleh Admin Lab.")
 
         user_role = user.get("role") or ("admin" if user.get("is_admin") else "mahasiswa")
         if user_role not in ["aslab", "admin"]:
-            FAILED_LOGIN_ATTEMPTS[client_ip].append(now_ts)
+            _fail(f"Akun role {user_role} tidak punya akses administratif")
             raise HTTPException(
                 status_code=403,
                 detail=f"Akses Ditolak: Akun NIM {req.nim} terdaftar sebagai Mahasiswa dan tidak memiliki izin akses administratif lab."
             )
 
         FAILED_LOGIN_ATTEMPTS.pop(client_ip, None)
+        FAILED_LOGIN_BY_ACCOUNT.pop(account_key, None)
         token = secrets.token_hex(32)
         nama_user = user.get("nama") or f"Mahasiswa {req.nim}"
         ACTIVE_SESSIONS[token] = {
@@ -490,11 +546,11 @@ def get_full_snapshot():
     return s
 
 @app.get("/api/status")
-def get_status():
+def get_status(session: Dict[str, Any] = Depends(verify_operator_or_admin)):
     return get_full_snapshot()
 
 @app.get("/api/lab/profile")
-def get_lab_profile_api():
+def get_lab_profile_api(session: Dict[str, Any] = Depends(verify_operator_or_admin)):
     """Mengambil konfigurasi profil operasional Lab AI (Mode AI 30 slot vs Mode Dasar 60 slot)"""
     from app.db import get_lab_profile
     return get_lab_profile()
@@ -524,7 +580,11 @@ def set_lab_profile_api(req: SetLabProfileRequest, session: Dict[str, Any] = Dep
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/user-telemetry/{username}")
-def get_user_telemetry(username: str):
+def get_user_telemetry(
+    username: str,
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+):
     """
     Mengembalikan data performa real-time spesifik untuk satu user (Live Monitoring di JupyterLab)
     Mencakup: CPU, RAM, GPU (Compute % & VRAM), dan Storage Kuota.
@@ -532,7 +592,35 @@ def get_user_telemetry(username: str):
     clean_user = username.strip().lower()
     if clean_user.isdigit():
         clean_user = f"m{clean_user}"
-    
+
+    authorized = False
+    if credentials and credentials.credentials:
+        session = ACTIVE_SESSIONS.get(credentials.credentials)
+        if session and session.get("role") in ["admin", "aslab"]:
+            authorized = True
+
+    # Jalur internal: dipakai proxy JupyterHub setelah user terautentikasi.
+    if not authorized and LAB_INTERNAL_TOKEN:
+        internal_token = request.headers.get("x-lab-internal-token", "")
+        internal_user = (request.headers.get("x-lab-telemetry-user", "") or "").strip().lower()
+        if internal_user.isdigit():
+            internal_user = f"m{internal_user}"
+        if (
+            internal_token
+            and internal_user == clean_user
+            and hmac.compare_digest(
+                internal_token.encode("utf-8"),
+                LAB_INTERNAL_TOKEN.encode("utf-8"),
+            )
+        ):
+            authorized = True
+
+    if not authorized:
+        raise HTTPException(
+            status_code=401,
+            detail="Autentikasi diperlukan untuk membaca telemetri pengguna.",
+        )
+
     snapshot = get_full_snapshot()
     gpus = snapshot.get("gpus", [])
     users = snapshot.get("users", [])
@@ -637,7 +725,7 @@ def get_user_telemetry(username: str):
 
 
 @app.get("/api/export-telemetry")
-def export_telemetry():
+def export_telemetry(session: Dict[str, Any] = Depends(verify_operator_or_admin)):
     return get_full_snapshot()
 
 @app.post("/api/kill-process")
@@ -976,23 +1064,13 @@ async def auth_simtik(req: SimtikLoginRequest):
     }
 
 @app.get("/api/users/students")
-def get_students(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)):
+def get_students(session: Dict[str, Any] = Depends(verify_operator_or_admin)):
     """Mengambil daftar seluruh mahasiswa terdaftar beserta status mode prioritas dan kuota storage"""
-    is_authenticated_admin = False
-    if credentials and credentials.credentials:
-        token = credentials.credentials
-        session = ACTIVE_SESSIONS.get(token)
-        if session and session.get("role") in ["admin", "aslab"]:
-            is_authenticated_admin = True
-
     users = list_users()
     for u in users:
         uname = f"m{u['nim']}" if str(u['nim']).isdigit() else str(u['nim'])
         disk_info = get_user_disk_metrics(uname, is_priority=bool(u.get("is_priority")))
         u.update(disk_info)
-        # Sembunyikan IP perangkat jika bukan admin/aslab terotentikasi demi privasi
-        if not is_authenticated_admin and "active_ip" in u:
-            u["active_ip"] = None
     return {"success": True, "users": users}
 
 @app.post("/api/users/boost")
@@ -1669,14 +1747,21 @@ def trigger_wal_checkpoint(request: Request, session: Dict[str, Any] = Depends(v
 class ConnectionManager:
     def __init__(self):
         self.active_connections: List[WebSocket] = []
+        self.connection_sessions: Dict[WebSocket, str] = {}
 
-    async def connect(self, websocket: WebSocket):
+    def count_for_session(self, session_key: str) -> int:
+        return sum(1 for key in self.connection_sessions.values() if key == session_key)
+
+    async def connect(self, websocket: WebSocket, session_key: Optional[str] = None):
         await websocket.accept()
         self.active_connections.append(websocket)
+        if session_key:
+            self.connection_sessions[websocket] = session_key
 
     def disconnect(self, websocket: WebSocket):
         if websocket in self.active_connections:
             self.active_connections.remove(websocket)
+        self.connection_sessions.pop(websocket, None)
 
     async def broadcast(self, data: dict):
         for connection in list(self.active_connections):
@@ -1687,10 +1772,46 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
+
+@app.post("/api/ws-ticket")
+def create_ws_ticket(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    session: Dict[str, Any] = Depends(verify_operator_or_admin),
+):
+    """Tiket sekali pakai untuk membuka WebSocket tanpa menaruh token sesi di URL."""
+    now_ts = time.time()
+    for key in [k for k, v in WS_TICKETS.items() if v.get("expires_at", 0) < now_ts]:
+        WS_TICKETS.pop(key, None)
+
+    ticket = secrets.token_urlsafe(32)
+    WS_TICKETS[ticket] = {
+        "expires_at": now_ts + WS_TICKET_TTL_SECONDS,
+        "session_key": credentials.credentials if credentials else "unknown",
+        "role": session.get("role"),
+    }
+    return {
+        "success": True,
+        "ticket": ticket,
+        "expires_in": WS_TICKET_TTL_SECONDS,
+    }
+
+
 @app.websocket("/ws")
 @app.websocket("/ws/telemetry")
 async def websocket_endpoint(websocket: WebSocket):
-    await manager.connect(websocket)
+    ticket = (websocket.query_params.get("ticket") or "").strip()
+    info = WS_TICKETS.pop(ticket, None) if ticket else None
+
+    if not info or time.time() > info.get("expires_at", 0):
+        await websocket.close(code=1008)
+        return
+
+    session_key = str(info.get("session_key") or ticket)
+    if manager.count_for_session(session_key) >= WS_MAX_CONNECTIONS_PER_SESSION:
+        await websocket.close(code=1008)
+        return
+
+    await manager.connect(websocket, session_key)
     try:
         await websocket.send_json(get_full_snapshot())
         while True:

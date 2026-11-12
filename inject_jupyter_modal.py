@@ -388,7 +388,6 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
     function updateTelemetry() {
       var u = isUserLoggedInJupyter();
       if (!u) return;
-      var host = window.location.hostname || '76.76.76.188';
 
       fetch('/api/user-telemetry/' + u)
         .then(function(res) {
@@ -399,18 +398,7 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
           applyTelemetry(data);
         })
         .catch(function() {
-          var directUrl = window.location.protocol + '//' + host + ':8888/api/user-telemetry/' + u;
-          fetch(directUrl)
-            .then(function(res) {
-              if (!res.ok) throw new Error(res.status);
-              return res.json();
-            })
-            .then(function(data) {
-              applyTelemetry(data);
-            })
-            .catch(function() {
-              fallbackJupyterMetrics();
-            });
+          fallbackJupyterMetrics();
         });
     }
 

@@ -296,40 +296,83 @@ export default function App() {
 
     let ws;
     let timer;
+    let stopped = false;
+    let retryDelay = 3000;
 
-    const connect = () => {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${window.location.host}/ws/telemetry`;
-      ws = new WebSocket(wsUrl);
-      wsRef.current = ws;
+    const scheduleReconnect = () => {
+      if (stopped) return;
+      timer = setTimeout(connect, retryDelay);
+      retryDelay = Math.min(Math.round(retryDelay * 1.5), 30000);
+    };
 
-      ws.onopen = () => setIsConnected(true);
+    const connect = async () => {
+      if (stopped) return;
 
-      ws.onmessage = (event) => {
-        try {
-          const payload = JSON.parse(event.data);
-          setData(payload);
-          setLastDataTimestamp(Date.now());
-        } catch (err) {
-          console.error('Error parsing WS data:', err);
+      try {
+        const ticketRes = await fetch('/api/ws-ticket', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${adminToken}` },
+          cache: 'no-store',
+        });
+
+        if (!ticketRes.ok) {
+          if (ticketRes.status === 401 || ticketRes.status === 403) {
+            stopped = true;
+            setIsConnected(false);
+            showToast('Sesi admin berakhir. Silakan login kembali untuk melanjutkan pemantauan.', 'error');
+            return;
+          }
+          throw new Error(`Gagal mengambil tiket WebSocket (${ticketRes.status})`);
         }
-      };
 
-      ws.onclose = () => {
+        const ticketData = await ticketRes.json();
+        if (!ticketData?.ticket) {
+          throw new Error('Tiket WebSocket tidak valid');
+        }
+
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/ws/telemetry?ticket=${encodeURIComponent(ticketData.ticket)}`;
+        ws = new WebSocket(wsUrl);
+        wsRef.current = ws;
+
+        ws.onopen = () => {
+          retryDelay = 3000;
+          setIsConnected(true);
+        };
+
+        ws.onmessage = (event) => {
+          try {
+            const payload = JSON.parse(event.data);
+            setData(payload);
+            setLastDataTimestamp(Date.now());
+          } catch (err) {
+            console.error('Error parsing WS data:', err);
+          }
+        };
+
+        ws.onclose = () => {
+          setIsConnected(false);
+          wsRef.current = null;
+          scheduleReconnect();
+        };
+
+        ws.onerror = () => ws.close();
+      } catch (err) {
+        console.error('WebSocket connect error:', err);
         setIsConnected(false);
-        timer = setTimeout(connect, 3000);
-      };
-
-      ws.onerror = () => ws.close();
+        scheduleReconnect();
+      }
     };
 
     connect();
 
     return () => {
+      stopped = true;
       if (timer) clearTimeout(timer);
       if (ws) ws.close();
+      wsRef.current = null;
     };
-  }, [isAdmin]);
+  }, [isAdmin, adminToken, showToast]);
 
   useEffect(() => {
     if (isAdmin) {

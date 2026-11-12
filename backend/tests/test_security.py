@@ -290,6 +290,7 @@ def test_change_master_pin_api(client):
 
 
 def test_reset_admin_pin_cli(client):
+    import os
     import subprocess
     import sys
     from pathlib import Path
@@ -297,11 +298,13 @@ def test_reset_admin_pin_cli(client):
     script = Path(__file__).resolve().parents[1] / "scripts" / "reset_admin_pin.py"
     temp_pin = "CliResetSecret#2026"
 
-    # Jalankan CLI dengan argumen --pin dan --no-restart
+    # Jalankan CLI dengan argumen --pin, --no-restart, dan --no-env-sync agar aman untuk environment produksi/lokal
+    sub_env = os.environ.copy()
     res = subprocess.run(
-        [sys.executable, str(script), "--pin", temp_pin, "--no-restart"],
+        [sys.executable, str(script), "--pin", temp_pin, "--no-restart", "--no-env-sync"],
         capture_output=True,
         text=True,
+        env=sub_env,
     )
     assert res.returncode == 0
     assert "BERHASIL" in res.stdout

@@ -100,6 +100,7 @@ def main():
     parser.add_argument("--pin", type=str, default="", help="PIN baru yang akan disetel")
     parser.add_argument("--generate", action="store_true", help="Buat PIN acak aman secara otomatis")
     parser.add_argument("--no-restart", action="store_true", help="Jangan restart service systemd")
+    parser.add_argument("--no-env-sync", action="store_true", help="Jangan modifikasi file .env (hanya update hash di DB)")
 
     args = parser.parse_args()
 
@@ -130,8 +131,8 @@ def main():
     init_db()
     hashed = set_master_pin(new_pin)
 
-    # 3. Sinkronkan file environment
-    updated_files = sync_env_files(new_pin)
+    # 3. Sinkronkan file environment jika diizinkan
+    updated_files = [] if args.no_env_sync else sync_env_files(new_pin)
 
     # 4. Catat Audit
     record_reset_audit(f"PIN Master direset via CLI server oleh UID={os.getuid()} (user={getpass.getuser()}).")

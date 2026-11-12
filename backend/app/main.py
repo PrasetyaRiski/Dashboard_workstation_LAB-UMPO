@@ -141,8 +141,25 @@ class SetRoleRequest(BaseModel):
 class SetLabProfileRequest(BaseModel):
     mode: str  # "ai" | "basic"
 
+_TRUSTED_PROXIES = {
+    ip.strip()
+    for ip in (_read_env_value("TRUSTED_PROXIES") or "127.0.0.1,::1").split(",")
+    if ip.strip()
+}
+
+
 def get_client_ip(request: Request) -> str:
-    """Mendapatkan alamat IP klien nyata dengan dukungan Reverse Proxy / Tunnels"""
+    """IP klien nyata.
+
+    Header forwarding hanya dipercaya bila koneksi berasal dari reverse proxy
+    yang terdaftar. Dashboard saat ini diekspos langsung tanpa proxy, sehingga
+    klien biasa tidak boleh bisa memalsukan X-Forwarded-For demi melewati
+    pembatasan percobaan login.
+    """
+    peer_ip = request.client.host if request.client else "unknown"
+    if peer_ip not in _TRUSTED_PROXIES:
+        return peer_ip
+
     forwarded = request.headers.get("x-forwarded-for")
     if forwarded:
         first_ip = forwarded.split(",")[0].strip()
@@ -151,7 +168,7 @@ def get_client_ip(request: Request) -> str:
     cf_ip = request.headers.get("cf-connecting-ip")
     if cf_ip:
         return cf_ip.strip()
-    return request.client.host if request.client else "unknown"
+    return peer_ip
 
 @app.post("/api/admin/login")
 def admin_login(req: LoginRequest, request: Request):

@@ -400,13 +400,25 @@ def record_audit(target: str, action: str, detail: str, log_type: str = "info"):
     except Exception as e:
         print("Error writing to audit_logs DB:", e)
 
-# Allow CORS
+# CORS: dashboard disajikan same-origin, jadi cukup daftar origin eksplisit.
+# Bisa ditambah lewat CORS_ALLOW_ORIGINS (dipisah koma) bila ada domain lain.
+_CORS_DEFAULT = (
+    "http://76.76.76.188:8888,http://76.76.76.188:8090,"
+    "http://localhost:8888,http://127.0.0.1:8888,"
+    "http://localhost:8090,http://127.0.0.1:8090"
+)
+CORS_ALLOW_ORIGINS = [
+    origin.strip()
+    for origin in (_read_env_value("CORS_ALLOW_ORIGINS") or _CORS_DEFAULT).split(",")
+    if origin.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=CORS_ALLOW_ORIGINS,
     allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 class VerifyPinRequest(BaseModel):

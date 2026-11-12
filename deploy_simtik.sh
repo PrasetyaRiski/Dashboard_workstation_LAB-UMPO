@@ -55,15 +55,21 @@ fi
 echo "🔄 Merestart Dashboard Monitoring..."
 chmod +x backend/run.sh 2>/dev/null || true
 
-if systemctl list-unit-files panel-lab.service 2>/dev/null | grep -q panel-lab.service; then
+DASHBOARD_UNIT=""
+for unit in lab-dashboard.service panel-lab.service workstation-monitor.service; do
+    if systemctl list-unit-files "$unit" 2>/dev/null | grep -q "^$unit"; then
+        DASHBOARD_UNIT="$unit"
+        break
+    fi
+done
+
+if [ -n "$DASHBOARD_UNIT" ]; then
     sudo systemctl daemon-reload
-    sudo systemctl restart panel-lab.service
-    echo "✅ Service panel-lab.service berhasil direstart."
-elif systemctl list-unit-files workstation-monitor.service 2>/dev/null | grep -q workstation-monitor.service; then
-    sudo systemctl daemon-reload
-    sudo systemctl restart workstation-monitor.service
-    echo "✅ Service workstation-monitor.service berhasil direstart."
+    sudo systemctl enable "$DASHBOARD_UNIT" >/dev/null 2>&1 || true
+    sudo systemctl restart "$DASHBOARD_UNIT"
+    echo "✅ Service $DASHBOARD_UNIT berhasil direstart lewat systemd."
 else
+    echo "⚠️ Tidak ada unit systemd dashboard. Menjalankan backend lewat nohup (mode darurat)."
     sudo fuser -k 8888/tcp 2>/dev/null || true
     sleep 1
     nohup ./backend/run.sh > dashboard.log 2>&1 &
@@ -74,16 +80,25 @@ sleep 2
 if ss -tuln 2>/dev/null | grep -q ":8888 " || netstat -tuln 2>/dev/null | grep -q ":8888 "; then
     echo "✅ Port 8888 AKTIF dan siap menerima koneksi."
 else
-    echo "⚠️ Port 8888 belum merespons. Mencoba menyalakan manual lewat nohup..."
-    sudo fuser -k 8888/tcp 2>/dev/null || true
-    sleep 1
-    nohup ./backend/run.sh > dashboard.log 2>&1 &
-    sleep 2
+    echo "⚠️ Port 8888 belum merespons. Mencoba restart ulang lewat systemd..."
+    if [ -n "$DASHBOARD_UNIT" ]; then
+        sudo systemctl restart "$DASHBOARD_UNIT"
+    else
+        sudo fuser -k 8888/tcp 2>/dev/null || true
+        sleep 1
+        nohup ./backend/run.sh > dashboard.log 2>&1 &
+    fi
+    sleep 3
     if ss -tuln 2>/dev/null | grep -q ":8888 " || netstat -tuln 2>/dev/null | grep -q ":8888 "; then
         echo "✅ Port 8888 AKTIF!"
     else
-        echo "❌ Port 8888 masih belum aktif. Isi log terakhir (dashboard.log):"
-        tail -n 20 dashboard.log 2>/dev/null || true
+        echo "❌ Port 8888 masih belum aktif. Periksa status unit dan log:"
+        if [ -n "$DASHBOARD_UNIT" ]; then
+            sudo systemctl status "$DASHBOARD_UNIT" --no-pager -l | tail -n 20 || true
+            sudo journalctl -u "$DASHBOARD_UNIT" -n 20 --no-pager || true
+        else
+            tail -n 20 dashboard.log 2>/dev/null || true
+        fi
     fi
 fi
 

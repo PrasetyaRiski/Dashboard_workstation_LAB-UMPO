@@ -356,20 +356,21 @@ def change_admin_pin(
     # 3. Simpan hash PIN baru ke system_settings
     set_master_pin(new_pin)
 
-    # 4. Sinkronisasi aman ke file .env jika file ada dan dapat ditulis
-    try:
-        import re
-        for env_path in _ENV_CANDIDATES:
-            if os.path.isfile(env_path) and os.access(env_path, os.W_OK):
-                txt = open(env_path, "r", encoding="utf-8").read()
-                if re.search(r"^ADMIN_PIN=", txt, re.M):
-                    txt = re.sub(r"^ADMIN_PIN=.*$", f"ADMIN_PIN={new_pin}", txt, count=1, flags=re.M)
-                else:
-                    txt += f"\nADMIN_PIN={new_pin}\n"
-                open(env_path, "w", encoding="utf-8").write(txt)
-                break
-    except Exception as exc:
-        logger.warning(f"Gagal memperbarui file .env (hash di database tetap aktif): {exc}")
+    # 4. Sinkronisasi aman ke file .env jika file ada dan dapat ditulis (abaikan saat testing)
+    if not os.environ.get("TESTING") and not os.environ.get("PYTEST_CURRENT_TEST"):
+        try:
+            import re
+            for env_path in _ENV_CANDIDATES:
+                if os.path.isfile(env_path) and os.access(env_path, os.W_OK):
+                    txt = open(env_path, "r", encoding="utf-8").read()
+                    if re.search(r"^ADMIN_PIN=", txt, re.M):
+                        txt = re.sub(r"^ADMIN_PIN=.*$", f"ADMIN_PIN={new_pin}", txt, count=1, flags=re.M)
+                    else:
+                        txt += f"\nADMIN_PIN={new_pin}\n"
+                    open(env_path, "w", encoding="utf-8").write(txt)
+                    break
+        except Exception as exc:
+            logger.warning(f"Gagal memperbarui file .env (hash di database tetap aktif): {exc}")
 
     # 5. Cabut semua sesi lain demi keamanan
     auth_header = request.headers.get("authorization", "")

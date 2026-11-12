@@ -14,6 +14,7 @@ sys.path.insert(0, str(BACKEND_DIR))
 
 _TMP_DIR = tempfile.mkdtemp(prefix="panel-lab-tests-")
 
+os.environ["TESTING"] = "1"
 os.environ["ADMIN_PIN"] = "test-admin-pin-123"
 os.environ["LAB_INTERNAL_TOKEN"] = "t" * 64
 os.environ["LAB_DB_PATH"] = os.path.join(_TMP_DIR, "test.db")

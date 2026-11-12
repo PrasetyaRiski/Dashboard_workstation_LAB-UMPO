@@ -7,6 +7,9 @@ import os
 import time
 import sqlite3
 import logging
+import hashlib
+import hmac
+import secrets
 from datetime import datetime, timedelta
 from typing import Optional, List, Dict, Any
 
@@ -833,6 +836,67 @@ def set_setting(key: str, value: str) -> None:
     finally:
         cur.close()
         conn.close()
+
+
+# ==============================================================================
+# HASHING & MANAJEMEN PIN MASTER OPERATOR / SUPER ADMIN
+# ==============================================================================
+
+def hash_master_pin(pin: str) -> str:
+    """Menghasilkan hash scrypt dengan salt acak 16 byte untuk PIN Master."""
+    salt = secrets.token_bytes(16)
+    derived = hashlib.scrypt(
+        pin.strip().encode("utf-8"),
+        salt=salt,
+        n=16384,
+        r=8,
+        p=1,
+    )
+    return f"scrypt$16384$8$1${salt.hex()}${derived.hex()}"
+
+
+def verify_master_pin(pin: str, stored_hash_or_plain: str) -> bool:
+    """Memverifikasi PIN terhadap hash scrypt atau plaintext legacy."""
+    if not stored_hash_or_plain or not pin:
+        return False
+    stored = stored_hash_or_plain.strip()
+    clean_pin = pin.strip()
+
+    if stored.startswith("scrypt$"):
+        try:
+            parts = stored.split("$")
+            if len(parts) != 6:
+                return False
+            _, n_str, r_str, p_str, salt_hex, hash_hex = parts
+            salt = bytes.fromhex(salt_hex)
+            expected_hash = bytes.fromhex(hash_hex)
+            computed = hashlib.scrypt(
+                clean_pin.encode("utf-8"),
+                salt=salt,
+                n=int(n_str),
+                r=int(r_str),
+                p=int(p_str),
+            )
+            return hmac.compare_digest(computed, expected_hash)
+        except Exception as e:
+            logger.warning(f"Error memverifikasi hash PIN: {e}")
+            return False
+
+    # Fallback perbandingan waktu konstan untuk plaintext (dari .env awal)
+    return hmac.compare_digest(clean_pin.encode("utf-8"), stored.encode("utf-8"))
+
+
+def get_master_pin_hash() -> str:
+    """Mengambil hash PIN Master dari system_settings jika tersedia."""
+    return get_setting("admin_pin_hash", "").strip()
+
+
+def set_master_pin(new_pin: str) -> str:
+    """Meng-hash PIN Master baru dan menyimpannya ke system_settings."""
+    hashed = hash_master_pin(new_pin)
+    set_setting("admin_pin_hash", hashed)
+    logger.info("[Auth] PIN Master berhasil diperbarui dan disimpan sebagai hash di database.")
+    return hashed
 
 
 def get_lab_profile() -> Dict[str, Any]:

@@ -192,3 +192,125 @@ def test_cors_allows_configured_origin(client, admin_token):
     }
     response = client.get("/api/lab/profile", headers=headers)
     assert response.headers.get("access-control-allow-origin") == "http://testserver"
+
+
+def test_hash_and_verify_master_pin():
+    from app.db import hash_master_pin, verify_master_pin
+
+    pin = "RahasiaPalingAman#2026"
+    hashed = hash_master_pin(pin)
+    assert hashed.startswith("scrypt$16384$8$1$")
+    assert verify_master_pin(pin, hashed) is True
+    assert verify_master_pin("SalahPin12345", hashed) is False
+    assert verify_master_pin("", hashed) is False
+
+    # Plaintext fallback check
+    assert verify_master_pin("plain123", "plain123") is True
+    assert verify_master_pin("wrong", "plain123") is False
+
+
+def test_change_master_pin_api(client):
+    from app.db import set_master_pin
+
+    # Pastikan PIN awal diset ke nilai tes
+    initial_pin = "test-admin-pin-123"
+    set_master_pin(initial_pin)
+
+    # 1. Anonymous ditolak
+    anon = client.post("/api/admin/change-pin", json={
+        "current_pin": initial_pin,
+        "new_pin": "pin-baru-panjang-123",
+        "confirm_pin": "pin-baru-panjang-123",
+    })
+    assert anon.status_code == 401
+
+    # Login sebagai admin
+    login_res = client.post("/api/admin/login", json={"pin": initial_pin})
+    assert login_res.status_code == 200
+    token = login_res.json()["token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 2. PIN saat ini salah -> 400
+    res = client.post("/api/admin/change-pin", headers=headers, json={
+        "current_pin": "pin-salah-9999",
+        "new_pin": "pin-baru-panjang-123",
+        "confirm_pin": "pin-baru-panjang-123",
+    })
+    assert res.status_code == 400
+    assert "tidak sesuai" in res.json().get("detail", "").lower()
+
+    # 3. Konfirmasi tidak cocok -> 400
+    res = client.post("/api/admin/change-pin", headers=headers, json={
+        "current_pin": initial_pin,
+        "new_pin": "pin-baru-panjang-123",
+        "confirm_pin": "pin-beda-panjang-123",
+    })
+    assert res.status_code == 400
+    assert "tidak cocok" in res.json().get("detail", "").lower()
+
+    # 4. PIN terlalu pendek (< 10 char) -> 400
+    res = client.post("/api/admin/change-pin", headers=headers, json={
+        "current_pin": initial_pin,
+        "new_pin": "pendek",
+        "confirm_pin": "pendek",
+    })
+    assert res.status_code == 400
+    assert "minimal 10" in res.json().get("detail", "").lower()
+
+    # 5. Ganti PIN sukses
+    new_pin = "SuperKunciBaru#2026"
+    res = client.post("/api/admin/change-pin", headers=headers, json={
+        "current_pin": initial_pin,
+        "new_pin": new_pin,
+        "confirm_pin": new_pin,
+    })
+    assert res.status_code == 200
+    assert res.json().get("success") is True
+
+    # 6. PIN lama tidak bisa login lagi -> 401
+    old_login = client.post("/api/admin/login", json={"pin": initial_pin})
+    assert old_login.status_code == 401
+
+    # 7. PIN baru berhasil login -> 200
+    new_login = client.post("/api/admin/login", json={"pin": new_pin})
+    assert new_login.status_code == 200
+    new_token = new_login.json()["token"]
+
+    # Kembalikan ke PIN awal tes agar tes berikutnya tetap bersih
+    reset_back = client.post(
+        "/api/admin/change-pin",
+        headers={"Authorization": f"Bearer {new_token}"},
+        json={
+            "current_pin": new_pin,
+            "new_pin": initial_pin,
+            "confirm_pin": initial_pin,
+        },
+    )
+    assert reset_back.status_code == 200
+
+
+def test_reset_admin_pin_cli(client):
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    script = Path(__file__).resolve().parents[1] / "scripts" / "reset_admin_pin.py"
+    temp_pin = "CliResetSecret#2026"
+
+    # Jalankan CLI dengan argumen --pin dan --no-restart
+    res = subprocess.run(
+        [sys.executable, str(script), "--pin", temp_pin, "--no-restart"],
+        capture_output=True,
+        text=True,
+    )
+    assert res.returncode == 0
+    assert "BERHASIL" in res.stdout
+
+    # Login dengan PIN hasil CLI -> 200
+    login_cli = client.post("/api/admin/login", json={"pin": temp_pin})
+    assert login_cli.status_code == 200
+
+    # Kembalikan ke initial pin
+    from app.db import set_master_pin
+    set_master_pin("test-admin-pin-123")
+

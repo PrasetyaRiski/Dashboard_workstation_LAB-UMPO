@@ -31,7 +31,8 @@ from app.db import (
     toggle_user_admin, toggle_user_active, set_user_role,
     is_user_priority, auto_expire_priorities, get_connection,
     perform_database_backup, list_database_backups, checkpoint_wal_database,
-    get_user, nim_to_username
+    get_user, nim_to_username,
+    verify_master_pin, get_master_pin_hash, set_master_pin
 )
 
 # Load .env file automatically jika tersedia di root direktori atau backend
@@ -141,6 +142,11 @@ class SetRoleRequest(BaseModel):
 class SetLabProfileRequest(BaseModel):
     mode: str  # "ai" | "basic"
 
+class ChangeMasterPinRequest(BaseModel):
+    current_pin: str
+    new_pin: str
+    confirm_pin: str
+
 _TRUSTED_PROXIES = {
     ip.strip()
     for ip in (_read_env_value("TRUSTED_PROXIES") or "127.0.0.1,::1").split(",")
@@ -217,7 +223,9 @@ def admin_login(req: LoginRequest, request: Request):
 
     # 1. Login via Master PIN (Super Admin)
     if req.pin:
-        if hmac.compare_digest(req.pin.strip(), ADMIN_PIN.strip()):
+        db_pin_hash = get_master_pin_hash()
+        target_pin_ref = db_pin_hash if db_pin_hash else ADMIN_PIN
+        if verify_master_pin(req.pin, target_pin_ref):
             FAILED_LOGIN_ATTEMPTS.pop(client_ip, None)
             FAILED_LOGIN_BY_ACCOUNT.pop(account_key, None)
             token = secrets.token_hex(32)
@@ -318,6 +326,70 @@ def check_admin_session(session: Dict[str, Any] = Depends(verify_operator_or_adm
             "nama": session.get("nama"),
             "role": session.get("role"),
         }
+    }
+
+@app.post("/api/admin/change-pin")
+def change_admin_pin(
+    req: ChangeMasterPinRequest,
+    request: Request,
+    session: Dict[str, Any] = Depends(verify_super_admin)
+):
+    """Mengubah PIN Master Super Admin (khusus Super Admin yang terotentikasi)."""
+    current_pin = req.current_pin.strip()
+    new_pin = req.new_pin.strip()
+    confirm_pin = req.confirm_pin.strip()
+
+    # 1. Validasi PIN Master saat ini
+    db_pin_hash = get_master_pin_hash()
+    target_pin_ref = db_pin_hash if db_pin_hash else ADMIN_PIN
+    if not verify_master_pin(current_pin, target_pin_ref):
+        raise HTTPException(status_code=400, detail="PIN Master saat ini tidak sesuai.")
+
+    # 2. Validasi format & kekuatan PIN baru
+    if len(new_pin) < 10:
+        raise HTTPException(status_code=400, detail="PIN Master baru minimal 10 karakter demi keamanan.")
+    if new_pin != confirm_pin:
+        raise HTTPException(status_code=400, detail="Konfirmasi PIN Master baru tidak cocok.")
+    if new_pin == current_pin:
+        raise HTTPException(status_code=400, detail="PIN Master baru tidak boleh sama dengan PIN saat ini.")
+
+    # 3. Simpan hash PIN baru ke system_settings
+    set_master_pin(new_pin)
+
+    # 4. Sinkronisasi aman ke file .env jika file ada dan dapat ditulis
+    try:
+        import re
+        for env_path in _ENV_CANDIDATES:
+            if os.path.isfile(env_path) and os.access(env_path, os.W_OK):
+                txt = open(env_path, "r", encoding="utf-8").read()
+                if re.search(r"^ADMIN_PIN=", txt, re.M):
+                    txt = re.sub(r"^ADMIN_PIN=.*$", f"ADMIN_PIN={new_pin}", txt, count=1, flags=re.M)
+                else:
+                    txt += f"\nADMIN_PIN={new_pin}\n"
+                open(env_path, "w", encoding="utf-8").write(txt)
+                break
+    except Exception as exc:
+        logger.warning(f"Gagal memperbarui file .env (hash di database tetap aktif): {exc}")
+
+    # 5. Cabut semua sesi lain demi keamanan
+    auth_header = request.headers.get("authorization", "")
+    current_token = auth_header.replace("Bearer ", "").strip() if auth_header else ""
+    for tok in list(ACTIVE_SESSIONS.keys()):
+        if tok != current_token:
+            ACTIVE_SESSIONS.pop(tok, None)
+
+    # 6. Catat log audit sistem
+    actor = session.get("nama") or "Super Admin"
+    record_audit(
+        target="MASTER_PIN",
+        action="CHANGE_MASTER_PIN",
+        detail=f"PIN Master Super Admin berhasil diubah oleh {actor}. Seluruh sesi lain telah dicabut.",
+        log_type="warning"
+    )
+
+    return {
+        "success": True,
+        "message": "PIN Master berhasil diperbarui dan disimpan sebagai hash aman di database."
     }
 
 @app.post("/api/users/set-role")

@@ -8,6 +8,7 @@ import KillConfirmModal from './components/KillConfirmModal';
 import UnifiedUserManagement from './components/UnifiedUserManagement';
 import AdminFileExplorer from './components/AdminFileExplorer';
 import AdminPinModal from './components/AdminPinModal';
+import ChangePinModal from './components/ChangePinModal';
 import ModeSwitchModal from './components/ModeSwitchModal';
 import CommandPalette from './components/CommandPalette';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -16,7 +17,7 @@ import LoginView from './components/LoginView';
 import {
   Menu, WifiOff, RefreshCw, ShieldCheck,
   CheckCircle2, AlertCircle, Info, LogOut,
-  Search
+  Search, KeyRound
 } from 'lucide-react';
 
 export default function App() {
@@ -38,6 +39,7 @@ export default function App() {
   const isOperator = Boolean(adminToken && adminRole === 'aslab');
 
   const [loginModalOpen, setLoginModalOpen]         = useState(false);
+  const [changePinModalOpen, setChangePinModalOpen] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [students, setStudents]                     = useState([]);
   const [isConnected, setIsConnected]               = useState(false);
@@ -784,9 +786,20 @@ export default function App() {
                 <span>Operator: {adminUser?.nama ? adminUser.nama.split(' ')[0] : 'Aslab'}</span>
               </div>
             ) : isSuperAdmin ? (
-              <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 text-slate-800 border border-slate-200 text-xs font-mono">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Super Admin</span>
+              <div className="hidden sm:inline-flex items-center gap-1.5">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 text-slate-800 border border-slate-200 text-xs font-mono">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Super Admin</span>
+                </div>
+                <button
+                  onClick={() => setChangePinModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 border border-slate-200 text-xs font-sans font-medium transition-colors cursor-pointer shadow-2xs"
+                  title="Ganti PIN Master Super Admin"
+                  type="button"
+                >
+                  <KeyRound className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Ganti PIN</span>
+                </button>
               </div>
             ) : null}
 
@@ -996,6 +1009,14 @@ export default function App() {
         isOpen={loginModalOpen}
         onSuccess={handleLoginSuccess}
         onClose={() => setLoginModalOpen(false)}
+      />
+      <ChangePinModal
+        isOpen={changePinModalOpen}
+        adminToken={adminToken}
+        onSuccess={() => {
+          showToast('PIN Master berhasil diperbarui dan disimpan sebagai hash di database!', 'success');
+        }}
+        onClose={() => setChangePinModalOpen(false)}
       />
       <KillConfirmModal
         isOpen={killModal.isOpen}

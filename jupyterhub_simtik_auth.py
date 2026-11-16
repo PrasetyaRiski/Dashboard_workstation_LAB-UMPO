@@ -1060,15 +1060,24 @@ class GeminiKeyHandler(BaseHandler):
         }
 
     def _audit(self, username: str, action: str, detail: str, log_type: str = "info") -> None:
+        # `record_audit` milik app.main; di sini cukup tulis langsung ke tabel
+        # audit lewat koneksi DB agar tidak mengimpor aplikasi FastAPI.
         try:
-            from app.db import record_audit
+            from app.db import get_connection
 
-            record_audit(
-                target=f"NIM {username_to_nim(username)}",
-                action=action,
-                detail=detail,
-                log_type=log_type,
-            )
+            conn, engine = get_connection()
+            try:
+                cur = conn.cursor()
+                placeholder = "%s" if engine == "postgres" else "?"
+                cur.execute(
+                    f"INSERT INTO audit_logs (nim, action, detail) "
+                    f"VALUES ({placeholder}, {placeholder}, {placeholder})",
+                    (f"NIM {username_to_nim(username)}", action, detail),
+                )
+                conn.commit()
+                cur.close()
+            finally:
+                conn.close()
         except Exception as exc:
             logger.warning(f"[GeminiKey] Gagal mencatat audit {action}: {exc}")
 

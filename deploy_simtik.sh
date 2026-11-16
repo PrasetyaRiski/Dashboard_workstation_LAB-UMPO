@@ -6,6 +6,14 @@
 
 set -e
 
+# Jalankan dari salinan agar `git reset --hard` tidak mengubah berkas skrip
+# yang sedang dieksekusi (bash membaca skrip secara bertahap per offset byte).
+if [ "${DEPLOY_SIMTIK_COPY:-0}" != "1" ]; then
+    SELF_PATH="$(readlink -f "$0")"
+    cp -f "$SELF_PATH" /tmp/deploy_simtik_run.sh
+    DEPLOY_SIMTIK_COPY=1 exec bash /tmp/deploy_simtik_run.sh "$@"
+fi
+
 echo "=========================================================="
 echo "🚀 MEMULAI PENERAPAN SISTEM SIMTIK & DYNAMIC QoS LAB AI..."
 echo "=========================================================="
@@ -149,10 +157,10 @@ sudo mkdir -p /home/dataset_shared
 sudo chmod 755 /home/dataset_shared
 
 for user_dir in /home/m[0-9]* /home/training* /home/labriset; do
-    if [ -d "$user_dir" ]; then
+    if sudo test -d "$user_dir"; then
         u=$(basename "$user_dir")
-        if [ ! -e "$user_dir/dataset_shared" ]; then
-            sudo ln -s /home/dataset_shared "$user_dir/dataset_shared"
+        if ! sudo test -e "$user_dir/dataset_shared"; then
+            sudo ln -s /home/dataset_shared "$user_dir/dataset_shared" || true
             sudo chown -h "$u:$u" "$user_dir/dataset_shared" 2>/dev/null || true
         fi
     fi

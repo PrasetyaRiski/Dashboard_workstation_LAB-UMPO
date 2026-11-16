@@ -51,6 +51,18 @@ else
     pip install --quiet -r backend/requirements.txt
 fi
 
+# 3.1 Pasang helper notebook (lab_gemini.py) ke environment Jupyter single-user
+if [ -f "lab_gemini.py" ]; then
+    SITE_PACKAGES=$(/opt/ai_env/bin/python -c "import site; print(site.getsitepackages()[0])" 2>/dev/null || true)
+    if [ -n "$SITE_PACKAGES" ] && [ -d "$SITE_PACKAGES" ]; then
+        sudo cp -f lab_gemini.py "$SITE_PACKAGES/lab_gemini.py"
+        sudo chmod 0644 "$SITE_PACKAGES/lab_gemini.py"
+        echo "✅ Helper lab_gemini.py dipasang di $SITE_PACKAGES"
+    else
+        echo "⚠️ /opt/ai_env tidak ditemukan; helper lab_gemini.py belum dipasang."
+    fi
+fi
+
 # 4. Restart Dashboard di Port 8888
 echo "🔄 Merestart Dashboard Monitoring..."
 chmod +x backend/run.sh 2>/dev/null || true
@@ -222,6 +234,10 @@ EOF_RES
     sudo sed -i '/jupyterhub_idle_culler/d' "$JH_CONFIG" 2>/dev/null || true
     sudo sed -i "/'name': 'idle-culler'/d" "$JH_CONFIG" 2>/dev/null || true
     sudo sed -i '/c.JupyterHub.announcement/d' "$JH_CONFIG" 2>/dev/null || true
+    # Bersihkan blok handler lama (telemetri & SSO) agar tidak dobel dengan blok terkelola
+    sudo sed -i '/^# PROXY API TELEMETRI SISWA KE PANEL-LAB/,/^]$/d' "$JH_CONFIG" 2>/dev/null || true
+    sudo sed -i '/^from tornado import web, httpclient$/d' "$JH_CONFIG" 2>/dev/null || true
+    sudo sed -i '/^c.JupyterHub.extra_handlers = \[$/,/^]$/d' "$JH_CONFIG" 2>/dev/null || true
     
     echo "📝 Menambahkan hook SIMTIK, Single-Device Policy, & Idle Culler ke $JH_CONFIG..."
     sudo tee -a "$JH_CONFIG" > /dev/null << 'EOF'
@@ -232,12 +248,26 @@ EOF_RES
 # ========================================================
 import sys
 sys.path.append("/home/public/web/panel-lab")
-from jupyterhub_simtik_auth import SimtikAuthenticator, simtik_pre_spawn_hook, simtik_post_stop_hook
+from jupyterhub_simtik_auth import (
+    SimtikAuthenticator,
+    simtik_pre_spawn_hook,
+    simtik_post_stop_hook,
+    MiraiGridSSOHandler,
+    UserTelemetryProxyHandler,
+    GeminiKeyHandler,
+)
 
 c.JupyterHub.authenticator_class = SimtikAuthenticator
 c.Spawner.pre_spawn_hook = simtik_pre_spawn_hook
 c.Spawner.post_stop_hook = simtik_post_stop_hook
 c.JupyterHub.shutdown_on_logout = True
+
+# Handler tambahan: telemetri (proxy internal), API key Gemini per user, dan SSO MiraiGrid.
+c.JupyterHub.extra_handlers = [
+    (r"/api/user-telemetry/([^/]+)", UserTelemetryProxyHandler),
+    (r"/api/gemini-key", GeminiKeyHandler),
+    (r"/sso/miraigrid", MiraiGridSSOHandler),
+]
 
 # ========================================================
 # JUPYTERHUB IDLE CULLER (PELEPASAN OTOMATIS RAM & VRAM GPU)

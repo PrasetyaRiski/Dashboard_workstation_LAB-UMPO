@@ -172,13 +172,91 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
     </div>
 
     <!-- Modal Footer -->
-    <div style="padding:12px 18px; background:#161b22; border-top:1px solid #30363d; display:flex; justify-content:space-between; align-items:center;">
-      <span style="font-size:11px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; color:#8b949e;">
-        cgroups v2 &bull; FT UMPO
+    <div style="padding:12px 18px; background:#161b22; border-top:1px solid #30363d; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+      <span id="lab-gemini-chip" style="display:none; font-size:10.5px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; border:1px solid #30363d; border-radius:999px; padding:2px 9px; color:#8b949e;">
+        Gemini: --
       </span>
-      <button id="btn-dismiss-lab-popup" class="lab-btn-primary">
-        Tutup Monitor
+      <div style="display:flex; align-items:center; gap:8px; margin-left:auto;">
+        <button id="btn-open-gemini-key" class="lab-btn-secondary" type="button">
+          Gemini API Key
+        </button>
+        <button id="btn-dismiss-lab-popup" class="lab-btn-primary" type="button">
+          Tutup Monitor
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 1b. GEMINI API KEY MODAL (KEY MILIK MAHASISWA SENDIRI) -->
+<div id="lab-gemini-overlay" style="display:none; position:fixed; inset:0; z-index:10000000; background:rgba(0,0,0,0.78); align-items:center; justify-content:center; padding:16px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif; box-sizing:border-box;">
+  <div id="lab-gemini-card" style="background:#0d1117; color:#e6edf3; width:100%; max-width:520px; border-radius:12px; border:1px solid #30363d; box-shadow:0 16px 36px rgba(0,0,0,0.65); overflow:hidden; animation:labModalFadeIn 0.15s ease-out; box-sizing:border-box;">
+
+    <div style="background:#161b22; padding:14px 18px; border-bottom:1px solid #30363d; display:flex; align-items:center; justify-content:space-between; gap:10px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div style="width:28px; height:28px; border-radius:6px; background:#21262d; border:1px solid #30363d; display:flex; align-items:center; justify-content:center; color:#a371f7;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"></path></svg>
+        </div>
+        <div>
+          <h3 style="margin:0; font-size:14px; font-weight:600; letter-spacing:-0.01em; color:#f0f6fc;">
+            Gemini API Key
+          </h3>
+          <p style="margin:2px 0 0; font-size:11px; color:#8b949e;">
+            Hubungkan notebook Anda ke Google Gemini
+          </p>
+        </div>
+      </div>
+      <button id="gemini-close-x" class="lab-btn-close" title="Tutup" type="button">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
       </button>
+    </div>
+
+    <div style="padding:16px 18px; font-size:12px; line-height:1.5; color:#c9d1d9; max-height:calc(85vh - 140px); overflow-y:auto; box-sizing:border-box;">
+
+      <div id="gemini-alert" style="display:none; border-radius:8px; padding:10px 12px; margin-bottom:12px; font-size:11.5px; line-height:1.45;"></div>
+
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; background:#161b22; border:1px solid #21262d; border-radius:8px; padding:9px 12px; margin-bottom:12px;">
+        <div style="display:flex; align-items:center; gap:8px; min-width:0;">
+          <span id="gemini-status-dot" style="width:7px; height:7px; border-radius:50%; background:#8b949e; flex-shrink:0;"></span>
+          <span id="gemini-status-text" style="font-size:11.5px; color:#c9d1d9;">Memeriksa status…</span>
+        </div>
+        <span id="gemini-status-masked" style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:10.5px; color:#8b949e; white-space:nowrap;"></span>
+      </div>
+
+      <label for="gemini-key-input" style="display:block; font-size:11px; font-weight:600; color:#c9d1d9; margin-bottom:6px;">
+        API Key AI Studio
+      </label>
+      <input id="gemini-key-input" type="password" autocomplete="off" spellcheck="false" autocapitalize="off"
+             placeholder="AIza..."
+             style="width:100%; box-sizing:border-box; background:#0d1117; border:1px solid #30363d; border-radius:8px; color:#f0f6fc; padding:9px 12px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12px; outline:none;" />
+      <p style="margin:7px 0 0; font-size:11px; color:#8b949e; line-height:1.5;">
+        Key disimpan di server dengan izin <code style="color:#c9d1d9;">0600</code> dan hanya bisa dibaca akun Anda.
+        Key <strong style="color:#c9d1d9;">tidak</strong> tersimpan di dalam notebook.
+      </p>
+
+      <div style="margin-top:14px; background:#161b22; border:1px solid #21262d; border-radius:8px; padding:10px 12px;">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px;">
+          <span style="font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; color:#8b949e;">Token hari ini</span>
+          <span id="gemini-usage-total" style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:15px; font-weight:700; color:#f0f6fc;">0</span>
+        </div>
+        <div id="gemini-usage-detail" style="margin-top:3px; font-size:10.5px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; color:#8b949e;">
+          prompt 0 &bull; output 0 &bull; 0 request
+        </div>
+      </div>
+
+    </div>
+
+    <div style="padding:12px 18px; background:#161b22; border-top:1px solid #30363d; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+      <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer"
+         style="font-size:11px; color:#58a6ff; text-decoration:none;">
+        Buat key di AI Studio &nearr;
+      </a>
+      <div style="display:flex; align-items:center; gap:8px; margin-left:auto;">
+        <button id="gemini-delete" class="lab-btn-danger" type="button" style="display:none;">Hapus</button>
+        <button id="gemini-later" class="lab-btn-secondary" type="button">Nanti</button>
+        <button id="gemini-save" class="lab-btn-primary" type="button">Simpan &amp; Uji</button>
+      </div>
     </div>
 
   </div>
@@ -259,6 +337,50 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
 .lab-btn-close:hover {
   color: #e6edf3;
   background: #21262d;
+}
+
+.lab-btn-secondary {
+  background: #21262d;
+  color: #e6edf3;
+  border: 1px solid #30363d;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  font-family: inherit;
+}
+.lab-btn-secondary:hover {
+  background: #30363d;
+  border-color: #484f58;
+}
+
+.lab-btn-danger {
+  background: transparent;
+  color: #ff7b72;
+  border: 1px solid rgba(248,81,73,0.45);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  font-family: inherit;
+}
+.lab-btn-danger:hover {
+  background: rgba(248,81,73,0.12);
+}
+
+#gemini-key-input:focus {
+  border-color: #58a6ff !important;
+  box-shadow: 0 0 0 3px rgba(88,166,255,0.15);
+}
+
+.lab-btn-primary[disabled],
+.lab-btn-secondary[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 #lab-ai-status-pill {
@@ -368,9 +490,15 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
       sessionStorage.removeItem('lab_ai_popup_seen_' + username);
     } catch(e) {}
 
-    setTimeout(function() {
+    var resourceShown = false;
+    function showResourceModal() {
       if (overlay) overlay.style.display = 'flex';
-    }, 1500);
+    }
+    function showResourceOnce() {
+      if (resourceShown) return;
+      resourceShown = true;
+      showResourceModal();
+    }
 
     function hideModal() {
       if (overlay) overlay.style.display = 'none';
@@ -382,8 +510,29 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
     if (pill && overlay) {
       pill.onclick = function() {
         overlay.style.display = 'flex';
+        loadGeminiStatus(null, null);
       };
     }
+
+    // Urutan startup: utamakan permintaan API key Gemini, baru tampilkan
+    // resource monitor agar dua modal tidak bertumpuk.
+    setTimeout(function() {
+      loadGeminiStatus(function (d) {
+        var skipped = false;
+        try {
+          skipped = sessionStorage.getItem('lab_gemini_skipped_' + username) === '1';
+        } catch (e) {}
+        if (d && !d.configured && !skipped) {
+          openGemini('first');
+        } else if (d && d.needs_attention) {
+          openGemini('quota');
+        } else {
+          showResourceOnce();
+        }
+      }, function () {
+        showResourceOnce();
+      });
+    }, 1500);
 
     function updateTelemetry() {
       var u = isUserLoggedInJupyter();
@@ -503,7 +652,9 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
 
         if (!window._labHasAlertedOverquota) {
           window._labHasAlertedOverquota = true;
-          if (overlay) overlay.style.display = 'flex';
+          if (overlay && !(geminiOverlay && geminiOverlay.style.display === 'flex')) {
+            overlay.style.display = 'flex';
+          }
         }
 
         if (pill) {
@@ -556,6 +707,279 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
           .catch(function(e) {});
       } catch(e) {}
     }
+
+    // =====================================================================
+    // GEMINI API KEY (per user)
+    // =====================================================================
+    var geminiOverlay      = document.getElementById('lab-gemini-overlay');
+    var geminiInput        = document.getElementById('gemini-key-input');
+    var geminiSaveBtn      = document.getElementById('gemini-save');
+    var geminiLaterBtn     = document.getElementById('gemini-later');
+    var geminiDeleteBtn    = document.getElementById('gemini-delete');
+    var geminiCloseX       = document.getElementById('gemini-close-x');
+    var geminiOpenBtn      = document.getElementById('btn-open-gemini-key');
+    var geminiAlert        = document.getElementById('gemini-alert');
+    var geminiStatusText   = document.getElementById('gemini-status-text');
+    var geminiStatusDot    = document.getElementById('gemini-status-dot');
+    var geminiStatusMasked = document.getElementById('gemini-status-masked');
+    var geminiUsageTotal   = document.getElementById('gemini-usage-total');
+    var geminiUsageDetail  = document.getElementById('gemini-usage-detail');
+    var geminiChip         = document.getElementById('lab-gemini-chip');
+
+    var geminiBusy = false;
+    var geminiState = null;
+    var geminiOpenedByStartup = false;
+
+    function getXsrfCookie() {
+      try {
+        var m = document.cookie.match(/(?:^|;\s*)_xsrf=([^;]+)/);
+        return m ? decodeURIComponent(m[1]) : '';
+      } catch (e) {
+        return '';
+      }
+    }
+
+    function geminiHeaders(json) {
+      var headers = {};
+      if (json) headers['Content-Type'] = 'application/json';
+      var token = getXsrfCookie();
+      if (token) headers['X-XSRFToken'] = token;
+      return headers;
+    }
+
+    function fmtNum(n) {
+      try {
+        return Number(n || 0).toLocaleString('id-ID');
+      } catch (e) {
+        return String(n || 0);
+      }
+    }
+
+    function showGeminiAlert(kind, text) {
+      if (!geminiAlert) return;
+      var palette = {
+        error:   { bg: 'rgba(248,81,73,0.10)',  border: '#f85149', color: '#ff7b72' },
+        warning: { bg: 'rgba(210,153,34,0.10)', border: '#d29922', color: '#e3b341' },
+        success: { bg: 'rgba(63,185,80,0.10)',  border: '#3fb950', color: '#7ee787' },
+        info:    { bg: 'rgba(88,166,255,0.08)', border: '#388bfd', color: '#79c0ff' }
+      };
+      var p = palette[kind] || palette.info;
+      geminiAlert.style.display = 'block';
+      geminiAlert.style.background = p.bg;
+      geminiAlert.style.border = '1px solid ' + p.border;
+      geminiAlert.style.color = p.color;
+      geminiAlert.textContent = text;
+    }
+
+    function hideGeminiAlert() {
+      if (geminiAlert) geminiAlert.style.display = 'none';
+    }
+
+    function renderGemini(d) {
+      geminiState = d || null;
+      var configured = !!(d && d.configured);
+      var quota = !!(d && d.needs_attention);
+      var usage = (d && d.usage) || {};
+
+      if (geminiStatusText) {
+        geminiStatusText.textContent = configured
+          ? (quota ? 'Key terpasang, tetapi kuota sedang habis' : 'Key aktif dan siap dipakai')
+          : 'Belum ada key terpasang';
+      }
+      if (geminiStatusDot) {
+        geminiStatusDot.style.background = configured ? (quota ? '#d29922' : '#3fb950') : '#8b949e';
+      }
+      if (geminiStatusMasked) {
+        geminiStatusMasked.textContent = configured ? (d.masked || '') : '';
+      }
+      if (geminiUsageTotal) {
+        geminiUsageTotal.textContent = fmtNum(usage.total_tokens);
+      }
+      if (geminiUsageDetail) {
+        geminiUsageDetail.textContent =
+          'prompt ' + fmtNum(usage.prompt_tokens) +
+          ' \u2022 output ' + fmtNum(usage.output_tokens) +
+          ' \u2022 ' + fmtNum(usage.requests) + ' request';
+      }
+      if (geminiDeleteBtn) {
+        geminiDeleteBtn.style.display = configured ? 'inline-block' : 'none';
+      }
+      if (geminiInput) {
+        geminiInput.placeholder = configured ? (d.masked || 'AIza...') : 'AIza...';
+      }
+
+      if (geminiChip) {
+        geminiChip.style.display = 'inline-flex';
+        if (!configured) {
+          geminiChip.textContent = 'Gemini: belum aktif';
+          geminiChip.style.color = '#d29922';
+          geminiChip.style.borderColor = 'rgba(210,153,34,0.4)';
+        } else if (quota) {
+          geminiChip.textContent = 'Gemini: limit';
+          geminiChip.style.color = '#ff7b72';
+          geminiChip.style.borderColor = 'rgba(248,81,73,0.4)';
+        } else {
+          geminiChip.textContent = 'Gemini: ' + fmtNum(usage.total_tokens) + ' token';
+          geminiChip.style.color = '#8b949e';
+          geminiChip.style.borderColor = '#30363d';
+        }
+      }
+    }
+
+    function openGemini(reason) {
+      if (!geminiOverlay) return;
+      hideGeminiAlert();
+      geminiOpenedByStartup = (reason === 'first' || reason === 'quota');
+
+      if (reason === 'first') {
+        showGeminiAlert('info', 'Belum ada key. Tempel API key AI Studio Anda lalu klik Simpan & Uji, atau tekan Nanti.');
+      } else if (reason === 'quota' || (geminiState && geminiState.needs_attention)) {
+        showGeminiAlert('warning', 'Kuota key ini habis (HTTP 429). Buat key baru di AI Studio lalu simpan di sini.');
+      }
+
+      geminiOverlay.style.display = 'flex';
+      if (geminiInput) {
+        geminiInput.value = '';
+        setTimeout(function () {
+          try { geminiInput.focus(); } catch (e) {}
+        }, 60);
+      }
+    }
+
+    function closeGemini(action) {
+      if (geminiOverlay) geminiOverlay.style.display = 'none';
+      if (geminiInput) geminiInput.value = '';
+      hideGeminiAlert();
+      if (action === 'later') {
+        try { sessionStorage.setItem('lab_gemini_skipped_' + username, '1'); } catch (e) {}
+      }
+      if (geminiOpenedByStartup) {
+        geminiOpenedByStartup = false;
+        showResourceOnce();
+      }
+    }
+
+    function setGeminiBusy(busy) {
+      geminiBusy = busy;
+      if (geminiSaveBtn) {
+        geminiSaveBtn.disabled = busy;
+        geminiSaveBtn.textContent = busy ? 'Menguji\u2026' : 'Simpan & Uji';
+      }
+      if (geminiDeleteBtn) geminiDeleteBtn.disabled = busy;
+      if (geminiLaterBtn) geminiLaterBtn.disabled = busy;
+    }
+
+    function loadGeminiStatus(onDone, onFail) {
+      fetch('/api/gemini-key', { credentials: 'same-origin' })
+        .then(function (res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res.json();
+        })
+        .then(function (data) {
+          renderGemini(data);
+          if (onDone) onDone(data);
+        })
+        .catch(function () {
+          if (onFail) onFail();
+        });
+    }
+
+    function saveGeminiKey() {
+      if (geminiBusy) return;
+      var value = ((geminiInput && geminiInput.value) || '').trim();
+      if (!value) {
+        showGeminiAlert('error', 'API key wajib diisi.');
+        return;
+      }
+      hideGeminiAlert();
+      setGeminiBusy(true);
+
+      fetch('/api/gemini-key', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: geminiHeaders(true),
+        body: JSON.stringify({ api_key: value })
+      })
+        .then(function (res) {
+          return res.json().catch(function () { return {}; }).then(function (data) {
+            if (!res.ok) throw new Error(data.message || ('Gagal menyimpan (HTTP ' + res.status + ')'));
+            return data;
+          });
+        })
+        .then(function (data) {
+          renderGemini(data);
+          try { sessionStorage.removeItem('lab_gemini_skipped_' + username); } catch (e) {}
+          if (data.validation && data.validation.state === 'quota') {
+            showGeminiAlert('warning', 'Key tersimpan, tetapi kuota key ini habis. Ganti dengan key lain bila perlu.');
+            return;
+          }
+          showGeminiAlert('success', 'Key tersimpan dan berhasil diuji ke Google.');
+          setTimeout(function () { closeGemini('saved'); }, 900);
+        })
+        .catch(function (err) {
+          showGeminiAlert('error', (err && err.message) ? err.message : 'Gagal menyimpan key.');
+        })
+        .then(function () { setGeminiBusy(false); });
+    }
+
+    function deleteGeminiKey() {
+      if (geminiBusy) return;
+      if (!window.confirm('Hapus Gemini API key dari akun Anda?')) return;
+      setGeminiBusy(true);
+
+      fetch('/api/gemini-key', {
+        method: 'DELETE',
+        credentials: 'same-origin',
+        headers: geminiHeaders(false)
+      })
+        .then(function (res) {
+          return res.json().catch(function () { return {}; }).then(function (data) {
+            if (!res.ok) throw new Error(data.message || ('HTTP ' + res.status));
+            return data;
+          });
+        })
+        .then(function (data) {
+          renderGemini(data);
+          showGeminiAlert('success', 'Key berhasil dihapus.');
+        })
+        .catch(function (err) {
+          showGeminiAlert('error', (err && err.message) ? err.message : 'Gagal menghapus key.');
+        })
+        .then(function () { setGeminiBusy(false); });
+    }
+
+    if (geminiOpenBtn) {
+      geminiOpenBtn.onclick = function () {
+        openGemini('manual');
+        loadGeminiStatus(null, null);
+      };
+    }
+    if (geminiCloseX) {
+      geminiCloseX.onclick = function () { closeGemini('close'); };
+    }
+    if (geminiLaterBtn) {
+      geminiLaterBtn.onclick = function () { closeGemini('later'); };
+    }
+    if (geminiSaveBtn) {
+      geminiSaveBtn.onclick = saveGeminiKey;
+    }
+    if (geminiDeleteBtn) {
+      geminiDeleteBtn.onclick = deleteGeminiKey;
+    }
+    if (geminiInput) {
+      geminiInput.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Enter') {
+          ev.preventDefault();
+          saveGeminiKey();
+        }
+      });
+    }
+
+    setInterval(function () {
+      if (geminiOverlay && geminiOverlay.style.display === 'flex' && !geminiBusy) {
+        loadGeminiStatus(null, null);
+      }
+    }, 15000);
 
     updateTelemetry();
     setInterval(updateTelemetry, 3000);

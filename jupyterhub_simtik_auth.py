@@ -27,6 +27,8 @@ from jupyterhub.auth import Authenticator
 from jupyterhub.handlers.base import BaseHandler
 from jupyterhub.utils import url_path_join
 
+import lab_gemini
+
 for _p in ("/home/public/web/backend", "/home/public/web/panel-lab/backend",
            os.path.join(os.path.dirname(os.path.abspath(__file__)), "backend")):
     if os.path.isdir(_p) and _p not in sys.path:
@@ -997,3 +999,182 @@ class UserTelemetryProxyHandler(BaseHandler):
         self.set_header("Content-Type", "application/json; charset=UTF-8")
         self.set_header("Cache-Control", "no-store")
         self.write(response.body)
+
+
+# =========================================================
+# GEMINI API KEY PER USER (AI STUDIO)
+# =========================================================
+# Modal di JupyterLab meminta key milik mahasiswa sendiri, menyimpannya di
+# ~/.config/gemini/api_key (0600, milik user), lalu memvalidasinya ke Google.
+# Handler hanya melayani pemilik sesi; key tidak pernah ditulis ke log.
+
+_GEMINI_KEY_WINDOW_SECONDS = 60
+_GEMINI_KEY_MAX_ATTEMPTS = 10
+_GEMINI_KEY_ATTEMPTS: Dict[str, list] = {}
+
+
+def _gemini_key_rate_limited(username: str) -> bool:
+    now = time.monotonic()
+    entries = _GEMINI_KEY_ATTEMPTS.setdefault(username, [])
+    cutoff = now - _GEMINI_KEY_WINDOW_SECONDS
+    entries[:] = [ts for ts in entries if ts > cutoff]
+    if len(entries) >= _GEMINI_KEY_MAX_ATTEMPTS:
+        return True
+    entries.append(now)
+    return False
+
+
+class GeminiKeyHandler(BaseHandler):
+    """Kelola Gemini API key milik user yang sedang login."""
+
+    def _json(self, status: int, payload: dict):
+        self.set_status(status)
+        self.set_header("Content-Type", "application/json; charset=UTF-8")
+        self.set_header("Cache-Control", "no-store")
+        self.finish(payload)
+
+    async def _identity(self):
+        """Kembalikan (user, home, uid, gid) atau (None, ...) bila belum login."""
+        current = await self.get_current_user()
+        if not current:
+            return None, None, None, None
+        try:
+            pw = pwd.getpwnam(current.name)
+        except KeyError:
+            return current, f"/home/{current.name}", None, None
+        return current, pw.pw_dir, pw.pw_uid, pw.pw_gid
+
+    def _status_payload(self, home: str) -> dict:
+        key = lab_gemini.read_key(home)
+        profile = lab_gemini.read_profile(home)
+        usage = lab_gemini.read_usage(home)
+        return {
+            "configured": bool(key),
+            "masked": lab_gemini.mask_key(key),
+            "needs_attention": bool(profile.get("needs_attention")),
+            "last_state": profile.get("last_state"),
+            "last_validated": profile.get("last_validated"),
+            "model": profile.get("last_model") or lab_gemini.DEFAULT_MODEL,
+            "usage": usage,
+            "server_time": lab_gemini.now_wib().strftime("%H:%M:%S"),
+        }
+
+    def _audit(self, username: str, action: str, detail: str, log_type: str = "info") -> None:
+        try:
+            from app.db import record_audit
+
+            record_audit(
+                target=f"NIM {username_to_nim(username)}",
+                action=action,
+                detail=detail,
+                log_type=log_type,
+            )
+        except Exception as exc:
+            logger.warning(f"[GeminiKey] Gagal mencatat audit {action}: {exc}")
+
+    async def get(self):
+        current, home, _uid, _gid = await self._identity()
+        if not current:
+            return self._json(403, {"error": "login_required", "message": "Login JupyterHub diperlukan."})
+        return self._json(200, self._status_payload(home))
+
+    async def post(self):
+        current, home, uid, gid = await self._identity()
+        if not current:
+            return self._json(403, {"error": "login_required", "message": "Login JupyterHub diperlukan."})
+
+        if _gemini_key_rate_limited(current.name):
+            return self._json(
+                429,
+                {
+                    "error": "rate_limited",
+                    "message": "Terlalu banyak percobaan. Tunggu satu menit lalu coba lagi.",
+                },
+            )
+
+        body = self.request.body or b""
+        if len(body) > 4096:
+            return self._json(413, {"error": "payload_too_large", "message": "Permintaan terlalu besar."})
+
+        try:
+            payload = json.loads(body.decode("utf-8") or "{}")
+        except (ValueError, UnicodeDecodeError):
+            return self._json(400, {"error": "invalid_json", "message": "Format permintaan tidak valid."})
+
+        api_key = str(payload.get("api_key") or "").strip()
+        if not api_key:
+            return self._json(400, {"error": "missing_key", "message": "API key wajib diisi."})
+        if len(api_key) > lab_gemini.MAX_KEY_LENGTH:
+            return self._json(400, {"error": "invalid_key", "message": "API key terlalu panjang."})
+
+        loop = asyncio.get_running_loop()
+        result = await loop.run_in_executor(None, lab_gemini.validate_key, api_key)
+        state = result.get("state")
+
+        if state not in ("ok", "quota"):
+            log_type = "warning" if state == "invalid" else "error"
+            self._audit(
+                current.name,
+                "GEMINI_KEY_REJECTED",
+                f"Key Gemini ditolak saat validasi ({state}, HTTP {result.get('http_status')}): "
+                f"{str(result.get('message'))[:160]}",
+                log_type=log_type,
+            )
+            return self._json(
+                400,
+                {
+                    "error": f"key_{state}",
+                    "message": result.get("message") or "Key tidak dapat diverifikasi.",
+                    "state": state,
+                },
+            )
+
+        try:
+            lab_gemini.write_key(api_key, home=home, uid=uid, gid=gid)
+            lab_gemini.reset_usage(home)
+        except OSError as exc:
+            logger.error(f"[GeminiKey] Gagal menyimpan key untuk {current.name}: {exc}")
+            return self._json(500, {"error": "write_failed", "message": "Gagal menyimpan key di server."})
+
+        lab_gemini.update_profile(
+            home,
+            uid=uid,
+            gid=gid,
+            needs_attention=(state == "quota"),
+            last_state=state,
+            last_validated=lab_gemini.now_wib().isoformat(timespec="seconds"),
+            model_count=result.get("model_count", 0),
+        )
+
+        self._audit(
+            current.name,
+            "GEMINI_KEY_SET",
+            f"Key Gemini milik NIM {username_to_nim(current.name)} diperbarui "
+            f"({lab_gemini.mask_key(api_key)}, status={state}).",
+        )
+
+        status = self._status_payload(home)
+        status["saved"] = True
+        status["validation"] = {
+            "state": state,
+            "message": result.get("message"),
+            "model_count": result.get("model_count", 0),
+        }
+        return self._json(200, status)
+
+    async def delete(self):
+        current, home, _uid, _gid = await self._identity()
+        if not current:
+            return self._json(403, {"error": "login_required", "message": "Login JupyterHub diperlukan."})
+        try:
+            lab_gemini.delete_key(home)
+        except OSError as exc:
+            logger.error(f"[GeminiKey] Gagal menghapus key {current.name}: {exc}")
+            return self._json(500, {"error": "delete_failed", "message": "Gagal menghapus key."})
+
+        self._audit(
+            current.name,
+            "GEMINI_KEY_REMOVED",
+            f"Key Gemini milik NIM {username_to_nim(current.name)} dihapus oleh pemiliknya.",
+        )
+        return self._json(200, {"removed": True, **self._status_payload(home)})

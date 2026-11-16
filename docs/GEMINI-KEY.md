@@ -106,7 +106,9 @@ dihapus dari akun Anda.
 
 ## 7. Catatan untuk Aslab/Admin
 
-- Endpoint: `GET/POST/DELETE /api/gemini-key` (handler `GeminiKeyHandler`).
+- Endpoint: `GET/POST/DELETE /hub/api/gemini-key` (handler `GeminiKeyHandler`).
+  Jalur ini berada di bawah prefix Hub agar cookie sesi `jupyterhub-hub-login`
+  (path `/hub`) ikut terkirim.
 - Hanya melayani pemilik sesi JupyterHub; tidak ada akses lintas akun.
 - Rate limit: 10 permintaan/menit per user.
 - Audit: `GEMINI_KEY_SET`, `GEMINI_KEY_REMOVED`, `GEMINI_KEY_REJECTED`.

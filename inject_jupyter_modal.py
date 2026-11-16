@@ -870,7 +870,7 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
     }
 
     function loadGeminiStatus(onDone, onFail) {
-      fetch('/api/gemini-key', { credentials: 'same-origin' })
+      fetch('/hub/api/gemini-key', { credentials: 'same-origin' })
         .then(function (res) {
           if (!res.ok) throw new Error('HTTP ' + res.status);
           return res.json();
@@ -894,7 +894,7 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
       hideGeminiAlert();
       setGeminiBusy(true);
 
-      fetch('/api/gemini-key', {
+      fetch('/hub/api/gemini-key', {
         method: 'POST',
         credentials: 'same-origin',
         headers: geminiHeaders(true),
@@ -927,7 +927,7 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
       if (!window.confirm('Hapus Gemini API key dari akun Anda?')) return;
       setGeminiBusy(true);
 
-      fetch('/api/gemini-key', {
+      fetch('/hub/api/gemini-key', {
         method: 'DELETE',
         credentials: 'same-origin',
         headers: geminiHeaders(false)

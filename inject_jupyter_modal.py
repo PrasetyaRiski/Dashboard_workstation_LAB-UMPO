@@ -739,10 +739,31 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
       }
     }
 
-    function geminiHeaders(json) {
+    var geminiXsrfPromise = null;
+
+    // Cookie `_xsrf` milik Hub ber-path `/hub`, sehingga tidak terbaca dari
+    // halaman Lab (`/user/<nama>/lab`). Ambil token dari halaman Hub yang
+    // same-origin; situs lain tidak bisa membaca respons ini karena SOP/CORS.
+    function getHubXsrf() {
+      if (geminiXsrfPromise) return geminiXsrfPromise;
+      var direct = getXsrfCookie();
+      if (direct) {
+        geminiXsrfPromise = Promise.resolve(direct);
+        return geminiXsrfPromise;
+      }
+      geminiXsrfPromise = fetch('/hub/home', { credentials: 'same-origin' })
+        .then(function (res) { return res.ok ? res.text() : ''; })
+        .then(function (html) {
+          var m = html.match(/xsrf_token:\s*"([^"]+)"/);
+          return m ? m[1] : '';
+        })
+        .catch(function () { return ''; });
+      return geminiXsrfPromise;
+    }
+
+    function geminiHeaders(json, token) {
       var headers = {};
       if (json) headers['Content-Type'] = 'application/json';
-      var token = getXsrfCookie();
       if (token) headers['X-XSRFToken'] = token;
       return headers;
     }
@@ -894,12 +915,15 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
       hideGeminiAlert();
       setGeminiBusy(true);
 
-      fetch('/hub/api/gemini-key', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: geminiHeaders(true),
-        body: JSON.stringify({ api_key: value })
-      })
+      getHubXsrf()
+        .then(function (token) {
+          return fetch('/hub/api/gemini-key', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: geminiHeaders(true, token),
+            body: JSON.stringify({ api_key: value })
+          });
+        })
         .then(function (res) {
           return res.json().catch(function () { return {}; }).then(function (data) {
             if (!res.ok) throw new Error(data.message || ('Gagal menyimpan (HTTP ' + res.status + ')'));
@@ -927,11 +951,14 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
       if (!window.confirm('Hapus Gemini API key dari akun Anda?')) return;
       setGeminiBusy(true);
 
-      fetch('/hub/api/gemini-key', {
-        method: 'DELETE',
-        credentials: 'same-origin',
-        headers: geminiHeaders(false)
-      })
+      getHubXsrf()
+        .then(function (token) {
+          return fetch('/hub/api/gemini-key', {
+            method: 'DELETE',
+            credentials: 'same-origin',
+            headers: geminiHeaders(false, token)
+          });
+        })
         .then(function (res) {
           return res.json().catch(function () { return {}; }).then(function (data) {
             if (!res.ok) throw new Error(data.message || ('HTTP ' + res.status));

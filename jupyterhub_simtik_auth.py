@@ -1010,7 +1010,7 @@ class UserTelemetryProxyHandler(BaseHandler):
 
 _GEMINI_KEY_WINDOW_SECONDS = 60
 _GEMINI_KEY_MAX_ATTEMPTS = 10
-_GEMINI_KEY_ATTEMPTS: Dict[str, list] = {}
+_GEMINI_KEY_ATTEMPTS = {}
 
 
 def _gemini_key_rate_limited(username: str) -> bool:

@@ -314,6 +314,16 @@ EOF
     chmod +x inject_jupyter_modal.py 2>/dev/null || true
     sudo python3 inject_jupyter_modal.py || python3 inject_jupyter_modal.py || true
 
+    # 5.4 Validasi modul & konfigurasi sebelum restart (cegah outage)
+    if ! sudo /opt/ai_env/bin/python -c "import sys; sys.path.insert(0, '/home/public/web/panel-lab'); import jupyterhub_simtik_auth" >/dev/null 2>&1; then
+        echo "❌ Modul jupyterhub_simtik_auth gagal diimpor. Restart JupyterHub DIBATALKAN."
+        exit 1
+    fi
+    if ! sudo python3 -m py_compile "$JH_CONFIG" >/dev/null 2>&1; then
+        echo "❌ jupyterhub_config.py mengandung kesalahan sintaks. Restart JupyterHub DIBATALKAN."
+        exit 1
+    fi
+
     # 6. Restart JupyterHub Service
     echo "🔄 Merestart service JupyterHub..."
     sudo systemctl restart jupyterhub.service || sudo systemctl restart jupyterhub

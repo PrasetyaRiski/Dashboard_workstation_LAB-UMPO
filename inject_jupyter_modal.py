@@ -730,27 +730,14 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
     var geminiState = null;
     var geminiOpenedByStartup = false;
 
-    function getXsrfCookie() {
-      try {
-        var m = document.cookie.match(/(?:^|;\s*)_xsrf=([^;]+)/);
-        return m ? decodeURIComponent(m[1]) : '';
-      } catch (e) {
-        return '';
-      }
-    }
-
     var geminiXsrfPromise = null;
 
-    // Cookie `_xsrf` milik Hub ber-path `/hub`, sehingga tidak terbaca dari
-    // halaman Lab (`/user/<nama>/lab`). Ambil token dari halaman Hub yang
-    // same-origin; situs lain tidak bisa membaca respons ini karena SOP/CORS.
+    // Cookie `_xsrf` di halaman Lab milik single-user server (path
+    // `/user/<nama>/`), bukan milik Hub. Token Hub harus diambil dari halaman
+    // Hub yang same-origin; situs lain tidak bisa membaca respons ini
+    // karena SOP/CORS.
     function getHubXsrf() {
       if (geminiXsrfPromise) return geminiXsrfPromise;
-      var direct = getXsrfCookie();
-      if (direct) {
-        geminiXsrfPromise = Promise.resolve(direct);
-        return geminiXsrfPromise;
-      }
       geminiXsrfPromise = fetch('/hub/home', { credentials: 'same-origin' })
         .then(function (res) { return res.ok ? res.text() : ''; })
         .then(function (html) {

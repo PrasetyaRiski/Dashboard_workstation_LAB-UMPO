@@ -82,7 +82,7 @@ export default function LoginView({ onLoginSuccess }) {
 
           <div>
             <h1 className="font-sans font-bold text-lg sm:text-xl text-slate-900 tracking-tight">
-              Konsol Manajemen Lab AI
+              Konsol Manajemen Lab Komputasi
             </h1>
             <p className="text-xs text-slate-500 font-medium mt-0.5">
               Teknik Informatika · Universitas Muhammadiyah Ponorogo

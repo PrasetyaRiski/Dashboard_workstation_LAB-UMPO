@@ -329,7 +329,7 @@ class SimtikAuthenticator(Authenticator):
                 raise tornado.web.HTTPError(
                     403,
                     reason=(
-                        "Akses Ditolak: Lab AI ini hanya diperuntukkan bagi mahasiswa "
+                        "Akses Ditolak: Lab Komputasi ini hanya diperuntukkan bagi mahasiswa "
                         "Teknik Informatika (S1). Akun Anda terdeteksi berasal dari program studi lain."
                     ),
                     log_message=f"NIM non-TI ditolak: {nim}"

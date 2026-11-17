@@ -100,7 +100,7 @@ function SystemOverview({
             Ringkasan Sistem & Klaster Komputasi
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Telemetri sumber daya komputasi dan status klaster Workstation DGX Lab AI UMPO
+            Telemetri sumber daya komputasi dan status klaster Workstation DGX Lab Komputasi UMPO
           </p>
         </div>
 

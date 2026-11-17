@@ -1,4 +1,4 @@
-"""Manajemen Gemini API Key per user untuk Lab AI UMPO.
+"""Manajemen Gemini API Key per user untuk Lab Komputasi UMPO.
 
 Modul ini dipakai di dua tempat:
 

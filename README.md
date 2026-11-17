@@ -1,4 +1,4 @@
-# Dashboard Workstation Lab Komputasi AI — UMPO
+# Dashboard Workstation Lab Komputasi — UMPO
 
 <div align="center">
 
@@ -11,7 +11,7 @@
 ![NVIDIA NVML](https://img.shields.io/badge/NVIDIA-NVML_CUDA-76B900?logo=nvidia&logoColor=white)
 
 **Sistem Monitoring Telemetri Real-time & Manajemen Beban GPU Server Workstation**  
-*Laboratorium Komputasi AI — Program Studi Teknik Informatika, Universitas Muhammadiyah Ponorogo*
+*Laboratorium Komputasi — Program Studi Teknik Informatika, Universitas Muhammadiyah Ponorogo*
 
 </div>
 

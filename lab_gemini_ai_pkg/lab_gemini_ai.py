@@ -1,4 +1,4 @@
-"""Provider Gemini untuk Jupyter AI (JupyterLab) di Lab AI UMPO.
+"""Provider Gemini untuk Jupyter AI (JupyterLab) di Lab Komputasi UMPO.
 
 Provider ini sengaja dibuat kecil dan tidak memakai ``langchain-google-genai``
 karena paket tersebut menarik SDK Google generasi lama yang bentrok dengan
@@ -145,7 +145,7 @@ class LabGeminiProvider(BaseProvider, BaseChatModel):
         avatar_route="api/ai/static/jupyternaut.svg",
     )
     help = (
-        "Gemini untuk Lab AI UMPO. API key dibaca dari modal Gemini "
+        "Gemini untuk Lab Komputasi UMPO. API key dibaca dari modal Gemini "
         "(~/.config/gemini/api_key), bukan dari Settings Jupyter AI."
     )
 

@@ -1,6 +1,6 @@
 # 📐 Spesifikasi Desain UI/UX Workstation 2026 (Anti-AI Slop Manifesto)
 
-> **Proyek**: Dashboard Workstation Lab Komputasi AI — Universitas Muhammadiyah Ponorogo  
+> **Proyek**: Dashboard Workstation Lab Komputasi — Universitas Muhammadiyah Ponorogo  
 > **Standar**: *Industrial-Grade Precision Workstation* (Terinspirasi dari standar desain Linear, Vercel, Grafana Enterprise, dan Cloudflare Radar)  
 > **Tujuan**: Menghilangkan tampilan "AI Slop" (generik, neon berlebih, tidak ergonomis) dan menggantinya dengan antarmuka alat komputasi presisi tinggi yang clean, dinamis, responsif, dan interaktif.
 

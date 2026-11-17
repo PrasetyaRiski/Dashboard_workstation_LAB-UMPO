@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==============================================================================
-# SCRIPT DEPLOY OTOMATIS: SIMTIK AUTH & DYNAMIC QoS LAB AI UMPO
+# SCRIPT DEPLOY OTOMATIS: SIMTIK AUTH & DYNAMIC QoS LAB KOMPUTASI UMPO
 # Jalankan di server edy@ai:/home/public/web
 # ==============================================================================
 
@@ -15,7 +15,7 @@ if [ "${DEPLOY_SIMTIK_COPY:-0}" != "1" ]; then
 fi
 
 echo "=========================================================="
-echo "🚀 MEMULAI PENERAPAN SISTEM SIMTIK & DYNAMIC QoS LAB AI..."
+echo "🚀 MEMULAI PENERAPAN SISTEM SIMTIK & DYNAMIC QoS LAB KOMPUTASI..."
 echo "=========================================================="
 
 # 1. Masuk ke direktori web/panel-lab

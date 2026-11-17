@@ -1,4 +1,4 @@
-# Antigravity Workspace Guidelines: Lab Komputasi AI UMPO
+# Antigravity Workspace Guidelines: Lab Komputasi UMPO
 
 ## 1. Standar UI/UX Frontend (Anti-AI-Slop & Precision Console)
 Setiap kali memodifikasi antarmuka React / JSX / Tailwind CSS di direktori `frontend/`:

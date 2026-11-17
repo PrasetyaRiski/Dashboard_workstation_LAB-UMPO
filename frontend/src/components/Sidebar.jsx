@@ -69,7 +69,7 @@ export default function Sidebar({
             </div>
             <div className="flex flex-col min-w-0">
               <span className="font-sans text-sm font-bold text-slate-900 tracking-tight truncate leading-tight">
-                Lab Komputasi AI
+                Lab Komputasi
               </span>
               <span className="font-sans text-[11px] text-slate-500 font-medium truncate leading-tight mt-0.5">
                 Teknik Informatika UMPO

@@ -743,8 +743,8 @@ export default function App() {
               </button>
             )}
             <span className="text-xs font-semibold text-slate-900 font-sans font-bold tracking-tight truncate">
-              <span className="hidden sm:inline">Lab Komputasi AI UMPO</span>
-              <span className="sm:hidden">Lab AI UMPO</span>
+              <span className="hidden sm:inline">Lab Komputasi UMPO</span>
+              <span className="sm:hidden">Lab Komputasi</span>
             </span>
             <span className="text-slate-300 text-xs">/</span>
             <span className="text-xs font-semibold text-sky-600 truncate">

@@ -1,6 +1,6 @@
 # Gemini API Key per Mahasiswa
 
-Panduan singkat penggunaan Google Gemini API di JupyterLab Lab AI UMPO.
+Panduan singkat penggunaan Google Gemini API di JupyterLab Lab Komputasi UMPO.
 Setiap mahasiswa memakai **API key AI Studio miliknya sendiri**. Key tidak
 pernah disimpan di dalam notebook dan tidak dibagikan ke akun lain.
 

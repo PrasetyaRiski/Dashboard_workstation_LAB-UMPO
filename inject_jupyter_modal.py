@@ -33,7 +33,7 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
             </span>
           </div>
           <p style="margin:2px 0 0; font-size:11px; color:#8b949e;">
-            Laboratorium Komputasi AI &bull; FT Universitas Muhammadiyah Ponorogo
+            Laboratorium Komputasi &bull; FT Universitas Muhammadiyah Ponorogo
           </p>
         </div>
       </div>

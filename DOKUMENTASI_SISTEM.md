@@ -1,5 +1,5 @@
 # Dokumen Spesifikasi & Cara Kerja Sistem
-## Manajemen Komputasi, Dynamic QoS, & Telemetri Lab AI UMPO
+## Manajemen Komputasi, Dynamic QoS, & Telemetri Lab Komputasi UMPO
 **Platform Terintegrasi: Single Sign-On SIMTIK UMPO, JupyterHub, Cgroups v2, dan Dashboard Monitoring**
 
 * **Versi Dokumen:** 2.0 (Edisi Lengkap Terbaru)

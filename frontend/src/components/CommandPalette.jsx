@@ -248,7 +248,7 @@ export default function CommandPalette({
             <span>↵ Eksekusi</span>
             <span>Esc Tutup</span>
           </div>
-          <span className="text-slate-700 font-medium hidden sm:inline">Lab Komputasi AI · TI UMPO</span>
+          <span className="text-slate-700 font-medium hidden sm:inline">Lab Komputasi · TI UMPO</span>
         </div>
       </div>
     </div>

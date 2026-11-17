@@ -596,36 +596,36 @@ export default function UnifiedUserManagement({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
         {/* Card 1: Total Akun Terdaftar */}
-        <div className="bg-[#FFFFFF] rounded-xl p-5 border border-[#E2E8F0] shadow-xs motion-card flex flex-col justify-between">
+        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-[0_1px_3px_rgba(15,23,42,0.03),0_6px_16px_rgba(15,23,42,0.02)] flex flex-col justify-between">
           <div className="flex items-start justify-between mb-2">
             <div>
-              <span className="text-xs font-bold text-[#0F172A]">Total Akun Terdaftar</span>
-              <p className="text-[11px] text-[#64748B]">Tenant Directory</p>
+              <span className="text-xs font-bold text-slate-900">Total Akun Terdaftar</span>
+              <p className="text-[11px] text-slate-500">Tenant Directory</p>
             </div>
-            <div className="w-9 h-9 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center text-[#0F172A] shadow-xs">
+            <div className="w-9 h-9 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-800 shadow-xs">
               <Users className="w-4.5 h-4.5" />
             </div>
           </div>
           <div className="flex flex-col gap-2 mt-1">
             <div className="flex items-baseline justify-between">
-              <span className="font-mono tabular-nums text-2xl font-bold text-[#0F172A]">
-                {unifiedList.length} <span className="text-[#64748B] text-xs font-normal">Akun</span>
+              <span className="font-mono tabular-nums text-2xl font-bold text-slate-900">
+                {unifiedList.length} <span className="text-slate-500 text-xs font-normal">Akun</span>
               </span>
-              <span className="font-mono text-[11px] font-semibold text-[#0F172A] px-2 py-0.5 rounded-full bg-[#F8FAFC] border border-[#E2E8F0]">
+              <span className="font-mono text-[11px] font-semibold text-slate-700 px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200">
                 SIMTIK & OS
               </span>
             </div>
-            <div className="w-full h-2 rounded-full bg-[#F1F5F9] overflow-hidden flex border border-[#E2E8F0] shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]">
+            <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden flex border border-slate-200/60 shadow-inner">
               <div
                 className="h-full bg-sky-500"
                 style={{ width: `${Math.round((totalStudents / (unifiedList.length || 1)) * 100)}%` }}
               />
               <div
-                className="h-full bg-sky-500"
+                className="h-full bg-sky-600"
                 style={{ width: `${Math.round((pureSystemCount / (unifiedList.length || 1)) * 100)}%` }}
               />
             </div>
-            <div className="flex items-center justify-between text-[#64748B] font-mono text-[11px]">
+            <div className="flex items-center justify-between text-slate-500 font-mono text-[11px]">
               <span>{totalStudents} Mhs SIMTIK</span>
               <span>{pureSystemCount} Dosen & Lab</span>
             </div>
@@ -633,75 +633,75 @@ export default function UnifiedUserManagement({
         </div>
 
         {/* Card 2: Akun Riset & Prioritas Aktif */}
-        <div className="bg-[#FFFFFF] rounded-xl p-5 border border-[#E2E8F0] shadow-xs motion-card flex flex-col justify-between">
+        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-[0_1px_3px_rgba(15,23,42,0.03),0_6px_16px_rgba(15,23,42,0.02)] flex flex-col justify-between">
           <div className="flex items-start justify-between mb-2">
             <div>
-              <span className="text-xs font-bold text-[#0F172A]">Akun Riset & Prioritas</span>
-              <p className="text-[11px] text-[#64748B]">QoS Dedicated GPU</p>
+              <span className="text-xs font-bold text-slate-900">Akun Riset & Prioritas</span>
+              <p className="text-[11px] text-slate-500">QoS Dedicated GPU</p>
             </div>
-            <div className="w-9 h-9 rounded-xl bg-[#FEF3C7] border border-[#FDE68A] flex items-center justify-center text-[#B45309] shadow-xs">
+            <div className="w-9 h-9 rounded-lg bg-amber-50 border border-amber-200/70 flex items-center justify-center text-amber-700 shadow-xs">
               <Zap className="w-4.5 h-4.5" />
             </div>
           </div>
           <div className="flex flex-col gap-2 mt-1">
             <div className="flex items-baseline justify-between">
-              <span className="font-mono tabular-nums text-2xl font-bold text-[#B45309]">
-                {boostedStudents} <span className="text-[#64748B] text-xs font-normal">Akun</span>
+              <span className="font-mono tabular-nums text-2xl font-bold text-amber-800">
+                {boostedStudents} <span className="text-slate-500 text-xs font-normal">Akun</span>
               </span>
-              <span className="font-mono text-[11px] font-semibold text-[#2E7D32] px-2 py-0.5 rounded-full bg-[#E8F5E9] border border-[#2E7D32]/30">
+              <span className="font-mono text-[11px] font-semibold text-amber-700 px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200">
                 Level 1 QoS
               </span>
             </div>
-            <div className="w-full h-2 rounded-full bg-[#F1F5F9] overflow-hidden border border-[#E2E8F0] shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]">
+            <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden border border-slate-200/60 shadow-inner">
               <div
-                className="h-full bg-amber-500 motion-bar"
+                className="h-full bg-amber-500 transition-all duration-300"
                 style={{ width: `${slotUtilPct}%` }}
               />
             </div>
-            <div className="flex items-center gap-1.5 text-[11px] font-mono text-[#64748B]">
-              <Layers className="w-3.5 h-3.5 text-[#0F172A]" />
-              <span className="truncate">Hak Akses Dedicated <code className="text-[#0F172A] font-semibold">compute-level1</code></span>
+            <div className="flex items-center gap-1.5 text-[11px] font-mono text-slate-500">
+              <Layers className="w-3.5 h-3.5 text-slate-700" />
+              <span className="truncate">Hak Akses Dedicated <code className="text-slate-900 font-semibold">compute-level1</code></span>
             </div>
           </div>
         </div>
 
         {/* Card 3: Beban Komputasi GPU */}
-        <div className="bg-[#FFFFFF] rounded-xl p-5 border border-[#E2E8F0] shadow-xs motion-card flex flex-col justify-between">
+        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-[0_1px_3px_rgba(15,23,42,0.03),0_6px_16px_rgba(15,23,42,0.02)] flex flex-col justify-between">
           <div className="flex items-start justify-between mb-2">
             <div>
-              <span className="text-xs font-bold text-[#0F172A]">Beban Komputasi GPU</span>
-              <p className="text-[11px] text-[#64748B]">2x RTX 5060 Ti (32 GB)</p>
+              <span className="text-xs font-bold text-slate-900">Beban Komputasi GPU</span>
+              <p className="text-[11px] text-slate-500">2x RTX 5060 Ti (32 GB)</p>
             </div>
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center border shadow-xs ${
+            <div className={`w-9 h-9 rounded-lg flex items-center justify-center border shadow-xs ${
               totalActiveGpuUsers > 0
-                ? 'bg-[#F8FAFC] text-[#0F172A] border-[#E2E8F0]'
-                : 'bg-[#F8FAFC] text-[#64748B] border-[#E2E8F0]'
+                ? 'bg-sky-50 text-sky-700 border-sky-200/70'
+                : 'bg-slate-50 text-slate-400 border-slate-200'
             }`}>
               <Cpu className="w-4.5 h-4.5" />
             </div>
           </div>
           <div className="flex flex-col gap-2 mt-1">
             <div className="flex items-baseline justify-between">
-              <span className="font-mono tabular-nums text-2xl font-bold text-[#0F172A]">
-                {totalActiveGpuUsers} <span className="text-[#64748B] text-xs font-normal">Sesi Aktif</span>
+              <span className="font-mono tabular-nums text-2xl font-bold text-slate-900">
+                {totalActiveGpuUsers} <span className="text-slate-500 text-xs font-normal">Sesi Aktif</span>
               </span>
-              <span className="font-mono text-[11px] font-semibold text-[#0F172A] px-2 py-0.5 rounded-full bg-[#F8FAFC] border border-[#E2E8F0]">
+              <span className="font-mono text-[11px] font-semibold text-slate-700 px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200">
                 {(totalVramUsedMb / 1024).toFixed(1)} GB ({totalVramPct}%)
               </span>
             </div>
-            <div className="w-full h-2 rounded-full bg-[#F1F5F9] overflow-hidden border border-[#E2E8F0] shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]">
+            <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden border border-slate-200/60 shadow-inner">
               <div
-                className={`h-full motion-bar ${
+                className={`h-full transition-all duration-300 ${
                   totalVramPct >= 75
                     ? 'bg-rose-600'
                     : totalVramPct >= 40
                     ? 'bg-amber-500'
-                    : 'bg-[#0F172A]'
+                    : 'bg-sky-600'
                 }`}
                 style={{ width: `${Math.max(totalVramPct, totalActiveGpuUsers > 0 ? 5 : 0)}%` }}
               />
             </div>
-            <div className="flex items-center justify-between text-[#64748B] font-mono text-[11px]">
+            <div className="flex items-center justify-between text-slate-500 font-mono text-[11px]">
               <span>GPU 0: {((gpus?.[0]?.vram_used_mb || 0) / 1024).toFixed(1)}G</span>
               <span>GPU 1: {((gpus?.[1]?.vram_used_mb || 0) / 1024).toFixed(1)}G</span>
             </div>
@@ -709,42 +709,42 @@ export default function UnifiedUserManagement({
         </div>
 
         {/* Card 4: Peringatan Storage (Over Quota) */}
-        <div className="bg-[#FFFFFF] rounded-xl p-5 border border-[#E2E8F0] shadow-xs motion-card flex flex-col justify-between">
+        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-[0_1px_3px_rgba(15,23,42,0.03),0_6px_16px_rgba(15,23,42,0.02)] flex flex-col justify-between">
           <div className="flex items-start justify-between mb-2">
             <div>
-              <span className="text-xs font-bold text-[#0F172A]">Peringatan Storage</span>
-              <p className="text-[11px] text-[#64748B]">Disk Limit Policy</p>
+              <span className="text-xs font-bold text-slate-900">Peringatan Storage</span>
+              <p className="text-[11px] text-slate-500">Disk Limit Policy</p>
             </div>
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center border shadow-xs ${
+            <div className={`w-9 h-9 rounded-lg flex items-center justify-center border shadow-xs ${
               overQuotaCount > 0
-                ? 'bg-[#FEE2E2] text-[#C53030] border-[#FCA5A5]'
-                : 'bg-[#E8F5E9] text-[#2E7D32] border-[#2E7D32]/30'
+                ? 'bg-rose-50 text-rose-700 border-rose-200'
+                : 'bg-emerald-50 text-emerald-700 border-emerald-200/70'
             }`}>
               <AlertTriangle className="w-4.5 h-4.5" />
             </div>
           </div>
           <div className="flex flex-col gap-2 mt-1">
             <div className="flex items-baseline justify-between">
-              <span className={`font-mono tabular-nums text-2xl font-bold ${overQuotaCount > 0 ? 'text-[#C53030]' : 'text-[#0F172A]'}`}>
-                {overQuotaCount} <span className="text-[#64748B] text-xs font-normal">Akun</span>
+              <span className={`font-mono tabular-nums text-2xl font-bold ${overQuotaCount > 0 ? 'text-rose-700' : 'text-slate-900'}`}>
+                {overQuotaCount} <span className="text-slate-500 text-xs font-normal">Akun</span>
               </span>
               {overQuotaCount > 0 ? (
-                <span className="font-mono text-[11px] font-semibold text-[#C53030] bg-[#FEE2E2] px-2 py-0.5 rounded-full border border-[#FCA5A5]">
+                <span className="font-mono text-[11px] font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
                   Over Quota
                 </span>
               ) : (
-                <span className="font-mono text-[11px] font-semibold text-[#2E7D32] bg-[#E8F5E9] px-2 py-0.5 rounded-full border border-[#2E7D32]/30">
+                <span className="font-mono text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
                   Normal
                 </span>
               )}
             </div>
-            <div className="w-full h-2 rounded-full bg-[#F1F5F9] overflow-hidden border border-[#E2E8F0] shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]">
+            <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden border border-slate-200/60 shadow-inner">
               <div
-                className={`h-full motion-bar ${overQuotaCount > 0 ? 'bg-rose-600' : 'bg-emerald-600'}`}
+                className={`h-full transition-all duration-300 ${overQuotaCount > 0 ? 'bg-rose-600' : 'bg-emerald-600'}`}
                 style={{ width: overQuotaCount > 0 ? '100%' : '15%' }}
               />
             </div>
-            <div className={`flex items-center gap-1.5 text-[11px] font-mono ${overQuotaCount > 0 ? 'text-[#C53030] font-semibold' : 'text-[#64748B]'}`}>
+            <div className={`flex items-center gap-1.5 text-[11px] font-mono ${overQuotaCount > 0 ? 'text-rose-700 font-semibold' : 'text-slate-500'}`}>
               <HardDrive className="w-3.5 h-3.5" />
               <span>{overQuotaCount > 0 ? 'Batas soft quota terlampaui' : 'Semua kuota aman terisolasi'}</span>
             </div>
@@ -829,11 +829,11 @@ export default function UnifiedUserManagement({
       </div>
 
       {/* Precision 9-Column Data Table Container */}
-      <div className="bg-white rounded-xl shadow-xs overflow-hidden border border-[#E2E8F0]">
+      <div className="bg-white rounded-xl shadow-[0_1px_3px_rgba(15,23,42,0.03),0_6px_16px_rgba(15,23,42,0.02)] overflow-hidden border border-slate-200">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[1360px]">
             <thead>
-              <tr className="bg-[#F8FAFC]/90 text-[#334155] font-mono text-xs font-semibold border-b border-[#E2E8F0]">
+              <tr className="bg-slate-50/90 text-slate-700 font-mono text-xs font-semibold border-b border-slate-200">
                 <th className="py-3.5 px-5" scope="col">Akun & Pengguna</th>
                 <th className="py-3.5 px-4" scope="col">Identitas & Status</th>
                 <th className="py-3.5 px-4" scope="col">Role / Hak Akses</th>
@@ -845,7 +845,7 @@ export default function UnifiedUserManagement({
                 <th className="py-3.5 px-5 text-right" scope="col">Aksi Manajemen</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E2E8F0] font-mono text-xs">
+            <tbody className="divide-y divide-slate-100 font-mono text-xs">
               {filteredData.length === 0 ? (
                 <tr>
                   <td colSpan="9" className="py-12 text-center text-[#64748B] font-mono">
@@ -927,16 +927,16 @@ export default function UnifiedUserManagement({
                             {item.is_active ? (
                               item.is_online ? (
                                 <div className="flex items-center gap-1.5 font-mono text-xs">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-[#E8F5E9]0 pulse-dot"></span>
-                                  <span className="text-[#2E7D32] font-bold">Online</span>
+                                  <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.7)] pulse-dot"></span>
+                                  <span className="text-emerald-700 font-bold">Online</span>
                                   {item.active_ip && (
-                                    <span className="text-[#64748B] text-[10px]">({item.active_ip})</span>
+                                    <span className="text-slate-500 text-[10px]">({item.active_ip})</span>
                                   )}
                                 </div>
                               ) : (
-                                <div className="flex items-center gap-1.5 font-mono text-xs text-[#64748B]">
+                                <div className="flex items-center gap-1.5 font-mono text-xs text-slate-500">
                                   <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
-                                  <span>⚪ Offline</span>
+                                  <span>Offline</span>
                                 </div>
                               )
                             ) : (
@@ -1212,14 +1212,14 @@ export default function UnifiedUserManagement({
                           </span>
                           {isOnline ? (
                             <div className="flex items-center gap-1.5 font-mono text-xs">
-                              <span className="w-1.5 h-1.5 rounded-full bg-[#E8F5E9]0 pulse-dot"></span>
-                              <span className="text-[#2E7D32] font-bold">Online</span>
-                              <span className="text-[#64748B] text-[10px]">({item.active_ip || '127.0.0.1'})</span>
+                              <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.7)] pulse-dot"></span>
+                              <span className="text-emerald-700 font-bold">Online</span>
+                              <span className="text-slate-500 text-[10px]">({item.active_ip || '127.0.0.1'})</span>
                             </div>
                           ) : (
-                            <div className="flex items-center gap-1.5 font-mono text-xs text-[#64748B]">
+                            <div className="flex items-center gap-1.5 font-mono text-xs text-slate-500">
                               <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
-                              <span>⚪ Offline</span>
+                              <span>Offline</span>
                             </div>
                           )}
                         </div>

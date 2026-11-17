@@ -117,13 +117,13 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
         <div class="lab-metric-card">
           <div style="display:flex; justify-content:space-between; align-items:center;">
             <span style="font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; color:#8b949e;">Akselerasi GPU</span>
-            <span id="gauge-txt-gpu-name" style="font-size:10.5px; color:#58a6ff; font-family:ui-monospace,monospace; font-weight:500;">GPU 1</span>
+            <span id="gauge-txt-gpu-name" style="font-size:10.5px; color:#a78bfa; font-family:ui-monospace,monospace; font-weight:500;">GPU 1</span>
           </div>
           <div id="gauge-txt-gpu-comp" style="font-size:20px; font-weight:700; color:#f0f6fc; font-family:ui-monospace,monospace; margin:4px 0 8px;">
             0% <span style="font-size:11px; font-weight:400; color:#8b949e;">(VRAM 0 MB)</span>
           </div>
           <div style="width:100%; height:4px; background:#21262d; border-radius:2px; overflow:hidden;">
-            <div id="gauge-bar-gpu" style="width:0%; height:100%; background:#38bdf8; transition:width 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+            <div id="gauge-bar-gpu" style="width:0%; height:100%; background:#a78bfa; transition:width 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></div>
           </div>
         </div>
 
@@ -137,7 +137,7 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
             0.00 GB <span style="font-size:11.5px; font-weight:400; color:#8b949e;">(0%)</span>
           </div>
           <div style="width:100%; height:4px; background:#21262d; border-radius:2px; overflow:hidden;">
-            <div id="gauge-bar-disk" style="width:0%; height:100%; background:#38bdf8; transition:width 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+            <div id="gauge-bar-disk" style="width:0%; height:100%; background:#2dd4bf; transition:width 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></div>
           </div>
         </div>
 
@@ -239,14 +239,29 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
         Key yang sama dipakai untuk notebook dan chat.
       </p>
 
-      <div style="margin-top:14px; background:#161b22; border:1px solid #21262d; border-radius:8px; padding:10px 12px;">
-        <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px;">
-          <span style="font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; color:#8b949e;">Token hari ini</span>
-          <span id="gemini-usage-total" style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:15px; font-weight:700; color:#f0f6fc;">0</span>
+      <!-- Usage Ledger Section -->
+      <div style="margin-top:14px; background:#161b22; border:1px solid #21262d; border-radius:8px; padding:12px; box-shadow:inset 0 1px 0 rgba(255,255,255,0.03);">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px; padding-bottom:10px; margin-bottom:10px; border-bottom:1px solid #21262d;">
+          <span style="font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; color:#8b949e;">Penggunaan Token Hari Ini</span>
+          <span style="font-family:ui-monospace,monospace; font-size:16px; font-weight:700; color:#58a6ff;">
+            <span id="gemini-usage-total">0</span> <span style="font-size:11px; font-weight:400; color:#8b949e;">Token</span>
+          </span>
         </div>
-        <div id="gemini-usage-detail" style="margin-top:3px; font-size:10.5px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; color:#8b949e;">
-          prompt 0 &bull; output 0 &bull; 0 request
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">
+          <div style="background:#0d1117; border:1px solid #21262d; border-radius:6px; padding:8px 10px; text-align:center;">
+            <div style="font-size:9.5px; text-transform:uppercase; font-weight:600; color:#8b949e; letter-spacing:0.04em;">Prompt</div>
+            <div id="gemini-stat-prompt" style="font-family:ui-monospace,monospace; font-size:13px; font-weight:700; color:#f0f6fc; margin-top:2px;">0</div>
+          </div>
+          <div style="background:#0d1117; border:1px solid #21262d; border-radius:6px; padding:8px 10px; text-align:center;">
+            <div style="font-size:9.5px; text-transform:uppercase; font-weight:600; color:#8b949e; letter-spacing:0.04em;">Output</div>
+            <div id="gemini-stat-output" style="font-family:ui-monospace,monospace; font-size:13px; font-weight:700; color:#f0f6fc; margin-top:2px;">0</div>
+          </div>
+          <div style="background:#0d1117; border:1px solid #21262d; border-radius:6px; padding:8px 10px; text-align:center;">
+            <div style="font-size:9.5px; text-transform:uppercase; font-weight:600; color:#8b949e; letter-spacing:0.04em;">Request</div>
+            <div id="gemini-stat-requests" style="font-family:ui-monospace,monospace; font-size:13px; font-weight:700; color:#f0f6fc; margin-top:2px;">0</div>
+          </div>
         </div>
+        <div id="gemini-usage-detail" style="display:none;"></div>
       </div>
 
     </div>
@@ -268,7 +283,7 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
 
 <!-- 2. FLOATING PERFORMANCE TOOLBAR -->
 <div id="lab-ai-status-pill" title="Workstation Telemetry & Resource Monitor (Klik untuk membuka rincian)" style="display:none;">
-  <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#3fb950; box-shadow:0 0 6px rgba(63,185,80,0.6); flex-shrink:0;"></span>
+  <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#3fb950; animation:labLivePulse 2s infinite ease-in-out; flex-shrink:0;"></span>
   <div id="lab-ai-live-tags" style="display:flex; align-items:center;">
     <span style="padding-right:7px; border-right:1px solid rgba(48,54,61,0.6); margin-right:7px;">CPU <strong id="pill-val-cpu" style="color:#f0f6fc;">--%</strong></span>
     <span style="padding-right:7px; border-right:1px solid rgba(48,54,61,0.6); margin-right:7px;">RAM <strong id="pill-val-ram" style="color:#f0f6fc;">--G</strong></span>
@@ -284,6 +299,12 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
 @keyframes labModalFadeIn {
   from { opacity: 0; transform: scale(0.98); }
   to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes labLivePulse {
+  0% { box-shadow: 0 0 0 0 rgba(63, 185, 80, 0.7); }
+  70% { box-shadow: 0 0 0 6px rgba(63, 185, 80, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(63, 185, 80, 0); }
 }
 
 .lab-bento-grid {
@@ -809,6 +830,12 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
       if (geminiUsageTotal) {
         geminiUsageTotal.textContent = fmtNum(usage.total_tokens);
       }
+      var statPrompt = document.getElementById('gemini-stat-prompt');
+      var statOutput = document.getElementById('gemini-stat-output');
+      var statReqs   = document.getElementById('gemini-stat-requests');
+      if (statPrompt) statPrompt.textContent = fmtNum(usage.prompt_tokens);
+      if (statOutput) statOutput.textContent = fmtNum(usage.output_tokens);
+      if (statReqs)   statReqs.textContent   = fmtNum(usage.requests);
       if (geminiUsageDetail) {
         geminiUsageDetail.textContent =
           'prompt ' + fmtNum(usage.prompt_tokens) +

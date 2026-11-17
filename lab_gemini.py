@@ -34,7 +34,16 @@ from urllib import parse as urlparse
 from urllib import request as urlrequest
 
 WIB = timezone(timedelta(hours=7))
-DEFAULT_MODEL = "gemini-2.5-flash"
+DEFAULT_MODEL = "gemini-3.8-flash"
+
+# Model yang sudah dipensiunkan Google. ID lama tetap dipetakan agar konfigurasi
+# Jupyter AI dan notebook mahasiswa yang belum diperbarui tidak langsung gagal.
+RETIRED_MODELS = {
+    "gemini-2.5-flash": "gemini-3.8-flash",
+    "gemini-2.5-pro": "gemini-3.8-flash",
+    "models/gemini-2.5-flash": "gemini-3.8-flash",
+    "models/gemini-2.5-pro": "gemini-3.8-flash",
+}
 
 KEY_DIR = Path(".config") / "gemini"
 KEY_FILENAME = "api_key"
@@ -77,6 +86,12 @@ def today_key() -> str:
 
 def user_home(home: Optional[str] = None) -> Path:
     return Path(home) if home else Path(os.path.expanduser("~"))
+
+
+def resolve_model(model: Optional[str] = None) -> str:
+    """Petakan model yang dipensiunkan Google ke model default aktif."""
+    clean = (model or DEFAULT_MODEL).strip()
+    return RETIRED_MODELS.get(clean, clean)
 
 
 def key_dir(home: Optional[str] = None) -> Path:
@@ -457,7 +472,7 @@ def generate(contents: Any, model: Optional[str] = None, home: Optional[str] = N
         from lab_gemini import generate
         print(generate("Apa itu GPU?").text)
     """
-    model_name = model or DEFAULT_MODEL
+    model_name = resolve_model(model)
     gem = client(home)
 
     try:
@@ -483,7 +498,7 @@ def generate(contents: Any, model: Optional[str] = None, home: Optional[str] = N
 
 def generate_stream(contents: Any, model: Optional[str] = None, home: Optional[str] = None, **kwargs: Any):
     """Versi streaming; token dicatat setelah stream selesai."""
-    model_name = model or DEFAULT_MODEL
+    model_name = resolve_model(model)
     gem = client(home)
 
     def iterator():

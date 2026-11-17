@@ -111,7 +111,15 @@ if [ -x "$AI_ENV_PIP" ] && [ -d "lab_gemini_ai_pkg" ]; then
         echo "❌ Konfigurasi Jupyter AI tidak valid. Deploy dibatalkan."
         exit 1
     fi
-    echo "✅ Jupyter AI dipasang; provider aktif: lab-gemini:gemini-2.5-flash"
+
+    # Migrasi konfigurasi pengguna lama dari gemini-2.5-flash ke gemini-3.8-flash
+    for cfg in /home/*/.local/share/jupyter/jupyter_ai/config.json; do
+        if [ -f "$cfg" ]; then
+            sudo sed -i 's/"model_provider_id": *"lab-gemini:gemini-2\.5-flash"/"model_provider_id": "lab-gemini:gemini-3.8-flash"/g' "$cfg" 2>/dev/null || true
+        fi
+    done
+
+    echo "✅ Jupyter AI dipasang; provider aktif: lab-gemini:gemini-3.8-flash"
 
     if ! /opt/ai_env/bin/python -c "
 import logging

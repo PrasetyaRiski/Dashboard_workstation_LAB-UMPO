@@ -45,10 +45,10 @@ resp = generate("Jelaskan overfitting dalam dua kalimat.")
 print(resp.text)
 ```
 
-Model default: `gemini-2.5-flash`. Untuk model lain:
+Model default: `gemini-3.8-flash`. Untuk model lain:
 
 ```python
-resp = generate("...", model="gemini-2.5-pro")
+resp = generate("...", model="gemini-3.8-flash")
 ```
 
 Butuh akses `client` mentah:
@@ -74,7 +74,7 @@ JupyterLab sudah dilengkapi **chat Gemini** yang memakai key yang sama
 (`~/.config/gemini/api_key`). Tidak perlu mengisi key lagi di Settings.
 
 1. Buka **sidebar kiri JupyterLab** → ikon **chat** (bubble).
-2. Pilih model **Gemini** (`gemini-2.5-flash` sudah menjadi default).
+2. Pilih model **Gemini** (`gemini-3.8-flash` sudah menjadi default).
 3. Ketik pertanyaan, atau minta bantuan soal kode/notebook.
 
 Cara cepat lain:
@@ -153,7 +153,7 @@ sudo ls -l /home/<user>/.config/gemini/
   `lab_gemini_ai_pkg/`). Konfigurasi trait ada di
   `/opt/ai_env/etc/jupyter/jupyter_server_config.py` (blok
   `BEGIN/END LAB AI CHAT`): hanya provider `lab-gemini` yang diizinkan, model
-  default `lab-gemini:gemini-2.5-flash`, histori 4 percakapan. File
+  default `lab-gemini:gemini-3.8-flash`, histori 4 percakapan. File
   `jupyter_server_config.d/*.json` sengaja tidak dipakai karena Jupyter hanya
   membacanya untuk mengaktifkan extension, bukan untuk trait config.
 - Provider **tidak** memakai `auth_strategy`, jadi key tidak pernah masuk ke

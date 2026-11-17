@@ -135,8 +135,8 @@ class LabGeminiProvider(BaseProvider, BaseChatModel):
     id = "lab-gemini"
     name = "Gemini"
     models = [
+        "gemini-3.8-flash",
         "gemini-2.5-flash",
-        "gemini-2.5-pro",
     ]
     model_id_key = "model_id"
     auth_strategy = None
@@ -160,8 +160,12 @@ class LabGeminiProvider(BaseProvider, BaseChatModel):
         return "lab-gemini"
 
     @property
+    def _resolved_model_id(self) -> str:
+        return lab_gemini.resolve_model(self.model_id)
+
+    @property
     def _identifying_params(self) -> dict[str, Any]:
-        return {"model_id": self.model_id}
+        return {"model_id": self._resolved_model_id}
 
     # ------------------------------------------------------------------
     # Key & client
@@ -268,6 +272,18 @@ class LabGeminiProvider(BaseProvider, BaseChatModel):
                 "API key AI Studio yang valid."
             )
 
+        if code == 503 or "503" in message or "UNAVAILABLE" in upper or "HIGH DEMAND" in upper:
+            return RuntimeError(
+                "Model Gemini sedang mengalami lonjakan beban di server Google (503 Service Unavailable). "
+                "Silakan coba kirim pesan lagi dalam beberapa detik."
+            )
+
+        if code == 404 or "404" in message or "NOT_FOUND" in upper:
+            return RuntimeError(
+                "Model Gemini tidak ditemukan atau sudah dipensiunkan oleh Google. "
+                "Sistem otomatis memperbarui ke model gemini-3.8-flash; silakan coba lagi."
+            )
+
         return RuntimeError(f"Gemini gagal memproses permintaan: {message}")
 
     # ------------------------------------------------------------------
@@ -287,7 +303,7 @@ class LabGeminiProvider(BaseProvider, BaseChatModel):
 
         try:
             response = client.models.generate_content(
-                model=self.model_id,
+                model=self._resolved_model_id,
                 contents=contents,
                 config=config,
             )
@@ -312,7 +328,7 @@ class LabGeminiProvider(BaseProvider, BaseChatModel):
 
         try:
             response = await client.aio.models.generate_content(
-                model=self.model_id,
+                model=self._resolved_model_id,
                 contents=contents,
                 config=config,
             )
@@ -342,7 +358,7 @@ class LabGeminiProvider(BaseProvider, BaseChatModel):
 
         try:
             stream = client.models.generate_content_stream(
-                model=self.model_id,
+                model=self._resolved_model_id,
                 contents=contents,
                 config=config,
             )
@@ -373,7 +389,7 @@ class LabGeminiProvider(BaseProvider, BaseChatModel):
 
         try:
             stream = await client.aio.models.generate_content_stream(
-                model=self.model_id,
+                model=self._resolved_model_id,
                 contents=contents,
                 config=config,
             )
@@ -418,6 +434,9 @@ def _install_friendly_errors() -> None:
                     lab_gemini.GeminiQuotaExceeded,
                 ),
             ):
+                self.reply(str(exc), message)
+                return
+            if isinstance(exc, RuntimeError) and str(exc).startswith(("Gemini gagal", "Model Gemini", "Key Gemini", "Kuota")):
                 self.reply(str(exc), message)
                 return
             await original(self, exc, message)

@@ -115,7 +115,7 @@ class _FakeAsyncModels:
 
 
 def _provider(**kwargs):
-    return provider_mod.LabGeminiProvider(model_id="gemini-2.5-flash", **kwargs)
+    return provider_mod.LabGeminiProvider(model_id="gemini-3.8-flash", **kwargs)
 
 
 # ==============================================================================
@@ -302,6 +302,35 @@ def test_translate_error_server_error_is_runtime(profile_updates):
     assert profile_updates == []
 
 
+def test_translate_error_503_service_unavailable(profile_updates):
+    error = provider_mod.LabGeminiProvider._translate_error(
+        _api_error(503, "503 UNAVAILABLE: high demand")
+    )
+
+    assert isinstance(error, RuntimeError)
+    assert "503 Service Unavailable" in str(error)
+    assert profile_updates == []
+
+
+def test_translate_error_404_retired_model(profile_updates):
+    error = provider_mod.LabGeminiProvider._translate_error(
+        _api_error(404, "404 NOT_FOUND: model is no longer available to new users")
+    )
+
+    assert isinstance(error, RuntimeError)
+    assert "gemini-3.8-flash" in str(error)
+
+
+def test_legacy_gemini_25_model_aliases_to_38():
+    legacy_flash = provider_mod.LabGeminiProvider(model_id="gemini-2.5-flash")
+    legacy_pro = provider_mod.LabGeminiProvider(model_id="gemini-2.5-pro")
+    current_flash = provider_mod.LabGeminiProvider(model_id="gemini-3.8-flash")
+
+    assert legacy_flash._resolved_model_id == "gemini-3.8-flash"
+    assert legacy_pro._resolved_model_id == "gemini-3.8-flash"
+    assert current_flash._resolved_model_id == "gemini-3.8-flash"
+
+
 # ==============================================================================
 # Generate & streaming
 # ==============================================================================
@@ -335,7 +364,7 @@ def test_generate_returns_text_and_records_usage(monkeypatch):
     assert result.generations[0].message.content == "Halo dari Gemini"
     assert recorded and recorded[0].prompt_token_count == 6
     call = client.models.calls[0]
-    assert call["model"] == "gemini-2.5-flash"
+    assert call["model"] == "gemini-3.8-flash"
     assert call["contents"][0].role == "user"
 
 
@@ -401,7 +430,7 @@ def test_agenerate_returns_text_and_records_usage(monkeypatch):
 
     assert result.generations[0].message.content == "Halo async"
     assert recorded and recorded[0].prompt_token_count == 5
-    assert async_models.calls[0]["model"] == "gemini-2.5-flash"
+    assert async_models.calls[0]["model"] == "gemini-3.8-flash"
 
 
 def test_astream_yields_chunks_and_records_usage(monkeypatch):
@@ -467,5 +496,5 @@ def test_lab_ai_config_is_locked_to_lab_gemini():
     ai_config = namespace["c"].AiExtension
 
     assert ai_config.allowed_providers == ["lab-gemini"]
-    assert ai_config.default_language_model == "lab-gemini:gemini-2.5-flash"
+    assert ai_config.default_language_model == "lab-gemini:gemini-3.8-flash"
     assert ai_config.default_max_chat_history >= 1

@@ -77,11 +77,11 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, onSweepZombies }) {
   });
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-5 shadow-xs flex flex-col gap-4 font-sans hover:border-slate-300 transition-all">
+    <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-5 shadow-xs flex flex-col gap-4 font-sans hover:border-slate-300 transition-colors duration-150">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-mono font-bold text-sm shadow-xs shrink-0">
+          <div className="w-9 h-9 rounded-lg bg-slate-900 text-white flex items-center justify-center font-mono font-bold text-sm shadow-xs shrink-0">
             {gpu.index}
           </div>
           <div>
@@ -90,11 +90,11 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, onSweepZombies }) {
                 {gpu.name || `NVIDIA RTX ${gpu.index}`}
               </h2>
               {gpu.index === 0 ? (
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-violet-50 text-violet-700 border border-violet-200">
+                <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-violet-50 text-violet-700 border border-violet-200">
                   Prioritas Riset (Dedicated)
                 </span>
               ) : (
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                   Praktikum (Shared Pool)
                 </span>
               )}
@@ -106,8 +106,8 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, onSweepZombies }) {
         </div>
 
         {/* Vital Telemetry Badges */}
-        <div className="flex items-center gap-2 font-mono text-xs flex-wrap">
-          <div className={`px-2.5 py-1 rounded-xl border flex items-center gap-1.5 ${
+        <div className="flex items-center gap-2 font-mono tabular-nums text-xs flex-wrap">
+          <div className={`px-2.5 py-1 rounded-md border flex items-center gap-1.5 ${
             isHighTemp 
               ? 'bg-rose-50 border-rose-200 text-rose-700' 
               : 'bg-slate-50 border-slate-200 text-slate-700'
@@ -116,12 +116,12 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, onSweepZombies }) {
             <span className="font-bold">{temp}°C</span>
           </div>
 
-          <div className="px-2.5 py-1 rounded-xl border bg-slate-50 border-slate-200 text-slate-700 flex items-center gap-1.5">
+          <div className="px-2.5 py-1 rounded-md border bg-slate-50 border-slate-200 text-slate-700 flex items-center gap-1.5">
             <span className="text-[10px] uppercase font-sans font-semibold text-slate-400">Kipas</span>
             <span className="font-bold">{fan}%</span>
           </div>
 
-          <div className="px-2.5 py-1 rounded-xl border bg-slate-50 border-slate-200 text-slate-700 flex items-center gap-1.5">
+          <div className="px-2.5 py-1 rounded-md border bg-slate-50 border-slate-200 text-slate-700 flex items-center gap-1.5">
             <span className="text-[10px] uppercase font-sans font-semibold text-slate-400">Daya</span>
             <span className="font-bold">{power}W</span>
             <span className="text-[10px] text-slate-400">/{maxPower}W</span>

@@ -105,7 +105,7 @@ function SystemOverview({
         </div>
 
         {/* Cluster Health Banner */}
-        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-mono font-medium shadow-2xs ${healthClass}`}>
+        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-mono tabular-nums font-medium shadow-2xs ${healthClass}`}>
           <span className={`w-2 h-2 rounded-full pulse-dot ${dotClass}`} />
           <span className="font-semibold">{healthLabel}</span>
         </div>
@@ -120,7 +120,7 @@ function SystemOverview({
               <SlidersHorizontal className="w-3.5 h-3.5 text-slate-700" />
               Mode Lab:
             </span>
-            <span className={`px-2.5 py-0.5 rounded-full text-xs font-mono font-bold border flex items-center gap-1.5 ${
+            <span className={`px-2.5 py-0.5 rounded-md text-xs font-mono font-bold border flex items-center gap-1.5 ${
               isBasicMode
                 ? 'bg-sky-50 text-sky-700 border-sky-200'
                 : 'bg-violet-50 text-violet-700 border-violet-200'
@@ -134,7 +134,7 @@ function SystemOverview({
           </div>
 
           {/* Toggle Buttons (Always visible, prompts login if guest) */}
-          <div className="inline-flex items-center p-1.5 bg-slate-100 border border-slate-300 rounded-xl self-start sm:self-auto shadow-xs gap-1.5">
+          <div className="inline-flex items-center p-1 bg-slate-100 border border-slate-200 rounded-lg self-start sm:self-auto shadow-xs gap-1">
             <button
               type="button"
               onClick={() => onSwitchLabMode && onSwitchLabMode('ai')}

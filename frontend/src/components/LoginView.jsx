@@ -58,18 +58,9 @@ export default function LoginView({ onLoginSuccess }) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center p-4 selection:bg-slate-200 selection:text-slate-900 font-sans relative overflow-hidden">
-      {/* Decorative Subtle Grid Lines */}
-      <div 
-        className="absolute inset-0 pointer-events-none opacity-[0.035]"
-        style={{
-          backgroundImage: 'radial-gradient(#0f172a 1px, transparent 1px)',
-          backgroundSize: '24px 24px'
-        }}
-      />
-
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center p-4 selection:bg-slate-200 selection:text-slate-900 font-sans relative">
       {/* Main Login Card */}
-      <div className="w-full max-w-md bg-white border border-slate-200 rounded-xl shadow-lg p-6 sm:p-8 flex flex-col gap-6 relative z-10 motion-card">
+      <div className="w-full max-w-md bg-white border border-slate-200/90 rounded-xl shadow-xs p-6 sm:p-8 flex flex-col gap-6 relative z-10">
         {/* Header & Logo */}
         <div className="flex flex-col items-center text-center gap-3">
           <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center p-2 shadow-xs">
@@ -91,11 +82,11 @@ export default function LoginView({ onLoginSuccess }) {
         </div>
 
         {/* Tab Mode Selector */}
-        <div className="flex p-1 bg-slate-100 rounded-lg border border-slate-200 gap-1 font-mono text-xs">
+        <div className="flex p-1 bg-slate-100/90 rounded-lg border border-slate-200 gap-1 font-mono text-xs">
           <button
             type="button"
             onClick={() => { setLoginMode('simtik'); setErrorMsg(''); }}
-            className={`flex-1 py-2 rounded-md font-medium transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            className={`flex-1 py-2 rounded-md font-medium transition-colors duration-150 flex items-center justify-center gap-1.5 cursor-pointer ${
               loginMode === 'simtik'
                 ? 'bg-white text-slate-900 font-semibold shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
@@ -107,7 +98,7 @@ export default function LoginView({ onLoginSuccess }) {
           <button
             type="button"
             onClick={() => { setLoginMode('pin'); setErrorMsg(''); }}
-            className={`flex-1 py-2 rounded-md font-medium transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            className={`flex-1 py-2 rounded-md font-medium transition-colors duration-150 flex items-center justify-center gap-1.5 cursor-pointer ${
               loginMode === 'pin'
                 ? 'bg-white text-slate-900 font-semibold shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
@@ -176,7 +167,7 @@ export default function LoginView({ onLoginSuccess }) {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full mt-2 py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-lg shadow-xs transition-colors flex items-center justify-center gap-2 min-h-[44px] cursor-pointer disabled:opacity-50 active:translate-y-0.5"
+            className="w-full mt-2 py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-lg shadow-xs transition-colors duration-150 flex items-center justify-center gap-2 min-h-[44px] cursor-pointer disabled:opacity-50"
           >
             {isLoading ? (
               <>

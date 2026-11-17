@@ -79,8 +79,8 @@ export default function Sidebar({
 
           {/* Navigation Section */}
           <nav className="flex-1 overflow-y-auto py-3 px-2 flex flex-col gap-1">
-            <div className="px-3 pb-1 text-[11px] font-sans font-semibold uppercase tracking-wider text-slate-400">
-              Konsol Manajemen
+            <div className="px-3 pb-1.5 text-[11px] font-sans font-medium uppercase text-slate-400">
+              Navigasi Konsol
             </div>
             {tabs.map((tab) => {
               const Icon = tab.icon;
@@ -99,7 +99,7 @@ export default function Sidebar({
                 <button
                   key={tab.id}
                   onClick={handleClick}
-                  className={`w-full min-h-[42px] flex items-center justify-between px-3 py-2 rounded-xl text-left text-xs font-medium transition-all duration-150 cursor-pointer ${
+                  className={`w-full min-h-[40px] flex items-center justify-between px-3 py-2 rounded-lg text-left text-xs font-medium transition-colors duration-150 cursor-pointer ${
                     isActive
                       ? 'bg-slate-900 text-white font-semibold shadow-xs'
                       : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'

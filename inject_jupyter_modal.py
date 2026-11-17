@@ -14,7 +14,7 @@ import re
 
 MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
 <!-- 1. POPUP MODAL PUSAT BANTUAN & REAL-TIME PERFORMANCE BENTO CONSOLE -->
-<div id="lab-ai-popup-overlay" style="display:none; position:fixed; inset:0; z-index:9999999; background:rgba(0,0,0,0.7); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:16px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif; box-sizing:border-box;">
+<div id="lab-ai-popup-overlay" style="display:none; position:fixed; inset:0; z-index:9999999; background:rgba(13,17,23,0.78); align-items:center; justify-content:center; padding:16px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif; box-sizing:border-box;">
   <div id="lab-ai-popup-card" style="background:#0d1117; color:#e6edf3; width:100%; max-width:580px; border-radius:12px; border:1px solid #30363d; box-shadow:0 16px 36px rgba(0,0,0,0.6); overflow:hidden; animation:labModalFadeIn 0.15s ease-out; box-sizing:border-box;">
     
     <!-- Modal Header -->
@@ -195,7 +195,7 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
 
     <div style="background:#161b22; padding:14px 18px; border-bottom:1px solid #30363d; display:flex; align-items:center; justify-content:space-between; gap:10px;">
       <div style="display:flex; align-items:center; gap:10px;">
-        <div style="width:28px; height:28px; border-radius:6px; background:#21262d; border:1px solid #30363d; display:flex; align-items:center; justify-content:center; color:#a371f7;">
+        <div style="width:28px; height:28px; border-radius:6px; background:#21262d; border:1px solid #30363d; display:flex; align-items:center; justify-content:center; color:#38bdf8;">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"></path></svg>
         </div>
         <div>
@@ -401,6 +401,7 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
   padding: 6px 14px;
   border-radius: 20px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
   font-size: 11px;
   cursor: pointer;
   user-select: none;

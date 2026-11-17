@@ -26,6 +26,7 @@ PROTECTED_POST = [
     "/api/users/boost",
     "/api/admin/backup",
     "/api/admin/checkpoint-wal",
+    "/api/auth/simtik",
 ]
 
 
@@ -316,4 +317,80 @@ def test_reset_admin_pin_cli(client):
     # Kembalikan ke initial pin
     from app.db import set_master_pin
     set_master_pin("test-admin-pin-123")
+
+
+def test_auth_simtik_requires_auth(client, monkeypatch):
+    import app.main as main_mod
+
+    # 1. Anonymous ditolak -> 401
+    anon = client.post("/api/auth/simtik", json={"nim": "21533001", "password": "pass"})
+    assert anon.status_code == 401
+    assert "Autentikasi diperlukan" in anon.json().get("detail", "")
+
+    # 2. Operator / Admin diizinkan -> 200 (dengan mock SIMTIK)
+    monkeypatch.setattr(
+        main_mod,
+        "verify_simtik_credentials",
+        lambda nim, pwd: (True, "OK", {"nama": "Mahasiswa Uji"}),
+    )
+    headers = {"Authorization": f"Bearer {_fresh_token(client)}"}
+    auth_resp = client.post(
+        "/api/auth/simtik",
+        headers=headers,
+        json={"nim": "21533001", "password": "pass"},
+    )
+    assert auth_resp.status_code == 200
+    assert auth_resp.json().get("success") is True
+
+
+def test_extract_client_ip_trusted_proxy_logic():
+    import jupyterhub_simtik_auth as jh_auth
+    from types import SimpleNamespace
+
+    # Mock handler dengan untrusted peer IP
+    untrusted_req = SimpleNamespace(
+        remote_ip="203.0.113.10",
+        headers={"X-Forwarded-For": "1.2.3.4", "CF-Connecting-IP": "5.6.7.8"},
+    )
+    untrusted_handler = SimpleNamespace(request=untrusted_req)
+    # Header spoofing harus diabaikan bila remote_ip bukan trusted proxy
+    assert jh_auth.extract_client_ip(untrusted_handler) == "203.0.113.10"
+
+    # Mock handler dengan trusted peer IP (127.0.0.1)
+    trusted_req = SimpleNamespace(
+        remote_ip="127.0.0.1",
+        headers={"X-Forwarded-For": "192.168.100.50, 127.0.0.1"},
+    )
+    trusted_handler = SimpleNamespace(request=trusted_req)
+    assert jh_auth.extract_client_ip(trusted_handler) == "192.168.100.50"
+
+
+def test_backup_database_permissions(tmp_path, monkeypatch):
+    import os
+    import stat
+    import sqlite3
+    import app.db as db_mod
+
+    # Setup database sementara yang valid
+    test_db = tmp_path / "data" / "lab_users.db"
+    test_db.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(str(test_db))
+    conn.execute("CREATE TABLE users (nim TEXT PRIMARY KEY);")
+    conn.commit()
+    conn.close()
+
+    monkeypatch.setattr(db_mod, "SQLITE_PATH", str(test_db))
+    monkeypatch.setattr(db_mod, "USE_POSTGRES", False)
+
+    backup_path = db_mod.perform_database_backup(retention_days=1)
+    assert backup_path is not None
+    assert os.path.isfile(backup_path)
+
+    # Izin berkas backup harus 0600
+    file_mode = stat.S_IMODE(os.stat(backup_path).st_mode)
+    assert file_mode == 0o600
+
+    # Izin direktori backup harus 0700
+    dir_mode = stat.S_IMODE(os.stat(os.path.dirname(backup_path)).st_mode)
+    assert dir_mode == 0o700
 

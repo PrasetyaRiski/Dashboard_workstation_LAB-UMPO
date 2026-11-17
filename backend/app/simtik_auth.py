@@ -6,11 +6,7 @@ https://simtik.umpo.ac.id/apps/action/login.user.php
 
 import logging
 import re
-import urllib3
 import requests
-
-# Disable insecure request warnings for internal university SSL if needed
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 logger = logging.getLogger("simtik_auth")
 logging.basicConfig(level=logging.INFO)
@@ -51,8 +47,8 @@ def verify_simtik_credentials(nim: str, password: str, timeout: int = 10) -> tup
 
     try:
         # Langkah 1: Handshake awal untuk mendapatkan Nginx challenge cookies
-        session.get(SIMTIK_BASE_URL + "/", verify=False, timeout=timeout)
-        session.get(SIMTIK_BASE_URL + "/", verify=False, timeout=timeout)
+        session.get(SIMTIK_BASE_URL + "/", timeout=timeout)
+        session.get(SIMTIK_BASE_URL + "/", timeout=timeout)
 
         # Langkah 2: Kirim kredensial ke endpoint login SIMTIK
         payload = {
@@ -66,7 +62,6 @@ def verify_simtik_credentials(nim: str, password: str, timeout: int = 10) -> tup
         resp = session.post(
             SIMTIK_LOGIN_ACTION,
             data=payload,
-            verify=False,
             timeout=timeout,
             allow_redirects=False
         )

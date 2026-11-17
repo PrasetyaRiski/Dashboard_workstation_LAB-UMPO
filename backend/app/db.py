@@ -672,10 +672,18 @@ def perform_database_backup(retention_days: int = 14) -> Optional[str]:
         backup_dir = os.path.join(base_dir, "backups")
         try:
             os.makedirs(backup_dir, exist_ok=True)
+            try:
+                os.chmod(backup_dir, 0o700)
+            except OSError:
+                pass
         except (PermissionError, OSError):
             local_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
             backup_dir = os.path.join(local_dir, "backups")
             os.makedirs(backup_dir, exist_ok=True)
+            try:
+                os.chmod(backup_dir, 0o700)
+            except OSError:
+                pass
 
         now_str = datetime.now().strftime("%Y%m%d_%H%M%S")
         dest_filename = f"lab_users_backup_{now_str}.db"
@@ -695,6 +703,12 @@ def perform_database_backup(retention_days: int = 14) -> Optional[str]:
             src_conn.backup(dst_conn)
         dst_conn.close()
         src_conn.close()
+
+        # Hardening izin berkas: hanya pemilik yang dapat membaca file backup (0600)
+        try:
+            os.chmod(dest_path, 0o600)
+        except OSError:
+            pass
 
         logger.info(f"✅ Auto-backup database berhasil dibuat: {dest_path}")
 

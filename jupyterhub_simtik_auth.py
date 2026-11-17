@@ -62,13 +62,27 @@ LEVEL1_SYSTEM = {"labriset"}
 # Validasi ketat NIM menggunakan regex
 NIM_REGEX = re.compile(r"^\d{8,15}$")
 
+_TRUSTED_PROXIES = {
+    ip.strip()
+    for ip in (os.environ.get("TRUSTED_PROXIES") or "127.0.0.1,::1").split(",")
+    if ip.strip()
+}
+
 
 def extract_client_ip(handler) -> str:
-    """Ekstrak IP client dari request handler Tornado secara aman (mendukung reverse proxy)."""
+    """Ekstrak IP client dari request handler Tornado secara aman.
+
+    Header forwarding (CF-Connecting-IP, X-Real-IP, X-Forwarded-For) hanya
+    dipercaya jika koneksi langsung berasal dari reverse proxy tepercaya.
+    """
     try:
         if not handler or not getattr(handler, "request", None):
             return "127.0.0.1"
         req = handler.request
+        peer_ip = getattr(req, "remote_ip", None) or "unknown"
+        if peer_ip not in _TRUSTED_PROXIES:
+            return peer_ip
+
         headers = getattr(req, "headers", {})
         cf_ip = headers.get("CF-Connecting-IP")
         if cf_ip:
@@ -78,9 +92,10 @@ def extract_client_ip(handler) -> str:
             return x_real_ip.strip()
         x_forwarded_for = headers.get("X-Forwarded-For")
         if x_forwarded_for:
-            return x_forwarded_for.split(",")[0].strip()
-        if getattr(req, "remote_ip", None):
-            return req.remote_ip
+            first = x_forwarded_for.split(",")[0].strip()
+            if first:
+                return first
+        return peer_ip
     except Exception as e:
         logger.warning(f"Gagal mengekstrak client IP: {e}")
     return "unknown"

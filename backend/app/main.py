@@ -1141,8 +1141,8 @@ def reset_password(req: ResetPasswordRequest, request: Request, session: Dict[st
 # ==========================================
 
 @app.post("/api/auth/simtik")
-async def auth_simtik(req: SimtikLoginRequest):
-    """Verifikasi NIM & Password langsung ke SIMTIK UMPO"""
+async def auth_simtik(req: SimtikLoginRequest, session: Dict[str, Any] = Depends(verify_operator_or_admin)):
+    """Verifikasi NIM & Password langsung ke SIMTIK UMPO (Khusus Operator / Admin)"""
     is_valid, msg, user_data = verify_simtik_credentials(req.nim, req.password)
     if not is_valid:
         return JSONResponse(status_code=401, content={"success": False, "message": msg})

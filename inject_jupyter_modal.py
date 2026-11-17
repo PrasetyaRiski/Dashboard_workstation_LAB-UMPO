@@ -234,6 +234,10 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
         Key disimpan di server dengan izin <code style="color:#c9d1d9;">0600</code> dan hanya bisa dibaca akun Anda.
         Key <strong style="color:#c9d1d9;">tidak</strong> tersimpan di dalam notebook.
       </p>
+      <p style="margin:7px 0 0; font-size:11px; color:#8b949e; line-height:1.5;">
+        Chat Gemini ada di <strong style="color:#c9d1d9;">sidebar kiri JupyterLab</strong> (ikon chat).
+        Key yang sama dipakai untuk notebook dan chat.
+      </p>
 
       <div style="margin-top:14px; background:#161b22; border:1px solid #21262d; border-radius:8px; padding:10px 12px;">
         <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px;">

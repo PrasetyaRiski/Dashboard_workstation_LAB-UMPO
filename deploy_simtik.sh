@@ -71,6 +71,64 @@ if [ -f "lab_gemini.py" ]; then
     fi
 fi
 
+# 3.2 Pasang Jupyter AI + provider Gemini per-user (chat sidebar JupyterLab)
+JUPYTER_AI_VERSION="${JUPYTER_AI_VERSION:-2.31.7}"
+AI_ENV_PIP="/opt/ai_env/bin/pip"
+if [ -x "$AI_ENV_PIP" ] && [ -d "lab_gemini_ai_pkg" ]; then
+    echo "🤖 Memeriksa Jupyter AI ${JUPYTER_AI_VERSION} & provider Gemini..."
+    AI_CONSTRAINTS="/tmp/lab_ai_constraints.txt"
+    # Kunci versi paket yang sudah ada agar pemasangan Jupyter AI tidak
+    # menaikkan pydantic/jupyter_server/langchain yang dipakai environment lain.
+    "$AI_ENV_PIP" freeze 2>/dev/null \
+        | grep -viE '^(jupyter[_-]ai([_-]magics)?|lab[_-]gemini[_-]ai)([=<>!~ ]|$)' \
+        > "$AI_CONSTRAINTS" || true
+
+    if ! "$AI_ENV_PIP" show jupyter-ai 2>/dev/null | grep -q "^Version: ${JUPYTER_AI_VERSION}$"; then
+        sudo "$AI_ENV_PIP" install --quiet -c "$AI_CONSTRAINTS" "jupyter-ai==${JUPYTER_AI_VERSION}" \
+            || { echo "❌ Gagal memasang Jupyter AI. Deploy dibatalkan."; exit 1; }
+    fi
+
+    # --force-reinstall agar perubahan kode provider ikut terpasang.
+    sudo "$AI_ENV_PIP" install --quiet --no-deps --no-build-isolation --force-reinstall ./lab_gemini_ai_pkg \
+        || { echo "❌ Gagal memasang provider lab-gemini. Deploy dibatalkan."; exit 1; }
+
+    AI_CONFIG_DIR="/opt/ai_env/etc/jupyter"
+    AI_CONFIG_FILE="$AI_CONFIG_DIR/jupyter_server_config.py"
+    sudo mkdir -p "$AI_CONFIG_DIR"
+    sudo touch "$AI_CONFIG_FILE"
+    # Jupyter hanya memuat trait config dari jupyter_server_config.py, bukan
+    # dari jupyter_server_config.d/*.json (file .d hanya untuk enable extension).
+    sudo sed -i '/# === BEGIN LAB AI CHAT ===/,/# === END LAB AI CHAT ===/d' "$AI_CONFIG_FILE" 2>/dev/null || true
+    if [ -f "config/lab_ai_config.py" ]; then
+        sudo tee -a "$AI_CONFIG_FILE" >/dev/null < config/lab_ai_config.py
+    else
+        echo "❌ config/lab_ai_config.py tidak ditemukan. Deploy dibatalkan."
+        exit 1
+    fi
+    # Bersihkan percobaan konfigurasi lama yang tidak pernah dibaca Jupyter.
+    sudo rm -f "$AI_CONFIG_DIR/jupyter_server_config.d/50-lab-ai.json" 2>/dev/null || true
+    if ! sudo /opt/ai_env/bin/python -m py_compile "$AI_CONFIG_FILE" >/dev/null 2>&1; then
+        echo "❌ Konfigurasi Jupyter AI tidak valid. Deploy dibatalkan."
+        exit 1
+    fi
+    echo "✅ Jupyter AI dipasang; provider aktif: lab-gemini:gemini-2.5-flash"
+
+    if ! /opt/ai_env/bin/python -c "
+import logging
+from importlib.metadata import entry_points, version
+from jupyter_ai_magics.utils import get_lm_providers
+assert version('jupyter-ai') == '${JUPYTER_AI_VERSION}'
+assert any(ep.name == 'lab-gemini' for ep in entry_points().select(group='jupyter_ai.model_providers'))
+providers = get_lm_providers(log=logging.getLogger('deploy'), restrictions={'allowed_providers': ['lab-gemini'], 'blocked_providers': None})
+assert 'lab-gemini' in providers
+" >/dev/null 2>&1; then
+        echo "❌ Provider lab-gemini gagal dimuat. Deploy dibatalkan."
+        exit 1
+    fi
+else
+    echo "⚠️ /opt/ai_env atau lab_gemini_ai_pkg tidak ditemukan; chat Jupyter AI dilewati."
+fi
+
 # 4. Restart Dashboard di Port 8888
 echo "🔄 Merestart Dashboard Monitoring..."
 chmod +x backend/run.sh 2>/dev/null || true

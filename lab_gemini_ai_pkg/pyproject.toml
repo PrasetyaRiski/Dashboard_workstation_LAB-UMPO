@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lab-gemini-ai"
+version = "0.1.0"
+description = "Provider Gemini untuk Jupyter AI dengan API key per-user Lab AI UMPO"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.entry-points."jupyter_ai.model_providers"]
+lab-gemini = "lab_gemini_ai:LabGeminiProvider"
+
+[tool.setuptools]
+py-modules = ["lab_gemini_ai"]

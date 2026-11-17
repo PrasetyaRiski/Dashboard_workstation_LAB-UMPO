@@ -68,7 +68,33 @@ print(lab_gemini.usage_today())
 
 ---
 
-## 4. Saat key kena limit
+## 4. Pakai chat Gemini di JupyterLab
+
+JupyterLab sudah dilengkapi **chat Gemini** yang memakai key yang sama
+(`~/.config/gemini/api_key`). Tidak perlu mengisi key lagi di Settings.
+
+1. Buka **sidebar kiri JupyterLab** → ikon **chat** (bubble).
+2. Pilih model **Gemini** (`gemini-2.5-flash` sudah menjadi default).
+3. Ketik pertanyaan, atau minta bantuan soal kode/notebook.
+
+Cara cepat lain:
+
+- **Blok teks/kode** di notebook → klik kanan → **Generative AI** →
+  *Explain*, *Fix*, *Optimize*, atau *Refactor*.
+- Di panel chat, jawaban kode punya tombol **Copy**, **Insert**, dan
+  **Replace** untuk dimasukkan ke cell aktif.
+- Sebut berkas dengan `@file:nama_file.py` agar isinya ikut menjadi konteks.
+
+Pemakaian token dari chat **ikut tercatat** di statistik harian modal
+**Gemini API Key**. Jika key kena limit, chat menampilkan pesan singkat;
+ganti key lewat modal, lalu ulangi pertanyaan tanpa restart server.
+
+> Chat Jupyter AI menjalankan proses tambahan di server. Di paket Basic
+> (2 GB RAM), tutup chat saat tidak dipakai jika memori terasa penuh.
+
+---
+
+## 5. Saat key kena limit
 
 Gejala: `GeminiQuotaExceeded` atau error `429 RESOURCE_EXHAUSTED`.
 
@@ -81,14 +107,14 @@ monitor, dan modal terbuka otomatis saat Lab dimuat.
 
 ---
 
-## 5. Hapus key
+## 6. Hapus key
 
 Modal **Gemini API Key** → tombol **Hapus**. Key, profil, dan statistik harian
 dihapus dari akun Anda.
 
 ---
 
-## 6. Keamanan & privasi
+## 7. Keamanan & privasi
 
 | Aspek | Keterangan |
 |---|---|
@@ -104,7 +130,7 @@ dihapus dari akun Anda.
 
 ---
 
-## 7. Catatan untuk Aslab/Admin
+## 8. Catatan untuk Aslab/Admin
 
 - Endpoint: `GET/POST/DELETE /hub/api/gemini-key` (handler `GeminiKeyHandler`).
   Jalur ini berada di bawah prefix Hub agar cookie sesi `jupyterhub-hub-login`
@@ -123,3 +149,26 @@ sudo ls -l /home/<user>/.config/gemini/
   site-packages `/opt/ai_env`.
 - Setelah upgrade JupyterLab, jalankan ulang `sudo python3 inject_jupyter_modal.py`
   agar modal tertanam kembali.
+- Chat memakai `jupyter-ai==2.31.7` + provider `lab-gemini` (paket
+  `lab_gemini_ai_pkg/`). Konfigurasi trait ada di
+  `/opt/ai_env/etc/jupyter/jupyter_server_config.py` (blok
+  `BEGIN/END LAB AI CHAT`): hanya provider `lab-gemini` yang diizinkan, model
+  default `lab-gemini:gemini-2.5-flash`, histori 4 percakapan. File
+  `jupyter_server_config.d/*.json` sengaja tidak dipakai karena Jupyter hanya
+  membacanya untuk mengaktifkan extension, bukan untuk trait config.
+- Provider **tidak** memakai `auth_strategy`, jadi key tidak pernah masuk ke
+  `~/.local/share/jupyter/jupyter_ai/config.json` atau Settings Jupyter AI.
+  Key tetap dibaca dari `~/.config/gemini/api_key` pada setiap request.
+- Verifikasi setelah deploy:
+
+```bash
+/opt/ai_env/bin/python -c "from importlib.metadata import version; print(version('jupyter-ai'))"
+/opt/ai_env/bin/jupyter labextension list | grep jupyter-ai
+sudo tail -n 12 /opt/ai_env/etc/jupyter/jupyter_server_config.py
+```
+
+- Jika chat error "Unable to load model provider ...", pesan itu normal untuk
+  provider bawaan yang tidak terpasang. Yang penting `lab-gemini` muncul dan
+  bisa dipilih di panel chat.
+- Setiap single-user server menjalankan worker Dask untuk Jupyter AI
+  (kurang lebih 150–300 MB RSS). Pantau siswa Basic 2 GB saat chat dipakai.

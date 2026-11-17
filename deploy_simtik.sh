@@ -357,7 +357,6 @@ c.JupyterHub.services = [
             '--timeout=1800',         # 30 menit (1800 detik) idle -> stop server
             '--cull-every=300',        # Pemeriksaan setiap 5 menit (300 detik)
             '--cull-users=False',      # Hanya stop server singleuser, JANGAN hapus akun
-            '--cull-connected=True',   # Tetap stop jika tab browser terbuka tapi kernel idle
             '--concurrency=10',
         ],
     }

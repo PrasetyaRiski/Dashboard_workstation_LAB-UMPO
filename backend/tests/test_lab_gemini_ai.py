@@ -12,6 +12,7 @@ Jalankan di environment Jupyter (``/opt/ai_env``)::
     /opt/ai_env/bin/python -m pytest backend/tests/test_lab_gemini_ai.py -q
 """
 
+import asyncio
 import sys
 from pathlib import Path
 from types import SimpleNamespace
@@ -84,6 +85,33 @@ class _FakeClient:
     def __init__(self, response=None, chunks=None, error=None):
         self.models = _FakeModels(response=response, chunks=chunks, error=error)
         self.aio = SimpleNamespace(models=self.models)
+
+
+class _FakeAsyncModels:
+    """Versi async dari ``_FakeModels`` untuk jalur chat Jupyter AI."""
+
+    def __init__(self, response=None, chunks=None, error=None):
+        self.response = response
+        self.chunks = chunks or []
+        self.error = error
+        self.calls = []
+
+    async def generate_content(self, **kwargs):
+        self.calls.append(kwargs)
+        if self.error:
+            raise self.error
+        return self.response
+
+    async def generate_content_stream(self, **kwargs):
+        self.calls.append(kwargs)
+        if self.error:
+            raise self.error
+
+        async def iterator():
+            for chunk in self.chunks:
+                yield chunk
+
+        return iterator()
 
 
 def _provider(**kwargs):
@@ -354,6 +382,69 @@ def test_stream_translates_client_error(monkeypatch):
 
     with pytest.raises(lab_gemini.GeminiQuotaExceeded):
         list(_provider()._stream([HumanMessage(content="Hai")]))
+
+
+def test_agenerate_returns_text_and_records_usage(monkeypatch):
+    recorded = []
+    monkeypatch.setattr(
+        provider_mod.LabGeminiProvider,
+        "_record_usage",
+        staticmethod(lambda usage: recorded.append(usage)),
+    )
+
+    async_models = _FakeAsyncModels(response=_response("Halo async", prompt=5, output=2))
+    client = _FakeClient()
+    client.aio = SimpleNamespace(models=async_models)
+    monkeypatch.setattr(provider_mod.LabGeminiProvider, "_client", lambda self: client)
+
+    result = asyncio.run(_provider()._agenerate([HumanMessage(content="Hai")]))
+
+    assert result.generations[0].message.content == "Halo async"
+    assert recorded and recorded[0].prompt_token_count == 5
+    assert async_models.calls[0]["model"] == "gemini-2.5-flash"
+
+
+def test_astream_yields_chunks_and_records_usage(monkeypatch):
+    recorded = []
+    monkeypatch.setattr(
+        provider_mod.LabGeminiProvider,
+        "_record_usage",
+        staticmethod(lambda usage: recorded.append(usage)),
+    )
+
+    async_models = _FakeAsyncModels(chunks=[
+        _response("A", prompt=1, output=1),
+        _response("B", prompt=1, output=2),
+    ])
+    client = _FakeClient()
+    client.aio = SimpleNamespace(models=async_models)
+    monkeypatch.setattr(provider_mod.LabGeminiProvider, "_client", lambda self: client)
+
+    async def collect():
+        return [
+            generation.message.content
+            async for generation in _provider()._astream([HumanMessage(content="Hai")])
+        ]
+
+    assert asyncio.run(collect()) == ["A", "B"]
+    assert recorded and recorded[0].candidates_token_count == 2
+
+
+def test_astream_translates_client_error(monkeypatch):
+    async_models = _FakeAsyncModels(error=_api_error(429, "429 RESOURCE_EXHAUSTED"))
+    client = _FakeClient()
+    client.aio = SimpleNamespace(models=async_models)
+    monkeypatch.setattr(provider_mod.LabGeminiProvider, "_client", lambda self: client)
+    monkeypatch.setattr(lab_gemini, "update_profile", lambda *a, **k: None)
+
+    async def collect():
+        return [
+            generation
+            async for generation in _provider()._astream([HumanMessage(content="Hai")])
+        ]
+
+    with pytest.raises(lab_gemini.GeminiQuotaExceeded):
+        asyncio.run(collect())
 
 
 # ==============================================================================

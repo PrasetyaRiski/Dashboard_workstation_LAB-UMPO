@@ -60,7 +60,7 @@ export default function LoginView({ onLoginSuccess }) {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center p-4 selection:bg-slate-200 selection:text-slate-900 font-sans relative">
       {/* Main Login Card */}
-      <div className="w-full max-w-md bg-white border border-slate-200/90 rounded-xl shadow-xs p-6 sm:p-8 flex flex-col gap-6 relative z-10">
+      <div className="w-full max-w-md bg-white border border-slate-200/90 rounded-xl shadow-[0_1px_3px_rgba(15,23,42,0.03),0_10px_25px_rgba(15,23,42,0.04)] p-6 sm:p-8 flex flex-col gap-6 relative z-10">
         {/* Header & Logo */}
         <div className="flex flex-col items-center text-center gap-3">
           <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center p-2 shadow-xs">

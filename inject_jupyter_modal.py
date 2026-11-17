@@ -95,7 +95,7 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
             0%
           </div>
           <div style="width:100%; height:4px; background:#21262d; border-radius:2px; overflow:hidden;">
-            <div id="gauge-bar-cpu" style="width:0%; height:100%; background:#38bdf8; transition:width 0.2s ease;"></div>
+            <div id="gauge-bar-cpu" style="width:0%; height:100%; background:#38bdf8; transition:width 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></div>
           </div>
         </div>
 
@@ -109,7 +109,7 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
             0.00 GB <span style="font-size:11.5px; font-weight:400; color:#8b949e;">(0%)</span>
           </div>
           <div style="width:100%; height:4px; background:#21262d; border-radius:2px; overflow:hidden;">
-            <div id="gauge-bar-ram" style="width:0%; height:100%; background:#3fb950; transition:width 0.2s ease;"></div>
+            <div id="gauge-bar-ram" style="width:0%; height:100%; background:#3fb950; transition:width 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></div>
           </div>
         </div>
 
@@ -123,7 +123,7 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
             0% <span style="font-size:11px; font-weight:400; color:#8b949e;">(VRAM 0 MB)</span>
           </div>
           <div style="width:100%; height:4px; background:#21262d; border-radius:2px; overflow:hidden;">
-            <div id="gauge-bar-gpu" style="width:0%; height:100%; background:#38bdf8; transition:width 0.2s ease;"></div>
+            <div id="gauge-bar-gpu" style="width:0%; height:100%; background:#38bdf8; transition:width 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></div>
           </div>
         </div>
 
@@ -137,7 +137,7 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
             0.00 GB <span style="font-size:11.5px; font-weight:400; color:#8b949e;">(0%)</span>
           </div>
           <div style="width:100%; height:4px; background:#21262d; border-radius:2px; overflow:hidden;">
-            <div id="gauge-bar-disk" style="width:0%; height:100%; background:#38bdf8; transition:width 0.2s ease;"></div>
+            <div id="gauge-bar-disk" style="width:0%; height:100%; background:#38bdf8; transition:width 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></div>
           </div>
         </div>
 
@@ -268,17 +268,14 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
 
 <!-- 2. FLOATING PERFORMANCE TOOLBAR -->
 <div id="lab-ai-status-pill" title="Workstation Telemetry & Resource Monitor (Klik untuk membuka rincian)" style="display:none;">
-  <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#3fb950; flex-shrink:0;"></span>
-  <div id="lab-ai-live-tags" style="display:flex; align-items:center; gap:8px;">
-    <span>CPU <strong id="pill-val-cpu" style="color:#f0f6fc;">--%</strong></span>
-    <span style="color:#30363d;">&bull;</span>
-    <span>RAM <strong id="pill-val-ram" style="color:#f0f6fc;">--G</strong></span>
-    <span style="color:#30363d;">&bull;</span>
-    <span>GPU <strong id="pill-val-gpu" style="color:#f0f6fc;">--%</strong></span>
-    <span style="color:#30363d;">&bull;</span>
-    <span id="pill-disk-container">Disk <strong id="pill-val-disk" style="color:#f0f6fc;">--G</strong></span>
+  <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#3fb950; box-shadow:0 0 6px rgba(63,185,80,0.6); flex-shrink:0;"></span>
+  <div id="lab-ai-live-tags" style="display:flex; align-items:center;">
+    <span style="padding-right:7px; border-right:1px solid rgba(48,54,61,0.6); margin-right:7px;">CPU <strong id="pill-val-cpu" style="color:#f0f6fc;">--%</strong></span>
+    <span style="padding-right:7px; border-right:1px solid rgba(48,54,61,0.6); margin-right:7px;">RAM <strong id="pill-val-ram" style="color:#f0f6fc;">--G</strong></span>
+    <span style="padding-right:7px; border-right:1px solid rgba(48,54,61,0.6); margin-right:7px;">GPU <strong id="pill-val-gpu" style="color:#f0f6fc;">--%</strong></span>
+    <span id="pill-disk-container" style="padding-right:2px;">Disk <strong id="pill-val-disk" style="color:#f0f6fc;">--G</strong></span>
   </div>
-  <span style="background:#21262d; border:1px solid #30363d; color:#8b949e; font-size:9.5px; padding:1px 5px; border-radius:3px; margin-left:2px; font-weight:600;">
+  <span style="background:rgba(33,38,45,0.9); border:1px solid #30363d; color:#8b949e; font-size:9.5px; padding:1px 6px; border-radius:4px; margin-left:4px; font-weight:500;">
     Monitor
   </span>
 </div>
@@ -305,6 +302,7 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
 .lab-metric-card {
   background: #161b22;
   border: 1px solid #21262d;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
   border-radius: 8px;
   padding: 12px 14px;
   box-sizing: border-box;
@@ -314,6 +312,7 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
   background: #238636;
   color: #ffffff;
   border: 1px solid rgba(240,246,252,0.1);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
   padding: 6px 14px;
   border-radius: 6px;
   font-size: 12px;
@@ -347,6 +346,7 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
   background: #21262d;
   color: #e6edf3;
   border: 1px solid #30363d;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
   padding: 6px 12px;
   border-radius: 6px;
   font-size: 12px;
@@ -392,14 +392,15 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
   bottom: 20px;
   right: 20px;
   z-index: 99999;
+  display: flex;
   align-items: center;
   gap: 8px;
   background: #161b22;
   color: #c9d1d9;
   border: 1px solid #30363d;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   padding: 6px 14px;
-  border-radius: 20px;
+  border-radius: 9999px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-variant-numeric: tabular-nums;
   font-size: 11px;

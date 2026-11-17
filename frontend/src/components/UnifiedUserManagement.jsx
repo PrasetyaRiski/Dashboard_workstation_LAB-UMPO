@@ -872,8 +872,8 @@ export default function UnifiedUserManagement({
                     return (
                       <tr
                         key={`std-${item.nim}`}
-                        className={`hover:bg-[#F1F5F9]/40 motion-row group ${
-                          item.is_priority ? 'bg-[#F8FAFC]/20' : 'bg-white'
+                        className={`hover:bg-slate-50/80 transition-colors duration-150 group ${
+                          item.is_priority ? 'bg-slate-50/30' : 'bg-white'
                         }`}
                       >
                         {/* 1. Akun & Pengguna */}
@@ -1077,7 +1077,7 @@ export default function UnifiedUserManagement({
                                 item.is_priority ? (
                                   <button
                                     onClick={() => handleUnboost(item.nim)}
-                                    className="px-2.5 py-1 rounded-lg bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A] hover:bg-amber-100 shadow-xs active:translate-y-0.5 transition-all text-xs font-mono font-semibold"
+                                    className="px-2.5 py-1 rounded-lg bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A] hover:bg-amber-100 shadow-xs transition-colors duration-150 text-xs font-mono font-semibold"
                                     title="Kembalikan ke Level 2 Standard"
                                     type="button"
                                   >
@@ -1087,7 +1087,7 @@ export default function UnifiedUserManagement({
                                   <button
                                     onClick={() => setBoostModal({ isOpen: true, nim: item.nim, nama: item.nama || '', hours: 4, reason: '' })}
                                     disabled={isSlotsFull}
-                                    className="px-2.5 py-1 rounded-lg bg-[#0F172A] hover:bg-[#1E293B] text-white shadow-xs transition-colors text-xs font-mono font-bold disabled:opacity-40 disabled:cursor-not-allowed"
+                                    className="px-2.5 py-1 rounded-lg bg-[#0F172A] hover:bg-[#1E293B] text-white shadow-xs transition-colors duration-150 text-xs font-mono font-bold disabled:opacity-40 disabled:cursor-not-allowed"
                                     title={isSlotsFull ? 'Slot Prioritas GPU 0 Penuh' : 'Boost ke Level 1 Dedicated'}
                                     type="button"
                                   >
@@ -1105,7 +1105,7 @@ export default function UnifiedUserManagement({
                                   newName: item.nama || '',
                                   isSubmitting: false
                                 })}
-                                className="p-1.5 rounded-lg bg-white hover:bg-[#F1F5F9] text-[#334155] hover:text-[#0F172A] border border-[#E2E8F0] shadow-xs active:translate-y-0.5 transition-all"
+                                className="p-1.5 rounded-lg bg-white hover:bg-[#F1F5F9] text-[#334155] hover:text-[#0F172A] border border-[#E2E8F0] shadow-xs transition-colors duration-150"
                                 title="Ubah Nama Lengkap"
                                 type="button"
                               >
@@ -1116,7 +1116,7 @@ export default function UnifiedUserManagement({
                               <button
                                 onClick={() => onKillAllUser(`m${item.nim}`)}
                                 disabled={!item.is_online}
-                                className="p-1.5 rounded-lg bg-[#FEE2E2] text-[#C53030] hover:bg-[#FEE2E2] border border-[#FCA5A5] shadow-xs active:translate-y-0.5 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                                className="p-1.5 rounded-lg bg-[#FEE2E2] text-[#C53030] hover:bg-[#FEE2E2] border border-[#FCA5A5] shadow-xs transition-colors duration-150 disabled:opacity-30 disabled:cursor-not-allowed"
                                 title="Kill Sesi OS Aktif"
                                 type="button"
                               >
@@ -1128,7 +1128,7 @@ export default function UnifiedUserManagement({
                                 <>
                                   <button
                                     onClick={() => handleClearCache(item.nim)}
-                                    className="p-1.5 rounded-lg bg-white hover:bg-[#FEF3C7] text-[#334155] hover:text-[#B45309] border border-[#E2E8F0] shadow-xs active:translate-y-0.5 transition-all"
+                                    className="p-1.5 rounded-lg bg-white hover:bg-[#FEF3C7] text-[#334155] hover:text-[#B45309] border border-[#E2E8F0] shadow-xs transition-colors duration-150"
                                     title="Bersihkan Cache Disk"
                                     type="button"
                                   >
@@ -1136,7 +1136,7 @@ export default function UnifiedUserManagement({
                                   </button>
                                   <button
                                     onClick={() => handleToggleActive(item.nim)}
-                                    className="p-1.5 rounded-lg bg-white hover:bg-[#F1F5F9] text-[#334155] hover:text-[#0F172A] border border-[#E2E8F0] shadow-xs active:translate-y-0.5 transition-all"
+                                    className="p-1.5 rounded-lg bg-white hover:bg-[#F1F5F9] text-[#334155] hover:text-[#0F172A] border border-[#E2E8F0] shadow-xs transition-colors duration-150"
                                     title={item.is_active ? 'Blokir Akun' : 'Aktifkan Akun'}
                                     type="button"
                                   >
@@ -1144,7 +1144,7 @@ export default function UnifiedUserManagement({
                                   </button>
                                   <button
                                     onClick={() => handleDeleteUser(item.nim)}
-                                    className="p-1.5 rounded-lg bg-white hover:bg-[#FEE2E2] text-[#334155] hover:text-[#C53030] border border-[#E2E8F0] shadow-xs active:translate-y-0.5 transition-all"
+                                    className="p-1.5 rounded-lg bg-white hover:bg-[#FEE2E2] text-[#334155] hover:text-[#C53030] border border-[#E2E8F0] shadow-xs transition-colors duration-150"
                                     title="Hapus Akun Permanen"
                                     type="button"
                                   >
@@ -1174,7 +1174,7 @@ export default function UnifiedUserManagement({
                   return (
                     <tr
                       key={`sys-${item.username}`}
-                      className="hover:bg-[#F1F5F9]/40 motion-row bg-[#F8FAFC]/30 group"
+                      className="hover:bg-slate-50/80 transition-colors duration-150 bg-slate-50/20 group"
                     >
                       {/* 1. Akun & Pengguna */}
                       <td className="py-3.5 px-5">
@@ -1330,7 +1330,7 @@ export default function UnifiedUserManagement({
                             <button
                               onClick={() => onKillAllUser(item.username)}
                               disabled={!isOnline}
-                              className="p-1.5 rounded-lg bg-[#FEE2E2] text-[#C53030] hover:bg-[#FEE2E2] border border-[#FCA5A5] shadow-xs active:translate-y-0.5 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                              className="p-1.5 rounded-lg bg-[#FEE2E2] text-[#C53030] hover:bg-[#FEE2E2] border border-[#FCA5A5] shadow-xs transition-colors duration-150 disabled:opacity-30 disabled:cursor-not-allowed"
                               title="Kill Seluruh Proses Akun"
                               type="button"
                             >
@@ -1339,7 +1339,7 @@ export default function UnifiedUserManagement({
                             {isSuperAdmin && (
                               <button
                                 onClick={() => setResetModal({ isOpen: true, username: item.username, newPassword: '', isSubmitting: false })}
-                                className="p-1.5 rounded-lg bg-white hover:bg-[#F1F5F9] text-[#334155] hover:text-[#0F172A] border border-[#E2E8F0] shadow-xs active:translate-y-0.5 transition-all"
+                                className="p-1.5 rounded-lg bg-white hover:bg-[#F1F5F9] text-[#334155] hover:text-[#0F172A] border border-[#E2E8F0] shadow-xs transition-colors duration-150"
                                 title="Reset Password Akun Sistem"
                                 type="button"
                               >

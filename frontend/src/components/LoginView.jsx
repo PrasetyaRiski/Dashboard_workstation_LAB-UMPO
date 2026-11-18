@@ -59,12 +59,6 @@ export default function LoginView({ onLoginSuccess }) {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center p-4 selection:bg-slate-200 selection:text-slate-900 font-sans relative">
-      {/* Institutional masthead */}
-      <div className="w-full max-w-md flex flex-col items-center gap-2 mb-5 text-center relative z-10">
-        <span className="academic-eyebrow">Universitas Muhammadiyah Ponorogo</span>
-        <span className="h-px w-14 bg-slate-300" />
-      </div>
-
       {/* Main Login Card */}
       <div className="w-full max-w-md bg-white border border-slate-200/80 border-t-[3px] border-t-slate-900 rounded-2xl shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_40px_-16px_rgba(15,23,42,0.14)] p-6 sm:p-8 flex flex-col gap-6 relative z-10">
         {/* Header & Logo */}

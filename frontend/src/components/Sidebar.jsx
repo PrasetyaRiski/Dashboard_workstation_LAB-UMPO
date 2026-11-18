@@ -32,25 +32,25 @@ export default function Sidebar({
 
   return (
     <>
-      {/* Collapse/Expand Toggle — Clean Minimalist with touch target */}
+      {/* Collapse/Expand Toggle */}
       <div
         className="fixed z-50 transition-all duration-200"
         style={{
           top: '50%',
-          left: isOpen ? 'calc(16rem - 13px)' : '10px',
+          left: isOpen ? 'calc(16rem - 16px)' : '10px',
           transform: 'translateY(-50%)',
         }}
       >
         <button
           onClick={onToggle}
-          className="flex items-center justify-center w-7 h-7 sm:w-6 sm:h-6 rounded-md bg-white border border-slate-200 text-slate-600 hover:text-slate-900 hover:border-slate-400 hover:bg-slate-50 shadow-xs transition-colors"
+          className="flex items-center justify-center w-8 h-8 rounded-lg bg-white border border-slate-300 text-slate-700 hover:text-slate-900 hover:border-slate-500 hover:bg-slate-50 shadow-md transition-colors"
           title={isOpen ? 'Sembunyikan Navigasi' : 'Tampilkan Navigasi'}
           type="button"
           aria-label={isOpen ? 'Sembunyikan Navigasi' : 'Tampilkan Navigasi'}
         >
           {isOpen
-            ? <PanelLeftClose className="w-3.5 h-3.5" />
-            : <PanelLeftOpen className="w-3.5 h-3.5" />
+            ? <PanelLeftClose className="w-4 h-4" />
+            : <PanelLeftOpen className="w-4 h-4" />
           }
         </button>
       </div>
@@ -78,7 +78,7 @@ export default function Sidebar({
           </div>
 
           {/* Navigation Section */}
-          <nav className="flex-1 overflow-y-auto py-4 px-2 flex flex-col gap-1">
+          <nav className="flex-1 overflow-y-auto py-4 px-2.5 flex flex-col gap-1.5">
             <div className="px-3 pb-2 academic-eyebrow">
               Navigasi Konsol
             </div>
@@ -99,33 +99,33 @@ export default function Sidebar({
                 <button
                   key={tab.id}
                   onClick={handleClick}
-                  className={`w-full min-h-[40px] flex items-center justify-between px-3 py-2 rounded-lg text-left text-xs font-medium transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer ${
+                  className={`w-full min-h-[46px] flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-sm font-medium transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer border ${
                     isActive
-                      ? 'bg-slate-900 text-white font-semibold shadow-[0_6px_16px_-10px_rgba(15,23,42,0.6)]'
-                      : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900'
+                      ? 'bg-slate-900 text-white font-semibold border-slate-900 shadow-[0_2px_8px_-2px_rgba(15,23,42,0.25)]'
+                      : 'text-slate-800 border-transparent hover:bg-slate-100/90 hover:border-slate-200/70 hover:text-slate-900'
                   }`}
                   type="button"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-500'}`} />
+                    <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-white' : 'text-slate-500'}`} />
                     <span className="truncate">{tab.label}</span>
-                    {isLocked && <Lock className="w-3.5 h-3.5 ml-1 text-slate-400 shrink-0" />}
+                    {isLocked && <Lock className="w-4 h-4 ml-0.5 text-slate-400 shrink-0" />}
                   </div>
 
                   <div className="flex items-center gap-1.5 shrink-0">
                     {tab.badgeCount !== undefined && tab.badgeCount > 0 && (
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold ${
+                      <span className={`px-2 py-0.5 rounded-full text-[11px] font-mono font-bold ${
                         isActive 
-                          ? 'bg-slate-800 text-slate-200' 
-                          : 'bg-slate-100 text-slate-700 border border-slate-200'
+                          ? 'bg-slate-800 text-slate-100' 
+                          : 'bg-white text-slate-700 border border-slate-300'
                       }`}>
                         {tab.badgeCount}
                       </span>
                     )}
-                    <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${
+                    <span className={`text-[11px] font-mono font-bold px-1.5 py-0.5 rounded border ${
                       isActive 
-                        ? 'border-slate-700 text-slate-300 bg-slate-800' 
-                        : 'border-slate-200 text-slate-400 bg-slate-50'
+                        ? 'border-slate-700 text-slate-200 bg-slate-800' 
+                        : 'border-slate-300 text-slate-700 bg-white'
                     }`}>
                       {tab.shortcut}
                     </span>
@@ -138,29 +138,29 @@ export default function Sidebar({
 
         {/* Bottom Section: Cluster Telemetry Status & Clock */}
         <div className="shrink-0 p-3 border-t border-slate-200 bg-slate-50/70 flex flex-col gap-2">
-          <div className="flex items-center justify-between px-3 py-2 bg-white rounded-xl border border-slate-200 shadow-xs font-mono text-xs">
+          <div className="flex items-center justify-between px-3.5 py-2.5 bg-white rounded-xl border border-slate-200 shadow-xs font-mono text-xs">
             <div className="flex items-center gap-2">
               <span
                 className={`w-2 h-2 rounded-full shrink-0 ${
                   isConnected ? 'bg-emerald-500 pulse-dot' : 'bg-rose-500'
                 }`}
               />
-              <span className={`text-[10px] font-bold tracking-wide ${isConnected ? 'text-emerald-700' : 'text-rose-700'}`}>
+              <span className={`text-[11px] font-bold tracking-wide ${isConnected ? 'text-emerald-700' : 'text-rose-700'}`}>
                 {isConnected ? 'LIVE' : 'OFFLINE'}
               </span>
             </div>
 
-            <div className="flex items-center gap-2 text-slate-500 text-[11px]">
+            <div className="flex items-center gap-2 text-slate-500 text-xs">
               <span className="tabular-nums font-semibold text-slate-800">{timeStr || '--:--:--'}</span>
               <button
                 onClick={onManualRefresh}
                 disabled={isRefreshing}
-                className="w-6 h-6 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors disabled:opacity-40"
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors disabled:opacity-40"
                 title="Refresh Telemetry (Shortcut: R)"
                 type="button"
                 aria-label="Refresh Telemetry"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-slate-700' : ''}`} />
+                <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-slate-700' : ''}`} />
               </button>
             </div>
           </div>

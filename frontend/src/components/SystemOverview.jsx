@@ -94,25 +94,26 @@ function SystemOverview({
   return (
     <section className="flex flex-col gap-4 font-sans">
       {/* Header bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border border-slate-200 p-4 sm:p-5 rounded-xl shadow-xs">
-        <div>
-          <h1 className="font-sans text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
-            Ringkasan Sistem & Klaster Komputasi
+      <div className="surface-card p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex flex-col gap-1">
+          <span className="academic-eyebrow">Telemetri Klaster</span>
+          <h1 className="font-academic text-xl sm:text-2xl text-slate-900 leading-tight">
+            Ringkasan Sistem &amp; Klaster Komputasi
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Telemetri sumber daya komputasi dan status klaster Workstation DGX Lab Komputasi UMPO
+            Status sumber daya Workstation DGX · Lab Komputasi UMPO
           </p>
         </div>
 
         {/* Cluster Health Banner */}
-        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-mono tabular-nums font-medium shadow-2xs ${healthClass}`}>
-          <span className={`w-2 h-2 rounded-full pulse-dot ${dotClass}`} />
+        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-mono tabular-nums font-medium ${healthClass}`}>
+          <span className={`w-1.5 h-1.5 rounded-full live-ring ${dotClass}`} />
           <span className="font-semibold">{healthLabel}</span>
         </div>
       </div>
 
       {/* Profil Operasional Lab (Mode Switcher) & Level 2 Slot Praktikum Banner */}
-      <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-xs flex flex-col gap-4">
+      <div className="surface-card p-4 sm:p-5 flex flex-col gap-4">
         {/* Row 1: Profile Mode Switcher */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-slate-100">
           <div className="flex items-center gap-2.5 flex-wrap">
@@ -120,12 +121,12 @@ function SystemOverview({
               <SlidersHorizontal className="w-3.5 h-3.5 text-slate-700" />
               Mode Lab:
             </span>
-            <span className={`px-2.5 py-0.5 rounded-md text-xs font-mono font-bold border flex items-center gap-1.5 ${
+            <span className={`px-2.5 py-0.5 rounded-full text-xs font-mono font-bold border flex items-center gap-1.5 ${
               isBasicMode
-                ? 'bg-sky-50 text-sky-700 border-sky-200'
-                : 'bg-violet-50 text-violet-700 border-violet-200'
+                ? 'bg-slate-100 text-slate-700 border-slate-200'
+                : 'bg-sky-50 text-sky-700 border-sky-200'
             }`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${isBasicMode ? 'bg-sky-500' : 'bg-violet-500'}`} />
+              <span className={`w-1.5 h-1.5 rounded-full ${isBasicMode ? 'bg-slate-500' : 'bg-sky-500'}`} />
               {isBasicMode ? 'Mode Pemrograman Dasar (60 Slot)' : 'Mode Praktikum AI (30 Slot)'}
             </span>
             <span className="text-[11px] font-mono text-slate-500 hidden md:inline">
@@ -134,19 +135,19 @@ function SystemOverview({
           </div>
 
           {/* Toggle Buttons (Always visible, prompts login if guest) */}
-          <div className="inline-flex items-center p-1 bg-slate-100 border border-slate-200 rounded-lg self-start sm:self-auto shadow-xs gap-1">
+          <div className="inline-flex items-center p-1 bg-slate-100/80 border border-slate-200/80 rounded-xl self-start sm:self-auto gap-1">
             <button
               type="button"
               onClick={() => onSwitchLabMode && onSwitchLabMode('ai')}
               disabled={!isBasicMode}
               className={`px-3.5 py-2 rounded-lg text-xs font-mono transition-all flex items-center gap-2 cursor-pointer disabled:cursor-default ${
                 !isBasicMode
-                  ? 'bg-violet-600 text-white font-bold shadow-xs border border-violet-700'
-                  : 'bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 font-semibold border border-slate-300 hover:border-slate-400 shadow-2xs'
+                  ? 'bg-slate-900 text-white font-bold shadow-[0_1px_2px_rgba(15,23,42,0.12)] border border-slate-900'
+                  : 'bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 font-semibold border border-slate-200'
               }`}
               title={isAdmin ? "Batas 30 mahasiswa, akses GPU 1 diaktifkan untuk PyTorch / Deep Learning" : "Klik untuk beralih ke Mode Praktikum AI (Perlu Login Admin)"}
             >
-              <Sparkles className={`w-3.5 h-3.5 ${!isBasicMode ? 'text-white' : 'text-violet-600'}`} />
+              <Sparkles className={`w-3.5 h-3.5 ${!isBasicMode ? 'text-white' : 'text-sky-600'}`} />
               <span>Praktikum AI (30)</span>
               {!isBasicMode && <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
             </button>
@@ -156,12 +157,12 @@ function SystemOverview({
               disabled={isBasicMode}
               className={`px-3.5 py-2 rounded-lg text-xs font-mono transition-all flex items-center gap-2 cursor-pointer disabled:cursor-default ${
                 isBasicMode
-                  ? 'bg-sky-600 text-white font-bold shadow-xs border border-sky-700'
-                  : 'bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 font-semibold border border-slate-300 hover:border-slate-400 shadow-2xs'
+                  ? 'bg-slate-900 text-white font-bold shadow-[0_1px_2px_rgba(15,23,42,0.12)] border border-slate-900'
+                  : 'bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 font-semibold border border-slate-200'
               }`}
               title={isAdmin ? "Batas 60 mahasiswa (2 kelas), GPU dinonaktifkan (murni CPU & RAM)" : "Klik untuk beralih ke Mode Pemrograman Dasar (Perlu Login Admin)"}
             >
-              <Terminal className={`w-3.5 h-3.5 ${isBasicMode ? 'text-white' : 'text-sky-600'}`} />
+              <Terminal className={`w-3.5 h-3.5 ${isBasicMode ? 'text-white' : 'text-slate-500'}`} />
               <span>Dasar / 2 Kelas (60)</span>
               {isBasicMode && <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
             </button>
@@ -199,10 +200,10 @@ function SystemOverview({
               </div>
               
               <div className="flex items-center gap-3 mt-1.5 flex-wrap sm:flex-nowrap">
-                <div className="w-48 sm:w-64 bg-slate-100 h-2.5 rounded-full overflow-hidden border border-slate-200">
+                <div className="meter-track w-48 sm:w-64 h-2 rounded-full">
                   <div 
-                    className={`h-full rounded-full transition-all duration-300 ${
-                      activeSlots >= maxSlots - 1 ? 'bg-rose-500' : activeSlots >= maxSlots * 0.7 ? 'bg-amber-500' : 'bg-emerald-500'
+                    className={`meter-fill h-full rounded-full ${
+                      activeSlots >= maxSlots - 1 ? 'bg-rose-600' : activeSlots >= maxSlots * 0.7 ? 'bg-amber-500' : 'bg-emerald-500'
                     }`}
                     style={{ width: `${Math.max(slotPercent, 3)}%` }}
                   />
@@ -355,7 +356,7 @@ function SystemOverview({
                   className={`h-full rounded-full transition-all duration-300 ${
                     memPercent >= 90 ? 'bg-rose-500' : 
                     memPercent >= 75 ? 'bg-amber-500' : 
-                    'bg-violet-600'
+                    'bg-sky-600'
                   }`}
                   style={{ width: `${memPercent}%` }}
                 />
@@ -466,7 +467,7 @@ function SystemOverview({
               className={`w-full min-h-[42px] py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 border transition-all duration-200 ${
                 !isAdmin
                   ? 'bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed opacity-70'
-                  : 'bg-slate-900 hover:bg-slate-800 text-white border-transparent shadow-xs cursor-pointer active:translate-y-0.5'
+                  : 'bg-slate-900 hover:bg-slate-800 text-white border-transparent shadow-xs cursor-pointer '
               }`}
               type="button"
               title={isAdmin ? "Buat cadangan snapshot database sekarang" : "Login Administrator untuk mencadangkan database"}

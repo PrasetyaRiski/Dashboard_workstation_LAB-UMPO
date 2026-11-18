@@ -642,7 +642,7 @@ export default function App() {
         {/* Floating Modern Toast Notification */}
         {toast && (
           <div className="fixed bottom-5 right-5 z-50 max-w-md w-full px-4 sm:px-0 motion-view-enter">
-            <div className={`p-4 rounded-xl border shadow-lg flex items-start gap-3.5 bg-white transition-all ${
+            <div className={`p-4 rounded-2xl border shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_40px_-20px_rgba(15,23,42,0.22)] flex items-start gap-3.5 bg-white transition-all ${
               toast.type === 'success' ? 'border-emerald-200' :
               toast.type === 'error' ? 'border-rose-200' :
               toast.type === 'warning' ? 'border-amber-200' :
@@ -742,12 +742,12 @@ export default function App() {
                 <Menu className="w-5 h-5 text-slate-800" />
               </button>
             )}
-            <span className="text-xs font-semibold text-slate-900 font-sans font-bold tracking-tight truncate">
+            <span className="font-academic text-[15px] text-slate-900 tracking-tight truncate">
               <span className="hidden sm:inline">Lab Komputasi UMPO</span>
               <span className="sm:hidden">Lab Komputasi</span>
             </span>
             <span className="text-slate-300 text-xs">/</span>
-            <span className="text-xs font-semibold text-sky-600 truncate">
+            <span className="text-[10.5px] font-mono font-semibold uppercase tracking-[0.08em] text-slate-500 truncate">
               {activeTab === 'overview' ? 'Ringkasan Sistem' : activeTab === 'students' ? 'Manajemen Pengguna' : activeTab === 'files' ? 'File Explorer' : 'Log Audit'}
             </span>
           </div>
@@ -757,7 +757,7 @@ export default function App() {
             {/* Command Palette Trigger */}
             <button
               onClick={() => setCommandPaletteOpen(true)}
-              className="hidden md:flex items-center gap-2 px-3 py-1.5 text-xs text-slate-500 bg-slate-50 hover:bg-slate-100 border border-slate-200 hover:border-slate-300 rounded-xl font-mono transition-colors cursor-pointer"
+              className="hidden md:flex items-center gap-2 px-3 py-1.5 text-xs text-slate-500 bg-slate-50 hover:bg-slate-100 border border-slate-200 hover:border-slate-300 rounded-lg font-mono transition-colors duration-150 cursor-pointer"
               title="Buka Command Palette (Ctrl+K)"
               type="button"
             >
@@ -807,7 +807,7 @@ export default function App() {
             {!isAdmin ? (
               <button
                 onClick={() => setLoginModalOpen(true)}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition-colors shadow-xs min-h-[40px] cursor-pointer"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition-colors shadow-xs min-h-[40px] cursor-pointer"
                 title="Login Operator / Admin"
                 type="button"
               >
@@ -817,7 +817,7 @@ export default function App() {
             ) : (
               <button
                 onClick={handleLogout}
-                className="min-w-[40px] min-h-[40px] flex items-center justify-center rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition-colors cursor-pointer"
+                className="min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition-colors cursor-pointer"
                 title="Keluar dari Konsol"
                 type="button"
                 aria-label="Logout"
@@ -935,7 +935,7 @@ export default function App() {
       {/* Floating Modern Toast Notification */}
       {toast && (
         <div className="fixed bottom-5 right-5 z-50 max-w-md w-full px-4 sm:px-0 motion-view-enter">
-          <div className={`p-4 rounded-xl border shadow-lg flex items-start gap-3.5 bg-white transition-all ${
+          <div className={`p-4 rounded-2xl border shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_40px_-20px_rgba(15,23,42,0.22)] flex items-start gap-3.5 bg-white transition-all ${
             toast.type === 'success' ? 'border-emerald-200' :
             toast.type === 'error' ? 'border-rose-200' :
             toast.type === 'warning' ? 'border-amber-200' :

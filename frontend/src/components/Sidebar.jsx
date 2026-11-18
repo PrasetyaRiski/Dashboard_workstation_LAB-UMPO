@@ -68,18 +68,18 @@ export default function Sidebar({
               <img src="/ti-umpo-logo.png" alt="TI UMPO" className="w-full h-full object-contain max-w-full" />
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="font-sans text-sm font-bold text-slate-900 tracking-tight truncate leading-tight">
+              <span className="font-academic text-[15px] text-slate-900 truncate leading-tight">
                 Lab Komputasi
               </span>
-              <span className="font-sans text-[11px] text-slate-500 font-medium truncate leading-tight mt-0.5">
+              <span className="font-sans text-[10.5px] text-slate-500 font-medium truncate leading-tight mt-0.5">
                 Teknik Informatika UMPO
               </span>
             </div>
           </div>
 
           {/* Navigation Section */}
-          <nav className="flex-1 overflow-y-auto py-3 px-2 flex flex-col gap-1">
-            <div className="px-3 pb-1.5 text-[11px] font-sans font-medium uppercase text-slate-400">
+          <nav className="flex-1 overflow-y-auto py-4 px-2 flex flex-col gap-1">
+            <div className="px-3 pb-2 academic-eyebrow">
               Navigasi Konsol
             </div>
             {tabs.map((tab) => {
@@ -99,10 +99,10 @@ export default function Sidebar({
                 <button
                   key={tab.id}
                   onClick={handleClick}
-                  className={`w-full min-h-[40px] flex items-center justify-between px-3 py-2 rounded-lg text-left text-xs font-medium transition-colors duration-150 cursor-pointer ${
+                  className={`w-full min-h-[40px] flex items-center justify-between px-3 py-2 rounded-lg text-left text-xs font-medium transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer ${
                     isActive
-                      ? 'bg-slate-900 text-white font-semibold shadow-xs'
-                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                      ? 'bg-slate-900 text-white font-semibold shadow-[0_6px_16px_-10px_rgba(15,23,42,0.6)]'
+                      : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900'
                   }`}
                   type="button"
                 >
@@ -164,6 +164,10 @@ export default function Sidebar({
               </button>
             </div>
           </div>
+
+          <p className="px-3 text-[10px] font-mono tracking-wide text-slate-400">
+            Konsol v2 · Lab Komputasi UMPO
+          </p>
         </div>
       </aside>
     </>

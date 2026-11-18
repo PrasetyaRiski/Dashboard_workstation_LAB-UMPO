@@ -308,7 +308,7 @@ export default function AdminFileExplorer({
         <button
           onClick={onOpenLogin}
           type="button"
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white font-semibold text-xs shadow-xs active:translate-y-0.5 transition-all"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white font-semibold text-xs shadow-xs transition-all"
         >
           <Lock className="w-3.5 h-3.5" />
           <span>Masuk Sebagai Admin / Aslab</span>
@@ -320,13 +320,14 @@ export default function AdminFileExplorer({
   return (
     <div className="flex flex-col gap-5 w-full">
       {/* Header Info */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="font-sans text-lg sm:text-xl font-bold text-[#0F172A] tracking-tight flex items-center gap-2">
-            <Folder className="w-5 h-5 text-[#0284C7]" />
-            File Explorer Mahasiswa & Server
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+        <div className="flex flex-col gap-1">
+          <span className="academic-eyebrow">Repositori Berkas</span>
+          <h1 className="font-academic text-xl sm:text-2xl text-slate-900 leading-tight flex items-center gap-2">
+            <Folder className="w-5 h-5 text-slate-500" />
+            File Explorer Mahasiswa &amp; Server
           </h1>
-          <p className="text-xs text-[#64748B] mt-0.5">
+          <p className="text-xs text-slate-500 mt-0.5">
             Jelajahi, unduh, dan kelola direktori kerja /home pengguna serta dataset bersama
           </p>
         </div>
@@ -336,10 +337,10 @@ export default function AdminFileExplorer({
             <button
               onClick={reloadFiles}
               disabled={isLoadingFiles}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#F8FAFC] text-[#334155] font-semibold border border-[#E2E8F0] shadow-xs active:translate-y-0.5 transition-all text-xs"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 font-semibold border border-slate-200 shadow-xs transition-colors text-xs"
               type="button"
             >
-              <RefreshCw className={`w-3.5 h-3.5 text-[#0284C7] ${isLoadingFiles ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-3.5 h-3.5 text-sky-600 ${isLoadingFiles ? 'animate-spin' : ''}`} />
               <span>Segarkan</span>
             </button>
           </div>
@@ -469,7 +470,7 @@ export default function AdminFileExplorer({
               <div className="px-4 py-2.5 border-b border-[#E2E8F0] bg-[#F1F5F9]/40 flex flex-wrap items-center gap-2">
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#F1F5F9] text-[#0284C7] border border-[#E2E8F0] hover:border-blue-300 shadow-xs motion-press active:translate-y-0.5 transition-all text-xs font-semibold"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#F1F5F9] text-[#0284C7] border border-[#E2E8F0] hover:border-blue-300 shadow-xs motion-press transition-all text-xs font-semibold"
                   type="button"
                 >
                   <Upload className="w-3.5 h-3.5 text-[#0284C7]" />
@@ -484,7 +485,7 @@ export default function AdminFileExplorer({
 
                 <button
                   onClick={() => setNewFolderModal({ isOpen: true, folderName: '', isSubmitting: false })}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#E8F5E9] text-[#2E7D32] border border-[#E2E8F0] hover:border-emerald-300 shadow-xs motion-press active:translate-y-0.5 transition-all text-xs font-semibold"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#E8F5E9] text-[#2E7D32] border border-[#E2E8F0] hover:border-emerald-300 shadow-xs motion-press transition-all text-xs font-semibold"
                   type="button"
                 >
                   <FolderPlus className="w-3.5 h-3.5 text-[#2E7D32]" />
@@ -494,10 +495,10 @@ export default function AdminFileExplorer({
                 {clipboard.path && (
                   <button
                     onClick={handlePaste}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 shadow-xs motion-press active:translate-y-0.5 transition-all text-xs font-mono font-semibold ml-auto"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 shadow-xs motion-press transition-all text-xs font-mono font-semibold ml-auto"
                     type="button"
                   >
-                    <Clipboard className="w-3.5 h-3.5 text-purple-600" />
+                    <Clipboard className="w-3.5 h-3.5 text-sky-600" />
                     <span>Paste ({clipboard.type})</span>
                   </button>
                 )}
@@ -604,7 +605,7 @@ export default function AdminFileExplorer({
                                   {/* Rename */}
                                   <button
                                     onClick={() => setRenameModal({ isOpen: true, oldPath: fullPath, currentName: file.name, newName: file.name, isSubmitting: false })}
-                                    className="p-1.5 rounded-lg bg-white hover:bg-[#F1F5F9] text-[#334155] border border-[#E2E8F0] shadow-xs active:translate-y-0.5 transition-all"
+                                    className="p-1.5 rounded-lg bg-white hover:bg-[#F1F5F9] text-[#334155] border border-[#E2E8F0] shadow-xs transition-all"
                                     title="Ubah Nama"
                                     type="button"
                                   >
@@ -617,7 +618,7 @@ export default function AdminFileExplorer({
                                       setClipboard({ path: fullPath, type: 'copy', user: selectedUserForFiles }); 
                                       showToast('Disalin ke clipboard.', 'info');
                                     }}
-                                    className="p-1.5 rounded-lg bg-white hover:bg-[#F1F5F9] text-[#0284C7] border border-[#E2E8F0] shadow-xs active:translate-y-0.5 transition-all"
+                                    className="p-1.5 rounded-lg bg-white hover:bg-[#F1F5F9] text-[#0284C7] border border-[#E2E8F0] shadow-xs transition-all"
                                     title="Salin (Copy)"
                                     type="button"
                                   >
@@ -630,7 +631,7 @@ export default function AdminFileExplorer({
                                       setClipboard({ path: fullPath, type: 'cut', user: selectedUserForFiles }); 
                                       showToast('Dipindahkan ke clipboard (Cut).', 'info');
                                     }}
-                                    className="p-1.5 rounded-lg bg-white hover:bg-[#FEF3C7] text-[#B45309] border border-[#E2E8F0] shadow-xs active:translate-y-0.5 transition-all"
+                                    className="p-1.5 rounded-lg bg-white hover:bg-[#FEF3C7] text-[#B45309] border border-[#E2E8F0] shadow-xs transition-all"
                                     title="Potong (Cut)"
                                     type="button"
                                   >
@@ -640,7 +641,7 @@ export default function AdminFileExplorer({
                                   {/* Copy to Shared */}
                                   <button
                                     onClick={() => handleCopyToShared(fullPath)}
-                                    className="p-1.5 rounded-lg bg-white hover:bg-[#F8FAFC] text-[#0284C7] border border-[#E2E8F0] shadow-xs active:translate-y-0.5 transition-all"
+                                    className="p-1.5 rounded-lg bg-white hover:bg-[#F8FAFC] text-[#0284C7] border border-[#E2E8F0] shadow-xs transition-all"
                                     title="Salin ke dataset_shared"
                                     type="button"
                                   >
@@ -651,7 +652,7 @@ export default function AdminFileExplorer({
                                   {!isDir && (
                                     <button
                                       onClick={() => handleDownloadFile(fullPath)}
-                                      className="p-1.5 rounded-lg bg-white hover:bg-[#E8F5E9] text-[#2E7D32] border border-[#E2E8F0] shadow-xs active:translate-y-0.5 transition-all"
+                                      className="p-1.5 rounded-lg bg-white hover:bg-[#E8F5E9] text-[#2E7D32] border border-[#E2E8F0] shadow-xs transition-all"
                                       title="Unduh Berkas"
                                       type="button"
                                     >
@@ -662,7 +663,7 @@ export default function AdminFileExplorer({
                                   {/* Delete */}
                                   <button
                                     onClick={() => setDeleteConfirmModal({ isOpen: true, path: fullPath, name: file.name, isSubmitting: false })}
-                                    className="p-1.5 rounded-lg bg-white hover:bg-[#FEE2E2] text-[#C53030] border border-[#E2E8F0] shadow-xs active:translate-y-0.5 transition-all"
+                                    className="p-1.5 rounded-lg bg-white hover:bg-[#FEE2E2] text-[#C53030] border border-[#E2E8F0] shadow-xs transition-all"
                                     title="Hapus"
                                     type="button"
                                   >

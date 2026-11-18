@@ -108,7 +108,7 @@ function LiveChart({ history = [] }) {
           {latest && (
             <div className="hidden md:flex items-center gap-2 bg-slate-50 px-2.5 py-1 rounded-xl border border-slate-200 font-mono text-xs">
               <span className="text-slate-400">GPU 0:</span>
-              <span className="text-violet-600 tabular-nums font-bold">{latest.gpu0_compute?.toFixed(0) || 0}%</span>
+              <span className="text-amber-700 tabular-nums font-bold">{latest.gpu0_compute?.toFixed(0) || 0}%</span>
               <span className="text-slate-300">·</span>
               <span className="text-slate-400">CPU:</span>
               <span className="text-sky-600 tabular-nums font-bold">{latest.cpu?.toFixed(0) || 0}%</span>

@@ -77,7 +77,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, onSweepZombies }) {
   });
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-5 shadow-xs flex flex-col gap-4 font-sans hover:border-slate-300 transition-colors duration-150">
+    <div className="surface-card p-4 sm:p-5 flex flex-col gap-4 font-sans">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
         <div className="flex items-center gap-3">
@@ -86,21 +86,21 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, onSweepZombies }) {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="font-sans text-sm font-bold text-slate-900 tracking-tight">
+              <h2 className="font-academic text-[15px] text-slate-900">
                 {gpu.name || `NVIDIA RTX ${gpu.index}`}
               </h2>
               {gpu.index === 0 ? (
-                <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-violet-50 text-violet-700 border border-violet-200">
-                  Prioritas Riset (Dedicated)
+                <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-amber-50 text-amber-800 border border-amber-200 whitespace-nowrap">
+                  Prioritas Riset
                 </span>
               ) : (
-                <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  Praktikum (Shared Pool)
+                <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-sky-50 text-sky-700 border border-sky-200 whitespace-nowrap">
+                  Praktikum Shared
                 </span>
               )}
             </div>
-            <p className="text-xs text-slate-400 font-mono mt-0.5">
-              Slot PCIe · Bus ID: {gpu.bus_id || '0000:01:00.0'}
+            <p className="text-[10.5px] text-slate-400 font-mono mt-0.5">
+              PCIe · {gpu.bus_id || '0000:01:00.0'}
             </p>
           </div>
         </div>
@@ -151,15 +151,15 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, onSweepZombies }) {
       {/* Primary Metrics: Compute & VRAM */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {/* Compute Load */}
-        <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
-          <div className="flex justify-between items-baseline text-xs mb-1.5">
-            <span className="text-slate-500 font-medium">Beban Komputasi (Compute)</span>
+        <div className="p-3.5 bg-slate-50/70 rounded-lg border border-slate-200/80">
+          <div className="flex justify-between items-baseline text-xs mb-2">
+            <span className="text-slate-500 font-medium">Beban Komputasi</span>
             <span className="font-mono tabular-nums font-bold text-slate-900">{computePct}%</span>
           </div>
-          <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden border border-slate-200">
+          <div className="meter-track w-full h-2 rounded-full">
             <div 
-              className={`h-full rounded-full transition-all duration-300 ${
-                computePct >= 90 ? 'bg-rose-500' : 
+              className={`meter-fill h-full rounded-full ${
+                computePct >= 90 ? 'bg-rose-600' : 
                 computePct >= 75 ? 'bg-amber-500' : 
                 'bg-sky-600'
               }`}
@@ -169,17 +169,17 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, onSweepZombies }) {
         </div>
 
         {/* VRAM Memory Summary */}
-        <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
-          <div className="flex justify-between items-baseline text-xs mb-1.5">
+        <div className="p-3.5 bg-slate-50/70 rounded-lg border border-slate-200/80">
+          <div className="flex justify-between items-baseline text-xs mb-2">
             <span className="text-slate-500 font-medium">Alokasi VRAM</span>
             <span className="font-mono tabular-nums font-bold text-slate-900">
               {vramUsedGb} <span className="text-slate-400 font-normal">/ {vramTotalGb} GB</span> ({vramPct}%)
             </span>
           </div>
-          <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden border border-slate-200">
+          <div className="meter-track w-full h-2 rounded-full">
             <div 
-              className={`h-full rounded-full transition-all duration-300 ${
-                vramPct >= 90 ? 'bg-rose-500' : 
+              className={`meter-fill h-full rounded-full ${
+                vramPct >= 90 ? 'bg-rose-600' : 
                 vramPct >= 75 ? 'bg-amber-500' : 
                 'bg-emerald-600'
               }`}
@@ -192,8 +192,8 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, onSweepZombies }) {
       {/* VRAM Block Allocation Grid (Tactile 32-slot) */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-sans font-semibold text-slate-400 uppercase tracking-wider">
-            Peta Alokasi Blok VRAM (32 Slot · 512MB/Slot)
+          <span className="academic-eyebrow">
+            Peta Blok VRAM · 32 Slot
           </span>
           <span className="text-[10px] font-mono text-emerald-600 font-semibold">
             {hoveredBlock ? hoveredBlock.label : `${occupiedBlocksCount}/32 Slot Terisi`}
@@ -203,8 +203,8 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, onSweepZombies }) {
         <div className="grid grid-cols-16 sm:grid-cols-32 gap-1 p-2 rounded-xl bg-slate-50 border border-slate-200">
           {blocks.map((b) => {
             let color = 'bg-white border-slate-200';
-            if (b.type === 'priority') color = 'bg-violet-600 border-violet-700 shadow-xs';
-            else if (b.type === 'training') color = 'bg-emerald-500 border-emerald-600 shadow-xs';
+            if (b.type === 'priority') color = 'bg-amber-500 border-amber-600 shadow-xs';
+            else if (b.type === 'training') color = 'bg-sky-500 border-sky-600 shadow-xs';
             else if (b.type === 'system') color = 'bg-slate-400 border-slate-500';
 
             return (
@@ -222,11 +222,11 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, onSweepZombies }) {
         {/* Legend */}
         <div className="flex items-center gap-4 text-[11px] font-mono text-slate-500 pt-1 flex-wrap">
           <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-[3px] bg-violet-600 border border-violet-700" />
+            <span className="w-3 h-3 rounded-[3px] bg-amber-500 border border-amber-600" />
             <span>Riset (<code className="text-slate-800 font-bold">labriset</code>)</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-[3px] bg-emerald-500 border border-emerald-600" />
+            <span className="w-3 h-3 rounded-[3px] bg-sky-500 border border-sky-600" />
             <span>Praktikum (<code className="text-slate-800 font-bold">training1-10</code>)</span>
           </div>
           <div className="flex items-center gap-1.5">
@@ -276,7 +276,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, onSweepZombies }) {
                         <td className="px-3 py-2.5 text-slate-900 font-medium">
                           <div className="flex items-center gap-1.5">
                             <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                              isResearch ? 'bg-violet-600' : 'bg-emerald-500'
+                              isResearch ? 'bg-amber-500' : 'bg-sky-500'
                             }`} />
                             <span className="truncate max-w-[100px] font-semibold">{proc.username}</span>
                           </div>

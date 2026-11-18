@@ -111,7 +111,8 @@
   --color-surface-container-highest: #E2E8F0;
 
   /* Typography Scale */
-  --font-serif: "Inter", system-ui, -apple-system, sans-serif;
+  --font-academic: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
   --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, Menlo, Consolas, monospace;
 
@@ -130,6 +131,13 @@
   --shadow-gcp-card: 0 1px 3px 0 rgba(15, 23, 42, 0.05);
   --shadow-gcp-dropdown: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
   --shadow-gcp-modal: 0 20px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.06);
+
+  /* Layered academic-soft elevations (Dribbble-inspired, low contrast) */
+  --shadow-academic-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-academic-sm: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 12px -4px rgba(15, 23, 42, 0.05);
+  --shadow-academic-md: 0 1px 3px rgba(15, 23, 42, 0.04), 0 10px 24px -8px rgba(15, 23, 42, 0.08);
+  --shadow-academic-lg: 0 1px 3px rgba(15, 23, 42, 0.04), 0 18px 40px -12px rgba(15, 23, 42, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
 
   /* Transitions & Motion Tokens */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -260,14 +268,128 @@
   color: #0F172A;
 }
 
+/* ─────────────────────────────────────────────────────────────────
+   ACADEMIC / SMOOTH SURFACE PRIMITIVES
+   ───────────────────────────────────────────────────────────────── */
+
+/* Scholarly editorial headings */
+.font-academic {
+  font-family: var(--font-academic);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  font-feature-settings: "kern" 1, "liga" 1;
+}
+
+.academic-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #64748B;
+}
+
+/* Calm elevated sheet used by KPI cards, tables, and panels */
+.surface-card {
+  background-color: #FFFFFF;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 14px;
+  box-shadow: var(--shadow-academic-sm);
+  transition: box-shadow var(--duration-normal) var(--ease-out-soft),
+              border-color var(--duration-normal) var(--ease-out-soft),
+              transform var(--duration-normal) var(--ease-out-soft);
+}
+
+.surface-card:hover {
+  border-color: rgba(203, 213, 225, 0.9);
+  box-shadow: var(--shadow-academic-md);
+}
+
+/* Thin institutional rule under section headers */
+.academic-rule {
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(90deg, rgba(15, 23, 42, 0.12), rgba(15, 23, 42, 0.02) 60%, transparent);
+}
+
+/* Fluid row behaviour for directory tables */
+.directory-row {
+  transition: background-color var(--duration-fast) var(--ease-out-soft);
+}
+
+.directory-row:hover {
+  background-color: rgba(248, 250, 252, 0.9);
+}
+
+/* Micro progress track with inset depth */
+.meter-track {
+  background-color: #F1F5F9;
+  border: 1px solid rgba(226, 232, 240, 0.7);
+  box-shadow: inset 0 1px 1.5px rgba(15, 23, 42, 0.05);
+  overflow: hidden;
+}
+
+.meter-fill {
+  transition: width 420ms var(--ease-out-expo);
+}
+
+/* Micro-motion primitives (soft, restrained) */
+@keyframes view-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes modal-pop {
+  from { opacity: 0; transform: scale(0.97) translateY(4px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.motion-view-enter {
+  animation: view-enter 280ms var(--ease-out-expo) both;
+}
+
+.motion-modal-pop {
+  animation: modal-pop 220ms var(--ease-out-expo) both;
+}
+
+.motion-card {
+  transition: box-shadow 220ms var(--ease-out-soft), border-color 220ms var(--ease-out-soft);
+}
+
+.motion-press {
+  transition: transform 140ms var(--ease-out-soft), background-color 140ms var(--ease-out-soft);
+}
+
+.motion-press:active {
+  transform: scale(0.985);
+}
+
+.motion-row {
+  transition: background-color 150ms var(--ease-out-soft);
+}
+
+.motion-bar {
+  transition: width 420ms var(--ease-out-expo);
+}
+
 /* Animations */
 @keyframes warm-pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.7; transform: scale(0.96); }
+  50% { opacity: 0.62; transform: scale(0.86); }
 }
 
 .pulse-dot {
-  animation: warm-pulse 2.2s infinite ease-in-out;
+  animation: warm-pulse 3s infinite ease-in-out;
+}
+
+@keyframes live-ring {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.45); }
+  70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.live-ring {
+  animation: live-ring 2.8s infinite var(--ease-out-soft);
 }
 
 @media (prefers-reduced-motion: reduce) {

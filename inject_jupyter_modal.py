@@ -15,7 +15,7 @@ import re
 MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
 <!-- 1. POPUP MODAL PUSAT BANTUAN & REAL-TIME PERFORMANCE BENTO CONSOLE -->
 <div id="lab-ai-popup-overlay" style="display:none; position:fixed; inset:0; z-index:9999999; background:rgba(13,17,23,0.78); align-items:center; justify-content:center; padding:16px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif; box-sizing:border-box;">
-  <div id="lab-ai-popup-card" style="background:#0d1117; color:#e6edf3; width:100%; max-width:580px; border-radius:12px; border:1px solid #30363d; box-shadow:0 16px 36px rgba(0,0,0,0.6); overflow:hidden; animation:labModalFadeIn 0.15s ease-out; box-sizing:border-box;">
+  <div id="lab-ai-popup-card" style="background:#0d1117; color:#e6edf3; width:100%; max-width:580px; border-radius:12px; border:1px solid #30363d; box-shadow:0 16px 36px rgba(0,0,0,0.6); overflow:hidden; animation:labModalFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1); box-sizing:border-box;">
     
     <!-- Modal Header -->
     <div style="background:#161b22; padding:14px 18px; border-bottom:1px solid #30363d; display:flex; align-items:center; justify-content:space-between;">
@@ -25,15 +25,15 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
         </div>
         <div>
           <div style="display:flex; align-items:center; gap:8px;">
-            <h3 style="margin:0; font-size:14px; font-weight:600; letter-spacing:-0.01em; color:#f0f6fc;">
+            <h3 style="margin:0; font-size:15px; font-family:Georgia,'Times New Roman',serif; font-weight:600; letter-spacing:-0.01em; color:#f0f6fc;">
               Workstation Resource Monitor
             </h3>
-            <span style="font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; background:rgba(63,185,80,0.1); color:#3fb950; border:1px solid rgba(63,185,80,0.3); padding:1px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:4px;">
-              <span style="width:5px; height:5px; border-radius:50%; background:#3fb950;"></span> LIVE
+            <span style="font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; background:rgba(63,185,80,0.1); color:#3fb950; border:1px solid rgba(63,185,80,0.3); padding:1px 6px; border-radius:999px; display:inline-flex; align-items:center; gap:4px;">
+              <span style="width:5px; height:5px; border-radius:50%; background:#3fb950; animation:labLivePulse 3s infinite ease-in-out;"></span> LIVE
             </span>
           </div>
-          <p style="margin:2px 0 0; font-size:11px; color:#8b949e;">
-            Laboratorium Komputasi &bull; FT Universitas Muhammadiyah Ponorogo
+          <p style="margin:2px 0 0; font-size:11px; letter-spacing:0.02em; color:#8b949e;">
+            Lab Komputasi &bull; Fakultas Teknik UMPO
           </p>
         </div>
       </div>
@@ -95,7 +95,7 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
             0%
           </div>
           <div style="width:100%; height:4px; background:#21262d; border-radius:2px; overflow:hidden;">
-            <div id="gauge-bar-cpu" style="width:0%; height:100%; background:#38bdf8; transition:width 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+            <div id="gauge-bar-cpu" style="width:0%; height:100%; background:#38bdf8; transition:width 0.42s cubic-bezier(0.16, 1, 0.3, 1);"></div>
           </div>
         </div>
 
@@ -109,7 +109,7 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
             0.00 GB <span style="font-size:11.5px; font-weight:400; color:#8b949e;">(0%)</span>
           </div>
           <div style="width:100%; height:4px; background:#21262d; border-radius:2px; overflow:hidden;">
-            <div id="gauge-bar-ram" style="width:0%; height:100%; background:#3fb950; transition:width 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+            <div id="gauge-bar-ram" style="width:0%; height:100%; background:#3fb950; transition:width 0.42s cubic-bezier(0.16, 1, 0.3, 1);"></div>
           </div>
         </div>
 
@@ -123,7 +123,7 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
             0% <span style="font-size:11px; font-weight:400; color:#8b949e;">(VRAM 0 MB)</span>
           </div>
           <div style="width:100%; height:4px; background:#21262d; border-radius:2px; overflow:hidden;">
-            <div id="gauge-bar-gpu" style="width:0%; height:100%; background:#a78bfa; transition:width 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+            <div id="gauge-bar-gpu" style="width:0%; height:100%; background:#a78bfa; transition:width 0.42s cubic-bezier(0.16, 1, 0.3, 1);"></div>
           </div>
         </div>
 
@@ -137,7 +137,7 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
             0.00 GB <span style="font-size:11.5px; font-weight:400; color:#8b949e;">(0%)</span>
           </div>
           <div style="width:100%; height:4px; background:#21262d; border-radius:2px; overflow:hidden;">
-            <div id="gauge-bar-disk" style="width:0%; height:100%; background:#2dd4bf; transition:width 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+            <div id="gauge-bar-disk" style="width:0%; height:100%; background:#2dd4bf; transition:width 0.42s cubic-bezier(0.16, 1, 0.3, 1);"></div>
           </div>
         </div>
 
@@ -191,7 +191,7 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
 
 <!-- 1b. GEMINI API KEY MODAL (KEY MILIK MAHASISWA SENDIRI) -->
 <div id="lab-gemini-overlay" style="display:none; position:fixed; inset:0; z-index:10000000; background:rgba(0,0,0,0.78); align-items:center; justify-content:center; padding:16px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif; box-sizing:border-box;">
-  <div id="lab-gemini-card" style="background:#0d1117; color:#e6edf3; width:100%; max-width:520px; border-radius:12px; border:1px solid #30363d; box-shadow:0 16px 36px rgba(0,0,0,0.65); overflow:hidden; animation:labModalFadeIn 0.15s ease-out; box-sizing:border-box;">
+  <div id="lab-gemini-card" style="background:#0d1117; color:#e6edf3; width:100%; max-width:520px; border-radius:12px; border:1px solid #30363d; box-shadow:0 16px 36px rgba(0,0,0,0.65); overflow:hidden; animation:labModalFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1); box-sizing:border-box;">
 
     <div style="background:#161b22; padding:14px 18px; border-bottom:1px solid #30363d; display:flex; align-items:center; justify-content:space-between; gap:10px;">
       <div style="display:flex; align-items:center; gap:10px;">
@@ -283,7 +283,7 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
 
 <!-- 2. FLOATING PERFORMANCE TOOLBAR -->
 <div id="lab-ai-status-pill" title="Workstation Telemetry & Resource Monitor (Klik untuk membuka rincian)" style="display:none;">
-  <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#3fb950; animation:labLivePulse 2s infinite ease-in-out; flex-shrink:0;"></span>
+  <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#3fb950; animation:labLivePulse 3s infinite ease-in-out; flex-shrink:0;"></span>
   <div id="lab-ai-live-tags" style="display:flex; align-items:center;">
     <span style="padding-right:7px; border-right:1px solid rgba(48,54,61,0.6); margin-right:7px;">CPU <strong id="pill-val-cpu" style="color:#f0f6fc;">--%</strong></span>
     <span style="padding-right:7px; border-right:1px solid rgba(48,54,61,0.6); margin-right:7px;">RAM <strong id="pill-val-ram" style="color:#f0f6fc;">--G</strong></span>

@@ -7,9 +7,9 @@ import {
 const ACTION_META = {
   BOOST_PRIORITY: {
     icon: Zap,
-    color: 'text-violet-600',
-    badgeBg: 'bg-violet-50',
-    badgeBorder: 'border-violet-200',
+    color: 'text-amber-700',
+    badgeBg: 'bg-amber-50',
+    badgeBorder: 'border-amber-200',
     label: 'Boost Prioritas GPU',
   },
   UNBOOST_PRIORITY: {
@@ -124,21 +124,22 @@ export default function AuditLogView({ logs = [] }) {
   return (
     <div className="flex flex-col gap-4 font-sans">
       {/* Integrity Compliance Info Bar */}
-      <div className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="surface-card p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
           <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-800 shrink-0 shadow-xs">
             <ShieldCheck className="w-5 h-5 text-emerald-600" />
           </div>
-          <div>
+          <div className="flex flex-col gap-0.5">
+            <span className="academic-eyebrow">Jejak Audit</span>
             <div className="flex items-center gap-2.5">
-              <h2 className="font-sans text-sm sm:text-base font-bold text-slate-900 tracking-tight">
-                Log Audit Operasional (Immutable Audit Trail)
+              <h2 className="font-academic text-base sm:text-lg text-slate-900">
+                Log Audit Operasional
               </h2>
               <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                 SQLite WAL
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-slate-500">
               Pencatatan persisten aktivitas administratif level kernel &amp; aplikasi.
             </p>
           </div>
@@ -152,7 +153,7 @@ export default function AuditLogView({ logs = [] }) {
       </div>
 
       {/* Main Table / Stream Container */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden flex flex-col">
+      <div className="surface-card overflow-hidden flex flex-col">
         {/* Filters and Search Bar */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-b border-slate-100 bg-slate-50/70">
           <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto p-1 bg-white rounded-xl border border-slate-200 shadow-xs">

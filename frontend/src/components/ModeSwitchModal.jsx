@@ -66,8 +66,8 @@ export default function ModeSwitchModal({
     targetName: 'Mode Praktikum AI (1 Kelas)',
     targetSlots: 30,
     currentSlots: 60,
-    accentColor: 'text-violet-600',
-    badgeBg: 'bg-violet-50 text-violet-700 border-violet-200',
+    accentColor: 'text-sky-600',
+    badgeBg: 'bg-sky-50 text-sky-700 border-sky-200',
     icon: Sparkles,
     description: 'Mengaktifkan akselerasi GPU 1 (NVIDIA RTX 5060 Ti) untuk praktikum Machine Learning & Deep Learning (PyTorch/TensorFlow).',
     changes: [
@@ -104,7 +104,7 @@ export default function ModeSwitchModal({
         note: 'Mahasiswa skripsi/dosen tidak akan terpengaruh sama sekali.',
       },
     ],
-    confirmBtnClass: 'bg-violet-600 hover:bg-violet-700 text-white',
+    confirmBtnClass: 'bg-slate-900 hover:bg-slate-800 text-white',
     confirmBtnText: 'Terapkan Mode Praktikum AI (30 Slot)',
   };
 
@@ -212,7 +212,7 @@ export default function ModeSwitchModal({
           <button
             onClick={onConfirm}
             disabled={isSubmitting}
-            className={`px-5 py-2 rounded-xl text-xs font-semibold ${modeConfig.confirmBtnClass} transition-colors shadow-xs flex items-center gap-2 disabled:opacity-50 min-h-[42px] cursor-pointer active:translate-y-0.5`}
+            className={`px-5 py-2 rounded-xl text-xs font-semibold ${modeConfig.confirmBtnClass} transition-colors shadow-xs flex items-center gap-2 disabled:opacity-50 min-h-[42px] cursor-pointer `}
             type="button"
           >
             {isSubmitting ? (

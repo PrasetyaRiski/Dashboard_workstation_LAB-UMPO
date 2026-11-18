@@ -59,10 +59,16 @@ export default function LoginView({ onLoginSuccess }) {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center p-4 selection:bg-slate-200 selection:text-slate-900 font-sans relative">
+      {/* Institutional masthead */}
+      <div className="w-full max-w-md flex flex-col items-center gap-2 mb-5 text-center relative z-10">
+        <span className="academic-eyebrow">Universitas Muhammadiyah Ponorogo</span>
+        <span className="h-px w-14 bg-slate-300" />
+      </div>
+
       {/* Main Login Card */}
-      <div className="w-full max-w-md bg-white border border-slate-200/90 border-t-4 border-t-sky-600 rounded-xl shadow-[0_4px_20px_rgba(15,23,42,0.06)] p-6 sm:p-8 flex flex-col gap-6 relative z-10">
+      <div className="w-full max-w-md bg-white border border-slate-200/80 border-t-[3px] border-t-slate-900 rounded-2xl shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_40px_-16px_rgba(15,23,42,0.14)] p-6 sm:p-8 flex flex-col gap-6 relative z-10">
         {/* Header & Logo */}
-        <div className="flex flex-col items-center text-center gap-3">
+        <div className="flex flex-col items-center text-center gap-3.5">
           <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center p-2 shadow-xs">
             <img 
               src="/ti-umpo-logo.png" 
@@ -71,25 +77,26 @@ export default function LoginView({ onLoginSuccess }) {
             />
           </div>
 
-          <div>
-            <h1 className="font-sans font-bold text-lg sm:text-xl text-slate-900 tracking-tight">
+          <div className="flex flex-col gap-1">
+            <span className="academic-eyebrow">Program Studi Teknik Informatika</span>
+            <h1 className="font-academic text-xl sm:text-[22px] text-slate-900 leading-snug">
               Konsol Manajemen Lab Komputasi
             </h1>
-            <p className="text-xs text-slate-500 font-medium mt-0.5">
-              Teknik Informatika · Universitas Muhammadiyah Ponorogo
+            <p className="text-xs text-slate-500 font-medium">
+              Laboratorium Komputasi · Fakultas Teknik UMPO
             </p>
           </div>
         </div>
 
         {/* Tab Mode Selector */}
-        <div className="flex p-1 bg-slate-100/90 rounded-lg border border-slate-200 gap-1 font-mono text-xs">
+        <div className="flex p-1 bg-slate-100/90 rounded-xl border border-slate-200/80 gap-1 font-sans text-xs">
           <button
             type="button"
             onClick={() => { setLoginMode('simtik'); setErrorMsg(''); }}
-            className={`flex-1 py-2 rounded-md font-medium transition-colors duration-150 flex items-center justify-center gap-1.5 cursor-pointer ${
+            className={`flex-1 py-2 rounded-lg font-medium transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] flex items-center justify-center gap-1.5 cursor-pointer ${
               loginMode === 'simtik'
-                ? 'bg-white text-slate-900 font-semibold shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white text-slate-900 font-semibold shadow-[0_1px_2px_rgba(15,23,42,0.08)]'
+                : 'text-slate-500 hover:text-slate-800'
             }`}
           >
             <UserCheck className="w-3.5 h-3.5" />
@@ -98,10 +105,10 @@ export default function LoginView({ onLoginSuccess }) {
           <button
             type="button"
             onClick={() => { setLoginMode('pin'); setErrorMsg(''); }}
-            className={`flex-1 py-2 rounded-md font-medium transition-colors duration-150 flex items-center justify-center gap-1.5 cursor-pointer ${
+            className={`flex-1 py-2 rounded-lg font-medium transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] flex items-center justify-center gap-1.5 cursor-pointer ${
               loginMode === 'pin'
-                ? 'bg-white text-slate-900 font-semibold shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white text-slate-900 font-semibold shadow-[0_1px_2px_rgba(15,23,42,0.08)]'
+                : 'text-slate-500 hover:text-slate-800'
             }`}
           >
             <Key className="w-3.5 h-3.5" />
@@ -111,7 +118,7 @@ export default function LoginView({ onLoginSuccess }) {
 
         {/* Error Alert Banner */}
         {errorMsg && (
-          <div className="p-3.5 rounded-lg bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-start gap-2.5 leading-relaxed">
+          <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-start gap-2.5 leading-relaxed">
             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
             <span>{errorMsg}</span>
           </div>
@@ -130,7 +137,7 @@ export default function LoginView({ onLoginSuccess }) {
                   value={nim}
                   onChange={(e) => setNim(e.target.value)}
                   placeholder="Contoh: 21533001"
-                  className="w-full bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white focus:ring-2 focus:ring-sky-500/20 rounded-lg px-3.5 py-2 text-xs font-mono text-slate-900 placeholder:text-slate-400 outline-none transition-all min-h-[42px]"
+                  className="w-full bg-slate-50/80 border border-slate-200 focus:border-slate-900 focus:bg-white focus:ring-2 focus:ring-slate-900/10 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-900 placeholder:text-slate-400 outline-none transition-all min-h-[42px]"
                   autoFocus
                 />
               </div>
@@ -144,7 +151,7 @@ export default function LoginView({ onLoginSuccess }) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white focus:ring-2 focus:ring-sky-500/20 rounded-lg px-3.5 py-2 text-xs font-mono text-slate-900 placeholder:text-slate-400 outline-none transition-all min-h-[42px]"
+                  className="w-full bg-slate-50/80 border border-slate-200 focus:border-slate-900 focus:bg-white focus:ring-2 focus:ring-slate-900/10 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-900 placeholder:text-slate-400 outline-none transition-all min-h-[42px]"
                 />
               </div>
             </>
@@ -158,7 +165,7 @@ export default function LoginView({ onLoginSuccess }) {
                 value={pin}
                 onChange={(e) => setPin(e.target.value)}
                 placeholder="Masukkan kode otorisasi PIN…"
-                className="w-full bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white focus:ring-2 focus:ring-sky-500/20 rounded-lg px-3.5 py-2 text-xs font-mono text-slate-900 placeholder:text-slate-400 outline-none transition-all min-h-[42px]"
+                className="w-full bg-slate-50/80 border border-slate-200 focus:border-slate-900 focus:bg-white focus:ring-2 focus:ring-slate-900/10 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-900 placeholder:text-slate-400 outline-none transition-all min-h-[42px]"
                 autoFocus
               />
             </div>
@@ -167,7 +174,7 @@ export default function LoginView({ onLoginSuccess }) {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full mt-2 py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-lg shadow-xs transition-colors duration-150 flex items-center justify-center gap-2 min-h-[44px] cursor-pointer disabled:opacity-50"
+            className="w-full mt-1.5 py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-xl shadow-[0_1px_2px_rgba(15,23,42,0.12),0_6px_16px_-8px_rgba(15,23,42,0.4)] transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] flex items-center justify-center gap-2 min-h-[44px] cursor-pointer disabled:opacity-50"
           >
             {isLoading ? (
               <>
@@ -184,9 +191,12 @@ export default function LoginView({ onLoginSuccess }) {
         </form>
 
         {/* Footer Notice */}
-        <div className="pt-3 border-t border-slate-100 flex flex-col gap-1.5 text-center">
-          <p className="text-[11px] text-slate-400">
-            Akses Terbatas: Hanya Asisten Laboratorium dan Administrator yang berhak masuk.
+        <div className="pt-3.5 border-t border-slate-100 flex flex-col gap-1.5 text-center">
+          <p className="text-[11px] text-slate-500">
+            Akses terbatas untuk Asisten Laboratorium dan Administrator.
+          </p>
+          <p className="text-[10px] text-slate-400 font-mono tracking-wide">
+            LAB KOMPUTASI UMPO · 2026
           </p>
         </div>
       </div>

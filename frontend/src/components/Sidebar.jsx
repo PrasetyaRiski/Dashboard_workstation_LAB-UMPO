@@ -164,10 +164,6 @@ export default function Sidebar({
               </button>
             </div>
           </div>
-
-          <p className="px-3 text-[10px] font-mono tracking-wide text-slate-400">
-            Konsol v2 · Lab Komputasi UMPO
-          </p>
         </div>
       </aside>
     </>

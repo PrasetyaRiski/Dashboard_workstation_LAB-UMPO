@@ -15,8 +15,6 @@ function SystemOverview({
   isAdmin,
   level2Slots = {},
   onEmergencyReleaseIdle,
-  onToggleGpuBoost,
-  isTogglingGpuBoost = false,
   onSwitchMode,
   isSwitchingMode = false,
 }) {
@@ -122,10 +120,10 @@ function SystemOverview({
         </div>
       </div>
 
-      {/* Profil Operasional (Mode 30 vs 60) + Kontrol GPU Boost */}
+      {/* Profil Operasional (Mode 30 vs 60) */}
       <div className="surface-card p-4 sm:p-5 flex flex-col gap-4">
-        {/* Row 1: Profil Lab & Segmented Mode Switcher + Global GPU Boost Toggle */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3.5 border-b border-slate-100">
+        {/* Row 1: Profil Lab & Segmented Mode Switcher */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-slate-100">
           <div className="flex items-center gap-2.5 flex-wrap">
             <span className="text-xs font-mono font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
               <Layers className="w-3.5 h-3.5 text-slate-700" />
@@ -154,7 +152,7 @@ function SystemOverview({
                       ? 'bg-white text-emerald-700 shadow-xs border border-emerald-200/60'
                       : 'text-slate-500 hover:text-slate-900 cursor-pointer'
                   } disabled:opacity-50`}
-                  title="Mode 30: Maks 30 slot Level 2, GPU Boost diizinkan (3 slot)"
+                  title="Mode 30: Maks 30 slot Level 2, GPU Boost aktif (maks 3 slot GPU 1)"
                 >
                   Mode 30
                 </button>
@@ -167,67 +165,18 @@ function SystemOverview({
                       ? 'bg-white text-sky-700 shadow-xs border border-sky-200/60'
                       : 'text-slate-500 hover:text-slate-900 cursor-pointer'
                   } disabled:opacity-50`}
-                  title="Mode 60: Maks 60 slot Level 2, GPU Boost dikunci nonaktif"
+                  title="Mode 60: Maks 60 slot Level 2, GPU Boost dinonaktifkan"
                 >
                   Mode 60
                 </button>
               </div>
             )}
-
-            <span className="text-[11px] font-mono text-slate-500 hidden md:inline">
-              • {isMode30 ? '2 Core · 3.0 GB RAM · GPU 1 via Boost' : '1 Core · 1.5 GB RAM · CPU-only'}
-            </span>
           </div>
 
-          <div className="flex items-center gap-3 self-start lg:self-auto">
-            <div className="flex flex-col items-end">
-              <span className="text-[10px] font-mono font-semibold text-slate-500 uppercase tracking-wider">
-                GPU Boost Global
-              </span>
-              <span className={`text-[11px] font-mono font-semibold ${
-                !gpuBoostAllowed 
-                  ? 'text-slate-400' 
-                  : gpuBoostEnabled 
-                  ? 'text-emerald-700' 
-                  : 'text-slate-500'
-              }`}>
-                {!gpuBoostAllowed 
-                  ? 'Dikunci OFF (Mode 60)' 
-                  : gpuBoostEnabled 
-                  ? 'Aktif — mahasiswa dapat di-boost' 
-                  : 'Nonaktif — boost baru ditolak'}
-              </span>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={gpuBoostEnabled}
-              aria-label="Aktifkan atau nonaktifkan GPU Boost global"
-              disabled={!isAdmin || isTogglingGpuBoost || !gpuBoostAllowed}
-              onClick={() => gpuBoostAllowed && onToggleGpuBoost && onToggleGpuBoost(!gpuBoostEnabled)}
-              className={`relative w-12 h-6 rounded-full border transition-colors duration-200 shrink-0 ${
-                !gpuBoostAllowed
-                  ? 'bg-slate-100 border-slate-200 opacity-60 cursor-not-allowed'
-                  : gpuBoostEnabled
-                  ? 'bg-slate-900 border-slate-900 cursor-pointer hover:opacity-90'
-                  : 'bg-slate-200 border-slate-300 cursor-pointer hover:opacity-90'
-              } ${!isAdmin ? 'opacity-50 cursor-not-allowed' : ''}`}
-              title={
-                !gpuBoostAllowed
-                  ? 'GPU Boost dikunci nonaktif pada Mode 60. Ubah ke Mode 30 untuk mengaktifkan.'
-                  : isAdmin
-                  ? 'Ubah status GPU Boost global'
-                  : 'Perlu login Admin/Aslab'
-              }
-            >
-              <span
-                className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 flex items-center justify-center ${
-                  gpuBoostEnabled ? 'translate-x-6' : ''
-                }`}
-              >
-                {isTogglingGpuBoost ? <Loader2 className="w-3 h-3 animate-spin text-slate-600" /> : null}
-              </span>
-            </button>
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <span className="text-xs font-mono text-slate-500">
+              {isMode30 ? '• 2 Core · 3.0 GB RAM · GPU 1 Boost 3 Slot' : '• 1 Core · 1.5 GB RAM · CPU-only murni'}
+            </span>
           </div>
         </div>
 

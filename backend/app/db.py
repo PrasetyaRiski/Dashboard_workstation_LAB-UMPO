@@ -404,14 +404,13 @@ GPU_BOOST_RAM_GB = 3.0
 
 
 def get_gpu_boost_enabled() -> bool:
-    """Toggle global GPU Boost. Default aktif."""
-    value = get_setting("gpu_boost_enabled", "1").strip().lower()
-    return value not in ("0", "false", "off", "no", "disabled")
+    """Status GPU Boost: otomatis aktif di Mode 30 dan mati di Mode 60."""
+    return get_lab_mode() == LAB_MODE_BOOST30
 
 
 def set_gpu_boost_enabled(enabled: bool) -> None:
+    """Kompatibilitas lama; status GPU Boost sekarang otomatis mengikuti Mode 30/60."""
     set_setting("gpu_boost_enabled", "1" if enabled else "0")
-    logger.info("[GpuBoost] Fitur GPU Boost %s.", "diaktifkan" if enabled else "dimatikan")
 
 
 def _parse_expiry(value: Any) -> Optional[datetime]:
@@ -1226,22 +1225,17 @@ def get_lab_profile() -> Dict[str, Any]:
 
 
 def set_lab_profile(mode: str) -> Dict[str, Any]:
-    """Ubah mode lab dan rekonsiliasi toggle GPU Boost.
-
-    - 30 -> 60 : toggle global dipaksa OFF (boost berjalan tetap dihormati).
-    - 60 -> 30 : toggle global dinyalakan kembali.
-    - Mode sama : toggle tidak diubah agar pilihan manual Aslab/Admin tidak tertimpa.
-    """
+    """Ubah mode lab (Mode 30: GPU Boost otomatis aktif; Mode 60: GPU Boost dinonaktifkan)."""
     target = normalize_lab_mode(mode)
     previous = get_lab_mode()
     if target != previous:
         set_lab_mode(target)
         set_gpu_boost_enabled(target == LAB_MODE_BOOST30)
         logger.info(
-            "[LabMode] Perpindahan mode %s -> %s; toggle GPU Boost %s.",
+            "[LabMode] Perpindahan mode %s -> %s; GPU Boost %s.",
             previous,
             target,
-            "ON" if target == LAB_MODE_BOOST30 else "OFF",
+            "diizinkan" if target == LAB_MODE_BOOST30 else "dinonaktifkan",
         )
     return get_lab_profile()
 

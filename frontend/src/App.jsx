@@ -73,9 +73,6 @@ export default function App() {
     isSubmitting: false
   });
 
-  // GPU Boost global toggle (in-flight state)
-  const [isTogglingGpuBoost, setIsTogglingGpuBoost] = useState(false);
-
   // Mode Switch Modal
   const [modeSwitchModal, setModeSwitchModal] = useState({
     isOpen: false,
@@ -479,54 +476,6 @@ export default function App() {
     }
   };
 
-  const handleToggleGpuBoost = async (enabled) => {
-    if (!isAdmin) {
-      showToast({
-        title: 'Akses Dibatasi',
-        message: 'Silakan login sebagai Admin atau Asisten Lab untuk mengubah status GPU Boost.',
-        type: 'warning'
-      });
-      setLoginModalOpen(true);
-      return;
-    }
-    if (isTogglingGpuBoost) return;
-
-    setIsTogglingGpuBoost(true);
-    try {
-      const res = await fetch('/api/lab/gpu-boost-toggle', {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ enabled }),
-      });
-      const json = await res.json();
-      if (res.ok && json.success) {
-        showToast({
-          title: enabled ? 'GPU Boost Diaktifkan' : 'GPU Boost Dinonaktifkan',
-          message: json.message || `Fitur GPU Boost ${enabled ? 'diaktifkan' : 'dinonaktifkan'}.`,
-          details: enabled
-            ? 'Aslab dan Admin dapat memberikan boost GPU 1 sementara kepada mahasiswa Level 2.'
-            : 'Boost baru akan ditolak. Boost yang sedang berjalan tetap berlaku sampai kedaluwarsa atau dicabut.',
-          type: 'success',
-        });
-        fetchStatus();
-      } else {
-        showToast({
-          title: 'Gagal Mengubah GPU Boost',
-          message: json.detail || 'Terjadi kendala saat memperbarui status GPU Boost.',
-          type: 'error',
-        });
-      }
-    } catch (e) {
-      showToast({
-        title: 'Error Koneksi Server',
-        message: e.message || 'Gagal terhubung ke API GPU Boost.',
-        type: 'error',
-      });
-    } finally {
-      setIsTogglingGpuBoost(false);
-    }
-  };
-
   const handleOpenModeSwitch = (targetMode) => {
     if (!isAdmin) {
       showToast({
@@ -925,8 +874,6 @@ export default function App() {
                     isAdmin={isAdmin && !isDataStale}
                     level2Slots={data?.level2_slots}
                     onEmergencyReleaseIdle={handleEmergencyReleaseIdle}
-                    onToggleGpuBoost={handleToggleGpuBoost}
-                    isTogglingGpuBoost={isTogglingGpuBoost}
                     onSwitchMode={handleOpenModeSwitch}
                     isSwitchingMode={modeSwitchModal.isSubmitting}
                   />

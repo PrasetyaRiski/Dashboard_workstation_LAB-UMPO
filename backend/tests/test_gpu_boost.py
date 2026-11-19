@@ -225,10 +225,10 @@ def test_repeated_grant_for_active_user_does_not_consume_extra_slot(client, admi
 
 
 # ---------------------------------------------------------------------------
-# Global toggle
+# Mode-controlled GPU Boost
 # ---------------------------------------------------------------------------
 
-def test_toggle_off_blocks_new_boost_but_keeps_running_boost(client, admin_token):
+def test_mode_60_blocks_new_boost_but_keeps_running_boost(client, admin_token):
     headers = _headers(admin_token)
     running = _student("99000010")
     waiting = _student("99000011")
@@ -239,27 +239,25 @@ def test_toggle_off_blocks_new_boost_but_keeps_running_boost(client, admin_token
         headers=headers,
     ).status_code == 200
 
-    toggle = client.post(
-        "/api/lab/gpu-boost-toggle", json={"enabled": False}, headers=headers
-    )
-    assert toggle.status_code == 200, toggle.text
-    assert toggle.json()["enabled"] is False
+    # Pindah ke Mode 60
+    res = client.post("/api/lab/profile", json={"mode": "cpu60"}, headers=headers)
+    assert res.status_code == 200
     assert db.get_gpu_boost_enabled() is False
 
     # Boost yang sudah berjalan tetap hidup sampai kedaluwarsa/dicabut.
     assert db.is_user_gpu_boosted(running) is True
 
+    # Mahasiswa baru ditolak karena di Mode 60
     blocked = client.post(
         "/api/users/gpu-boost",
         json={"nim": waiting, "hours": 1},
         headers=headers,
     )
-    assert blocked.status_code == 403
-    assert "dinonaktifkan" in blocked.json()["detail"].lower()
+    assert blocked.status_code == 409
+    assert "mode 30" in blocked.json()["detail"].lower()
 
-    re_enable = client.post(
-        "/api/lab/gpu-boost-toggle", json={"enabled": True}, headers=headers
-    )
+    # Kembalikan ke Mode 30
+    re_enable = client.post("/api/lab/profile", json={"mode": "boost30"}, headers=headers)
     assert re_enable.status_code == 200
     assert db.get_gpu_boost_enabled() is True
 
@@ -459,14 +457,14 @@ def test_mode_60_blocks_new_boost_and_toggle(client, admin_token):
     assert grant.status_code == 409
     assert "mode 30" in grant.json()["detail"].lower()
 
-    # Coba aktifkan toggle GPU Boost di Mode 60 -> ditolak 409
+    # Endpoint toggle kompatibilitas mengembalikan enabled=False di Mode 60
     toggle = client.post(
         "/api/lab/gpu-boost-toggle",
         json={"enabled": True},
         headers=_headers(admin_token),
     )
-    assert toggle.status_code == 409
-    assert "mode 60" in toggle.json()["detail"].lower()
+    assert toggle.status_code == 200
+    assert toggle.json()["enabled"] is False
 
 
 def test_mode_switch_preserves_running_boost(client, admin_token):

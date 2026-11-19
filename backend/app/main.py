@@ -1402,11 +1402,6 @@ def gpu_boost_student(req: GpuBoostRequest, session: Dict[str, Any] = Depends(ve
                 "Ubah mode ke Mode 30 terlebih dahulu."
             ),
         )
-    if not get_gpu_boost_enabled():
-        raise HTTPException(
-            status_code=403,
-            detail="GPU Boost sedang dinonaktifkan secara global. Aktifkan lebih dulu di Ringkasan Sistem.",
-        )
 
     hours = _clamp_boost_hours(req.hours, allow_unlimited=True)
     active = list_active_gpu_boosts()
@@ -1469,33 +1464,15 @@ def gpu_unboost_student(req: UserActionRequest, session: Dict[str, Any] = Depend
 
 @app.post("/api/lab/gpu-boost-toggle")
 def gpu_boost_toggle(req: GpuBoostToggleRequest, session: Dict[str, Any] = Depends(verify_operator_or_admin)):
-    """Aktif/nonaktifkan fitur GPU Boost secara global.
-
-    Di Mode 60 (CPU-only), fitur dikunci mati sehingga toggle tidak dapat diaktifkan.
-    Mematikan toggle tidak memutus boost yang sedang berjalan; boost tersebut
-    tetap berlaku sampai kedaluwarsa atau dicabut manual.
-    """
-    if req.enabled and get_lab_mode() != LAB_MODE_BOOST30:
-        raise HTTPException(
-            status_code=409,
-            detail=(
-                "GPU Boost dikunci mati pada Mode 60 (CPU Only). "
-                "Pindahkan mode lab ke Mode 30 terlebih dahulu untuk mengaktifkan GPU Boost."
-            ),
-        )
-
-    set_gpu_boost_enabled(bool(req.enabled))
-    actor = session.get("nama") or session.get("nim") or "Operator"
-    record_audit(
-        target="GPU_BOOST_POLICY",
-        action="TOGGLE_GPU_BOOST",
-        detail=f"Fitur GPU Boost {'diaktifkan' if req.enabled else 'dinonaktifkan'} oleh {actor}.",
-        log_type="info" if req.enabled else "warning",
-    )
+    """Endpoint kompatibilitas lama. Status GPU Boost sekarang otomatis ditentukan oleh Mode 30/60."""
+    enabled = (get_lab_mode() == LAB_MODE_BOOST30)
     return {
         "success": True,
-        "enabled": bool(req.enabled),
-        "message": f"GPU Boost {'diaktifkan' if req.enabled else 'dinonaktifkan'}.",
+        "enabled": enabled,
+        "message": (
+            "Status GPU Boost sekarang otomatis dikendalikan oleh Mode Lab "
+            f"({'Aktif di Mode 30' if enabled else 'Nonaktif di Mode 60'})."
+        ),
     }
 
 @app.post("/api/users/toggle-admin")

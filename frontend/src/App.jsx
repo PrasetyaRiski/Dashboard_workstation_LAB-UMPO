@@ -9,6 +9,7 @@ import UnifiedUserManagement from './components/UnifiedUserManagement';
 import AdminFileExplorer from './components/AdminFileExplorer';
 import AdminPinModal from './components/AdminPinModal';
 import ChangePinModal from './components/ChangePinModal';
+import ModeSwitchModal from './components/ModeSwitchModal';
 import CommandPalette from './components/CommandPalette';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoginView from './components/LoginView';
@@ -74,6 +75,13 @@ export default function App() {
 
   // GPU Boost global toggle (in-flight state)
   const [isTogglingGpuBoost, setIsTogglingGpuBoost] = useState(false);
+
+  // Mode Switch Modal
+  const [modeSwitchModal, setModeSwitchModal] = useState({
+    isOpen: false,
+    targetMode: null,
+    isSubmitting: false,
+  });
 
   const wsRef = useRef(null);
 
@@ -519,6 +527,74 @@ export default function App() {
     }
   };
 
+  const handleOpenModeSwitch = (targetMode) => {
+    if (!isAdmin) {
+      showToast({
+        title: 'Akses Dibatasi',
+        message: 'Silakan login sebagai Admin atau Asisten Lab untuk mengubah mode operasional lab.',
+        type: 'warning',
+      });
+      setLoginModalOpen(true);
+      return;
+    }
+    setModeSwitchModal({
+      isOpen: true,
+      targetMode,
+      isSubmitting: false,
+    });
+  };
+
+  const handleConfirmModeSwitch = async () => {
+    if (!modeSwitchModal.targetMode) return;
+    setModeSwitchModal((prev) => ({ ...prev, isSubmitting: true }));
+    const newMode = modeSwitchModal.targetMode;
+    const isMode30 = newMode === 'boost30' || newMode === 'ai';
+
+    try {
+      const res = await fetch('/api/lab/profile', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ mode: newMode }),
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setModeSwitchModal({ isOpen: false, targetMode: null, isSubmitting: false });
+        showToast({
+          title: 'Mode Klaster Diperbarui',
+          message: json.message || `Mode Lab dialihkan ke ${isMode30 ? 'Mode 30' : 'Mode 60'}.`,
+          details: isMode30
+            ? 'Kapasitas maksimal 30 slot Level 2 aktif. Fitur GPU Boost diizinkan (maks 3 slot GPU 1).'
+            : 'Kapasitas maksimal 60 slot Level 2 aktif. Fitur GPU Boost dikunci nonaktif.',
+          type: 'success',
+        });
+        if (json.warnings && json.warnings.length > 0) {
+          json.warnings.forEach((warn) => {
+            showToast({
+              title: 'Perhatian Kapasitas',
+              message: warn,
+              type: 'warning',
+            });
+          });
+        }
+        fetchStatus();
+      } else {
+        showToast({
+          title: 'Gagal Mengubah Mode Lab',
+          message: json.detail || 'Terjadi kendala saat memperbarui mode lab.',
+          type: 'error',
+        });
+        setModeSwitchModal((prev) => ({ ...prev, isSubmitting: false }));
+      }
+    } catch (e) {
+      showToast({
+        title: 'Error Koneksi Server',
+        message: e.message || 'Gagal terhubung ke API profil lab.',
+        type: 'error',
+      });
+      setModeSwitchModal((prev) => ({ ...prev, isSubmitting: false }));
+    }
+  };
+
   const handleOpenKillModal = (proc) => {
     if (staleSeconds > 15) {
       showToast('Aksi dinonaktifkan: Data telemetri basi (>15 detik). Sambungkan ulang server.', 'error');
@@ -851,6 +927,8 @@ export default function App() {
                     onEmergencyReleaseIdle={handleEmergencyReleaseIdle}
                     onToggleGpuBoost={handleToggleGpuBoost}
                     isTogglingGpuBoost={isTogglingGpuBoost}
+                    onSwitchMode={handleOpenModeSwitch}
+                    isSwitchingMode={modeSwitchModal.isSubmitting}
                   />
                   <LiveChart history={data?.history} />
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -981,6 +1059,16 @@ export default function App() {
       />
 
       {/* Modals */}
+      <ModeSwitchModal
+        isOpen={modeSwitchModal.isOpen}
+        targetMode={modeSwitchModal.targetMode}
+        currentMode={data?.level2_slots?.lab_mode || 'boost30'}
+        activeCount={data?.level2_slots?.active_count || 0}
+        activeBoosts={data?.level2_slots?.gpu_boost_active || 0}
+        onConfirm={handleConfirmModeSwitch}
+        onClose={() => setModeSwitchModal({ isOpen: false, targetMode: null, isSubmitting: false })}
+        isSubmitting={modeSwitchModal.isSubmitting}
+      />
       <AdminPinModal
         isOpen={loginModalOpen}
         onSuccess={handleLoginSuccess}

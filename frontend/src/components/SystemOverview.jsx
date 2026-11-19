@@ -1,7 +1,7 @@
 import React, { memo, useState } from 'react';
 import { 
   Cpu, HardDrive, ShieldCheck, DatabaseBackup, Loader2, Layers, 
-  Zap, Users, UserCheck
+  Zap, Users, UserCheck, AlertTriangle
 } from 'lucide-react';
 
 function SystemOverview({ 
@@ -17,6 +17,8 @@ function SystemOverview({
   onEmergencyReleaseIdle,
   onToggleGpuBoost,
   isTogglingGpuBoost = false,
+  onSwitchMode,
+  isSwitchingMode = false,
 }) {
   const [isReleasing, setIsReleasing] = useState(false);
 
@@ -67,9 +69,13 @@ function SystemOverview({
 
   const latestBackup = backups && backups.length > 0 ? backups[0] : null;
 
-  // Level 2 practical slots: fixed 60-slot CPU-only profile.
-  const maxSlots = level2Slots?.max_slots || 60;
+  // Level 2 practical slots & modes (Mode 30 vs Mode 60).
+  const labMode = level2Slots?.lab_mode || 'boost30';
+  const isMode30 = labMode === 'boost30' || labMode === 'ai';
+  const gpuBoostAllowed = level2Slots?.gpu_boost_allowed ?? isMode30;
+  const maxSlots = level2Slots?.max_slots || (isMode30 ? 30 : 60);
   const activeSlots = level2Slots?.active_count ?? 0;
+  const isOverCapacity = activeSlots > maxSlots;
   const availableSlots = level2Slots?.available_slots ?? Math.max(0, maxSlots - activeSlots);
   const slotPercent = Math.min(100, Math.round((activeSlots / maxSlots) * 100));
   const idleMinutesSetting = level2Slots?.idle_release_minutes || 15;
@@ -77,7 +83,7 @@ function SystemOverview({
   // GPU Boost pool (GPU 1). Nilai agregat, tanpa identitas di endpoint publik.
   const gpuBoostMax = Number(level2Slots?.gpu_boost_max ?? 3);
   const gpuBoostActive = Number(level2Slots?.gpu_boost_active ?? 0);
-  const gpuBoostEnabled = level2Slots?.gpu_boost_enabled !== false;
+  const gpuBoostEnabled = Boolean(level2Slots?.gpu_boost_enabled) && gpuBoostAllowed;
   const gpuBoostVramMb = Number(level2Slots?.gpu_boost_vram_mb ?? 4800);
   const gpuBoostPercent = gpuBoostMax > 0 ? Math.min(100, Math.round((gpuBoostActive / gpuBoostMax) * 100)) : 0;
 
@@ -116,21 +122,60 @@ function SystemOverview({
         </div>
       </div>
 
-      {/* Profil Operasional Tetap + Kontrol GPU Boost */}
+      {/* Profil Operasional (Mode 30 vs 60) + Kontrol GPU Boost */}
       <div className="surface-card p-4 sm:p-5 flex flex-col gap-4">
-        {/* Row 1: Profil tetap & toggle global GPU Boost */}
+        {/* Row 1: Profil Lab & Segmented Mode Switcher + Global GPU Boost Toggle */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3.5 border-b border-slate-100">
           <div className="flex items-center gap-2.5 flex-wrap">
             <span className="text-xs font-mono font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
               <Layers className="w-3.5 h-3.5 text-slate-700" />
               Profil Lab:
             </span>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold border flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border-emerald-200">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              Praktikum Komputasi (60 Slot)
+
+            {/* Mode Indicator Badge */}
+            <span className={`px-2.5 py-0.5 rounded-full text-xs font-mono font-bold border flex items-center gap-1.5 ${
+              isMode30
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                : 'bg-sky-50 text-sky-700 border-sky-200'
+            }`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${isMode30 ? 'bg-emerald-500' : 'bg-sky-500'}`} />
+              {isMode30 ? 'Mode 30 (GPU Boost)' : 'Mode 60 (CPU Only)'}
             </span>
+
+            {/* Segmented Switcher for Aslab/Admin */}
+            {isAdmin && (
+              <div className="inline-flex p-0.5 rounded-lg bg-slate-100 border border-slate-200 shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => !isMode30 && onSwitchMode && onSwitchMode('boost30')}
+                  disabled={isSwitchingMode}
+                  className={`px-2.5 py-1 rounded-md text-[11px] font-mono font-bold transition-all ${
+                    isMode30
+                      ? 'bg-white text-emerald-700 shadow-xs border border-emerald-200/60'
+                      : 'text-slate-500 hover:text-slate-900 cursor-pointer'
+                  } disabled:opacity-50`}
+                  title="Mode 30: Maks 30 slot Level 2, GPU Boost diizinkan (3 slot)"
+                >
+                  Mode 30
+                </button>
+                <button
+                  type="button"
+                  onClick={() => isMode30 && onSwitchMode && onSwitchMode('cpu60')}
+                  disabled={isSwitchingMode}
+                  className={`px-2.5 py-1 rounded-md text-[11px] font-mono font-bold transition-all ${
+                    !isMode30
+                      ? 'bg-white text-sky-700 shadow-xs border border-sky-200/60'
+                      : 'text-slate-500 hover:text-slate-900 cursor-pointer'
+                  } disabled:opacity-50`}
+                  title="Mode 60: Maks 60 slot Level 2, GPU Boost dikunci nonaktif"
+                >
+                  Mode 60
+                </button>
+              </div>
+            )}
+
             <span className="text-[11px] font-mono text-slate-500 hidden md:inline">
-              • 1 Core · 1.5 GB RAM · CPU-only (GPU lewat Boost)
+              • 1 Core · 1.5 GB RAM {isMode30 ? '· GPU 1 via Boost' : '· CPU-only'}
             </span>
           </div>
 
@@ -139,8 +184,18 @@ function SystemOverview({
               <span className="text-[10px] font-mono font-semibold text-slate-500 uppercase tracking-wider">
                 GPU Boost Global
               </span>
-              <span className={`text-[11px] font-mono font-semibold ${gpuBoostEnabled ? 'text-emerald-700' : 'text-slate-500'}`}>
-                {gpuBoostEnabled ? 'Aktif — mahasiswa dapat di-boost' : 'Nonaktif — boost baru ditolak'}
+              <span className={`text-[11px] font-mono font-semibold ${
+                !gpuBoostAllowed 
+                  ? 'text-slate-400' 
+                  : gpuBoostEnabled 
+                  ? 'text-emerald-700' 
+                  : 'text-slate-500'
+              }`}>
+                {!gpuBoostAllowed 
+                  ? 'Dikunci OFF (Mode 60)' 
+                  : gpuBoostEnabled 
+                  ? 'Aktif — mahasiswa dapat di-boost' 
+                  : 'Nonaktif — boost baru ditolak'}
               </span>
             </div>
             <button
@@ -148,14 +203,22 @@ function SystemOverview({
               role="switch"
               aria-checked={gpuBoostEnabled}
               aria-label="Aktifkan atau nonaktifkan GPU Boost global"
-              disabled={!isAdmin || isTogglingGpuBoost}
-              onClick={() => onToggleGpuBoost && onToggleGpuBoost(!gpuBoostEnabled)}
+              disabled={!isAdmin || isTogglingGpuBoost || !gpuBoostAllowed}
+              onClick={() => gpuBoostAllowed && onToggleGpuBoost && onToggleGpuBoost(!gpuBoostEnabled)}
               className={`relative w-12 h-6 rounded-full border transition-colors duration-200 shrink-0 ${
-                gpuBoostEnabled
-                  ? 'bg-slate-900 border-slate-900'
-                  : 'bg-slate-200 border-slate-300'
-              } ${!isAdmin ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:opacity-90'}`}
-              title={isAdmin ? 'Ubah status GPU Boost global' : 'Perlu login Admin/Aslab'}
+                !gpuBoostAllowed
+                  ? 'bg-slate-100 border-slate-200 opacity-60 cursor-not-allowed'
+                  : gpuBoostEnabled
+                  ? 'bg-slate-900 border-slate-900 cursor-pointer hover:opacity-90'
+                  : 'bg-slate-200 border-slate-300 cursor-pointer hover:opacity-90'
+              } ${!isAdmin ? 'opacity-50 cursor-not-allowed' : ''}`}
+              title={
+                !gpuBoostAllowed
+                  ? 'GPU Boost dikunci nonaktif pada Mode 60. Ubah ke Mode 30 untuk mengaktifkan.'
+                  : isAdmin
+                  ? 'Ubah status GPU Boost global'
+                  : 'Perlu login Admin/Aslab'
+              }
             >
               <span
                 className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 flex items-center justify-center ${
@@ -172,27 +235,35 @@ function SystemOverview({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5 flex-1 min-w-0">
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
-              activeSlots >= maxSlots - 1
+              isOverCapacity
+                ? 'bg-rose-50 text-rose-600 border-rose-200'
+                : activeSlots >= maxSlots - 1
                 ? 'bg-rose-50 text-rose-600 border-rose-200' 
                 : activeSlots >= maxSlots * 0.7 
                 ? 'bg-amber-50 text-amber-600 border-amber-200' 
                 : 'bg-emerald-50 text-emerald-600 border-emerald-200'
             }`}>
-              <UserCheck className="w-5 h-5" />
+              {isOverCapacity ? <AlertTriangle className="w-5 h-5" /> : <UserCheck className="w-5 h-5" />}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-sans text-sm font-bold text-slate-900">
-                  Slot Praktikum Kelas (Level 2 CPU-only)
+                  {isMode30 ? 'Slot Praktikum Kelas (Mode 30 · GPU Boost)' : 'Slot Praktikum Kelas (Mode 60 · CPU-only)'}
                 </span>
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
-                  activeSlots >= maxSlots 
+                  isOverCapacity
+                    ? 'bg-rose-50 text-rose-700 border-rose-200'
+                    : activeSlots >= maxSlots 
                     ? 'bg-rose-50 text-rose-600 border-rose-200' 
                     : activeSlots >= maxSlots * 0.7 
                     ? 'bg-amber-50 text-amber-600 border-amber-200' 
                     : 'bg-emerald-50 text-emerald-600 border-emerald-200'
                 }`}>
-                  {activeSlots >= maxSlots ? 'KUOTA PENUH' : `${availableSlots} SLOT TERSEDIA`}
+                  {isOverCapacity
+                    ? `OVER CAPACITY (${activeSlots}/${maxSlots})`
+                    : activeSlots >= maxSlots 
+                    ? 'KUOTA PENUH' 
+                    : `${availableSlots} SLOT TERSEDIA`}
                 </span>
               </div>
               
@@ -200,7 +271,7 @@ function SystemOverview({
                 <div className="meter-track w-48 sm:w-64 h-2 rounded-full">
                   <div 
                     className={`meter-fill h-full rounded-full ${
-                      activeSlots >= maxSlots - 1 ? 'bg-rose-600' : activeSlots >= maxSlots * 0.7 ? 'bg-amber-500' : 'bg-emerald-500'
+                      isOverCapacity || activeSlots >= maxSlots - 1 ? 'bg-rose-600' : activeSlots >= maxSlots * 0.7 ? 'bg-amber-500' : 'bg-emerald-500'
                     }`}
                     style={{ width: `${Math.max(slotPercent, 3)}%` }}
                   />
@@ -209,7 +280,7 @@ function SystemOverview({
                   {activeSlots} <span className="text-slate-500 font-normal">/ {maxSlots} Sesi</span>
                 </span>
                 <span className="text-[10px] font-mono text-slate-500 hidden sm:inline">
-                  • Jatah 1 Core · 1.5 GB RAM · GPU hanya via Boost
+                  • Jatah 1 Core · 1.5 GB RAM {isMode30 ? '· GPU via Boost (Maks 3)' : '· CPU-only (Boost dikunci)'}
                 </span>
               </div>
             </div>
@@ -286,11 +357,13 @@ function SystemOverview({
         <div className="bg-white px-4 py-3.5 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${
-              gpuBoostActive > 0
+              !gpuBoostAllowed
+                ? 'bg-slate-50 text-slate-400 border border-slate-200'
+                : gpuBoostActive > 0
                 ? 'bg-sky-50 text-sky-700 border border-sky-200'
                 : 'bg-slate-50 text-slate-700 border border-slate-200'
             }`}>
-              <Zap className="w-4 h-4 text-sky-600" />
+              <Zap className={`w-4 h-4 ${!gpuBoostAllowed ? 'text-slate-400' : 'text-sky-600'}`} />
             </div>
             <div className="min-w-0">
               <span className="text-[10px] font-sans font-semibold text-slate-400 uppercase tracking-wider block">
@@ -301,24 +374,32 @@ function SystemOverview({
                   {gpuBoostActive}/{gpuBoostMax} Slot
                 </span>
                 <span className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full border ${
-                  !gpuBoostEnabled
+                  !gpuBoostAllowed
+                    ? 'bg-slate-100 text-slate-500 border-slate-200'
+                    : !gpuBoostEnabled
                     ? 'bg-slate-50 text-slate-600 border-slate-200'
                     : gpuBoostActive >= gpuBoostMax
                       ? 'bg-rose-50 text-rose-700 border-rose-200'
                       : 'bg-sky-50 text-sky-700 border-sky-200'
                 }`}>
-                  {!gpuBoostEnabled ? 'Nonaktif' : gpuBoostActive >= gpuBoostMax ? 'Penuh' : 'Tersedia'}
+                  {!gpuBoostAllowed
+                    ? 'Dikunci (Mode 60)'
+                    : !gpuBoostEnabled
+                    ? 'Nonaktif'
+                    : gpuBoostActive >= gpuBoostMax
+                    ? 'Penuh'
+                    : 'Tersedia'}
                 </span>
               </div>
               <div className="flex items-center gap-2 mt-1.5">
                 <div className="meter-track w-28 h-1.5 rounded-full">
                   <div
-                    className="meter-fill h-full rounded-full bg-sky-600"
+                    className={`meter-fill h-full rounded-full ${!gpuBoostAllowed ? 'bg-slate-300' : 'bg-sky-600'}`}
                     style={{ width: `${Math.max(gpuBoostPercent, gpuBoostActive > 0 ? 4 : 0)}%` }}
                   />
                 </div>
                 <span className="text-[10px] font-mono text-slate-500">
-                  4 Core · 6 GB · {gpuBoostVramMb} MB VRAM
+                  {!gpuBoostAllowed ? 'Nonaktif di Mode 60' : `4 Core · 6 GB · ${gpuBoostVramMb} MB VRAM`}
                 </span>
               </div>
             </div>

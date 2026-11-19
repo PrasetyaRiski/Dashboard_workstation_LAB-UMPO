@@ -77,6 +77,7 @@ def _reset_lab_state():
     finally:
         cur.close()
         conn.close()
+    db.set_lab_mode("boost30")
     db.set_gpu_boost_enabled(True)
 
 
@@ -362,21 +363,142 @@ def test_capacity_endpoint_exposes_gpu_boost_aggregates_only(client, admin_token
 
 
 # ---------------------------------------------------------------------------
-# Fixed lab profile
+# Mode 30 (GPU Boost) & Mode 60 (CPU Only)
 # ---------------------------------------------------------------------------
 
-def test_lab_profile_is_fixed_60_slot_cpu_only(client, admin_token):
+def test_default_mode_is_mode_30(client, admin_token):
     profile = client.get("/api/lab/profile", headers=_headers(admin_token)).json()
-    assert profile["max_slots"] == 60
-    assert profile["gpu_enabled"] is False
+    assert profile["mode"] == "boost30"
+    assert profile["max_slots"] == 30
+    assert profile["gpu_boost_allowed"] is True
     assert profile["cpu_limit_cores"] == 1.0
     assert profile["ram_limit_mb"] == 1536.0
-    assert profile["mode"] == "standard"
+
+    capacity = client.get("/api/stats/capacity").json()
+    assert capacity["lab_mode"] == "boost30"
+    assert capacity["gpu_boost_allowed"] is True
+    assert capacity["gpu_boost"]["allowed"] is True
 
 
-def test_mode_switch_endpoint_is_removed(client, admin_token):
-    response = client.post(
-        "/api/lab/profile", json={"mode": "basic"}, headers=_headers(admin_token)
+def test_switch_to_mode_60_and_back(client, admin_token):
+    # Pindah ke Mode 60
+    res60 = client.post(
+        "/api/lab/profile", json={"mode": "cpu60"}, headers=_headers(admin_token)
     )
-    assert response.status_code == 410
-    assert "gpu boost" in response.json()["detail"].lower()
+    assert res60.status_code == 200, res60.text
+    body60 = res60.json()
+    assert body60["mode"] == "cpu60"
+    assert body60["profile"]["max_slots"] == 60
+    assert body60["gpu_boost_allowed"] is False
+    assert body60["gpu_boost_enabled"] is False
+
+    cap60 = client.get("/api/stats/capacity").json()
+    assert cap60["lab_mode"] == "cpu60"
+    assert cap60["gpu_boost_allowed"] is False
+    assert cap60["gpu_boost"]["allowed"] is False
+    assert cap60["gpu_boost"]["enabled"] is False
+
+    # Pindah kembali ke Mode 30
+    res30 = client.post(
+        "/api/lab/profile", json={"mode": "boost30"}, headers=_headers(admin_token)
+    )
+    assert res30.status_code == 200, res30.text
+    body30 = res30.json()
+    assert body30["mode"] == "boost30"
+    assert body30["profile"]["max_slots"] == 30
+    assert body30["gpu_boost_allowed"] is True
+    assert body30["gpu_boost_enabled"] is True
+
+
+def test_mode_60_blocks_new_boost_and_toggle(client, admin_token):
+    # Set ke Mode 60
+    client.post("/api/lab/profile", json={"mode": "cpu60"}, headers=_headers(admin_token))
+
+    # Coba grant boost di Mode 60 -> ditolak 409
+    nim = _student("99000088")
+    grant = client.post(
+        "/api/users/gpu-boost",
+        json={"nim": nim, "hours": 2, "reason": "Tes Mode 60"},
+        headers=_headers(admin_token),
+    )
+    assert grant.status_code == 409
+    assert "mode 30" in grant.json()["detail"].lower()
+
+    # Coba aktifkan toggle GPU Boost di Mode 60 -> ditolak 409
+    toggle = client.post(
+        "/api/lab/gpu-boost-toggle",
+        json={"enabled": True},
+        headers=_headers(admin_token),
+    )
+    assert toggle.status_code == 409
+    assert "mode 60" in toggle.json()["detail"].lower()
+
+
+def test_mode_switch_preserves_running_boost(client, admin_token):
+    # Di Mode 30, beri boost ke mahasiswa
+    nim = _student("99000089")
+    grant = client.post(
+        "/api/users/gpu-boost",
+        json={"nim": nim, "hours": 4, "reason": "Boost Aktif"},
+        headers=_headers(admin_token),
+    )
+    assert grant.status_code == 200
+
+    # Pindah ke Mode 60
+    res = client.post(
+        "/api/lab/profile", json={"mode": "cpu60"}, headers=_headers(admin_token)
+    )
+    assert res.status_code == 200
+    warnings = res.json().get("warnings", [])
+    assert any("gpu boost masih berjalan" in w.lower() for w in warnings)
+
+    # Boost tetap ada di database
+    active = db.list_active_gpu_boosts()
+    assert any(str(b["nim"]) == nim for b in active)
+
+    # Cabut boost di Mode 60 tetap berhasil
+    unboost = client.post(
+        "/api/users/gpu-unboost", json={"nim": nim}, headers=_headers(admin_token)
+    )
+    assert unboost.status_code == 200
+    active_after = db.list_active_gpu_boosts()
+    assert not any(str(b["nim"]) == nim for b in active_after)
+
+
+def test_mode_switch_permissions_and_aliases(client, admin_token):
+    # Aslab boleh ganti mode
+    aslab_hdr = _aslab_headers("99000991")
+    aslab_res = client.post(
+        "/api/lab/profile", json={"mode": "basic"}, headers=aslab_hdr
+    )
+    assert aslab_res.status_code == 200
+    assert aslab_res.json()["mode"] == "cpu60"
+
+    # Alias ai -> boost30
+    alias_res = client.post(
+        "/api/lab/profile", json={"mode": "ai"}, headers=_headers(admin_token)
+    )
+    assert alias_res.status_code == 200
+    assert alias_res.json()["mode"] == "boost30"
+
+    # Mode tidak valid ditolak 400
+    invalid_res = client.post(
+        "/api/lab/profile", json={"mode": "super_gpu_mode"}, headers=_headers(admin_token)
+    )
+    assert invalid_res.status_code == 400
+
+    # Tanpa token / mahasiswa ditolak 401/403
+    mhs_hdr = _headers("invalid_or_student_token")
+    denied = client.post("/api/lab/profile", json={"mode": "cpu60"}, headers=mhs_hdr)
+    assert denied.status_code in (401, 403)
+
+
+def test_status_endpoint_includes_mode_fields(client, admin_token):
+    status = client.get("/api/status", headers=_headers(admin_token)).json()
+    l2 = status["level2_slots"]
+    assert l2["lab_mode"] == "boost30"
+    assert l2["max_slots"] == 30
+    assert l2["gpu_boost_allowed"] is True
+    assert l2["gpu_boost_max"] == db.GPU_BOOST_MAX_SLOTS
+    assert l2["gpu_boost_vram_mb"] == db.GPU_BOOST_VRAM_MB
+

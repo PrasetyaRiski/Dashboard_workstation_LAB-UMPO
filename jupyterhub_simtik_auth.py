@@ -569,7 +569,8 @@ def simtik_pre_spawn_hook(spawner):
 
     # =========================================================================
     # 2.5 ADMISSION CONTROL LEVEL 2
-    # Profil tetap: 60 slot CPU-only. Akses GPU 1 hanya lewat GPU Boost 3 slot.
+    # Profil dinamis: Mode 30 (30 slot + GPU Boost) vs Mode 60 (60 slot CPU-only).
+    # Akses GPU 1 hanya lewat GPU Boost (maks 3 slot).
     # Akun Aslab, Admin, dan Mahasiswa Prioritas (Level 1) DIBYPASS kuota.
     # =========================================================================
     max_level2_concurrent = LEVEL2_MAX_SLOTS

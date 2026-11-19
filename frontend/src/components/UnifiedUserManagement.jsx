@@ -64,7 +64,8 @@ export default function UnifiedUserManagement({
   const [capacity, setCapacity] = useState({ used_slots: 0, total_slots: 1 });
 
   const gpuBoostMax = Number(level2Slots?.gpu_boost_max ?? capacity?.gpu_boost?.total_slots ?? 3);
-  const gpuBoostEnabled = level2Slots?.gpu_boost_enabled ?? capacity?.gpu_boost?.enabled ?? true;
+  const gpuBoostAllowed = level2Slots?.gpu_boost_allowed ?? capacity?.gpu_boost_allowed ?? (capacity?.lab_mode !== 'cpu60');
+  const gpuBoostEnabled = Boolean(level2Slots?.gpu_boost_enabled ?? capacity?.gpu_boost?.enabled ?? true) && gpuBoostAllowed;
   const gpuBoostVramMb = Number(level2Slots?.gpu_boost_vram_mb ?? capacity?.gpu_boost?.vram_mb ?? 4800);
 
   // Map per-user GPU telemetry (GPU index, VRAM used, VRAM total, active processes)
@@ -1196,7 +1197,9 @@ export default function UnifiedUserManagement({
                                     disabled={!gpuBoostEnabled || gpuBoostFull}
                                     className="px-2.5 py-1 rounded-lg bg-[#0F172A] hover:bg-[#1E293B] text-white shadow-xs transition-colors duration-150 text-xs font-mono font-bold disabled:opacity-40 disabled:cursor-not-allowed"
                                     title={
-                                      !gpuBoostEnabled
+                                      !gpuBoostAllowed
+                                        ? 'GPU Boost dikunci nonaktif pada Mode 60'
+                                        : !gpuBoostEnabled
                                         ? 'GPU Boost dinonaktifkan global'
                                         : gpuBoostFull
                                           ? `Slot GPU Boost penuh (${gpuBoostActive}/${gpuBoostMax})`

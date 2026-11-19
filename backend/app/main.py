@@ -37,6 +37,8 @@ from app.db import (
     list_active_gpu_boosts, auto_expire_gpu_boosts,
     get_gpu_boost_enabled, set_gpu_boost_enabled,
     GPU_BOOST_MAX_SLOTS, GPU_BOOST_VRAM_MB,
+    get_lab_mode, set_lab_profile, normalize_lab_mode,
+    LAB_MODE_BOOST30, LAB_MODE_CPU60,
 )
 
 # Load .env file automatically jika tersedia di root direktori atau backend
@@ -144,7 +146,7 @@ class SetRoleRequest(BaseModel):
     role: str
 
 class SetLabProfileRequest(BaseModel):
-    mode: str  # "ai" | "basic"
+    mode: str  # "boost30" (Mode 30) | "cpu60" (Mode 60); alias ai/basic didukung
 
 class ChangeMasterPinRequest(BaseModel):
     current_pin: str
@@ -438,16 +440,22 @@ def get_capacity():
         logger.warning("Gagal membaca GPU boost: %s", exc)
         gpu_boosts = []
 
+    lab_mode = get_lab_mode()
+    gpu_boost_allowed = lab_mode == LAB_MODE_BOOST30
+
     return {
         "success": True,
         "total_slots": 1,
         "used_slots": active_boosts,
+        "lab_mode": lab_mode,
+        "gpu_boost_allowed": gpu_boost_allowed,
         "gpu_boost": {
             "enabled": get_gpu_boost_enabled(),
+            "allowed": gpu_boost_allowed,
             "total_slots": GPU_BOOST_MAX_SLOTS,
             "used_slots": len(gpu_boosts),
             "vram_mb": GPU_BOOST_VRAM_MB,
-            "available_slots": max(0, GPU_BOOST_MAX_SLOTS - len(gpu_boosts)),
+            "available_slots": max(0, GPU_BOOST_MAX_SLOTS - len(gpu_boosts)) if gpu_boost_allowed else 0,
         },
     }
 
@@ -644,25 +652,27 @@ def get_full_snapshot():
 
         profile = get_lab_profile()
         level2_active_count = lab_policy.count_active_level2_students()
-        level2_max_slots = profile.get("max_slots", 60)
+        level2_max_slots = profile.get("max_slots", 30)
         idle_release_minutes = profile.get("idle_release_minutes", 15)
-        lab_mode = profile.get("mode", "standard")
-        mode_name = profile.get("name", "Praktikum Komputasi")
-        short_name = profile.get("short_name", "Praktikum (60 Slot)")
+        lab_mode = profile.get("mode", LAB_MODE_BOOST30)
+        mode_name = profile.get("name", "Mode 30 - GPU Boost")
+        short_name = profile.get("short_name", "Mode 30 (30 Slot)")
         gpu_enabled = profile.get("gpu_enabled", False)
         gpu_name = profile.get("gpu_name", "GPU Boost (3 Slot)")
         ram_limit_gb = profile.get("ram_limit_gb", 1.5)
+        gpu_boost_allowed = bool(profile.get("gpu_boost_allowed", lab_mode == LAB_MODE_BOOST30))
     except Exception as e:
         logger.warning(f"Error calculating level2 slots: {e}")
         level2_active_count = 0
-        level2_max_slots = 60
+        level2_max_slots = 30
         idle_release_minutes = 15
-        lab_mode = "standard"
-        mode_name = "Praktikum Komputasi"
-        short_name = "Praktikum (60 Slot)"
+        lab_mode = LAB_MODE_BOOST30
+        mode_name = "Mode 30 - GPU Boost"
+        short_name = "Mode 30 (30 Slot)"
         gpu_enabled = False
         gpu_name = "GPU Boost (3 Slot)"
         ram_limit_gb = 1.5
+        gpu_boost_allowed = True
 
     try:
         active_gpu_boosts = list_active_gpu_boosts()
@@ -682,6 +692,7 @@ def get_full_snapshot():
         "gpu_name": gpu_name,
         "ram_limit_gb": ram_limit_gb,
         "gpu_boost_enabled": get_gpu_boost_enabled(),
+        "gpu_boost_allowed": gpu_boost_allowed,
         "gpu_boost_active": len(active_gpu_boosts),
         "gpu_boost_max": GPU_BOOST_MAX_SLOTS,
         "gpu_boost_vram_mb": GPU_BOOST_VRAM_MB,
@@ -695,20 +706,82 @@ def get_status(session: Dict[str, Any] = Depends(verify_operator_or_admin)):
 
 @app.get("/api/lab/profile")
 def get_lab_profile_api(session: Dict[str, Any] = Depends(verify_operator_or_admin)):
-    """Mengambil konfigurasi profil operasional Lab AI (Mode AI 30 slot vs Mode Dasar 60 slot)"""
+    """Profil operasional aktif: Mode 30 (GPU Boost) atau Mode 60 (CPU only)."""
     from app.db import get_lab_profile
     return get_lab_profile()
 
 @app.post("/api/lab/profile")
 def set_lab_profile_api(req: SetLabProfileRequest, session: Dict[str, Any] = Depends(verify_operator_or_admin)):
-    """Mode AI/Basic sudah dihapus. Profil lab sekarang tetap (60 slot CPU-only)."""
-    raise HTTPException(
-        status_code=410,
+    """Ubah mode operasional lab (Aslab/Admin).
+
+    - Mode 30: maksimal 30 sesi Level 2, GPU Boost diizinkan (3 slot).
+    - Mode 60: maksimal 60 sesi Level 2, GPU Boost dikunci OFF.
+
+    Perpindahan mode tidak menghentikan sesi aktif; hanya spawn baru yang dibatasi.
+    Boost yang sudah berjalan tetap dihormati sampai kedaluwarsa/dicabut.
+    """
+    try:
+        target = normalize_lab_mode(req.mode)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+    previous = get_lab_mode()
+    try:
+        profile = set_lab_profile(target)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+    try:
+        from app import lab_policy
+        active_count = lab_policy.count_active_level2_students()
+    except Exception as exc:
+        logger.warning("Gagal menghitung sesi Level 2 saat ganti mode: %s", exc)
+        active_count = 0
+
+    try:
+        active_boosts = list_active_gpu_boosts()
+    except Exception as exc:
+        logger.warning("Gagal membaca GPU boost saat ganti mode: %s", exc)
+        active_boosts = []
+
+    max_slots = int(profile.get("max_slots", 30 if target == LAB_MODE_BOOST30 else 60))
+    warnings: List[str] = []
+    if active_count > max_slots:
+        warnings.append(
+            f"{active_count} sesi Level 2 masih aktif, melebihi batas baru {max_slots}. "
+            "Sesi berjalan tidak dihentikan; spawn baru akan ditolak sampai jumlah turun."
+        )
+    if target == LAB_MODE_CPU60 and active_boosts:
+        warnings.append(
+            f"{len(active_boosts)} GPU Boost masih berjalan dan tetap dihormati sampai "
+            "kedaluwarsa atau dicabut manual. Boost baru diblokir."
+        )
+
+    actor = session.get("nama") or session.get("nim") or "Operator"
+    record_audit(
+        target="LAB_MODE",
+        action="SET_LAB_MODE",
         detail=(
-            "Mode lab dinamis sudah dihapus. Level 2 memakai profil tetap 60 slot CPU-only "
-            "(1 core / 1.5 GB). Gunakan GPU Boost untuk memberi akses GPU 1 sementara."
+            f"Mode lab diubah dari {previous} ke {target} oleh {actor}. "
+            f"Batas Level 2: {max_slots} sesi; GPU Boost "
+            f"{'diizinkan' if profile.get('gpu_boost_allowed') else 'dikunci OFF'}."
         ),
+        log_type="info" if target == LAB_MODE_BOOST30 else "warning",
     )
+
+    return {
+        "success": True,
+        "message": f"Mode lab diubah ke {profile.get('name', target)}.",
+        "previous_mode": previous,
+        "mode": target,
+        "profile": profile,
+        "active_level2": active_count,
+        "available_slots": max(0, max_slots - active_count),
+        "active_gpu_boosts": len(active_boosts),
+        "gpu_boost_enabled": get_gpu_boost_enabled(),
+        "gpu_boost_allowed": bool(profile.get("gpu_boost_allowed")),
+        "warnings": warnings,
+    }
 
 @app.get("/api/user-telemetry/{username}")
 def get_user_telemetry(
@@ -1319,6 +1392,14 @@ def gpu_boost_student(req: GpuBoostRequest, session: Dict[str, Any] = Depends(ve
             status_code=400,
             detail="Mahasiswa ini sedang memakai Prioritas Level 1 (GPU 0). GPU Boost hanya untuk Level 2.",
         )
+    if get_lab_mode() != LAB_MODE_BOOST30:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "GPU Boost hanya tersedia di Mode 30. Lab sedang di Mode 60 (CPU only). "
+                "Ubah mode ke Mode 30 terlebih dahulu."
+            ),
+        )
     if not get_gpu_boost_enabled():
         raise HTTPException(
             status_code=403,
@@ -1384,9 +1465,19 @@ def gpu_unboost_student(req: UserActionRequest, session: Dict[str, Any] = Depend
 def gpu_boost_toggle(req: GpuBoostToggleRequest, session: Dict[str, Any] = Depends(verify_operator_or_admin)):
     """Aktif/nonaktifkan fitur GPU Boost secara global.
 
+    Di Mode 60 (CPU-only), fitur dikunci mati sehingga toggle tidak dapat diaktifkan.
     Mematikan toggle tidak memutus boost yang sedang berjalan; boost tersebut
     tetap berlaku sampai kedaluwarsa atau dicabut manual.
     """
+    if req.enabled and get_lab_mode() != LAB_MODE_BOOST30:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "GPU Boost dikunci mati pada Mode 60 (CPU Only). "
+                "Pindahkan mode lab ke Mode 30 terlebih dahulu untuk mengaktifkan GPU Boost."
+            ),
+        )
+
     set_gpu_boost_enabled(bool(req.enabled))
     actor = session.get("nama") or session.get("nim") or "Operator"
     record_audit(

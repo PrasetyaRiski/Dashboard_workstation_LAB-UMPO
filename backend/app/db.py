@@ -1120,22 +1120,90 @@ def set_master_pin(new_pin: str) -> str:
     return hashed
 
 
-def get_lab_profile() -> Dict[str, Any]:
-    """Profil operasional tunggal Lab Komputasi UMPO.
+# ==============================================================================
+# MODE OPERASIONAL LAB (30 SLOT + GPU BOOST vs 60 SLOT CPU-ONLY)
+# ==============================================================================
 
-    Sejak GPU Boost diperkenalkan, mode AI/Basic dihapus. Level 2 selalu
-    berjalan CPU-only (60 slot, 1 core, 1.5 GB). Akses GPU 1 hanya diberikan
-    sementara lewat GPU Boost yang dikendalikan Aslab/Admin.
-    """
+LAB_MODE_BOOST30 = "boost30"
+LAB_MODE_CPU60 = "cpu60"
+LAB_MODE_DEFAULT = LAB_MODE_BOOST30
+
+# Alias historis agar otomatis/pemanggil lama tetap aman.
+LAB_MODE_ALIASES = {
+    "ai": LAB_MODE_BOOST30,
+    "boost": LAB_MODE_BOOST30,
+    "boost30": LAB_MODE_BOOST30,
+    "gpu": LAB_MODE_BOOST30,
+    "basic": LAB_MODE_CPU60,
+    "standard": LAB_MODE_CPU60,
+    "cpu": LAB_MODE_CPU60,
+    "cpu60": LAB_MODE_CPU60,
+}
+
+
+def normalize_lab_mode(mode: Any) -> str:
+    """Normalisasi mode lab, termasuk alias lama. ValueError jika tidak dikenal."""
+    key = str(mode or "").strip().lower()
+    normalized = LAB_MODE_ALIASES.get(key)
+    if not normalized:
+        raise ValueError(
+            f"Mode lab tidak dikenal: {mode!r}. Gunakan '{LAB_MODE_BOOST30}' (Mode 30) "
+            f"atau '{LAB_MODE_CPU60}' (Mode 60)."
+        )
+    return normalized
+
+
+def get_lab_mode() -> str:
+    """Mode lab aktif dari database. Default Mode 30 (boost30)."""
+    raw = get_setting("lab_mode", LAB_MODE_DEFAULT)
+    try:
+        return normalize_lab_mode(raw)
+    except ValueError:
+        logger.warning("[LabMode] Nilai lab_mode tidak valid (%r); memakai default %s.", raw, LAB_MODE_DEFAULT)
+        return LAB_MODE_DEFAULT
+
+
+def set_lab_mode(mode: str) -> str:
+    """Simpan mode lab setelah validasi. Tidak menyentuh toggle GPU Boost."""
+    normalized = normalize_lab_mode(mode)
+    set_setting("lab_mode", normalized)
+    logger.info("[LabMode] Mode lab diset ke %s.", normalized)
+    return normalized
+
+
+def _lab_profile_for_mode(mode: str) -> Dict[str, Any]:
+    if mode == LAB_MODE_BOOST30:
+        return {
+            "mode": LAB_MODE_BOOST30,
+            "name": "Mode 30 - GPU Boost",
+            "short_name": "Mode 30 (30 Slot)",
+            "description": (
+                "Level 2 maksimal 30 sesi CPU-only (1 core / 1.5 GB); "
+                "hingga 3 mahasiswa dapat GPU Boost sementara (GPU 1)."
+            ),
+            "max_slots": 30,
+            "gpu_boost_allowed": True,
+            "gpu_enabled": False,
+            "gpu_device": "",
+            "gpu_name": "GPU Boost (3 Slot)",
+            "ram_limit_gb": 1.5,
+            "ram_limit_mb": 1536.0,
+            "cpu_limit_cores": 1.0,
+            "idle_release_minutes": 15,
+        }
     return {
-        "mode": "standard",
-        "name": "Praktikum Komputasi",
-        "short_name": "Praktikum (60 Slot)",
-        "description": "Level 2 CPU-only 60 slot; GPU 1 hanya melalui GPU Boost 3 slot.",
+        "mode": LAB_MODE_CPU60,
+        "name": "Mode 60 - CPU Only",
+        "short_name": "Mode 60 (60 Slot)",
+        "description": (
+            "Level 2 maksimal 60 sesi CPU-only (1 core / 1.5 GB). "
+            "GPU Boost dikunci mati; boost yang sudah berjalan tetap dihormati sampai kedaluwarsa."
+        ),
         "max_slots": 60,
+        "gpu_boost_allowed": False,
         "gpu_enabled": False,
         "gpu_device": "",
-        "gpu_name": "GPU Boost (3 Slot)",
+        "gpu_name": "GPU Boost (Dinonaktifkan)",
         "ram_limit_gb": 1.5,
         "ram_limit_mb": 1536.0,
         "cpu_limit_cores": 1.0,
@@ -1143,11 +1211,29 @@ def get_lab_profile() -> Dict[str, Any]:
     }
 
 
+def get_lab_profile() -> Dict[str, Any]:
+    """Profil operasional Lab Komputasi UMPO sesuai mode aktif (30/60)."""
+    return _lab_profile_for_mode(get_lab_mode())
+
+
 def set_lab_profile(mode: str) -> Dict[str, Any]:
-    """Mode dinamis sudah dihapus; dipertahankan agar pemanggil lama aman."""
-    raise ValueError(
-        "Mode lab dinamis sudah dihapus. Level 2 memakai profil tetap 60 slot CPU-only; "
-        "gunakan GPU Boost untuk akses GPU 1."
-    )
+    """Ubah mode lab dan rekonsiliasi toggle GPU Boost.
+
+    - 30 -> 60 : toggle global dipaksa OFF (boost berjalan tetap dihormati).
+    - 60 -> 30 : toggle global dinyalakan kembali.
+    - Mode sama : toggle tidak diubah agar pilihan manual Aslab/Admin tidak tertimpa.
+    """
+    target = normalize_lab_mode(mode)
+    previous = get_lab_mode()
+    if target != previous:
+        set_lab_mode(target)
+        set_gpu_boost_enabled(target == LAB_MODE_BOOST30)
+        logger.info(
+            "[LabMode] Perpindahan mode %s -> %s; toggle GPU Boost %s.",
+            previous,
+            target,
+            "ON" if target == LAB_MODE_BOOST30 else "OFF",
+        )
+    return get_lab_profile()
 
 

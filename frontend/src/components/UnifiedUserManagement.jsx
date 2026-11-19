@@ -11,14 +11,19 @@ const LiveCountdown = ({ expiresAt }) => {
   const [timeLeft, setTimeLeft] = useState('');
   useEffect(() => {
     if (!expiresAt) return;
+    const cleanDate = typeof expiresAt === 'string' ? expiresAt.replace(' ', 'T') : expiresAt;
+    const targetDate = new Date(cleanDate);
+    const target = targetDate.getTime();
+    if (isNaN(target)) {
+      setTimeLeft('—');
+      return;
+    }
+    if (targetDate.getFullYear() >= 2090) {
+      setTimeLeft('∞ Unlimited');
+      return;
+    }
     const updateCountdown = () => {
       const now = new Date().getTime();
-      const cleanDate = typeof expiresAt === 'string' ? expiresAt.replace(' ', 'T') : expiresAt;
-      const target = new Date(cleanDate).getTime();
-      if (isNaN(target)) {
-        setTimeLeft('—');
-        return;
-      }
       const diff = target - now;
       if (diff <= 0) {
         setTimeLeft('Expired');
@@ -233,7 +238,13 @@ export default function UnifiedUserManagement({
       const status = u.active_ip ? 'ONLINE' : (u.is_active ? 'OFFLINE' : 'BLOCKED');
       const prio = isSystem ? (u.username === 'labriset' ? 'Dedicated GPU 0' : 'Level 2 CPU-only') : (u.is_priority ? 'Level 1' : 'Level 2');
       const exp = u.priority_expires_at ? new Date(u.priority_expires_at).toLocaleString('id-ID') : '-';
-      const boost = u.gpu_boost_active ? (u.gpu_boost_expires_at ? `Aktif s.d. ${new Date(u.gpu_boost_expires_at).toLocaleString('id-ID')}` : 'Aktif') : '-';
+      const boost = u.gpu_boost_active
+        ? (u.gpu_boost_expires_at
+            ? (new Date(u.gpu_boost_expires_at).getFullYear() >= 2090
+                ? 'Aktif (Unlimited)'
+                : `Aktif s.d. ${new Date(u.gpu_boost_expires_at).toLocaleString('id-ID')}`)
+            : 'Aktif')
+        : '-';
       const hasGpu = Boolean(u.is_priority || (isSystem && u.username === 'labriset') || u.gpu_boost_active);
       const gpuIdx = u.gpu_index ?? (u.is_priority || (isSystem && u.username === 'labriset') ? 0 : (u.gpu_boost_active ? 1 : null));
       const vramMb = u.vram_used_mb || 0;
@@ -1591,7 +1602,7 @@ export default function UnifiedUserManagement({
                 <label className="block text-xs font-mono text-[#334155] font-semibold mb-2">
                   Durasi GPU Boost:
                 </label>
-                <div className="grid grid-cols-5 gap-2">
+                <div className="grid grid-cols-6 gap-2">
                   {[1, 2, 4, 8, 12].map((h) => (
                     <button
                       key={h}
@@ -1606,6 +1617,18 @@ export default function UnifiedUserManagement({
                       {h} Jam
                     </button>
                   ))}
+                  <button
+                    type="button"
+                    onClick={() => setGpuBoostModal(prev => ({ ...prev, hours: 0 }))}
+                    className={`py-2 rounded-xl text-xs font-mono font-semibold transition-all border ${
+                      gpuBoostModal.hours === 0
+                        ? 'bg-[#0F172A] text-white border-blue-700 shadow-xs'
+                        : 'bg-white border-[#E2E8F0] text-[#334155] hover:bg-[#F8FAFC] shadow-xs'
+                    }`}
+                    title="Akses GPU 1 tanpa batas waktu kedaluwarsa otomatis"
+                  >
+                    ∞ Unlimited
+                  </button>
                 </div>
               </div>
 
@@ -1626,7 +1649,11 @@ export default function UnifiedUserManagement({
                 <span className="text-[#0F172A] font-bold">Alokasi GPU Boost:</span>
                 <span>• Akses GPU 1 (VRAM {gpuBoostVramMb} MB)</span>
                 <span>• CPU & RAM tetap mengikuti profil kelas (tidak diubah)</span>
-                <span>• Otomatis berakhir sesuai durasi; sesi di-restart untuk menerapkan akses</span>
+                <span>
+                  • {gpuBoostModal.hours === 0 
+                      ? 'Durasi: ∞ Unlimited (aktif sampai dicabut manual oleh Aslab/Admin)' 
+                      : `Durasi: ${gpuBoostModal.hours} Jam (otomatis berakhir sesuai durasi)`}
+                </span>
               </div>
 
               <div className="flex gap-2.5 pt-2">

@@ -1294,12 +1294,14 @@ def _restart_user_sessions(nim: str) -> None:
     subprocess.run(["pkill", "-u", os_username], check=False)
 
 
-def _clamp_boost_hours(hours: int) -> int:
-    """Batasi durasi boost ke rentang 1-12 jam."""
+def _clamp_boost_hours(hours: int, allow_unlimited: bool = False) -> int:
+    """Batasi durasi boost ke rentang 1-12 jam, atau 0 untuk unlimited jika allow_unlimited=True."""
     try:
         value = int(hours)
     except (TypeError, ValueError):
         value = 4
+    if allow_unlimited and value == 0:
+        return 0
     return max(1, min(value, 12))
 
 
@@ -1406,7 +1408,7 @@ def gpu_boost_student(req: GpuBoostRequest, session: Dict[str, Any] = Depends(ve
             detail="GPU Boost sedang dinonaktifkan secara global. Aktifkan lebih dulu di Ringkasan Sistem.",
         )
 
-    hours = _clamp_boost_hours(req.hours)
+    hours = _clamp_boost_hours(req.hours, allow_unlimited=True)
     active = list_active_gpu_boosts()
     already_boosted = any(str(item.get("nim")) == clean_nim for item in active)
     if not already_boosted and len(active) >= GPU_BOOST_MAX_SLOTS:
@@ -1418,6 +1420,9 @@ def gpu_boost_student(req: GpuBoostRequest, session: Dict[str, Any] = Depends(ve
             ),
         )
 
+    is_unlimited = (hours == 0)
+    dur_desc = "tanpa batas waktu (Unlimited)" if is_unlimited else f"selama {hours} jam"
+
     actor = session.get("nama") or session.get("nim") or "Operator"
     if not set_user_gpu_boost(clean_nim, hours, req.reason or "GPU Boost Level 2", actor):
         raise HTTPException(status_code=400, detail="Gagal mengaktifkan GPU Boost.")
@@ -1428,14 +1433,15 @@ def gpu_boost_student(req: GpuBoostRequest, session: Dict[str, Any] = Depends(ve
         action="GPU_BOOST",
         detail=(
             f"Akses GPU 1 (Boost Level 2: VRAM {GPU_BOOST_VRAM_MB} MB) "
-            f"selama {hours} jam oleh {actor}. Alasan: {req.reason or 'GPU Boost Level 2'}."
+            f"{dur_desc} oleh {actor}. Alasan: {req.reason or 'GPU Boost Level 2'}."
         ),
         log_type="success",
     )
     return {
         "success": True,
-        "message": f"NIM {clean_nim} mendapatkan GPU Boost Level 2 selama {hours} jam.",
+        "message": f"NIM {clean_nim} mendapatkan GPU Boost Level 2 {dur_desc}.",
         "expires_in_hours": hours,
+        "is_unlimited": is_unlimited,
         "vram_mb": GPU_BOOST_VRAM_MB,
     }
 

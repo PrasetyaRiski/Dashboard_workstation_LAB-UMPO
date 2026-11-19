@@ -454,8 +454,10 @@ def list_active_gpu_boosts() -> List[Dict[str, Any]]:
             expires = _parse_expiry(item.get("gpu_boost_expires_at"))
             if not expires or expires <= now:
                 continue
+            is_unlimited = expires.year >= 2090
             item["gpu_boost_expires_at"] = expires.strftime("%Y-%m-%d %H:%M:%S")
-            item["remaining_minutes"] = max(0, int((expires - now).total_seconds() // 60))
+            item["is_unlimited"] = is_unlimited
+            item["remaining_minutes"] = None if is_unlimited else max(0, int((expires - now).total_seconds() // 60))
             active.append(item)
         active.sort(key=lambda x: x["gpu_boost_expires_at"])
         return active
@@ -496,13 +498,20 @@ def is_user_gpu_boosted(nim: str) -> bool:
 
 
 def set_user_gpu_boost(nim: str, hours: int = 4, reason: str = "Admin Boost", actor: str = "Admin") -> bool:
-    """Beri akses GPU 1 (Level 2 Boost) selama ``hours`` jam (1-12)."""
-    clean_hours = max(1, min(int(hours), 12))
+    """Beri akses GPU 1 (Level 2 Boost) selama ``hours`` jam (1-12) atau 0 untuk unlimited."""
+    is_unlimited = (int(hours or 0) == 0)
+    clean_hours = 0 if is_unlimited else max(1, min(int(hours), 12))
     conn, engine = get_connection()
     cur = conn.cursor()
     try:
         placeholder = "%s" if engine == "postgres" else "?"
-        expires_str = (datetime.now() + timedelta(hours=clean_hours)).strftime("%Y-%m-%d %H:%M:%S")
+        if is_unlimited:
+            expires_str = "2099-12-31 23:59:59"
+            dur_label = "tanpa batas waktu (Unlimited)"
+        else:
+            expires_str = (datetime.now() + timedelta(hours=clean_hours)).strftime("%Y-%m-%d %H:%M:%S")
+            dur_label = f"selama {clean_hours} jam"
+
         cur.execute(
             "UPDATE users SET gpu_boost_expires_at = {}, gpu_boost_reason = {}, gpu_boost_by = {} "
             "WHERE nim = {}".format(placeholder, placeholder, placeholder, placeholder),
@@ -513,7 +522,7 @@ def set_user_gpu_boost(nim: str, hours: int = 4, reason: str = "Admin Boost", ac
             (
                 nim,
                 "GPU_BOOST",
-                f"GPU 1 Boost Level 2 (VRAM {GPU_BOOST_VRAM_MB} MB) selama {clean_hours} jam "
+                f"GPU 1 Boost Level 2 (VRAM {GPU_BOOST_VRAM_MB} MB) {dur_label} "
                 f"oleh {actor}. Alasan: {reason or 'Admin Boost'}",
             ),
         )

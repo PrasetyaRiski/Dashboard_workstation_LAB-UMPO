@@ -139,6 +139,37 @@ def test_gpu_boost_clamps_duration_to_twelve_hours(client, admin_token):
     assert 11 * 60 < item["remaining_minutes"] <= 12 * 60
 
 
+def test_gpu_boost_unlimited_duration(client, admin_token):
+    nim = _student("99000003")
+    response = client.post(
+        "/api/users/gpu-boost",
+        json={"nim": nim, "hours": 0, "reason": "Riset Tanpa Batas"},
+        headers=_headers(admin_token),
+    )
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload["success"] is True
+    assert payload["is_unlimited"] is True
+    assert payload["expires_in_hours"] == 0
+
+    assert db.is_user_gpu_boosted(nim) is True
+    active = db.list_active_gpu_boosts()
+    boost_item = next(b for b in active if b["nim"] == nim)
+    assert boost_item["is_unlimited"] is True
+    assert boost_item["remaining_minutes"] is None
+    assert boost_item["gpu_boost_expires_at"].startswith("2099")
+
+    # Worker auto_expire tidak boleh mencabut boost unlimited
+    expired = db.auto_expire_gpu_boosts()
+    assert nim not in expired
+    assert db.is_user_gpu_boosted(nim) is True
+
+    # Cabut manual tetap bisa
+    unboost = client.post("/api/users/gpu-unboost", json={"nim": nim}, headers=_headers(admin_token))
+    assert unboost.status_code == 200
+    assert db.is_user_gpu_boosted(nim) is False
+
+
 # ---------------------------------------------------------------------------
 # Slot capacity
 # ---------------------------------------------------------------------------

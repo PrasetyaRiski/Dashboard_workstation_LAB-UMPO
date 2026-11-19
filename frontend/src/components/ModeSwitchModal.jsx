@@ -45,8 +45,8 @@ export default function ModeSwitchModal({
       },
       {
         label: 'Jatah Baseline Level 2',
-        from: '1 Core · 1.5 GB RAM',
-        to: '1 Core · 1.5 GB RAM (Tetap)',
+        from: '2 Core · 3.0 GB RAM',
+        to: '1 Core · 1.5 GB RAM',
         icon: Cpu,
         positive: null,
         note: 'Praktikum komputasi CPU-only yang ringan dan stabil.',
@@ -70,7 +70,7 @@ export default function ModeSwitchModal({
     accentColor: 'text-emerald-600',
     badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
     icon: Layers,
-    description: 'Membatasi kapasitas praktikum menjadi maksimal 30 mahasiswa dan mengaktifkan fitur GPU Boost (hingga 3 slot akselerasi GPU 1 sementara).',
+    description: 'Membatasi kapasitas praktikum menjadi maksimal 30 mahasiswa (2 Core / 3 GB) dan mengaktifkan fitur GPU Boost (hingga 3 slot akselerasi GPU 1 sementara).',
     changes: [
       {
         label: 'Kapasitas Kuota Level 2',
@@ -78,7 +78,15 @@ export default function ModeSwitchModal({
         to: 'Maks 30 Sesi Mahasiswa (1 Kelas)',
         icon: Users,
         positive: null,
-        note: 'Membatasi beban CPU dan RAM agar slot akselerasi GPU Boost dapat beroperasi optimal.',
+        note: 'Membatasi persaingan memori host server.',
+      },
+      {
+        label: 'Jatah Baseline Level 2',
+        from: '1 Core · 1.5 GB RAM',
+        to: '2 Core · 3.0 GB RAM',
+        icon: Cpu,
+        positive: true,
+        note: 'Kapasitas RAM & CPU lebih lega untuk analisis data & praktikum AI.',
       },
       {
         label: 'Fitur GPU Boost (GPU 1)',
@@ -86,15 +94,7 @@ export default function ModeSwitchModal({
         to: 'Diizinkan (Maks 3 Slot Sementara)',
         icon: Zap,
         positive: true,
-        note: 'Aslab/Admin dapat memberikan GPU Boost sementara (4 Core / 6 GB / 4.8 GB VRAM).',
-      },
-      {
-        label: 'Jatah Baseline Level 2',
-        from: '1 Core · 1.5 GB RAM',
-        to: '1 Core · 1.5 GB RAM (Tetap)',
-        icon: Cpu,
-        positive: null,
-        note: 'Mahasiswa tanpa boost tetap memakai profil hemat sumber daya.',
+        note: 'Aslab/Admin dapat memberikan akses GPU 1 sementara (VRAM 4.8 GB; CPU & RAM tetap 2 Core / 3 GB).',
       },
       {
         label: 'Jalur Riset (Level 1)',

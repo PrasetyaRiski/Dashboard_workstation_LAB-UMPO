@@ -921,7 +921,8 @@ export default function UnifiedUserManagement({
               ) : (
                 filteredData.map((item) => {
                   if (item.type === 'student') {
-                    const ramMaxMb = item.is_priority ? 61440 : (item.ram_max_mb || (item.gpu_boost_active ? 6144 : 1536));
+                    const defaultL2RamMb = ((level2Slots?.lab_mode || capacity?.lab_mode) === 'cpu60') ? 1536 : 3072;
+                    const ramMaxMb = item.is_priority ? 61440 : (item.ram_max_mb || defaultL2RamMb);
                     const ramUsedGb = ((item.ram_used_mb || 0) / 1024).toFixed(1);
                     const ramMaxGb = (ramMaxMb / 1024).toFixed(1);
                     const ramPct = item.is_online ? Math.min(100, Math.round(((item.ram_used_mb || 0) / ramMaxMb) * 100)) : 0;
@@ -1623,9 +1624,9 @@ export default function UnifiedUserManagement({
 
               <div className="p-3.5 rounded-xl bg-sky-50/60 text-xs font-mono text-sky-900 border border-sky-200/70 flex flex-col gap-1">
                 <span className="text-[#0F172A] font-bold">Alokasi GPU Boost:</span>
-                <span>• GPU 1 (bukan GPU 0 milik Level 1)</span>
-                <span>• 4 Core CPU · 6 GB RAM · VRAM {gpuBoostVramMb} MB</span>
-                <span>• Otomatis berakhir sesuai durasi; disk tidak di-boost</span>
+                <span>• Akses GPU 1 (VRAM {gpuBoostVramMb} MB)</span>
+                <span>• CPU & RAM tetap mengikuti profil kelas (tidak diubah)</span>
+                <span>• Otomatis berakhir sesuai durasi; sesi di-restart untuk menerapkan akses</span>
               </div>
 
               <div className="flex gap-2.5 pt-2">

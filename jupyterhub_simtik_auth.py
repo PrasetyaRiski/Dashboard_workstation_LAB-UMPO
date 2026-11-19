@@ -574,9 +574,11 @@ def simtik_pre_spawn_hook(spawner):
     # Akun Aslab, Admin, dan Mahasiswa Prioritas (Level 1) DIBYPASS kuota.
     # =========================================================================
     max_level2_concurrent = LEVEL2_MAX_SLOTS
+    lab_profile = {}
     try:
         from app.db import get_lab_profile
-        max_level2_concurrent = int(get_lab_profile().get("max_slots", LEVEL2_MAX_SLOTS))
+        lab_profile = get_lab_profile() or {}
+        max_level2_concurrent = int(lab_profile.get("max_slots", LEVEL2_MAX_SLOTS))
     except Exception as e:
         logger.warning(f"[AdmissionControl] Gagal membaca profil lab dari database: {e}")
 
@@ -625,6 +627,11 @@ def simtik_pre_spawn_hook(spawner):
     if not hasattr(spawner, "environment") or spawner.environment is None:
         spawner.environment = {}
 
+    l2_cpu = float(lab_profile.get("cpu_limit_cores", LEVEL2_CPU_CORES))
+    l2_ram_mb = int(lab_profile.get("ram_limit_mb", 1536))
+    l2_ram_limit = f"{l2_ram_mb}M"
+    threads_str = str(max(1, int(l2_cpu)))
+
     if priority:
         logger.info(f"[QoS] {username} -> LEVEL 1 (20 core, 60G, Dedicated GPU 0 - Hardware Isolated)")
         spawner.unit_extra_properties = {
@@ -650,19 +657,19 @@ def simtik_pre_spawn_hook(spawner):
         })
     elif gpu_boosted:
         logger.info(
-            f"[QoS] {username} -> LEVEL 2 GPU BOOST (4 core, 6G, GPU 1, VRAM {GPU_BOOST_VRAM_MB} MB)"
+            f"[QoS] {username} -> LEVEL 2 GPU BOOST ({l2_cpu:g} core, {l2_ram_limit}, GPU 1, VRAM {GPU_BOOST_VRAM_MB} MB)"
         )
         spawner.unit_extra_properties = {
             "Slice": "compute-level2.slice",
             # GPU 1 saja; GPU 0 tetap eksklusif untuk Level 1.
             "DeviceAllow": list(GPU1_DEVICES),
         }
-        spawner.cpu_limit = GPU_BOOST_CPU_CORES
-        spawner.mem_limit = GPU_BOOST_RAM_LIMIT
+        spawner.cpu_limit = l2_cpu
+        spawner.mem_limit = l2_ram_limit
         spawner.environment.update({
-            "OMP_NUM_THREADS": "4",
-            "OPENBLAS_NUM_THREADS": "4",
-            "MKL_NUM_THREADS": "4",
+            "OMP_NUM_THREADS": threads_str,
+            "OPENBLAS_NUM_THREADS": threads_str,
+            "MKL_NUM_THREADS": threads_str,
             "CUDA_DEVICE_ORDER": "PCI_BUS_ID",
             "CUDA_VISIBLE_DEVICES": "1",
             # Kuota VRAM ditegakkan lab_gpu_quota + watchdog gpu_guard.
@@ -676,20 +683,20 @@ def simtik_pre_spawn_hook(spawner):
         })
     else:
         logger.info(
-            f"[QoS] {username} -> LEVEL 2 BASELINE (CPU Only, {LEVEL2_CPU_CORES:g} core, "
-            f"{LEVEL2_RAM_LIMIT}, GPU Blocked at Kernel)"
+            f"[QoS] {username} -> LEVEL 2 BASELINE (CPU Only, {l2_cpu:g} core, "
+            f"{l2_ram_limit}, GPU Blocked at Kernel)"
         )
         spawner.unit_extra_properties = {
             "Slice": "compute-level2.slice",
             # Blokir total seluruh file /dev/nvidia* di tingkat kernel.
             "DevicePolicy": "closed",
         }
-        spawner.cpu_limit = LEVEL2_CPU_CORES
-        spawner.mem_limit = LEVEL2_RAM_LIMIT
+        spawner.cpu_limit = l2_cpu
+        spawner.mem_limit = l2_ram_limit
         spawner.environment.update({
-            "OMP_NUM_THREADS": "1",
-            "OPENBLAS_NUM_THREADS": "1",
-            "MKL_NUM_THREADS": "1",
+            "OMP_NUM_THREADS": threads_str,
+            "OPENBLAS_NUM_THREADS": threads_str,
+            "MKL_NUM_THREADS": threads_str,
             "CUDA_DEVICE_ORDER": "PCI_BUS_ID",
             "CUDA_VISIBLE_DEVICES": "",  # Nonaktifkan CUDA context
             "NVIDIA_VISIBLE_DEVICES": "none",

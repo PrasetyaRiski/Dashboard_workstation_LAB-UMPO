@@ -659,7 +659,7 @@ def get_full_snapshot():
         short_name = profile.get("short_name", "Mode 30 (30 Slot)")
         gpu_enabled = profile.get("gpu_enabled", False)
         gpu_name = profile.get("gpu_name", "GPU Boost (3 Slot)")
-        ram_limit_gb = profile.get("ram_limit_gb", 1.5)
+        ram_limit_gb = profile.get("ram_limit_gb", 3.0)
         gpu_boost_allowed = bool(profile.get("gpu_boost_allowed", lab_mode == LAB_MODE_BOOST30))
     except Exception as e:
         logger.warning(f"Error calculating level2 slots: {e}")
@@ -671,7 +671,7 @@ def get_full_snapshot():
         short_name = "Mode 30 (30 Slot)"
         gpu_enabled = False
         gpu_name = "GPU Boost (3 Slot)"
-        ram_limit_gb = 1.5
+        ram_limit_gb = 3.0
         gpu_boost_allowed = True
 
     try:
@@ -1427,7 +1427,7 @@ def gpu_boost_student(req: GpuBoostRequest, session: Dict[str, Any] = Depends(ve
         target=f"NIM {clean_nim}",
         action="GPU_BOOST",
         detail=(
-            f"Akses GPU 1 (Boost Level 2: 4 Core, 6G, VRAM {GPU_BOOST_VRAM_MB} MB) "
+            f"Akses GPU 1 (Boost Level 2: VRAM {GPU_BOOST_VRAM_MB} MB) "
             f"selama {hours} jam oleh {actor}. Alasan: {req.reason or 'GPU Boost Level 2'}."
         ),
         log_type="success",

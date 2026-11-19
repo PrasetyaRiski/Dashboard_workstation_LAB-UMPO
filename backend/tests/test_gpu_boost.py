@@ -371,8 +371,8 @@ def test_default_mode_is_mode_30(client, admin_token):
     assert profile["mode"] == "boost30"
     assert profile["max_slots"] == 30
     assert profile["gpu_boost_allowed"] is True
-    assert profile["cpu_limit_cores"] == 1.0
-    assert profile["ram_limit_mb"] == 1536.0
+    assert profile["cpu_limit_cores"] == 2.0
+    assert profile["ram_limit_mb"] == 3072.0
 
     capacity = client.get("/api/stats/capacity").json()
     assert capacity["lab_mode"] == "boost30"
@@ -389,6 +389,8 @@ def test_switch_to_mode_60_and_back(client, admin_token):
     body60 = res60.json()
     assert body60["mode"] == "cpu60"
     assert body60["profile"]["max_slots"] == 60
+    assert body60["profile"]["cpu_limit_cores"] == 1.0
+    assert body60["profile"]["ram_limit_mb"] == 1536.0
     assert body60["gpu_boost_allowed"] is False
     assert body60["gpu_boost_enabled"] is False
 
@@ -406,6 +408,8 @@ def test_switch_to_mode_60_and_back(client, admin_token):
     body30 = res30.json()
     assert body30["mode"] == "boost30"
     assert body30["profile"]["max_slots"] == 30
+    assert body30["profile"]["cpu_limit_cores"] == 2.0
+    assert body30["profile"]["ram_limit_mb"] == 3072.0
     assert body30["gpu_boost_allowed"] is True
     assert body30["gpu_boost_enabled"] is True
 

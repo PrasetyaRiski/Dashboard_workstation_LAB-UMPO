@@ -399,8 +399,8 @@ def unset_user_priority(nim: str) -> bool:
 
 GPU_BOOST_MAX_SLOTS = 3
 GPU_BOOST_VRAM_MB = 4800
-GPU_BOOST_CPU_CORES = 4.0
-GPU_BOOST_RAM_GB = 6.0
+GPU_BOOST_CPU_CORES = 2.0
+GPU_BOOST_RAM_GB = 3.0
 
 
 def get_gpu_boost_enabled() -> bool:
@@ -513,7 +513,7 @@ def set_user_gpu_boost(nim: str, hours: int = 4, reason: str = "Admin Boost", ac
             (
                 nim,
                 "GPU_BOOST",
-                f"GPU 1 Boost Level 2 (4 Core, 6G, VRAM {GPU_BOOST_VRAM_MB} MB) selama {clean_hours} jam "
+                f"GPU 1 Boost Level 2 (VRAM {GPU_BOOST_VRAM_MB} MB) selama {clean_hours} jam "
                 f"oleh {actor}. Alasan: {reason or 'Admin Boost'}",
             ),
         )
@@ -1178,7 +1178,7 @@ def _lab_profile_for_mode(mode: str) -> Dict[str, Any]:
             "name": "Mode 30 - GPU Boost",
             "short_name": "Mode 30 (30 Slot)",
             "description": (
-                "Level 2 maksimal 30 sesi CPU-only (1 core / 1.5 GB); "
+                "Level 2 maksimal 30 sesi CPU-only (2 core / 3.0 GB RAM); "
                 "hingga 3 mahasiswa dapat GPU Boost sementara (GPU 1)."
             ),
             "max_slots": 30,
@@ -1186,9 +1186,9 @@ def _lab_profile_for_mode(mode: str) -> Dict[str, Any]:
             "gpu_enabled": False,
             "gpu_device": "",
             "gpu_name": "GPU Boost (3 Slot)",
-            "ram_limit_gb": 1.5,
-            "ram_limit_mb": 1536.0,
-            "cpu_limit_cores": 1.0,
+            "ram_limit_gb": 3.0,
+            "ram_limit_mb": 3072.0,
+            "cpu_limit_cores": 2.0,
             "idle_release_minutes": 15,
         }
     return {
@@ -1196,7 +1196,7 @@ def _lab_profile_for_mode(mode: str) -> Dict[str, Any]:
         "name": "Mode 60 - CPU Only",
         "short_name": "Mode 60 (60 Slot)",
         "description": (
-            "Level 2 maksimal 60 sesi CPU-only (1 core / 1.5 GB). "
+            "Level 2 maksimal 60 sesi CPU-only (1 core / 1.5 GB RAM). "
             "GPU Boost dikunci mati; boost yang sudah berjalan tetap dihormati sampai kedaluwarsa."
         ),
         "max_slots": 60,

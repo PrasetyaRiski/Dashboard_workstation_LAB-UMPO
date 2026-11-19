@@ -341,6 +341,16 @@ def get_per_user_gpu_metrics(gpus: List[Dict[str, Any]]) -> List[Dict[str, Any]]
     rev_training = {v: k for k, v in TRAINING_UIDS.items()}
     import pwd
 
+    prof_ram_mb = 3072.0
+    prof_cores = 2
+    try:
+        from app.db import get_lab_profile
+        _lab_p = get_lab_profile()
+        prof_ram_mb = float(_lab_p.get("ram_limit_mb", 3072.0))
+        prof_cores = int(_lab_p.get("cpu_limit_cores", 2.0))
+    except Exception:
+        pass
+
     for uname in valid_tracked:
         real_uid = None
         try:
@@ -397,12 +407,12 @@ def get_per_user_gpu_metrics(gpus: List[Dict[str, Any]]) -> List[Dict[str, Any]]
         mem_max_bytes = read_cgroup_file(f"{slice_dir}/memory.max")
         ram_used_bytes = max(mem_curr_bytes, user_rss_bytes.get(uname, 0))
         ram_used_mb = round(ram_used_bytes / (1024 ** 2), 1)
-        fallback_ram_mb = 61440.0 if is_priority_user else (6144.0 if is_gpu_boosted else 1536.0)
+        fallback_ram_mb = 61440.0 if is_priority_user else prof_ram_mb
         ram_max_mb = round(mem_max_bytes / (1024 ** 2), 1) if mem_max_bytes > 0 else fallback_ram_mb
 
         # CPU Metrics & Core Allocations
-        # Level 1: 20 cores; GPU Boost: 4 cores; Level 2 baseline: 1 core.
-        cores_limit = 20 if is_priority_user else (4 if is_gpu_boosted else 1)
+        # Level 1: 20 cores; Level 2 (baseline & boost): mengikuti profil lab (2 core di Mode 30, 1 core di Mode 60).
+        cores_limit = 20 if is_priority_user else prof_cores
         prev_time = _prev_user_cpu_times.get(uname, current_user_times.get(uname, 0.0))
         delta_time = max(0.0, current_user_times.get(uname, 0.0) - prev_time)
         cpu_percent = round((delta_time / dt) * 100.0, 1)

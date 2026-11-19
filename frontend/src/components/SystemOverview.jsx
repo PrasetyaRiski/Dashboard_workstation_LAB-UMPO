@@ -175,7 +175,7 @@ function SystemOverview({
             )}
 
             <span className="text-[11px] font-mono text-slate-500 hidden md:inline">
-              • 1 Core · 1.5 GB RAM {isMode30 ? '· GPU 1 via Boost' : '· CPU-only'}
+              • {isMode30 ? '2 Core · 3.0 GB RAM · GPU 1 via Boost' : '1 Core · 1.5 GB RAM · CPU-only'}
             </span>
           </div>
 
@@ -280,7 +280,7 @@ function SystemOverview({
                   {activeSlots} <span className="text-slate-500 font-normal">/ {maxSlots} Sesi</span>
                 </span>
                 <span className="text-[10px] font-mono text-slate-500 hidden sm:inline">
-                  • Jatah 1 Core · 1.5 GB RAM {isMode30 ? '· GPU via Boost (Maks 3)' : '· CPU-only (Boost dikunci)'}
+                  • Jatah {isMode30 ? '2 Core · 3.0 GB RAM · GPU via Boost (Maks 3)' : '1 Core · 1.5 GB RAM · CPU-only (Boost dikunci)'}
                 </span>
               </div>
             </div>
@@ -399,7 +399,7 @@ function SystemOverview({
                   />
                 </div>
                 <span className="text-[10px] font-mono text-slate-500">
-                  {!gpuBoostAllowed ? 'Nonaktif di Mode 60' : `4 Core · 6 GB · ${gpuBoostVramMb} MB VRAM`}
+                  {!gpuBoostAllowed ? 'Nonaktif di Mode 60' : `Akses GPU 1 · ${gpuBoostVramMb} MB VRAM (CPU/RAM tetap)`}
                 </span>
               </div>
             </div>

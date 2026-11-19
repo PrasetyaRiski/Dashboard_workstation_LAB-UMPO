@@ -59,6 +59,45 @@ USER_PREFIX = "m"
 SYSTEM_ACCOUNTS = {"labriset", "edy", "labadmin"}
 LEVEL1_SYSTEM = {"labriset"}
 
+# Batas profil tetap Level 2. GPU 1 hanya diberikan lewat GPU Boost sementara.
+LEVEL2_MAX_SLOTS = int(os.environ.get("LAB_LEVEL2_MAX_SLOTS", "60"))
+LEVEL2_MEM_GUARD_GB = float(os.environ.get("LAB_LEVEL2_MEM_GUARD_GB", "15"))
+GPU_BOOST_VRAM_MB = int(os.environ.get("LAB_GPU_BOOST_VRAM_MB", "4800"))
+GPU_BOOST_CPU_CORES = float(os.environ.get("LAB_GPU_BOOST_CPU_CORES", "4"))
+GPU_BOOST_RAM_LIMIT = os.environ.get("LAB_GPU_BOOST_RAM_LIMIT", "6G")
+LEVEL2_CPU_CORES = float(os.environ.get("LAB_LEVEL2_CPU_CORES", "1"))
+LEVEL2_RAM_LIMIT = os.environ.get("LAB_LEVEL2_RAM_LIMIT", "1536M")
+
+# Nama device GPU yang diizinkan per tingkat akses (diterapkan cgroup systemd).
+GPU0_DEVICES = [
+    "/dev/nvidia0 rw",
+    "/dev/nvidiactl rw",
+    "/dev/nvidia-uvm rw",
+    "/dev/nvidia-uvm-tools rw",
+    "/dev/nvidia-modeset rw",
+]
+GPU1_DEVICES = [
+    "/dev/nvidia1 rw",
+    "/dev/nvidiactl rw",
+    "/dev/nvidia-uvm rw",
+    "/dev/nvidia-uvm-tools rw",
+    "/dev/nvidia-modeset rw",
+]
+
+
+def _mem_available_gb():
+    """MemAvailable dalam GB dari /proc/meminfo, atau None bila tidak terbaca."""
+    try:
+        with open("/proc/meminfo", "r", encoding="utf-8") as handle:
+            for line in handle:
+                if line.startswith("MemAvailable:"):
+                    kb = int(line.split()[1])
+                    return kb / (1024 * 1024)
+    except (OSError, ValueError, IndexError) as exc:
+        logger.debug("Tidak bisa membaca MemAvailable: %s", exc)
+    return None
+
+
 # Validasi ketat NIM menggunakan regex
 NIM_REGEX = re.compile(r"^\d{8,15}$")
 
@@ -503,8 +542,10 @@ def simtik_pre_spawn_hook(spawner):
 
     priority = username in LEVEL1_SYSTEM
     is_privileged = is_admin_or_aslab_user(username, getattr(spawner, "user", None))
+    nim = username_to_nim(username)
+    gpu_boosted = False
+
     if not priority and not is_system_account(username):
-        nim = username_to_nim(username)
         # Cek apakah akun aktif atau dinonaktifkan oleh Admin
         try:
             from app.db import is_user_active
@@ -517,26 +558,24 @@ def simtik_pre_spawn_hook(spawner):
                 raise e
             logger.warning(f"Cek status aktif gagal untuk {username}: {e}")
 
-        # Cek status alokasi prioritas
+        # Level 1 (Prioritas Skripsi) mengalahkan GPU Boost.
         try:
-            from app.db import is_user_priority
+            from app.db import is_user_priority, is_user_gpu_boosted
             priority = is_user_priority(nim)
+            if not priority:
+                gpu_boosted = is_user_gpu_boosted(nim)
         except Exception as e:
-            logger.warning(f"Cek prioritas gagal untuk {username}: {e}")
+            logger.warning(f"Cek prioritas/GPU boost gagal untuk {username}: {e}")
 
     # =========================================================================
-    # 2.5 ADMISSION CONTROL: Kuota Dinamis Mahasiswa Praktikum (Level 2)
-    # - Mode Praktikum AI           : Maks 30 Slot (GPU 1 Aktif)
-    # - Mode Pemrograman Dasar      : Maks 60 Slot (CPU Only, GPU 1 Standby)
-    # Akun Aslab, Admin, dan Mahasiswa Prioritas Skripsi (Level 1) DIBYPASS
+    # 2.5 ADMISSION CONTROL LEVEL 2
+    # Profil tetap: 60 slot CPU-only. Akses GPU 1 hanya lewat GPU Boost 3 slot.
+    # Akun Aslab, Admin, dan Mahasiswa Prioritas (Level 1) DIBYPASS kuota.
     # =========================================================================
-    lab_mode = "ai"
-    max_level2_concurrent = 30
+    max_level2_concurrent = LEVEL2_MAX_SLOTS
     try:
         from app.db import get_lab_profile
-        profile = get_lab_profile()
-        lab_mode = profile.get("mode", "ai")
-        max_level2_concurrent = int(profile.get("max_slots", 30))
+        max_level2_concurrent = int(get_lab_profile().get("max_slots", LEVEL2_MAX_SLOTS))
     except Exception as e:
         logger.warning(f"[AdmissionControl] Gagal membaca profil lab dari database: {e}")
 
@@ -544,15 +583,28 @@ def simtik_pre_spawn_hook(spawner):
         active_l2 = count_active_level2_students(spawner, exclude_username=username)
         if active_l2 >= max_level2_concurrent:
             from tornado import web
-            mode_label = "Pemrograman Dasar (2 Kelas)" if lab_mode == "basic" else "Praktikum AI"
             logger.warning(
-                f"[AdmissionControl] Spawn ditolak untuk {username}: Kuota {max_level2_concurrent} mahasiswa ({mode_label}) penuh ({active_l2}/{max_level2_concurrent})."
+                f"[AdmissionControl] Spawn ditolak untuk {username}: Kuota {max_level2_concurrent} mahasiswa penuh ({active_l2}/{max_level2_concurrent})."
             )
             raise web.HTTPError(
                 429,
-                f"Kapasitas Lab Penuh ({active_l2}/{max_level2_concurrent} Mahasiswa Aktif - {mode_label}): "
+                f"Kapasitas Lab Penuh ({active_l2}/{max_level2_concurrent} Mahasiswa Aktif): "
                 f"Batas kuota {max_level2_concurrent} mahasiswa praktikum aktif sedang tercapai. "
                 f"Silakan tunggu beberapa saat hingga ada mahasiswa lain yang selesai atau sesi otomatis terlepas."
+            )
+
+        # Jaga agar Level 1 (GPU 0) tetap mendapat memori saat Level 2 padat.
+        mem_available_gb = _mem_available_gb()
+        if mem_available_gb is not None and mem_available_gb < LEVEL2_MEM_GUARD_GB:
+            from tornado import web
+            logger.warning(
+                f"[AdmissionControl] Spawn Level 2 ditolak untuk {username}: "
+                f"MemAvailable {mem_available_gb:.1f} GB < {LEVEL2_MEM_GUARD_GB:.0f} GB."
+            )
+            raise web.HTTPError(
+                503,
+                "Server sedang kehabisan memori untuk sesi praktikum baru. "
+                "Silakan coba lagi beberapa saat lagi."
             )
 
     # 3. Kernel-Level Culling (15 Menit Idle Kernel)
@@ -569,24 +621,18 @@ def simtik_pre_spawn_hook(spawner):
 
     user_home = f"/home/{username}"
     user_tmp = f"{user_home}/.tmp"
+    if not hasattr(spawner, "environment") or spawner.environment is None:
+        spawner.environment = {}
 
     if priority:
         logger.info(f"[QoS] {username} -> LEVEL 1 (20 core, 60G, Dedicated GPU 0 - Hardware Isolated)")
         spawner.unit_extra_properties = {
             "Slice": "compute-level1.slice",
             # Hardware-Level Cgroup Device Isolation: Kunci ke GPU 0 di tingkat kernel Linux
-            "DeviceAllow": [
-                "/dev/nvidia0 rw",
-                "/dev/nvidiactl rw",
-                "/dev/nvidia-uvm rw",
-                "/dev/nvidia-uvm-tools rw",
-                "/dev/nvidia-modeset rw",
-            ],
+            "DeviceAllow": list(GPU0_DEVICES),
         }
         spawner.cpu_limit = 20.0
         spawner.mem_limit = "60G"
-        if not hasattr(spawner, "environment") or spawner.environment is None:
-            spawner.environment = {}
         spawner.environment.update({
             "OMP_NUM_THREADS": "20",
             "OPENBLAS_NUM_THREADS": "20",
@@ -601,60 +647,56 @@ def simtik_pre_spawn_hook(spawner):
             "TEMP": user_tmp,
             "TMP": user_tmp,
         })
+    elif gpu_boosted:
+        logger.info(
+            f"[QoS] {username} -> LEVEL 2 GPU BOOST (4 core, 6G, GPU 1, VRAM {GPU_BOOST_VRAM_MB} MB)"
+        )
+        spawner.unit_extra_properties = {
+            "Slice": "compute-level2.slice",
+            # GPU 1 saja; GPU 0 tetap eksklusif untuk Level 1.
+            "DeviceAllow": list(GPU1_DEVICES),
+        }
+        spawner.cpu_limit = GPU_BOOST_CPU_CORES
+        spawner.mem_limit = GPU_BOOST_RAM_LIMIT
+        spawner.environment.update({
+            "OMP_NUM_THREADS": "4",
+            "OPENBLAS_NUM_THREADS": "4",
+            "MKL_NUM_THREADS": "4",
+            "CUDA_DEVICE_ORDER": "PCI_BUS_ID",
+            "CUDA_VISIBLE_DEVICES": "1",
+            # Kuota VRAM ditegakkan lab_gpu_quota + watchdog gpu_guard.
+            "LAB_GPU_BOOST_ACTIVE": "1",
+            "LAB_GPU_VRAM_MB": str(GPU_BOOST_VRAM_MB),
+            "TF_FORCE_GPU_ALLOW_GROWTH": "true",
+            "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True",
+            "TMPDIR": user_tmp,
+            "TEMP": user_tmp,
+            "TMP": user_tmp,
+        })
     else:
-        # Konfigurasi Level 2 Adaptif sesuai Mode Lab yang Aktif
-        if lab_mode == "basic":
-            logger.info(f"[QoS] {username} -> LEVEL 2 MODE DASAR (CPU Only, 2 core, 2G, GPU Blocked at Kernel)")
-            spawner.unit_extra_properties = {
-                "Slice": "compute-level2.slice",
-                # Hardware-Level Cgroup Device Isolation: Blokir total seluruh file /dev/nvidia* di tingkat kernel
-                "DevicePolicy": "closed",
-            }
-            spawner.cpu_limit = 2.0
-            spawner.mem_limit = "2G"
-            if not hasattr(spawner, "environment") or spawner.environment is None:
-                spawner.environment = {}
-            spawner.environment.update({
-                "OMP_NUM_THREADS": "2",
-                "OPENBLAS_NUM_THREADS": "2",
-                "MKL_NUM_THREADS": "2",
-                "CUDA_DEVICE_ORDER": "PCI_BUS_ID",
-                "CUDA_VISIBLE_DEVICES": "",  # Nonaktifkan CUDA context
-                "TMPDIR": user_tmp,
-                "TEMP": user_tmp,
-                "TMP": user_tmp,
-            })
-        else:
-            logger.info(f"[QoS] {username} -> LEVEL 2 MODE AI (GPU 1 Shared Anti-OOM, 2 core, 3G - GPU 0 Blocked at Kernel)")
-            spawner.unit_extra_properties = {
-                "Slice": "compute-level2.slice",
-                # Hardware-Level Cgroup Device Isolation: Hanya izinkan GPU 1, blokir GPU 0 (milik riset) di kernel
-                "DeviceAllow": [
-                    "/dev/nvidia1 rw",
-                    "/dev/nvidiactl rw",
-                    "/dev/nvidia-uvm rw",
-                    "/dev/nvidia-uvm-tools rw",
-                    "/dev/nvidia-modeset rw",
-                ],
-            }
-            spawner.cpu_limit = 2.0
-            spawner.mem_limit = "3G"
-            if not hasattr(spawner, "environment") or spawner.environment is None:
-                spawner.environment = {}
-            spawner.environment.update({
-                "OMP_NUM_THREADS": "2",
-                "OPENBLAS_NUM_THREADS": "2",
-                "MKL_NUM_THREADS": "2",
-                "CUDA_DEVICE_ORDER": "PCI_BUS_ID",
-                "CUDA_VISIBLE_DEVICES": "1",
-                # Optimasi Framework AI Anti-OOM
-                "TF_FORCE_GPU_ALLOW_GROWTH": "true",
-                "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True",
-                # Isolasi folder cache sementara per user
-                "TMPDIR": user_tmp,
-                "TEMP": user_tmp,
-                "TMP": user_tmp,
-            })
+        logger.info(
+            f"[QoS] {username} -> LEVEL 2 BASELINE (CPU Only, {LEVEL2_CPU_CORES:g} core, "
+            f"{LEVEL2_RAM_LIMIT}, GPU Blocked at Kernel)"
+        )
+        spawner.unit_extra_properties = {
+            "Slice": "compute-level2.slice",
+            # Blokir total seluruh file /dev/nvidia* di tingkat kernel.
+            "DevicePolicy": "closed",
+        }
+        spawner.cpu_limit = LEVEL2_CPU_CORES
+        spawner.mem_limit = LEVEL2_RAM_LIMIT
+        spawner.environment.update({
+            "OMP_NUM_THREADS": "1",
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": "1",
+            "CUDA_DEVICE_ORDER": "PCI_BUS_ID",
+            "CUDA_VISIBLE_DEVICES": "",  # Nonaktifkan CUDA context
+            "NVIDIA_VISIBLE_DEVICES": "none",
+            "LAB_GPU_BOOST_ACTIVE": "0",
+            "TMPDIR": user_tmp,
+            "TEMP": user_tmp,
+            "TMP": user_tmp,
+        })
 
 
 def simtik_post_stop_hook(spawner):

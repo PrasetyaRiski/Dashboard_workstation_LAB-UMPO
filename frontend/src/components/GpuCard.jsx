@@ -20,8 +20,6 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, onSweepZombies }) {
   const power = gpu.power_w ?? 0;
   const maxPower = gpu.power_limit_w ?? 250;
 
-  const isHighCompute = computePct >= 85;
-  const isHighVram = vramPct >= 90;
   const isHighTemp = temp >= 80;
 
   const processes = gpu.processes || [];
@@ -95,7 +93,7 @@ function GpuCard({ gpu, onOpenKillModal, isAdmin = false, onSweepZombies }) {
                 </span>
               ) : (
                 <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-sky-50 text-sky-700 border border-sky-200 whitespace-nowrap">
-                  Praktikum Shared
+                  GPU Boost Pool
                 </span>
               )}
             </div>

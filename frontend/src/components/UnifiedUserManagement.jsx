@@ -56,13 +56,16 @@ export default function UnifiedUserManagement({
 }) {
   const isSuperAdmin = Boolean(isAdmin && adminRole === 'admin');
   const isOperator   = Boolean(isAdmin && adminRole === 'aslab');
-  const isBasicMode  = Boolean(level2Slots?.lab_mode === 'basic');
-  const l2HardwareLabel = isBasicMode ? 'CPU Only | 2 Cores | 2GB' : 'GPU 1 (Shared Pool) | 2 Cores | 3GB';
+  const l2HardwareLabel = 'CPU Only | 1 Core | 1.5 GB';
 
   const [filterType, setFilterType] = useState('all'); // 'all' | 'mhs' | 'dosen' | 'overquota'
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCohort, setSelectedCohort] = useState('all'); // 'all' | '21' | '22' | '23' dll
   const [capacity, setCapacity] = useState({ used_slots: 0, total_slots: 1 });
+
+  const gpuBoostMax = Number(level2Slots?.gpu_boost_max ?? capacity?.gpu_boost?.total_slots ?? 3);
+  const gpuBoostEnabled = level2Slots?.gpu_boost_enabled ?? capacity?.gpu_boost?.enabled ?? true;
+  const gpuBoostVramMb = Number(level2Slots?.gpu_boost_vram_mb ?? capacity?.gpu_boost?.vram_mb ?? 4800);
 
   // Map per-user GPU telemetry (GPU index, VRAM used, VRAM total, active processes)
   const userGpuMap = useMemo(() => {
@@ -92,8 +95,24 @@ export default function UnifiedUserManagement({
 
   // Helper render 3D tactile mini-bar for per-user GPU/VRAM load
   const renderGpuVramCell = (item) => {
+    const isRisetUser = item.type === 'system' && item.username === 'labriset';
+    const hasGpu = Boolean(item.is_priority || isRisetUser || item.gpu_boost_active);
+    if (!hasGpu) {
+      return (
+        <div className="flex flex-col gap-0.5 w-32">
+          <div className="flex items-center gap-1.5 font-mono text-xs text-[#64748B]">
+            <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
+            <span className="text-[#64748B] font-medium">CPU only</span>
+          </div>
+          <span className="font-mono text-[10px] text-[#64748B]">
+            GPU tidak dialokasikan
+          </span>
+        </div>
+      );
+    }
+
     const vramMb = item.vram_used_mb || 0;
-    const gpuIdx = item.gpu_index ?? (item.is_priority || item.username === 'labriset' ? 0 : 1);
+    const gpuIdx = item.gpu_index ?? (item.is_priority || isRisetUser ? 0 : 1);
     const gpuTotalMb = item.gpu_total_mb || 16384;
     const vramUsedGb = (vramMb / 1024).toFixed(1);
     const vramTotalGb = (gpuTotalMb / 1024).toFixed(0);
@@ -163,6 +182,7 @@ export default function UnifiedUserManagement({
 
   // Modals state
   const [boostModal, setBoostModal] = useState({ isOpen: false, nim: null, nama: '', hours: 4, reason: '' });
+  const [gpuBoostModal, setGpuBoostModal] = useState({ isOpen: false, nim: null, nama: '', hours: 4, reason: '' });
   const [resetModal, setResetModal] = useState({ isOpen: false, username: '', newPassword: '', isSubmitting: false });
   const [editNameModal, setEditNameModal] = useState({ isOpen: false, nim: null, currentName: '', newName: '', isSubmitting: false });
 
@@ -203,22 +223,24 @@ export default function UnifiedUserManagement({
 
   const handleExportCSV = () => {
     // Determine which data to export based on current view (unifiedList)
-    const headers = ['NIM/Username', 'Nama', 'Tipe', 'Role', 'Status', 'Prioritas', 'Sisa Waktu Prioritas', 'GPU', 'VRAM MB', 'Persen VRAM', 'RAM MB', 'Kuota Disk MB', 'IP Sesi Aktif'];
+    const headers = ['NIM/Username', 'Nama', 'Tipe', 'Role', 'Status', 'Prioritas', 'Sisa Waktu Prioritas', 'GPU Boost', 'GPU', 'VRAM MB', 'Persen VRAM', 'RAM MB', 'Kuota Disk MB', 'IP Sesi Aktif'];
     const rows = filteredData.map(u => {
       const isSystem = u.type === 'system';
       const uname = isSystem ? u.username : u.nim;
       const nama = isSystem ? (u.username === 'labriset' ? 'Lab Riset / Dosen' : 'Pelatihan Dasar') : (u.nama || '');
       const role = isSystem ? 'System' : (u.role === 'admin' ? 'Super Admin' : u.role === 'aslab' ? 'Aslab' : 'Mahasiswa');
       const status = u.active_ip ? 'ONLINE' : (u.is_active ? 'OFFLINE' : 'BLOCKED');
-      const prio = isSystem ? (u.username === 'labriset' ? 'Dedicated GPU 0' : 'Shared GPU 1') : (u.is_priority ? 'Prioritas' : 'Standar');
+      const prio = isSystem ? (u.username === 'labriset' ? 'Dedicated GPU 0' : 'Level 2 CPU-only') : (u.is_priority ? 'Level 1' : 'Level 2');
       const exp = u.priority_expires_at ? new Date(u.priority_expires_at).toLocaleString('id-ID') : '-';
-      const gpuIdx = u.gpu_index ?? (u.is_priority || uname === 'labriset' ? 0 : 1);
+      const boost = u.gpu_boost_active ? (u.gpu_boost_expires_at ? `Aktif s.d. ${new Date(u.gpu_boost_expires_at).toLocaleString('id-ID')}` : 'Aktif') : '-';
+      const hasGpu = Boolean(u.is_priority || (isSystem && u.username === 'labriset') || u.gpu_boost_active);
+      const gpuIdx = u.gpu_index ?? (u.is_priority || (isSystem && u.username === 'labriset') ? 0 : (u.gpu_boost_active ? 1 : null));
       const vramMb = u.vram_used_mb || 0;
       const vramPct = `${u.vram_percent || 0}%`;
       const ram = u.ram_used_mb || 0;
       const disk = u.disk_used_mb || u.disk_usage_mb || 0;
       const ip = u.active_ip || '-';
-      return [uname, `"${nama}"`, u.type, role, status, prio, `"${exp}"`, `GPU ${gpuIdx}`, vramMb, `"${vramPct}"`, ram, disk, ip].join(',');
+      return [uname, `"${nama}"`, u.type, role, status, prio, `"${exp}"`, `"${boost}"`, hasGpu ? `GPU ${gpuIdx}` : 'CPU only', vramMb, `"${vramPct}"`, ram, disk, ip].join(',');
     });
     
     const csvContent = [headers.join(','), ...rows].join('\n');
@@ -299,7 +321,7 @@ export default function UnifiedUserManagement({
   };
 
   const handleUnboost = async (nim) => {
-    if (!confirm(`Kembalikan NIM ${nim} ke Mode Standard Level 2?`)) return;
+    if (!confirm(`Kembalikan NIM ${nim} ke profil Level 2 (CPU-only)?`)) return;
     try {
       const res = await fetch('/api/users/unboost', {
         method: 'POST',
@@ -308,11 +330,59 @@ export default function UnifiedUserManagement({
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        showToast(`NIM ${nim} dikembalikan ke Mode Standard Level 2.`, 'info');
+        showToast(`NIM ${nim} dikembalikan ke profil Level 2 (CPU-only).`, 'info');
         fetchStudents();
         fetchCapacity();
       } else {
         showToast(data.detail || 'Gagal unboost', 'error');
+      }
+    } catch (err) {
+      showToast('Error: ' + err.message, 'error');
+    }
+  };
+
+  const handleGpuBoost = async (e) => {
+    e.preventDefault();
+    if (!gpuBoostModal.nim) return;
+    try {
+      const res = await fetch('/api/users/gpu-boost', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          nim: gpuBoostModal.nim,
+          hours: Number(gpuBoostModal.hours),
+          reason: gpuBoostModal.reason
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast(`NIM ${gpuBoostModal.nim} mendapatkan GPU Boost Level 2.`, 'success');
+        setGpuBoostModal({ isOpen: false, nim: null, nama: '', hours: 4, reason: '' });
+        fetchStudents();
+        fetchCapacity();
+      } else {
+        showToast(data.detail || 'Gagal memberi GPU Boost', 'error');
+      }
+    } catch (err) {
+      showToast('Error: ' + err.message, 'error');
+    }
+  };
+
+  const handleGpuUnboost = async (nim) => {
+    if (!confirm(`Cabut GPU Boost NIM ${nim}? Sesi akan dihentikan dan kembali CPU-only.`)) return;
+    try {
+      const res = await fetch('/api/users/gpu-unboost', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ nim })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast(`GPU Boost NIM ${nim} dicabut.`, 'info');
+        fetchStudents();
+        fetchCapacity();
+      } else {
+        showToast(data.detail || 'Gagal mencabut GPU Boost', 'error');
       }
     } catch (err) {
       showToast('Error: ' + err.message, 'error');
@@ -390,10 +460,10 @@ export default function UnifiedUserManagement({
       const isOverQuota = su.is_over_quota ?? (diskUsedMb > diskQuotaMb);
 
       const gpuData = userGpuMap[su.username];
-      const defaultGpuIdx = isRiset ? 0 : 1;
+      const defaultGpuIdx = isRiset ? 0 : null;
       const vramUsedMb = gpuData ? gpuData.vramMb : (su.vram_used_mb || 0);
       const gpuIndex = gpuData ? gpuData.gpuIndex : (su.gpu_index ?? defaultGpuIdx);
-      const gpuTotalMb = gpuData ? gpuData.gpuTotalMb : ((gpus && gpus[gpuIndex]?.vram_total_mb) || 16384);
+      const gpuTotalMb = gpuData ? gpuData.gpuTotalMb : (gpuIndex != null ? ((gpus && gpus[gpuIndex]?.vram_total_mb) || 16384) : 0);
       const vramPct = gpuTotalMb > 0 ? Math.min(100, Math.round((vramUsedMb / gpuTotalMb) * 100)) : 0;
 
       list.push({
@@ -434,21 +504,25 @@ export default function UnifiedUserManagement({
       const isOverQuota = st.is_over_quota ?? (diskUsedMb > diskQuotaMb);
 
       const studentLinuxUser = `m${nimStr}`;
+      const isBoosted = Boolean(st.gpu_boost_active);
       const gpuData = userGpuMap[studentLinuxUser] || userGpuMap[nimStr];
-      const defaultGpuIdx = st.is_priority ? 0 : 1;
+      const defaultGpuIdx = st.is_priority ? 0 : (isBoosted ? 1 : null);
       const vramUsedMb = gpuData ? gpuData.vramMb : (osUser?.vram_used_mb || 0);
       const gpuIndex = gpuData ? gpuData.gpuIndex : (osUser?.gpu_index ?? defaultGpuIdx);
-      const gpuTotalMb = gpuData ? gpuData.gpuTotalMb : ((gpus && gpus[gpuIndex]?.vram_total_mb) || 16384);
+      const gpuTotalMb = gpuData ? gpuData.gpuTotalMb : (gpuIndex != null ? ((gpus && gpus[gpuIndex]?.vram_total_mb) || 16384) : 0);
       const vramPct = gpuTotalMb > 0 ? Math.min(100, Math.round((vramUsedMb / gpuTotalMb) * 100)) : 0;
+
+      const ramMaxMb = st.is_priority ? 61440 : (isBoosted ? 6144 : 1536);
 
       list.push({
         ...st,
         nim: nimStr,
         type: 'student',
         is_online: isOnline,
+        gpu_boost_active: isBoosted,
         os_user: osUser || null,
         ram_used_mb: osUser?.ram_used_mb || 0,
-        ram_max_mb: osUser?.ram_max_mb || (st.is_priority ? 61440 : 3072),
+        ram_max_mb: osUser?.ram_max_mb || ramMaxMb,
         gpu_index: gpuIndex,
         gpu_total_mb: gpuTotalMb,
         vram_used_mb: vramUsedMb,
@@ -483,6 +557,11 @@ export default function UnifiedUserManagement({
   const availableSlots = Math.max(0, totalSlots - usedSlots);
   const isSlotsFull = availableSlots <= 0;
   const slotUtilPct = totalSlots > 0 ? Math.min(100, Math.round((usedSlots / totalSlots) * 100)) : 0;
+
+  const gpuBoostActive = students?.filter(s => s.gpu_boost_active)?.length
+    ?? capacity?.gpu_boost?.used_slots
+    ?? 0;
+  const gpuBoostFull = gpuBoostActive >= gpuBoostMax;
 
   const overQuotaCount = useMemo(() => unifiedList.filter(u => u.is_over_quota).length, [unifiedList]);
 
@@ -639,7 +718,7 @@ export default function UnifiedUserManagement({
           <div className="flex items-start justify-between gap-2">
             <div className="flex flex-col gap-0.5">
               <span className="text-[10.5px] font-semibold uppercase tracking-[0.08em] text-slate-500">Akun Riset</span>
-              <span className="font-academic text-[13px] text-slate-800">QoS Dedicated GPU</span>
+              <span className="font-academic text-[13px] text-slate-800">QoS Dedicated &amp; Boost</span>
             </div>
             <div className="w-9 h-9 rounded-xl bg-amber-50 border border-amber-200/70 flex items-center justify-center text-amber-700 shrink-0">
               <Zap className="w-4 h-4" />
@@ -659,9 +738,17 @@ export default function UnifiedUserManagement({
               style={{ width: `${slotUtilPct}%` }}
             />
           </div>
-          <div className="flex items-center gap-1.5 text-[11px] font-mono text-slate-500">
-            <Layers className="w-3.5 h-3.5 text-slate-700 shrink-0" />
-            <span className="truncate">Dedicated <code className="text-slate-900 font-semibold">compute-level1</code></span>
+          <div className="flex items-center justify-between text-slate-500 font-mono text-[11px]">
+            <span className="inline-flex items-center gap-1.5">
+              <Layers className="w-3.5 h-3.5 text-slate-700 shrink-0" />
+              <code className="text-slate-900 font-semibold">compute-level1</code>
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <Zap className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+              <span className={gpuBoostFull ? 'text-rose-700 font-bold' : 'text-slate-700 font-semibold'}>
+                GPU Boost {gpuBoostActive}/{gpuBoostMax}
+              </span>
+            </span>
           </div>
         </div>
 
@@ -701,8 +788,8 @@ export default function UnifiedUserManagement({
             />
           </div>
           <div className="flex items-center justify-between text-slate-500 font-mono text-[11px]">
-            <span>GPU 0: {((gpus?.[0]?.vram_used_mb || 0) / 1024).toFixed(1)}G</span>
-            <span>GPU 1: {((gpus?.[1]?.vram_used_mb || 0) / 1024).toFixed(1)}G</span>
+            <span>GPU 0: {((gpus?.[0]?.vram_used_mb || 0) / 1024).toFixed(1)}G · Riset</span>
+            <span>GPU 1: {((gpus?.[1]?.vram_used_mb || 0) / 1024).toFixed(1)}G · Boost</span>
           </div>
         </div>
 
@@ -833,9 +920,9 @@ export default function UnifiedUserManagement({
               ) : (
                 filteredData.map((item) => {
                   if (item.type === 'student') {
-                    const ramMaxMb = item.is_priority ? 61440 : (item.ram_max_mb || 3072);
+                    const ramMaxMb = item.is_priority ? 61440 : (item.ram_max_mb || (item.gpu_boost_active ? 6144 : 1536));
                     const ramUsedGb = ((item.ram_used_mb || 0) / 1024).toFixed(1);
-                    const ramMaxGb = (ramMaxMb / 1024).toFixed(0);
+                    const ramMaxGb = (ramMaxMb / 1024).toFixed(1);
                     const ramPct = item.is_online ? Math.min(100, Math.round(((item.ram_used_mb || 0) / ramMaxMb) * 100)) : 0;
                     const userRole = item.role || (item.is_admin ? 'admin' : 'mahasiswa');
 
@@ -847,11 +934,18 @@ export default function UnifiedUserManagement({
                       ? (item.nama.trim().split(/\s+/).map(n => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || 'M')
                       : String(item.nim || 'M').slice(-2).toUpperCase();
 
+                    const isBoosted = Boolean(item.gpu_boost_active);
+                    const hardwareLabel = item.is_priority
+                      ? 'GPU 0 (Dedicated) · 20 Cores · 60 GB'
+                      : isBoosted
+                        ? 'GPU 1 (Boost) · 4 Cores · 6 GB'
+                        : l2HardwareLabel;
+
                     return (
                       <tr
                         key={`std-${item.nim}`}
                         className={`directory-row group ${
-                          item.is_priority ? 'bg-slate-50/40' : 'bg-white'
+                          item.is_priority ? 'bg-amber-50/30' : isBoosted ? 'bg-sky-50/20' : 'bg-white'
                         }`}
                       >
                         {/* 1. Akun & Pengguna */}
@@ -860,7 +954,9 @@ export default function UnifiedUserManagement({
                             <div className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 border ${
                               item.is_priority
                                 ? 'bg-amber-50 text-amber-800 border-amber-200/80'
-                                : 'bg-slate-100 text-slate-600 border-slate-200'
+                                : isBoosted
+                                  ? 'bg-sky-50 text-sky-800 border-sky-200/80'
+                                  : 'bg-slate-100 text-slate-600 border-slate-200'
                             }`}>
                               {initials}
                             </div>
@@ -961,9 +1057,14 @@ export default function UnifiedUserManagement({
                                 <Zap className="w-3 h-3 text-amber-700" />
                                 <span className="font-mono text-[10.5px] font-bold">Level 1 (Priority)</span>
                               </div>
+                            ) : isBoosted ? (
+                              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-sky-50 text-sky-800 border border-sky-200 w-fit">
+                                <Zap className="w-3 h-3 text-sky-700" />
+                                <span className="font-mono text-[10.5px] font-bold">Level 2 + GPU Boost</span>
+                              </div>
                             ) : (
                               <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-50 text-slate-600 border border-slate-200 w-fit">
-                                <span className="font-mono text-[10.5px] font-medium">Level 2 (Standard)</span>
+                                <span className="font-mono text-[10.5px] font-medium">Level 2 (CPU only)</span>
                               </div>
                             )}
                             <span className="font-mono text-[10px] text-slate-400 mt-0.5">
@@ -976,12 +1077,17 @@ export default function UnifiedUserManagement({
                         <td className="py-4 px-4">
                           <div className="flex flex-col gap-0.5">
                             <span className="font-mono text-xs text-slate-900 font-semibold">
-                              {item.is_priority ? 'GPU 0 (Dedicated) · 20 Cores · 60 GB' : l2HardwareLabel}
+                              {hardwareLabel}
                             </span>
                             {item.is_priority && item.priority_expires_at ? (
                               <div className="inline-flex items-center gap-1 text-amber-700 font-mono text-[11px] font-bold">
                                 <Clock className="w-3 h-3" />
                                 <span>Sisa: <LiveCountdown expiresAt={item.priority_expires_at} /></span>
+                              </div>
+                            ) : isBoosted && item.gpu_boost_expires_at ? (
+                              <div className="inline-flex items-center gap-1 text-sky-700 font-mono text-[11px] font-bold">
+                                <Clock className="w-3 h-3" />
+                                <span>Boost: <LiveCountdown expiresAt={item.gpu_boost_expires_at} /></span>
                               </div>
                             ) : (
                               <span className="font-mono text-[11px] text-slate-500">
@@ -1053,25 +1159,52 @@ export default function UnifiedUserManagement({
                             <span className="font-mono text-xs text-[#64748B]">// READ_ONLY</span>
                           ) : (
                             <div className="inline-flex items-center gap-1.5 opacity-90 group-hover:opacity-100 transition-opacity">
-                              {isSuperAdmin && (
-                                item.is_priority ? (
+                              {item.is_priority ? (
+                                <button
+                                  onClick={() => handleUnboost(item.nim)}
+                                  className="px-2.5 py-1 rounded-lg bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A] hover:bg-amber-100 shadow-xs transition-colors duration-150 text-xs font-mono font-semibold"
+                                  title="Kembalikan ke Level 2 (CPU-only)"
+                                  type="button"
+                                >
+                                  ↺ L1
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => setBoostModal({ isOpen: true, nim: item.nim, nama: item.nama || '', hours: 4, reason: '' })}
+                                  disabled={isSlotsFull}
+                                  className="px-2.5 py-1 rounded-lg bg-[#0F172A] hover:bg-[#1E293B] text-white shadow-xs transition-colors duration-150 text-xs font-mono font-bold disabled:opacity-40 disabled:cursor-not-allowed"
+                                  title={isSlotsFull ? 'Slot Prioritas GPU 0 Penuh' : 'Boost ke Level 1 Dedicated'}
+                                  type="button"
+                                >
+                                  ⚡ L1
+                                </button>
+                              )}
+
+                              {!item.is_priority && (
+                                isBoosted ? (
                                   <button
-                                    onClick={() => handleUnboost(item.nim)}
-                                    className="px-2.5 py-1 rounded-lg bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A] hover:bg-amber-100 shadow-xs transition-colors duration-150 text-xs font-mono font-semibold"
-                                    title="Kembalikan ke Level 2 Standard"
+                                    onClick={() => handleGpuUnboost(item.nim)}
+                                    className="px-2.5 py-1 rounded-lg bg-[#E0F2FE] text-[#0369A1] border border-[#BAE6FD] hover:bg-sky-100 shadow-xs transition-colors duration-150 text-xs font-mono font-semibold"
+                                    title="Cabut GPU Boost Level 2"
                                     type="button"
                                   >
-                                    ↺ Revert
+                                    ↺ GPU
                                   </button>
                                 ) : (
                                   <button
-                                    onClick={() => setBoostModal({ isOpen: true, nim: item.nim, nama: item.nama || '', hours: 4, reason: '' })}
-                                    disabled={isSlotsFull}
+                                    onClick={() => setGpuBoostModal({ isOpen: true, nim: item.nim, nama: item.nama || '', hours: 4, reason: '' })}
+                                    disabled={!gpuBoostEnabled || gpuBoostFull}
                                     className="px-2.5 py-1 rounded-lg bg-[#0F172A] hover:bg-[#1E293B] text-white shadow-xs transition-colors duration-150 text-xs font-mono font-bold disabled:opacity-40 disabled:cursor-not-allowed"
-                                    title={isSlotsFull ? 'Slot Prioritas GPU 0 Penuh' : 'Boost ke Level 1 Dedicated'}
+                                    title={
+                                      !gpuBoostEnabled
+                                        ? 'GPU Boost dinonaktifkan global'
+                                        : gpuBoostFull
+                                          ? `Slot GPU Boost penuh (${gpuBoostActive}/${gpuBoostMax})`
+                                          : 'Beri GPU Boost Level 2 (GPU 1)'
+                                    }
                                     type="button"
                                   >
-                                    ⚡ Boost
+                                    🎮 GPU
                                   </button>
                                 )
                               )}
@@ -1142,9 +1275,9 @@ export default function UnifiedUserManagement({
                   // System Users (training1-10, labriset)
                   const isRiset = item.username === 'labriset';
                   const isOnline = item.is_online || (item.total_process_count > 0);
-                  const ramMaxMb = isRiset ? 61440 : (item.ram_max_mb || 3072);
+                  const ramMaxMb = isRiset ? 61440 : (item.ram_max_mb || 1536);
                   const ramUsedGb = ((item.ram_used_mb || 0) / 1024).toFixed(1);
-                  const ramMaxGb = (ramMaxMb / 1024).toFixed(0);
+                  const ramMaxGb = (ramMaxMb / 1024).toFixed(1);
                   const ramPct = isOnline ? Math.min(100, Math.round(((item.ram_used_mb || 0) / ramMaxMb) * 100)) : 0;
 
                   const diskUsedGb = ((item.disk_used_mb || 0) / 1024).toFixed(1);
@@ -1228,7 +1361,7 @@ export default function UnifiedUserManagement({
                             </div>
                           ) : (
                             <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-50 text-slate-600 border border-slate-200 w-fit">
-                              <span className="font-mono text-[10.5px] font-medium">Level 2 (Standard)</span>
+                              <span className="font-mono text-[10.5px] font-medium">Level 2 (CPU only)</span>
                             </div>
                           )}
                           <span className="font-mono text-[10px] text-slate-400 mt-0.5">
@@ -1368,8 +1501,8 @@ export default function UnifiedUserManagement({
                 <label className="block text-xs font-mono text-[#334155] font-semibold mb-2">
                   Durasi Hak Akses Dedicated GPU 0:
                 </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {[1, 2, 4, 8, 12, 24].map((h) => (
+                <div className="grid grid-cols-5 gap-2">
+                  {[1, 2, 4, 8, 12].map((h) => (
                     <button
                       key={h}
                       type="button"
@@ -1419,6 +1552,92 @@ export default function UnifiedUserManagement({
                   className="flex-1 py-2.5 rounded-xl bg-[#0F172A] hover:bg-[#1E293B] text-white font-mono text-xs font-medium shadow-xs transition-colors"
                 >
                   Konfirmasi Boost
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* GPU Boost Level 2 Modal */}
+      {gpuBoostModal.isOpen && (
+        <div className="fixed inset-0 z-50 bg-[#0F172A]/60 flex items-center justify-center p-4">
+          <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl shadow-warm-modal p-6 w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between pb-4 border-b border-[#E2E8F0]">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-sky-50 border border-sky-200 flex items-center justify-center text-sky-700 shadow-xs">
+                  <Zap className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-[#0F172A]">GPU Boost Level 2 (GPU 1)</h3>
+                  <p className="text-xs text-[#64748B] font-mono">NIM: {gpuBoostModal.nim} ({gpuBoostModal.nama})</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setGpuBoostModal({ isOpen: false, nim: null, nama: '', hours: 4, reason: '' })}
+                className="text-[#64748B] hover:text-[#334155] p-1 rounded-lg hover:bg-[#F1F5F9] transition-colors"
+                type="button"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleGpuBoost} className="mt-5 space-y-4">
+              <div>
+                <label className="block text-xs font-mono text-[#334155] font-semibold mb-2">
+                  Durasi GPU Boost:
+                </label>
+                <div className="grid grid-cols-5 gap-2">
+                  {[1, 2, 4, 8, 12].map((h) => (
+                    <button
+                      key={h}
+                      type="button"
+                      onClick={() => setGpuBoostModal(prev => ({ ...prev, hours: h }))}
+                      className={`py-2 rounded-xl text-xs font-mono font-semibold transition-all border ${
+                        gpuBoostModal.hours === h
+                          ? 'bg-[#0F172A] text-white border-blue-700 shadow-xs'
+                          : 'bg-white border-[#E2E8F0] text-[#334155] hover:bg-[#F8FAFC] shadow-xs'
+                      }`}
+                    >
+                      {h} Jam
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-mono text-[#334155] font-semibold mb-1.5">
+                  Alasan / Keterangan Boost:
+                </label>
+                <input
+                  type="text"
+                  placeholder="Misal: Praktikum Deep Learning sesi 3"
+                  value={gpuBoostModal.reason}
+                  onChange={(e) => setGpuBoostModal(prev => ({ ...prev, reason: e.target.value }))}
+                  className="w-full bg-[#F8FAFC] rounded-xl px-3.5 py-2.5 text-xs font-mono text-[#0F172A] border border-[#E2E8F0] focus:outline-none focus:border-[#0F172A] focus:bg-white transition-all shadow-inner"
+                />
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-sky-50/60 text-xs font-mono text-sky-900 border border-sky-200/70 flex flex-col gap-1">
+                <span className="text-[#0F172A] font-bold">Alokasi GPU Boost:</span>
+                <span>• GPU 1 (bukan GPU 0 milik Level 1)</span>
+                <span>• 4 Core CPU · 6 GB RAM · VRAM {gpuBoostVramMb} MB</span>
+                <span>• Otomatis berakhir sesuai durasi; disk tidak di-boost</span>
+              </div>
+
+              <div className="flex gap-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setGpuBoostModal({ isOpen: false, nim: null, nama: '', hours: 4, reason: '' })}
+                  className="flex-1 py-2.5 rounded-xl bg-white hover:bg-[#F8FAFC] text-[#334155] border border-[#E2E8F0] font-mono text-xs font-semibold shadow-xs transition-all"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2.5 rounded-xl bg-[#0F172A] hover:bg-[#1E293B] text-white font-mono text-xs font-medium shadow-xs transition-colors"
+                >
+                  Konfirmasi GPU Boost
                 </button>
               </div>
             </form>

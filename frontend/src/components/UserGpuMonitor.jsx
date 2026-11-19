@@ -51,7 +51,8 @@ function getStatusBadge(user) {
 
 /* ─── User Card (Grid mode) ─── */
 function UserCard({ user, isAdmin, onOpenKillModal, onKillAllUser, onOpenReset }) {
-  const isRiset     = user.tier === 'Riset';
+  const isRiset     = Boolean(user.is_priority || user.tier?.includes('Level 1'));
+  const isBoosted   = Boolean(user.tier?.includes('GPU Boost'));
   const vramPct     = user.vram_percent_of_quota || 0;
   const cpuPct      = user.cpu_quota_percent || 0;
   const ramPct      = user.ram_percent || 0;
@@ -91,6 +92,9 @@ function UserCard({ user, isAdmin, onOpenKillModal, onKillAllUser, onOpenReset }
             {isRiset && (
               <span className="badge badge-indigo" style={{ fontSize: '0.5rem' }}>Riset Dosen</span>
             )}
+            {isBoosted && (
+              <span className="badge badge-indigo" style={{ fontSize: '0.5rem' }}>GPU Boost</span>
+            )}
           </div>
           <div className="flex flex-wrap gap-1.5">
             <span
@@ -103,13 +107,13 @@ function UserCard({ user, isAdmin, onOpenKillModal, onKillAllUser, onOpenReset }
               className="badge badge-neutral"
               style={{ fontSize: '0.5rem', color: 'var(--accent-violet)' }}
             >
-              Maks {user.cpu_cores_limit || (isRiset ? 20 : 2)} Core
+              Maks {user.cpu_cores_limit || (isRiset ? 20 : isBoosted ? 4 : 1)} Core
             </span>
             <span
               className="badge badge-neutral"
               style={{ fontSize: '0.5rem', color: 'var(--accent-blue)' }}
             >
-              Limit {isRiset ? '60 GB' : '3 GB'} RAM
+              Limit {isRiset ? '60 GB' : isBoosted ? '6 GB' : '1.5 GB'} RAM
             </span>
           </div>
         </div>
@@ -129,13 +133,13 @@ function UserCard({ user, isAdmin, onOpenKillModal, onKillAllUser, onOpenReset }
         {[
           {
             label: 'CPU',
-            value: `${user.cpu_percent || 0}% · ${user.cpu_cores_used || 0}/${user.cpu_cores_limit || (isRiset ? 20 : 2)} Core`,
+            value: `${user.cpu_percent || 0}% · ${user.cpu_cores_used || 0}/${user.cpu_cores_limit || (isRiset ? 20 : isBoosted ? 4 : 1)} Core`,
             percent: cpuPct,
             barColor: cpuPct > 85 ? 'var(--accent-rose)' : cpuPct > 60 ? 'var(--accent-amber)' : 'var(--accent-violet)',
           },
           {
             label: 'RAM',
-            value: `${user.ram_used_mb || 0} MB / ${user.ram_max_mb || (isRiset ? 61440 : 3072)} MB (${ramPct}%)`,
+            value: `${user.ram_used_mb || 0} MB / ${user.ram_max_mb || (isRiset ? 61440 : isBoosted ? 6144 : 1536)} MB (${ramPct}%)`,
             percent: ramPct,
             barColor: ramPct > 85 ? 'var(--accent-rose)' : ramPct > 65 ? 'var(--accent-amber)' : 'var(--accent-blue)',
           },
@@ -535,7 +539,8 @@ function UserGpuMonitor({ users = [], isAdmin = false, onOpenKillModal, onResetP
               </thead>
               <tbody>
                 {filteredUsers.map(user => {
-                  const isRiset     = user.tier === 'Riset';
+                  const isRiset     = Boolean(user.is_priority || user.tier?.includes('Level 1'));
+                  const isBoosted   = Boolean(user.tier?.includes('GPU Boost'));
                   const isOverQuota = user.status_color === 'red';
                   return (
                     <tr key={user.username}>
@@ -543,6 +548,7 @@ function UserGpuMonitor({ users = [], isAdmin = false, onOpenKillModal, onResetP
                         <div className="flex items-center gap-1.5">
                           <span className="font-bold" style={{ color: 'var(--text-primary)' }}>{user.username}</span>
                           {isRiset && <span className="badge badge-indigo" style={{ fontSize: '0.4375rem' }}>Riset</span>}
+                          {isBoosted && <span className="badge badge-indigo" style={{ fontSize: '0.4375rem' }}>Boost</span>}
                         </div>
                       </td>
                       <td>

@@ -71,6 +71,26 @@ if [ -f "lab_gemini.py" ]; then
     fi
 fi
 
+# 3.1b Pasang kuota VRAM GPU Boost (lazy hook saat `import torch`)
+if [ -f "lab_gpu_quota.py" ]; then
+    SITE_PACKAGES=$(/opt/ai_env/bin/python -c "import site; print(site.getsitepackages()[0])" 2>/dev/null || true)
+    if [ -n "$SITE_PACKAGES" ] && [ -d "$SITE_PACKAGES" ]; then
+        sudo cp -f lab_gpu_quota.py "$SITE_PACKAGES/lab_gpu_quota.py"
+        sudo chmod 0644 "$SITE_PACKAGES/lab_gpu_quota.py"
+        # .pth dieksekusi oleh site.py saat interpreter start. Baris "import ..."
+        # dipakai agar tidak menimpa sitecustomize.py milik distribusi.
+        printf 'import lab_gpu_quota\n' | sudo tee "$SITE_PACKAGES/lab_gpu_quota.pth" >/dev/null
+        sudo chmod 0644 "$SITE_PACKAGES/lab_gpu_quota.pth"
+        if /opt/ai_env/bin/python -c "import lab_gpu_quota" >/dev/null 2>&1; then
+            echo "✅ Kuota VRAM GPU Boost dipasang di $SITE_PACKAGES"
+        else
+            echo "⚠️ Modul lab_gpu_quota gagal diimpor; kuota VRAM hanya via watchdog."
+        fi
+    else
+        echo "⚠️ /opt/ai_env tidak ditemukan; kuota VRAM GPU Boost belum dipasang."
+    fi
+fi
+
 # 3.2 Pasang Jupyter AI + provider Gemini per-user (chat sidebar JupyterLab)
 JUPYTER_AI_VERSION="${JUPYTER_AI_VERSION:-2.31.7}"
 AI_ENV_PIP="/opt/ai_env/bin/pip"
@@ -188,20 +208,39 @@ else
     fi
 fi
 
-# 4.5 Konfigurasi Cgroups v2 Slices (Level 1: 60G, Level 2: 72G pool / 3G per-user)
-echo "⚙️ Memeriksa & mengonfigurasi systemd QoS Slices (Level 2: 72G pool / 3G per-user, Level 1: 60G RAM)..."
+# 4.5 Konfigurasi Cgroups v2 Slices
+# Level 1 (Prioritas Skripsi) selalu diprioritaskan di atas Level 2:
+# - CPU/IO weight 100x lebih tinggi + MemoryMin/Low agar tidak tersapu.
+# - Level 2 CPU-only 60 slot; GPU 1 hanya untuk GPU Boost 3 slot (dijaga gpu_guard).
+echo "⚙️ Mengonfigurasi systemd QoS Slices (L1 prioritas: 20 core/60G, L2: 24 core/95G cap)..."
 sudo tee /etc/systemd/system/compute-level1.slice > /dev/null << 'EOF'
 [Slice]
 CPUQuota=2000%
+CPUWeight=10000
+IOWeight=10000
+MemoryMin=16G
+MemoryLow=32G
+MemoryHigh=55G
 MemoryMax=60G
 EOF
 
 sudo tee /etc/systemd/system/compute-level2.slice > /dev/null << 'EOF'
 [Slice]
 CPUQuota=2400%
-MemoryMax=72G
+CPUWeight=100
+IOWeight=100
+MemoryHigh=85G
+MemoryMax=95G
 EOF
 sudo systemctl daemon-reload
+
+# Terapkan juga ke slice yang sedang aktif tanpa menunggu reboot.
+sudo systemctl set-property compute-level1.slice \
+    CPUQuota=2000% CPUWeight=10000 IOWeight=10000 \
+    MemoryMin=16G MemoryLow=32G MemoryHigh=55G MemoryMax=60G 2>/dev/null || true
+sudo systemctl set-property compute-level2.slice \
+    CPUQuota=2400% CPUWeight=100 IOWeight=100 \
+    MemoryHigh=85G MemoryMax=95G 2>/dev/null || true
 
 # 4.6 Pastikan akses hardware GPU (compute mode DEFAULT, grup video, render & device permissions)
 echo "🎮 Memeriksa & mengonfigurasi izin akses hardware GPU untuk pengguna..."

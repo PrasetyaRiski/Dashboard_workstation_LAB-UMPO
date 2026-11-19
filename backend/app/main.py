@@ -32,7 +32,11 @@ from app.db import (
     is_user_priority, auto_expire_priorities, get_connection,
     perform_database_backup, list_database_backups, checkpoint_wal_database,
     get_user, nim_to_username,
-    verify_master_pin, get_master_pin_hash, set_master_pin
+    verify_master_pin, get_master_pin_hash, set_master_pin,
+    set_user_gpu_boost, unset_user_gpu_boost,
+    list_active_gpu_boosts, auto_expire_gpu_boosts,
+    get_gpu_boost_enabled, set_gpu_boost_enabled,
+    GPU_BOOST_MAX_SLOTS, GPU_BOOST_VRAM_MB,
 )
 
 # Load .env file automatically jika tersedia di root direktori atau backend
@@ -425,7 +429,27 @@ def get_capacity():
                     active_boosts += 1
             except Exception:
                 pass
-    return {"success": True, "total_slots": 1, "used_slots": active_boosts}
+
+    # GPU Boost Level 2: agregat saja (tanpa identitas) karena endpoint ini
+    # dapat diakses tanpa sesi login.
+    try:
+        gpu_boosts = list_active_gpu_boosts()
+    except Exception as exc:
+        logger.warning("Gagal membaca GPU boost: %s", exc)
+        gpu_boosts = []
+
+    return {
+        "success": True,
+        "total_slots": 1,
+        "used_slots": active_boosts,
+        "gpu_boost": {
+            "enabled": get_gpu_boost_enabled(),
+            "total_slots": GPU_BOOST_MAX_SLOTS,
+            "used_slots": len(gpu_boosts),
+            "vram_mb": GPU_BOOST_VRAM_MB,
+            "available_slots": max(0, GPU_BOOST_MAX_SLOTS - len(gpu_boosts)),
+        },
+    }
 
 @app.get("/api/audit-logs")
 def get_audit_logs_api(limit: int = 100, session: Dict[str, Any] = Depends(verify_operator_or_admin)):
@@ -519,6 +543,14 @@ class BoostUserRequest(BaseModel):
     hours: int = 4
     reason: Optional[str] = "Admin Boost"
 
+class GpuBoostRequest(BaseModel):
+    nim: str
+    hours: int = 4
+    reason: Optional[str] = "GPU Boost Level 2"
+
+class GpuBoostToggleRequest(BaseModel):
+    enabled: bool
+
 class UserActionRequest(BaseModel):
     nim: str
 
@@ -603,7 +635,7 @@ def get_full_snapshot():
     s["admin_pin_required"] = False
 
     # ---------------------------------------------------------
-    # Hitung slot praktikum Level 2 aktif (Kapasitas Dinamis: 30 / 60 mahasiswa)
+    # Hitung slot praktikum Level 2 (profil tetap 60 mahasiswa).
     # Admin, Aslab, dan mahasiswa Level 1 (prioritas riset) di-bypass.
     # ---------------------------------------------------------
     try:
@@ -612,25 +644,31 @@ def get_full_snapshot():
 
         profile = get_lab_profile()
         level2_active_count = lab_policy.count_active_level2_students()
-        level2_max_slots = profile.get("max_slots", 30)
+        level2_max_slots = profile.get("max_slots", 60)
         idle_release_minutes = profile.get("idle_release_minutes", 15)
-        lab_mode = profile.get("mode", "ai")
-        mode_name = profile.get("name", "Mode Praktikum AI")
-        short_name = profile.get("short_name", "Praktikum AI (30 Slot)")
-        gpu_enabled = profile.get("gpu_enabled", True)
-        gpu_name = profile.get("gpu_name", "GPU 1 (Shared Pool)")
-        ram_limit_gb = profile.get("ram_limit_gb", 3.0)
+        lab_mode = profile.get("mode", "standard")
+        mode_name = profile.get("name", "Praktikum Komputasi")
+        short_name = profile.get("short_name", "Praktikum (60 Slot)")
+        gpu_enabled = profile.get("gpu_enabled", False)
+        gpu_name = profile.get("gpu_name", "GPU Boost (3 Slot)")
+        ram_limit_gb = profile.get("ram_limit_gb", 1.5)
     except Exception as e:
         logger.warning(f"Error calculating level2 slots: {e}")
         level2_active_count = 0
-        level2_max_slots = 30
+        level2_max_slots = 60
         idle_release_minutes = 15
-        lab_mode = "ai"
-        mode_name = "Mode Praktikum AI"
-        short_name = "Praktikum AI (30 Slot)"
-        gpu_enabled = True
-        gpu_name = "GPU 1 (Shared Pool)"
-        ram_limit_gb = 3.0
+        lab_mode = "standard"
+        mode_name = "Praktikum Komputasi"
+        short_name = "Praktikum (60 Slot)"
+        gpu_enabled = False
+        gpu_name = "GPU Boost (3 Slot)"
+        ram_limit_gb = 1.5
+
+    try:
+        active_gpu_boosts = list_active_gpu_boosts()
+    except Exception as exc:
+        logger.warning("Gagal membaca daftar GPU boost: %s", exc)
+        active_gpu_boosts = []
 
     s["level2_slots"] = {
         "max_slots": level2_max_slots,
@@ -643,6 +681,10 @@ def get_full_snapshot():
         "gpu_enabled": gpu_enabled,
         "gpu_name": gpu_name,
         "ram_limit_gb": ram_limit_gb,
+        "gpu_boost_enabled": get_gpu_boost_enabled(),
+        "gpu_boost_active": len(active_gpu_boosts),
+        "gpu_boost_max": GPU_BOOST_MAX_SLOTS,
+        "gpu_boost_vram_mb": GPU_BOOST_VRAM_MB,
     }
 
     return s
@@ -659,27 +701,14 @@ def get_lab_profile_api(session: Dict[str, Any] = Depends(verify_operator_or_adm
 
 @app.post("/api/lab/profile")
 def set_lab_profile_api(req: SetLabProfileRequest, session: Dict[str, Any] = Depends(verify_operator_or_admin)):
-    """Mengubah profil operasional Lab AI ('ai' atau 'basic') - Khusus Aslab / Admin"""
-    from app.db import set_lab_profile
-    try:
-        updated = set_lab_profile(req.mode)
-        actor = session.get("nama") or session.get("nim") or "Operator"
-        role_label = "Super Admin" if session.get("role") == "admin" else "Aslab"
-        record_audit(
-            target="SYSTEM_PROFILE",
-            action="CHANGE_LAB_PROFILE",
-            detail=f"Mode Lab diubah ke '{updated['name']}' ({updated['max_slots']} Slot, {updated['gpu_name']}, RAM {updated['ram_limit_gb']}GB) oleh {role_label} ({actor}).",
-            log_type="info"
-        )
-        return {
-            "success": True,
-            "message": f"Mode Lab AI berhasil diubah ke {updated['name']} ({updated['max_slots']} Slot).",
-            "profile": updated
-        }
-    except ValueError as ve:
-        raise HTTPException(status_code=400, detail=str(ve))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    """Mode AI/Basic sudah dihapus. Profil lab sekarang tetap (60 slot CPU-only)."""
+    raise HTTPException(
+        status_code=410,
+        detail=(
+            "Mode lab dinamis sudah dihapus. Level 2 memakai profil tetap 60 slot CPU-only "
+            "(1 core / 1.5 GB). Gunakan GPU Boost untuk memberi akses GPU 1 sementara."
+        ),
+    )
 
 @app.get("/api/user-telemetry/{username}")
 def get_user_telemetry(
@@ -1167,20 +1196,61 @@ async def auth_simtik(req: SimtikLoginRequest, session: Dict[str, Any] = Depends
 
 @app.get("/api/users/students")
 def get_students(session: Dict[str, Any] = Depends(verify_operator_or_admin)):
-    """Mengambil daftar seluruh mahasiswa terdaftar beserta status mode prioritas dan kuota storage"""
+    """Daftar mahasiswa + status prioritas Level 1, GPU Boost, dan kuota storage."""
     users = list_users()
+    active_boosts = set()
+    try:
+        active_boosts = {str(b.get("nim")) for b in list_active_gpu_boosts()}
+    except Exception as exc:
+        logger.warning("Gagal membaca GPU boost students: %s", exc)
+
     for u in users:
-        uname = f"m{u['nim']}" if str(u['nim']).isdigit() else str(u['nim'])
+        uname = nim_to_username(u["nim"])
         disk_info = get_user_disk_metrics(uname, is_priority=bool(u.get("is_priority")))
         u.update(disk_info)
+        u["gpu_boost_active"] = str(u.get("nim")) in active_boosts
     return {"success": True, "users": users}
 
+def _restart_user_sessions(nim: str) -> None:
+    """Hentikan sesi OS milik NIM agar spawn berikutnya memakai kuota terbaru.
+
+    systemd hanya menerapkan ulang ``DeviceAllow``/``CPUQuota`` saat unit baru
+    dibuat, jadi proses lama harus dihentikan lebih dulu.
+    """
+    os_username = nim_to_username(nim)
+    subprocess.run(["pkill", "-u", os_username], check=False)
+
+
+def _clamp_boost_hours(hours: int) -> int:
+    """Batasi durasi boost ke rentang 1-12 jam."""
+    try:
+        value = int(hours)
+    except (TypeError, ValueError):
+        value = 4
+    return max(1, min(value, 12))
+
+
+def _require_student(user: Optional[Dict[str, Any]], nim: str) -> Dict[str, Any]:
+    """Validasi target boost: harus ada, aktif, dan bukan akun sistem."""
+    if not user:
+        raise HTTPException(status_code=404, detail=f"User NIM {nim} tidak ditemukan.")
+    if not user.get("is_active"):
+        raise HTTPException(status_code=400, detail=f"Akun NIM {nim} sedang diblokir/nonaktif.")
+    if user.get("is_admin") or user.get("role") in ("admin", "aslab"):
+        raise HTTPException(status_code=400, detail="Akun Admin/Aslab tidak memerlukan boost.")
+    return user
+
+
 @app.post("/api/users/boost")
-def boost_student(req: BoostUserRequest, session: Dict[str, Any] = Depends(verify_super_admin)):
-    """Menaikkan NIM ke Mode Prioritas Level 1 (20 Core, 60G, GPU 0)"""
-    
+def boost_student(req: BoostUserRequest, session: Dict[str, Any] = Depends(verify_operator_or_admin)):
+    """Menaikkan NIM ke Mode Prioritas Level 1 (20 Core, 60G, GPU 0)."""
+    clean_nim = str(req.nim).strip()
+    user = _require_student(get_user(clean_nim), clean_nim)
+    if user.get("is_priority"):
+        raise HTTPException(status_code=400, detail=f"NIM {clean_nim} sudah berada di Prioritas Level 1.")
+
     # --- Admission Control ---
-    # Hitung jumlah user yang sedang dalam masa boost prioritas
+    # Hanya ada 1 slot GPU 0 (dedicated) untuk Prioritas Level 1.
     users = list_users()
     active_boosts = 0
     now = datetime.now()
@@ -1194,45 +1264,142 @@ def boost_student(req: BoostUserRequest, session: Dict[str, Any] = Depends(verif
                         active_boosts += 1
                 except Exception:
                     pass
-                    
-    # Maksimal 1 user boost karena hanya ada 1 slot GPU 0 (dedicated)
+
     if active_boosts >= 1:
         raise HTTPException(
-            status_code=400, 
+            status_code=400,
             detail="Kapasitas Penuh: Saat ini sudah ada slot prioritas (GPU 0) yang digunakan. Silakan tunggu hingga sesi sebelumnya selesai/expired."
         )
     # -------------------------
 
-    success = set_user_priority(req.nim, req.hours, req.reason or "Admin Boost")
+    hours = _clamp_boost_hours(req.hours)
+    success = set_user_priority(clean_nim, hours, req.reason or "Admin Boost")
     if success:
-        # Hentikan sesi lama (jika sedang aktif di Level 2) agar spawn berikutnya otomatis masuk ke Level 1 (GPU 0)
-        os_username = f"m{req.nim}"
-        subprocess.run(["pkill", "-u", os_username], check=False)
+        _restart_user_sessions(clean_nim)
+        actor = session.get("nama") or session.get("nim") or "Operator"
         record_audit(
-            target=f"NIM {req.nim}",
+            target=f"NIM {clean_nim}",
             action="BOOST_PRIORITY",
-            detail=f"Dinaikkan ke Mode Prioritas Level 1 (20 Core, 60G, GPU 0) selama {req.hours} jam oleh {session.get('nama')}.",
+            detail=f"Dinaikkan ke Mode Prioritas Level 1 (20 Core, 60G, GPU 0) selama {hours} jam oleh {actor}.",
             log_type="success"
         )
-        return {"success": True, "message": f"NIM {req.nim} berhasil di-boost ke Mode Prioritas Level 1 selama {req.hours} jam."}
+        return {"success": True, "message": f"NIM {clean_nim} berhasil di-boost ke Mode Prioritas Level 1 selama {hours} jam."}
     raise HTTPException(status_code=400, detail="Gagal mengaktifkan mode prioritas.")
 
+
 @app.post("/api/users/unboost")
-def unboost_student(req: UserActionRequest, session: Dict[str, Any] = Depends(verify_super_admin)):
-    """Mengembalikan NIM ke Mode Standard Level 2 (2 Core, 3G, GPU 1)"""
-    success = unset_user_priority(req.nim)
+def unboost_student(req: UserActionRequest, session: Dict[str, Any] = Depends(verify_operator_or_admin)):
+    """Mengembalikan NIM ke profil Level 2 (CPU-only, GPU 1 dilepas)."""
+    clean_nim = str(req.nim).strip()
+    if not get_user(clean_nim):
+        raise HTTPException(status_code=404, detail=f"User NIM {clean_nim} tidak ditemukan.")
+
+    success = unset_user_priority(clean_nim)
     if success:
-        # Hentikan sesi Level 1 yang sedang aktif agar GPU 0 dibebaskan dan sesi baru masuk ke Level 2
-        os_username = f"m{req.nim}"
-        subprocess.run(["pkill", "-u", os_username], check=False)
+        # Hentikan sesi Level 1 agar GPU 0 dibebaskan dan sesi baru kembali CPU-only.
+        _restart_user_sessions(clean_nim)
+        actor = session.get("nama") or session.get("nim") or "Operator"
         record_audit(
-            target=f"NIM {req.nim}",
+            target=f"NIM {clean_nim}",
             action="UNBOOST_PRIORITY",
-            detail=f"Dikembalikan ke Mode Standard Level 2 (2 Core, 3G, GPU 1) oleh {session.get('nama')}.",
+            detail=f"Dikembalikan ke profil Level 2 (CPU-only) oleh {actor}.",
             log_type="info"
         )
-        return {"success": True, "message": f"NIM {req.nim} dikembalikan ke Mode Standard Level 2."}
+        return {"success": True, "message": f"NIM {clean_nim} dikembalikan ke profil Level 2 (CPU-only)."}
     raise HTTPException(status_code=400, detail="Gagal menonaktifkan mode prioritas.")
+
+
+@app.post("/api/users/gpu-boost")
+def gpu_boost_student(req: GpuBoostRequest, session: Dict[str, Any] = Depends(verify_operator_or_admin)):
+    """Beri akses sementara ke GPU 1 (Level 2 Boost) untuk satu mahasiswa."""
+    clean_nim = str(req.nim).strip()
+    user = _require_student(get_user(clean_nim), clean_nim)
+    if user.get("is_priority"):
+        raise HTTPException(
+            status_code=400,
+            detail="Mahasiswa ini sedang memakai Prioritas Level 1 (GPU 0). GPU Boost hanya untuk Level 2.",
+        )
+    if not get_gpu_boost_enabled():
+        raise HTTPException(
+            status_code=403,
+            detail="GPU Boost sedang dinonaktifkan secara global. Aktifkan lebih dulu di Ringkasan Sistem.",
+        )
+
+    hours = _clamp_boost_hours(req.hours)
+    active = list_active_gpu_boosts()
+    already_boosted = any(str(item.get("nim")) == clean_nim for item in active)
+    if not already_boosted and len(active) >= GPU_BOOST_MAX_SLOTS:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Kuota GPU Boost penuh ({GPU_BOOST_MAX_SLOTS} slot). "
+                "Cabut boost lain atau tunggu hingga kedaluwarsa."
+            ),
+        )
+
+    actor = session.get("nama") or session.get("nim") or "Operator"
+    if not set_user_gpu_boost(clean_nim, hours, req.reason or "GPU Boost Level 2", actor):
+        raise HTTPException(status_code=400, detail="Gagal mengaktifkan GPU Boost.")
+
+    _restart_user_sessions(clean_nim)
+    record_audit(
+        target=f"NIM {clean_nim}",
+        action="GPU_BOOST",
+        detail=(
+            f"Akses GPU 1 (Boost Level 2: 4 Core, 6G, VRAM {GPU_BOOST_VRAM_MB} MB) "
+            f"selama {hours} jam oleh {actor}. Alasan: {req.reason or 'GPU Boost Level 2'}."
+        ),
+        log_type="success",
+    )
+    return {
+        "success": True,
+        "message": f"NIM {clean_nim} mendapatkan GPU Boost Level 2 selama {hours} jam.",
+        "expires_in_hours": hours,
+        "vram_mb": GPU_BOOST_VRAM_MB,
+    }
+
+
+@app.post("/api/users/gpu-unboost")
+def gpu_unboost_student(req: UserActionRequest, session: Dict[str, Any] = Depends(verify_operator_or_admin)):
+    """Cabut akses GPU 1 milik satu mahasiswa."""
+    clean_nim = str(req.nim).strip()
+    if not get_user(clean_nim):
+        raise HTTPException(status_code=404, detail=f"User NIM {clean_nim} tidak ditemukan.")
+
+    actor = session.get("nama") or session.get("nim") or "Operator"
+    if not unset_user_gpu_boost(clean_nim, actor=actor, reason="Dicabut melalui dashboard"):
+        raise HTTPException(status_code=400, detail="Gagal mencabut GPU Boost.")
+
+    _restart_user_sessions(clean_nim)
+    record_audit(
+        target=f"NIM {clean_nim}",
+        action="GPU_UNBOOST",
+        detail=f"GPU Boost Level 2 dicabut oleh {actor}. Sesi dihentikan dan kembali CPU-only.",
+        log_type="info",
+    )
+    return {"success": True, "message": f"GPU Boost NIM {clean_nim} dicabut. Sesi akan kembali CPU-only."}
+
+
+@app.post("/api/lab/gpu-boost-toggle")
+def gpu_boost_toggle(req: GpuBoostToggleRequest, session: Dict[str, Any] = Depends(verify_operator_or_admin)):
+    """Aktif/nonaktifkan fitur GPU Boost secara global.
+
+    Mematikan toggle tidak memutus boost yang sedang berjalan; boost tersebut
+    tetap berlaku sampai kedaluwarsa atau dicabut manual.
+    """
+    set_gpu_boost_enabled(bool(req.enabled))
+    actor = session.get("nama") or session.get("nim") or "Operator"
+    record_audit(
+        target="GPU_BOOST_POLICY",
+        action="TOGGLE_GPU_BOOST",
+        detail=f"Fitur GPU Boost {'diaktifkan' if req.enabled else 'dinonaktifkan'} oleh {actor}.",
+        log_type="info" if req.enabled else "warning",
+    )
+    return {
+        "success": True,
+        "enabled": bool(req.enabled),
+        "message": f"GPU Boost {'diaktifkan' if req.enabled else 'dinonaktifkan'}.",
+    }
 
 @app.post("/api/users/toggle-admin")
 def toggle_admin(req: UserActionRequest, session: Dict[str, Any] = Depends(verify_super_admin)):
@@ -1942,8 +2109,9 @@ async def startup_event():
         while True:
             try:
                 expired_nims = auto_expire_priorities()
+                # Level 1 (GPU 0) kedaluwarsa: hentikan sesi agar kembali ke Level 2.
                 for nim in expired_nims:
-                    os_username = f"m{nim}"
+                    os_username = nim_to_username(nim)
                     subprocess.run(["pkill", "-u", os_username], check=False)
                     try:
                         subprocess.run(["loginctl", "terminate-user", os_username], check=False, timeout=2)
@@ -1952,12 +2120,34 @@ async def startup_event():
                     record_audit(
                         target=f"NIM {nim}",
                         action="AUTO_EXPIRE_BOOST",
-                        detail="Durasi Prioritas habis. Sesi notebook dihentikan dan user kembali ke Mode Standard Level 2.",
+                        detail="Durasi Prioritas habis. Sesi notebook dihentikan dan user kembali ke profil Level 2 (CPU-only).",
+                        log_type="info"
+                    )
+
+                # GPU Boost Level 2 kedaluwarsa: hentikan sesi agar GPU 1 dilepas.
+                expired_gpu_nims = auto_expire_gpu_boosts()
+                for nim in expired_gpu_nims:
+                    os_username = nim_to_username(nim)
+                    subprocess.run(["pkill", "-u", os_username], check=False)
+                    record_audit(
+                        target=f"NIM {nim}",
+                        action="AUTO_EXPIRE_GPU_BOOST",
+                        detail="Durasi GPU Boost Level 2 habis. Sesi dihentikan dan GPU 1 dikembalikan ke pool.",
                         log_type="info"
                     )
             except Exception as e:
                 print("Auto expire worker error:", e)
             await asyncio.sleep(60.0)
+
+    async def gpu_guard_worker():
+        """Tegakkan kuota VRAM per mahasiswa di GPU Boost (GPU 1)."""
+        from app import gpu_guard
+        while True:
+            try:
+                await asyncio.to_thread(gpu_guard.run_gpu_guard_once)
+            except Exception as e:
+                print("GPU guard worker error:", e)
+            await asyncio.sleep(30.0)
 
     async def disk_usage_worker():
         while True:
@@ -1992,6 +2182,7 @@ async def startup_event():
 
     asyncio.create_task(telemetry_broadcaster())
     asyncio.create_task(auto_expire_worker())
+    asyncio.create_task(gpu_guard_worker())
     asyncio.create_task(disk_usage_worker())
     asyncio.create_task(daily_backup_worker())
 

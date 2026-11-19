@@ -9,7 +9,6 @@ import UnifiedUserManagement from './components/UnifiedUserManagement';
 import AdminFileExplorer from './components/AdminFileExplorer';
 import AdminPinModal from './components/AdminPinModal';
 import ChangePinModal from './components/ChangePinModal';
-import ModeSwitchModal from './components/ModeSwitchModal';
 import CommandPalette from './components/CommandPalette';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoginView from './components/LoginView';
@@ -73,12 +72,8 @@ export default function App() {
     isSubmitting: false
   });
 
-  // Mode Switch Modal
-  const [modeSwitchModal, setModeSwitchModal] = useState({
-    isOpen: false,
-    targetMode: null,
-    isSubmitting: false
-  });
+  // GPU Boost global toggle (in-flight state)
+  const [isTogglingGpuBoost, setIsTogglingGpuBoost] = useState(false);
 
   const wsRef = useRef(null);
 
@@ -476,62 +471,51 @@ export default function App() {
     }
   };
 
-  const handleSwitchLabMode = (newMode) => {
+  const handleToggleGpuBoost = async (enabled) => {
     if (!isAdmin) {
       showToast({
         title: 'Akses Dibatasi',
-        message: 'Silakan login sebagai Admin atau Asisten Lab untuk mengubah mode operasional lab.',
+        message: 'Silakan login sebagai Admin atau Asisten Lab untuk mengubah status GPU Boost.',
         type: 'warning'
       });
       setLoginModalOpen(true);
       return;
     }
-    setModeSwitchModal({
-      isOpen: true,
-      targetMode: newMode,
-      isSubmitting: false,
-    });
-  };
+    if (isTogglingGpuBoost) return;
 
-  const handleConfirmModeSwitch = async () => {
-    if (!modeSwitchModal.targetMode) return;
-    setModeSwitchModal((prev) => ({ ...prev, isSubmitting: true }));
-    const newMode = modeSwitchModal.targetMode;
-    const modeLabel = newMode === 'basic' ? 'Mode Pemrograman Dasar (60 Slot)' : 'Mode Praktikum AI (30 Slot)';
-
+    setIsTogglingGpuBoost(true);
     try {
-      const res = await fetch('/api/lab/profile', {
+      const res = await fetch('/api/lab/gpu-boost-toggle', {
         method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ mode: newMode }),
+        body: JSON.stringify({ enabled }),
       });
       const json = await res.json();
       if (res.ok && json.success) {
-        setModeSwitchModal({ isOpen: false, targetMode: null, isSubmitting: false });
         showToast({
-          title: 'Mode Operasional Klaster Diperbarui',
-          message: json.message || `Mode Lab berhasil dialihkan ke ${modeLabel}`,
-          details: newMode === 'basic' 
-            ? 'Kapasitas 60 Slot aktif (Murni CPU & RAM). Akses GPU 1 dialihkan ke status Standby untuk mencegah OOM.' 
-            : 'Kapasitas 30 Slot aktif dengan akselerasi GPU 1 (NVIDIA RTX 5060 Ti) untuk praktikum AI.',
+          title: enabled ? 'GPU Boost Diaktifkan' : 'GPU Boost Dinonaktifkan',
+          message: json.message || `Fitur GPU Boost ${enabled ? 'diaktifkan' : 'dinonaktifkan'}.`,
+          details: enabled
+            ? 'Aslab dan Admin dapat memberikan boost GPU 1 sementara kepada mahasiswa Level 2.'
+            : 'Boost baru akan ditolak. Boost yang sedang berjalan tetap berlaku sampai kedaluwarsa atau dicabut.',
           type: 'success',
         });
         fetchStatus();
       } else {
         showToast({
-          title: 'Gagal Mengubah Mode Lab',
-          message: json.detail || 'Terjadi kendala saat memperbarui profil lab.',
+          title: 'Gagal Mengubah GPU Boost',
+          message: json.detail || 'Terjadi kendala saat memperbarui status GPU Boost.',
           type: 'error',
         });
-        setModeSwitchModal((prev) => ({ ...prev, isSubmitting: false }));
       }
     } catch (e) {
       showToast({
         title: 'Error Koneksi Server',
-        message: e.message || 'Gagal terhubung ke API profil lab.',
+        message: e.message || 'Gagal terhubung ke API GPU Boost.',
         type: 'error',
       });
-      setModeSwitchModal((prev) => ({ ...prev, isSubmitting: false }));
+    } finally {
+      setIsTogglingGpuBoost(false);
     }
   };
 
@@ -865,7 +849,8 @@ export default function App() {
                     isAdmin={isAdmin && !isDataStale}
                     level2Slots={data?.level2_slots}
                     onEmergencyReleaseIdle={handleEmergencyReleaseIdle}
-                    onSwitchLabMode={handleSwitchLabMode}
+                    onToggleGpuBoost={handleToggleGpuBoost}
+                    isTogglingGpuBoost={isTogglingGpuBoost}
                   />
                   <LiveChart history={data?.history} />
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -996,15 +981,6 @@ export default function App() {
       />
 
       {/* Modals */}
-      <ModeSwitchModal
-        isOpen={modeSwitchModal.isOpen}
-        targetMode={modeSwitchModal.targetMode}
-        currentMode={data?.level2_slots?.lab_mode || 'ai'}
-        activeCount={data?.level2_slots?.active_count || 0}
-        onConfirm={handleConfirmModeSwitch}
-        onClose={() => setModeSwitchModal({ isOpen: false, targetMode: null, isSubmitting: false })}
-        isSubmitting={modeSwitchModal.isSubmitting}
-      />
       <AdminPinModal
         isOpen={loginModalOpen}
         onSuccess={handleLoginSuccess}

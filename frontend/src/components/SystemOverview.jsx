@@ -1,7 +1,7 @@
 import React, { memo, useState } from 'react';
 import { 
   Cpu, HardDrive, ShieldCheck, DatabaseBackup, Loader2, Layers, 
-  Zap, Users, UserCheck, SlidersHorizontal, Sparkles, Terminal
+  Zap, Users, UserCheck
 } from 'lucide-react';
 
 function SystemOverview({ 
@@ -15,7 +15,8 @@ function SystemOverview({
   isAdmin,
   level2Slots = {},
   onEmergencyReleaseIdle,
-  onSwitchLabMode,
+  onToggleGpuBoost,
+  isTogglingGpuBoost = false,
 }) {
   const [isReleasing, setIsReleasing] = useState(false);
 
@@ -54,13 +55,11 @@ function SystemOverview({
   const isVramHigh = totalVramPct >= 95;
   const isDiskHigh = diskPercent >= 90;
 
-  let healthStatus = 'healthy';
   let healthLabel = 'Klaster Beroperasi Normal';
   let healthClass = 'border-emerald-200 bg-emerald-50 text-emerald-700';
   let dotClass = 'bg-emerald-500';
 
   if (isCpuHigh || isMemHigh || isVramHigh || isDiskHigh) {
-    healthStatus = 'warning';
     healthLabel = 'Beban Komputasi Tinggi';
     healthClass = 'border-amber-200 bg-amber-50 text-amber-700';
     dotClass = 'bg-amber-500';
@@ -68,14 +67,19 @@ function SystemOverview({
 
   const latestBackup = backups && backups.length > 0 ? backups[0] : null;
 
-  // Level 2 Practical Student Slots (Kapasitas Dinamis: Mode AI 30 vs Mode Dasar 60)
-  const labMode = level2Slots?.lab_mode || 'ai';
-  const isBasicMode = labMode === 'basic';
-  const maxSlots = level2Slots?.max_slots || (isBasicMode ? 60 : 30);
+  // Level 2 practical slots: fixed 60-slot CPU-only profile.
+  const maxSlots = level2Slots?.max_slots || 60;
   const activeSlots = level2Slots?.active_count ?? 0;
   const availableSlots = level2Slots?.available_slots ?? Math.max(0, maxSlots - activeSlots);
   const slotPercent = Math.min(100, Math.round((activeSlots / maxSlots) * 100));
   const idleMinutesSetting = level2Slots?.idle_release_minutes || 15;
+
+  // GPU Boost pool (GPU 1). Nilai agregat, tanpa identitas di endpoint publik.
+  const gpuBoostMax = Number(level2Slots?.gpu_boost_max ?? 3);
+  const gpuBoostActive = Number(level2Slots?.gpu_boost_active ?? 0);
+  const gpuBoostEnabled = level2Slots?.gpu_boost_enabled !== false;
+  const gpuBoostVramMb = Number(level2Slots?.gpu_boost_vram_mb ?? 4800);
+  const gpuBoostPercent = gpuBoostMax > 0 ? Math.min(100, Math.round((gpuBoostActive / gpuBoostMax) * 100)) : 0;
 
   const handleReleaseClick = async () => {
     if (!isAdmin || isReleasing) return;
@@ -112,59 +116,54 @@ function SystemOverview({
         </div>
       </div>
 
-      {/* Profil Operasional Lab (Mode Switcher) & Level 2 Slot Praktikum Banner */}
+      {/* Profil Operasional Tetap + Kontrol GPU Boost */}
       <div className="surface-card p-4 sm:p-5 flex flex-col gap-4">
-        {/* Row 1: Profile Mode Switcher */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-slate-100">
+        {/* Row 1: Profil tetap & toggle global GPU Boost */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3.5 border-b border-slate-100">
           <div className="flex items-center gap-2.5 flex-wrap">
             <span className="text-xs font-mono font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-              <SlidersHorizontal className="w-3.5 h-3.5 text-slate-700" />
-              Mode Lab:
+              <Layers className="w-3.5 h-3.5 text-slate-700" />
+              Profil Lab:
             </span>
-            <span className={`px-2.5 py-0.5 rounded-full text-xs font-mono font-bold border flex items-center gap-1.5 ${
-              isBasicMode
-                ? 'bg-slate-100 text-slate-700 border-slate-200'
-                : 'bg-sky-50 text-sky-700 border-sky-200'
-            }`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${isBasicMode ? 'bg-slate-500' : 'bg-sky-500'}`} />
-              {isBasicMode ? 'Mode Pemrograman Dasar (60 Slot)' : 'Mode Praktikum AI (30 Slot)'}
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold border flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border-emerald-200">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              Praktikum Komputasi (60 Slot)
             </span>
             <span className="text-[11px] font-mono text-slate-500 hidden md:inline">
-              {isBasicMode ? '• 2 Kelas (Murni CPU & RAM, GPU Standby)' : '• 1 Kelas AI (Akselerasi GPU 1 Shared Pool)'}
+              • 1 Core · 1.5 GB RAM · CPU-only (GPU lewat Boost)
             </span>
           </div>
 
-          {/* Toggle Buttons (Always visible, prompts login if guest) */}
-          <div className="inline-flex items-center p-1 bg-slate-100/80 border border-slate-200/80 rounded-xl self-start sm:self-auto gap-1">
+          <div className="flex items-center gap-3 self-start lg:self-auto">
+            <div className="flex flex-col items-end">
+              <span className="text-[10px] font-mono font-semibold text-slate-500 uppercase tracking-wider">
+                GPU Boost Global
+              </span>
+              <span className={`text-[11px] font-mono font-semibold ${gpuBoostEnabled ? 'text-emerald-700' : 'text-slate-500'}`}>
+                {gpuBoostEnabled ? 'Aktif — mahasiswa dapat di-boost' : 'Nonaktif — boost baru ditolak'}
+              </span>
+            </div>
             <button
               type="button"
-              onClick={() => onSwitchLabMode && onSwitchLabMode('ai')}
-              disabled={!isBasicMode}
-              className={`px-3.5 py-2 rounded-lg text-xs font-mono transition-all flex items-center gap-2 cursor-pointer disabled:cursor-default ${
-                !isBasicMode
-                  ? 'bg-slate-900 text-white font-bold shadow-[0_1px_2px_rgba(15,23,42,0.12)] border border-slate-900'
-                  : 'bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 font-semibold border border-slate-200'
-              }`}
-              title={isAdmin ? "Batas 30 mahasiswa, akses GPU 1 diaktifkan untuk PyTorch / Deep Learning" : "Klik untuk beralih ke Mode Praktikum AI (Perlu Login Admin)"}
+              role="switch"
+              aria-checked={gpuBoostEnabled}
+              aria-label="Aktifkan atau nonaktifkan GPU Boost global"
+              disabled={!isAdmin || isTogglingGpuBoost}
+              onClick={() => onToggleGpuBoost && onToggleGpuBoost(!gpuBoostEnabled)}
+              className={`relative w-12 h-6 rounded-full border transition-colors duration-200 shrink-0 ${
+                gpuBoostEnabled
+                  ? 'bg-slate-900 border-slate-900'
+                  : 'bg-slate-200 border-slate-300'
+              } ${!isAdmin ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:opacity-90'}`}
+              title={isAdmin ? 'Ubah status GPU Boost global' : 'Perlu login Admin/Aslab'}
             >
-              <Sparkles className={`w-3.5 h-3.5 ${!isBasicMode ? 'text-white' : 'text-sky-600'}`} />
-              <span>Praktikum AI (30)</span>
-              {!isBasicMode && <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
-            </button>
-            <button
-              type="button"
-              onClick={() => onSwitchLabMode && onSwitchLabMode('basic')}
-              disabled={isBasicMode}
-              className={`px-3.5 py-2 rounded-lg text-xs font-mono transition-all flex items-center gap-2 cursor-pointer disabled:cursor-default ${
-                isBasicMode
-                  ? 'bg-slate-900 text-white font-bold shadow-[0_1px_2px_rgba(15,23,42,0.12)] border border-slate-900'
-                  : 'bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 font-semibold border border-slate-200'
-              }`}
-              title={isAdmin ? "Batas 60 mahasiswa (2 kelas), GPU dinonaktifkan (murni CPU & RAM)" : "Klik untuk beralih ke Mode Pemrograman Dasar (Perlu Login Admin)"}
-            >
-              <Terminal className={`w-3.5 h-3.5 ${isBasicMode ? 'text-white' : 'text-slate-500'}`} />
-              <span>Dasar / 2 Kelas (60)</span>
-              {isBasicMode && <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
+              <span
+                className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 flex items-center justify-center ${
+                  gpuBoostEnabled ? 'translate-x-6' : ''
+                }`}
+              >
+                {isTogglingGpuBoost ? <Loader2 className="w-3 h-3 animate-spin text-slate-600" /> : null}
+              </span>
             </button>
           </div>
         </div>
@@ -184,9 +183,7 @@ function SystemOverview({
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-sans text-sm font-bold text-slate-900">
-                  {isBasicMode
-                    ? 'Slot Praktikum Kelas (Level 2 CPU Only - 2 Kelas)'
-                    : 'Slot Praktikum Kelas (Level 2 Shared GPU 1)'}
+                  Slot Praktikum Kelas (Level 2 CPU-only)
                 </span>
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
                   activeSlots >= maxSlots 
@@ -212,7 +209,7 @@ function SystemOverview({
                   {activeSlots} <span className="text-slate-500 font-normal">/ {maxSlots} Sesi</span>
                 </span>
                 <span className="text-[10px] font-mono text-slate-500 hidden sm:inline">
-                  • {isBasicMode ? 'Jatah 2 GB RAM (CPU Only)' : 'Jatah 3 GB RAM + GPU 1 Shared'}
+                  • Jatah 1 Core · 1.5 GB RAM · GPU hanya via Boost
                 </span>
               </div>
             </div>
@@ -243,7 +240,7 @@ function SystemOverview({
       </div>
 
       {/* Cluster Workload & Priority Slot Strip */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         {/* Slot Prioritas GPU 0 */}
         <div className="bg-white px-4 py-3.5 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -283,6 +280,49 @@ function SystemOverview({
           <span className="text-[11px] font-mono text-slate-500 font-semibold hidden sm:inline">
             {priorityStudent ? 'Slot 1/1 Terisi' : 'Slot 0/1 Kosong'}
           </span>
+        </div>
+
+        {/* GPU Boost Pool (GPU 1) */}
+        <div className="bg-white px-4 py-3.5 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${
+              gpuBoostActive > 0
+                ? 'bg-sky-50 text-sky-700 border border-sky-200'
+                : 'bg-slate-50 text-slate-700 border border-slate-200'
+            }`}>
+              <Zap className="w-4 h-4 text-sky-600" />
+            </div>
+            <div className="min-w-0">
+              <span className="text-[10px] font-sans font-semibold text-slate-400 uppercase tracking-wider block">
+                GPU Boost Pool (GPU 1 Sementara)
+              </span>
+              <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                <span className="text-xs font-mono font-bold text-slate-900">
+                  {gpuBoostActive}/{gpuBoostMax} Slot
+                </span>
+                <span className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full border ${
+                  !gpuBoostEnabled
+                    ? 'bg-slate-50 text-slate-600 border-slate-200'
+                    : gpuBoostActive >= gpuBoostMax
+                      ? 'bg-rose-50 text-rose-700 border-rose-200'
+                      : 'bg-sky-50 text-sky-700 border-sky-200'
+                }`}>
+                  {!gpuBoostEnabled ? 'Nonaktif' : gpuBoostActive >= gpuBoostMax ? 'Penuh' : 'Tersedia'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 mt-1.5">
+                <div className="meter-track w-28 h-1.5 rounded-full">
+                  <div
+                    className="meter-fill h-full rounded-full bg-sky-600"
+                    style={{ width: `${Math.max(gpuBoostPercent, gpuBoostActive > 0 ? 4 : 0)}%` }}
+                  />
+                </div>
+                <span className="text-[10px] font-mono text-slate-500">
+                  4 Core · 6 GB · {gpuBoostVramMb} MB VRAM
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Pengguna & Beban Sesi Komputasi */}

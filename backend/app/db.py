@@ -89,6 +89,9 @@ def get_connection():
             nim TEXT PRIMARY KEY, nama TEXT, is_admin INTEGER DEFAULT 0,
             is_priority INTEGER DEFAULT 0, priority_expires_at TIMESTAMP NULL,
             is_active INTEGER DEFAULT 1, role TEXT DEFAULT 'mahasiswa',
+            gpu_boost_expires_at TIMESTAMP NULL,
+            gpu_boost_reason TEXT NULL,
+            gpu_boost_by TEXT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             last_login TIMESTAMP NULL)""")
         conn.execute("""CREATE TABLE IF NOT EXISTS audit_logs (
@@ -118,6 +121,18 @@ def get_connection():
         except Exception:
             pass
 
+        # Migrasi kolom GPU Boost Level 2 (terpisah dari is_priority Level 1)
+        for _ddl in (
+            "ALTER TABLE users ADD COLUMN gpu_boost_expires_at TIMESTAMP NULL",
+            "ALTER TABLE users ADD COLUMN gpu_boost_reason TEXT NULL",
+            "ALTER TABLE users ADD COLUMN gpu_boost_by TEXT NULL",
+        ):
+            try:
+                conn.execute(_ddl)
+                conn.commit()
+            except Exception:
+                pass
+
         _TABLES_READY = True
     return conn, "sqlite"
 
@@ -139,6 +154,9 @@ def init_db():
                     role VARCHAR(30) DEFAULT 'mahasiswa',
                     active_ip VARCHAR(50) NULL,
                     last_activity_at TIMESTAMP NULL,
+                    gpu_boost_expires_at TIMESTAMP NULL,
+                    gpu_boost_reason TEXT NULL,
+                    gpu_boost_by VARCHAR(150) NULL,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     last_login TIMESTAMP NULL
                 );
@@ -155,6 +173,16 @@ def init_db():
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
             """)
+            # Migrasi kolom baru untuk database PostgreSQL yang sudah ada.
+            for _ddl in (
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS gpu_boost_expires_at TIMESTAMP NULL",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS gpu_boost_reason TEXT NULL",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS gpu_boost_by VARCHAR(150) NULL",
+            ):
+                try:
+                    cur.execute(_ddl)
+                except Exception:
+                    conn.rollback()
         else:
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS users (
@@ -167,6 +195,9 @@ def init_db():
                     role TEXT DEFAULT 'mahasiswa',
                     active_ip TEXT NULL,
                     last_activity_at TIMESTAMP NULL,
+                    gpu_boost_expires_at TIMESTAMP NULL,
+                    gpu_boost_reason TEXT NULL,
+                    gpu_boost_by TEXT NULL,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     last_login TIMESTAMP NULL
                 );
@@ -202,6 +233,35 @@ def nim_to_username(nim: str) -> str:
     return f"m{clean}"
 
 
+def _row_to_user_dict(cur, row, engine: str) -> Dict[str, Any]:
+    """Normalisasi baris ``users`` tanpa bergantung pada urutan kolom.
+
+    PostgreSQL memakai cursor tuple biasa, sehingga pemetaan berbasis indeks
+    mudah bergeser saat kolom baru ditambahkan. Nama kolom diambil dari
+    ``cursor.description`` agar aman untuk kedua engine.
+    """
+    if hasattr(row, "keys"):
+        result = dict(row)
+    else:
+        columns = [desc[0] for desc in (getattr(cur, "description", None) or [])]
+        result = dict(zip(columns, row))
+
+    result["is_admin"] = bool(result.get("is_admin"))
+    result["is_priority"] = bool(result.get("is_priority"))
+    result["is_active"] = bool(result.get("is_active", True))
+    result["role"] = result.get("role") or ("admin" if result.get("is_admin") else "mahasiswa")
+    for key in (
+        "priority_expires_at",
+        "gpu_boost_expires_at",
+        "created_at",
+        "last_login",
+        "last_activity_at",
+    ):
+        if result.get(key) is not None:
+            result[key] = str(result[key])
+    return result
+
+
 def get_user(nim: str) -> Optional[Dict[str, Any]]:
     """Mengambil detail user berdasarkan NIM dari database"""
     conn, engine = get_connection()
@@ -212,22 +272,7 @@ def get_user(nim: str) -> Optional[Dict[str, Any]]:
         row = cur.fetchone()
         if not row:
             return None
-        if engine == "postgres":
-            res = dict(row) if hasattr(row, "keys") else {
-                "nim": row[0], "nama": row[1], "is_admin": bool(row[2]),
-                "is_priority": bool(row[3]), "priority_expires_at": row[4],
-                "is_active": bool(row[5]), "created_at": row[6], "last_login": row[7],
-                "role": row[8] if len(row) > 8 else "mahasiswa",
-                "active_ip": row[9] if len(row) > 9 else None,
-                "last_activity_at": str(row[10]) if len(row) > 10 and row[10] else None
-            }
-        else:
-            res = dict(row)
-            res["is_admin"] = bool(res.get("is_admin"))
-            res["is_priority"] = bool(res.get("is_priority"))
-            res["is_active"] = bool(res.get("is_active"))
-            res["role"] = res.get("role") or ("admin" if res.get("is_admin") else "mahasiswa")
-        return res
+        return _row_to_user_dict(cur, row, engine)
     finally:
         cur.close()
         conn.close()
@@ -261,22 +306,7 @@ def get_or_create_user(nim: str, nama: Optional[str] = None) -> Dict[str, Any]:
             cur.execute(f"SELECT * FROM users WHERE nim = {placeholder}", (nim,))
             row = cur.fetchone()
 
-        if engine == "postgres":
-            res = dict(row) if hasattr(row, "keys") else {
-                "nim": row[0], "nama": row[1], "is_admin": bool(row[2]),
-                "is_priority": bool(row[3]), "priority_expires_at": row[4],
-                "is_active": bool(row[5]), "created_at": row[6], "last_login": row[7],
-                "role": row[8] if len(row) > 8 else "mahasiswa",
-                "active_ip": row[9] if len(row) > 9 else None,
-                "last_activity_at": str(row[10]) if len(row) > 10 and row[10] else None
-            }
-        else:
-            res = dict(row)
-            res["is_admin"] = bool(res.get("is_admin"))
-            res["is_priority"] = bool(res.get("is_priority"))
-            res["is_active"] = bool(res.get("is_active"))
-            res["role"] = res.get("role") or ("admin" if res.get("is_admin") else "mahasiswa")
-        return res
+        return _row_to_user_dict(cur, row, engine)
     finally:
         cur.close()
         conn.close()
@@ -288,38 +318,7 @@ def list_users() -> List[Dict[str, Any]]:
     try:
         cur.execute("SELECT * FROM users ORDER BY is_priority DESC, last_login DESC NULLS LAST")
         rows = cur.fetchall()
-        results = []
-        for r in rows:
-            if engine == "postgres":
-                item = dict(r) if hasattr(r, "keys") else {
-                    "nim": r[0], "nama": r[1], "is_admin": bool(r[2]),
-                    "is_priority": bool(r[3]), "priority_expires_at": r[4],
-                    "is_active": bool(r[5]), "created_at": r[6], "last_login": r[7],
-                    "role": r[8] if len(r) > 8 else "mahasiswa",
-                    "active_ip": r[9] if len(r) > 9 else None,
-                    "last_activity_at": str(r[10]) if len(r) > 10 and r[10] else None
-                }
-            else:
-                item = dict(r)
-                item["is_admin"] = bool(item.get("is_admin"))
-                item["is_priority"] = bool(item.get("is_priority"))
-                item["is_active"] = bool(item.get("is_active"))
-                item["role"] = item.get("role") or ("admin" if item.get("is_admin") else "mahasiswa")
-            
-            # Format expires_at string jika ada
-            if item.get("priority_expires_at"):
-                item["priority_expires_at"] = str(item["priority_expires_at"])
-            if item.get("created_at"):
-                item["created_at"] = str(item["created_at"])
-            if item.get("last_login"):
-                item["last_login"] = str(item["last_login"])
-            if item.get("active_ip"):
-                item["active_ip"] = str(item["active_ip"])
-            if item.get("last_activity_at"):
-                item["last_activity_at"] = str(item["last_activity_at"])
-                
-            results.append(item)
-        return results
+        return [_row_to_user_dict(cur, r, engine) for r in rows]
     finally:
         cur.close()
         conn.close()
@@ -385,10 +384,218 @@ def unset_user_priority(nim: str) -> bool:
         )
         cur.execute(
             f"INSERT INTO audit_logs (nim, action, detail) VALUES ({placeholder}, {placeholder}, {placeholder})",
-            (nim, "UNBOOST_PRIORITY", "Dikembalikan ke mode Standard Level 2 (2 Core, 3G, GPU 1)")
+            (nim, "UNBOOST_PRIORITY", "Dikembalikan ke mode Standard Level 2 (CPU Only, GPU 1 dilepas)")
         )
         conn.commit()
         return True
+    finally:
+        cur.close()
+        conn.close()
+
+
+# ==============================================================================
+# GPU BOOST LEVEL 2 (GPU 1) — terpisah dari is_priority / Level 1 (GPU 0)
+# ==============================================================================
+
+GPU_BOOST_MAX_SLOTS = 3
+GPU_BOOST_VRAM_MB = 4800
+GPU_BOOST_CPU_CORES = 4.0
+GPU_BOOST_RAM_GB = 6.0
+
+
+def get_gpu_boost_enabled() -> bool:
+    """Toggle global GPU Boost. Default aktif."""
+    value = get_setting("gpu_boost_enabled", "1").strip().lower()
+    return value not in ("0", "false", "off", "no", "disabled")
+
+
+def set_gpu_boost_enabled(enabled: bool) -> None:
+    set_setting("gpu_boost_enabled", "1" if enabled else "0")
+    logger.info("[GpuBoost] Fitur GPU Boost %s.", "diaktifkan" if enabled else "dimatikan")
+
+
+def _parse_expiry(value: Any) -> Optional[datetime]:
+    """Ubah nilai TIMESTAMP database menjadi datetime lokal (naive)."""
+    if not value:
+        return None
+    if isinstance(value, datetime):
+        return value
+    try:
+        return datetime.strptime(str(value), "%Y-%m-%d %H:%M:%S")
+    except (TypeError, ValueError):
+        return None
+
+
+def list_active_gpu_boosts() -> List[Dict[str, Any]]:
+    """Daftar boost GPU yang masih berlaku, diurutkan dari yang paling lama."""
+    conn, engine = get_connection()
+    cur = conn.cursor()
+    try:
+        placeholder = "%s" if engine == "postgres" else "?"
+        cur.execute(
+            "SELECT nim, nama, gpu_boost_expires_at, gpu_boost_reason, gpu_boost_by "
+            f"FROM users WHERE gpu_boost_expires_at IS NOT NULL AND is_active = {placeholder}",
+            (True if engine == "postgres" else 1,),
+        )
+        rows = cur.fetchall()
+        now = datetime.now()
+        active = []
+        for row in rows:
+            if hasattr(row, "keys"):
+                item = dict(row)
+            else:
+                item = {
+                    "nim": row[0],
+                    "nama": row[1],
+                    "gpu_boost_expires_at": row[2],
+                    "gpu_boost_reason": row[3],
+                    "gpu_boost_by": row[4],
+                }
+            expires = _parse_expiry(item.get("gpu_boost_expires_at"))
+            if not expires or expires <= now:
+                continue
+            item["gpu_boost_expires_at"] = expires.strftime("%Y-%m-%d %H:%M:%S")
+            item["remaining_minutes"] = max(0, int((expires - now).total_seconds() // 60))
+            active.append(item)
+        active.sort(key=lambda x: x["gpu_boost_expires_at"])
+        return active
+    finally:
+        cur.close()
+        conn.close()
+
+
+def is_user_gpu_boosted(nim: str) -> bool:
+    """True jika NIM aktif dan masih memiliki GPU Boost yang belum kedaluwarsa."""
+    conn, engine = get_connection()
+    cur = conn.cursor()
+    try:
+        placeholder = "%s" if engine == "postgres" else "?"
+        cur.execute(
+            f"SELECT gpu_boost_expires_at, is_active FROM users WHERE nim = {placeholder}",
+            (str(nim).strip(),),
+        )
+        row = cur.fetchone()
+        if not row:
+            return False
+        if hasattr(row, "keys"):
+            expires_raw = row["gpu_boost_expires_at"]
+            is_active = bool(row["is_active"])
+        else:
+            expires_raw = row[0]
+            is_active = bool(row[1])
+        if not is_active or not expires_raw:
+            return False
+        expires = _parse_expiry(expires_raw)
+        if not expires or expires <= datetime.now():
+            unset_user_gpu_boost(nim, reason="Kedaluwarsa otomatis")
+            return False
+        return True
+    finally:
+        cur.close()
+        conn.close()
+
+
+def set_user_gpu_boost(nim: str, hours: int = 4, reason: str = "Admin Boost", actor: str = "Admin") -> bool:
+    """Beri akses GPU 1 (Level 2 Boost) selama ``hours`` jam (1-12)."""
+    clean_hours = max(1, min(int(hours), 12))
+    conn, engine = get_connection()
+    cur = conn.cursor()
+    try:
+        placeholder = "%s" if engine == "postgres" else "?"
+        expires_str = (datetime.now() + timedelta(hours=clean_hours)).strftime("%Y-%m-%d %H:%M:%S")
+        cur.execute(
+            "UPDATE users SET gpu_boost_expires_at = {}, gpu_boost_reason = {}, gpu_boost_by = {} "
+            "WHERE nim = {}".format(placeholder, placeholder, placeholder, placeholder),
+            (expires_str, reason or "Admin Boost", actor, nim),
+        )
+        cur.execute(
+            f"INSERT INTO audit_logs (nim, action, detail) VALUES ({placeholder}, {placeholder}, {placeholder})",
+            (
+                nim,
+                "GPU_BOOST",
+                f"GPU 1 Boost Level 2 (4 Core, 6G, VRAM {GPU_BOOST_VRAM_MB} MB) selama {clean_hours} jam "
+                f"oleh {actor}. Alasan: {reason or 'Admin Boost'}",
+            ),
+        )
+        conn.commit()
+        return True
+    except Exception as exc:
+        conn.rollback()
+        logger.error("Gagal memberi GPU boost untuk %s: %s", nim, exc)
+        return False
+    finally:
+        cur.close()
+        conn.close()
+
+
+def unset_user_gpu_boost(nim: str, actor: Optional[str] = None, reason: str = "Dicabut admin") -> bool:
+    conn, engine = get_connection()
+    cur = conn.cursor()
+    try:
+        placeholder = "%s" if engine == "postgres" else "?"
+        cur.execute(
+            f"UPDATE users SET gpu_boost_expires_at = NULL, gpu_boost_reason = NULL, gpu_boost_by = NULL "
+            f"WHERE nim = {placeholder}",
+            (nim,),
+        )
+        cur.execute(
+            f"INSERT INTO audit_logs (nim, action, detail) VALUES ({placeholder}, {placeholder}, {placeholder})",
+            (nim, "GPU_UNBOOST", f"GPU Boost Level 2 dilepas. {reason}" + (f" Oleh {actor}." if actor else "")),
+        )
+        conn.commit()
+        return True
+    except Exception as exc:
+        conn.rollback()
+        logger.error("Gagal mencabut GPU boost untuk %s: %s", nim, exc)
+        return False
+    finally:
+        cur.close()
+        conn.close()
+
+
+def auto_expire_gpu_boosts() -> List[str]:
+    """Cabut GPU Boost yang sudah lewat masa berlaku; kembalikan daftar NIM."""
+    conn, engine = get_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT nim, gpu_boost_expires_at FROM users WHERE gpu_boost_expires_at IS NOT NULL")
+        rows = cur.fetchall()
+        now = datetime.now()
+        expired = []
+        for row in rows:
+            if hasattr(row, "keys"):
+                nim = row["nim"]
+                expires_raw = row["gpu_boost_expires_at"]
+            else:
+                nim = row[0]
+                expires_raw = row[1]
+            expires = _parse_expiry(expires_raw)
+            if expires and expires <= now:
+                expired.append(nim)
+    finally:
+        cur.close()
+        conn.close()
+
+    for nim in expired:
+        unset_user_gpu_boost(nim, reason="Kedaluwarsa otomatis")
+        logger.info("[GpuBoost] Boost GPU untuk NIM %s berakhir.", nim)
+    return expired
+
+
+def record_system_audit(nim: str, action: str, detail: str) -> None:
+    """Catat audit dari worker latar (tanpa sesi pengguna)."""
+    conn, engine = get_connection()
+    cur = conn.cursor()
+    try:
+        placeholder = "%s" if engine == "postgres" else "?"
+        cur.execute(
+            f"INSERT INTO audit_logs (nim, action, detail) VALUES ({placeholder}, {placeholder}, {placeholder})",
+            (nim, action, detail),
+        )
+        conn.commit()
+    except Exception as exc:
+        conn.rollback()
+        logger.error("Gagal mencatat audit sistem untuk %s: %s", nim, exc)
     finally:
         cur.close()
         conn.close()
@@ -914,53 +1121,33 @@ def set_master_pin(new_pin: str) -> str:
 
 
 def get_lab_profile() -> Dict[str, Any]:
-    """
-    Mengambil profil operasional Lab AI UMPO:
-    - 'ai'    : Mode Praktikum AI (Maks 30 Slot, GPU 1 Shared Pool, RAM 3 GB)
-    - 'basic' : Mode Pemrograman Dasar (Maks 60 Slot, CPU Only / GPU Dinonaktifkan, RAM 2 GB)
-    """
-    mode = get_setting("lab_profile_mode", "ai").strip().lower()
-    if mode not in ("ai", "basic"):
-        mode = "ai"
+    """Profil operasional tunggal Lab Komputasi UMPO.
 
-    if mode == "basic":
-        return {
-            "mode": "basic",
-            "name": "Mode Pemrograman Dasar",
-            "short_name": "Dasar (60 Slot)",
-            "description": "2 Kelas Pemrograman Dasar / Struktur Data (CPU Only, GPU Standby)",
-            "max_slots": 60,
-            "gpu_enabled": False,
-            "gpu_device": "",
-            "gpu_name": "CPU Only (GPU Standby)",
-            "ram_limit_gb": 2.0,
-            "ram_limit_mb": 2048.0,
-            "cpu_limit_cores": 2.0,
-            "idle_release_minutes": 15,
-        }
+    Sejak GPU Boost diperkenalkan, mode AI/Basic dihapus. Level 2 selalu
+    berjalan CPU-only (60 slot, 1 core, 1.5 GB). Akses GPU 1 hanya diberikan
+    sementara lewat GPU Boost yang dikendalikan Aslab/Admin.
+    """
     return {
-        "mode": "ai",
-        "name": "Mode Praktikum AI",
-        "short_name": "Praktikum AI (30 Slot)",
-        "description": "Praktikum Machine Learning & Deep Learning (GPU 1 Shared)",
-        "max_slots": 30,
-        "gpu_enabled": True,
-        "gpu_device": "1",
-        "gpu_name": "GPU 1 (Shared Pool)",
-        "ram_limit_gb": 3.0,
-        "ram_limit_mb": 3072.0,
-        "cpu_limit_cores": 2.0,
+        "mode": "standard",
+        "name": "Praktikum Komputasi",
+        "short_name": "Praktikum (60 Slot)",
+        "description": "Level 2 CPU-only 60 slot; GPU 1 hanya melalui GPU Boost 3 slot.",
+        "max_slots": 60,
+        "gpu_enabled": False,
+        "gpu_device": "",
+        "gpu_name": "GPU Boost (3 Slot)",
+        "ram_limit_gb": 1.5,
+        "ram_limit_mb": 1536.0,
+        "cpu_limit_cores": 1.0,
         "idle_release_minutes": 15,
     }
 
 
 def set_lab_profile(mode: str) -> Dict[str, Any]:
-    """Mengubah profil operasional Lab AI UMPO ('ai' atau 'basic')."""
-    clean_mode = str(mode).strip().lower()
-    if clean_mode not in ("ai", "basic"):
-        raise ValueError("Mode profil lab harus 'ai' atau 'basic'")
-    set_setting("lab_profile_mode", clean_mode)
-    logger.info(f"[LabProfile] Mode operasional lab diubah menjadi: {clean_mode.upper()}")
-    return get_lab_profile()
+    """Mode dinamis sudah dihapus; dipertahankan agar pemanggil lama aman."""
+    raise ValueError(
+        "Mode lab dinamis sudah dihapus. Level 2 memakai profil tetap 60 slot CPU-only; "
+        "gunakan GPU Boost untuk akses GPU 1."
+    )
 
 

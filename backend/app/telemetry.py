@@ -140,8 +140,8 @@ def get_gpu_telemetry() -> List[Dict[str, Any]]:
             gpus.append({
                 "index": i,
                 "name": name,
-                "tier": "Level 1 (Riset)" if i == 0 else "Level 2 (Praktikum)",
-                "assigned": "labriset" if i == 0 else "training1-10",
+                "tier": "Level 1 (Riset)" if i == 0 else "GPU Boost Pool",
+                "assigned": "labriset" if i == 0 else "mahasiswa boosted",
                 "vram_total_mb": round(mem_info.total / (1024 ** 2), 1),
                 "vram_used_mb": round(mem_info.used / (1024 ** 2), 1),
                 "vram_free_mb": round(mem_info.free / (1024 ** 2), 1),
@@ -222,6 +222,15 @@ def check_is_priority(nim: str) -> bool:
     try:
         from app.db import is_user_priority
         return is_user_priority(nim)
+    except Exception:
+        return False
+
+
+def check_is_gpu_boosted(nim: str) -> bool:
+    """True bila NIM punya GPU Boost Level 2 yang masih berlaku."""
+    try:
+        from app.db import is_user_gpu_boosted
+        return is_user_gpu_boosted(nim)
     except Exception:
         return False
 
@@ -332,13 +341,6 @@ def get_per_user_gpu_metrics(gpus: List[Dict[str, Any]]) -> List[Dict[str, Any]]
     rev_training = {v: k for k, v in TRAINING_UIDS.items()}
     import pwd
 
-    is_basic_mode = False
-    try:
-        from app.db import get_lab_profile
-        is_basic_mode = (get_lab_profile().get("mode") == "basic")
-    except Exception:
-        pass
-
     for uname in valid_tracked:
         real_uid = None
         try:
@@ -347,33 +349,38 @@ def get_per_user_gpu_metrics(gpus: List[Dict[str, Any]]) -> List[Dict[str, Any]]
             pass
 
         is_priority_user = False
+        is_gpu_boosted = False
         if uname in rev_training:
             uid = rev_training[uname]
             is_riset = (uid == 1021)
-            tier = "Level 1 (Riset)" if is_riset else ("Level 2 (Pemrograman Dasar)" if is_basic_mode else "Level 2 (Praktikum AI)")
+            tier = "Level 1 (Riset)" if is_riset else "Level 2 (CPU-only)"
             is_priority_user = is_riset
         else:
             uid = real_uid if real_uid is not None else (int(uname[1:]) if uname[1:].isdigit() else 0)
             nim = uname[1:] if (uname.startswith("m") and uname[1:].isdigit()) else uname
             is_priority_user = check_is_priority(nim)
-            tier = "Level 1 (Priority)" if is_priority_user else ("Level 2 (Pemrograman Dasar)" if is_basic_mode else "Level 2 (Praktikum AI)")
+            is_gpu_boosted = (not is_priority_user) and check_is_gpu_boosted(nim)
+            if is_priority_user:
+                tier = "Level 1 (Priority)"
+            elif is_gpu_boosted:
+                tier = "Level 2 (GPU Boost)"
+            else:
+                tier = "Level 2 (CPU-only)"
             is_riset = False
-            
-        assigned_gpu_idx = 0 if is_priority_user else 1
-        if is_priority_user:
-            assigned_gpu_name = "GPU 0"
-        elif is_basic_mode:
-            assigned_gpu_name = "CPU Only (GPU Standby)"
-        else:
-            assigned_gpu_name = "GPU 1"
 
-        # VRAM limit recommendation: 100% (16311 MB) for priority (GPU 0), 0 MB for basic mode, 30% (~4893 MB) for standard practical/SIMTIK (GPU 1)
+        # GPU & kuota per tingkat akses.
         if is_priority_user:
+            assigned_gpu_idx = 0
+            assigned_gpu_name = "GPU 0 (Dedicated)"
             vram_recommended_limit_mb = 16311.0
-        elif is_basic_mode:
-            vram_recommended_limit_mb = 0.0
+        elif is_gpu_boosted:
+            assigned_gpu_idx = 1
+            assigned_gpu_name = "GPU 1 (Boost)"
+            vram_recommended_limit_mb = 4800.0
         else:
-            vram_recommended_limit_mb = 4893.0
+            assigned_gpu_idx = None
+            assigned_gpu_name = "CPU only"
+            vram_recommended_limit_mb = 0.0
 
         gpu_procs = user_gpu_map.get(uname, [])
         total_vram_mb = round(sum(p["vram_mb"] for p in gpu_procs), 1)
@@ -390,12 +397,12 @@ def get_per_user_gpu_metrics(gpus: List[Dict[str, Any]]) -> List[Dict[str, Any]]
         mem_max_bytes = read_cgroup_file(f"{slice_dir}/memory.max")
         ram_used_bytes = max(mem_curr_bytes, user_rss_bytes.get(uname, 0))
         ram_used_mb = round(ram_used_bytes / (1024 ** 2), 1)
-        fallback_ram_mb = 61440.0 if is_priority_user else (2048.0 if is_basic_mode else 3072.0)
+        fallback_ram_mb = 61440.0 if is_priority_user else (6144.0 if is_gpu_boosted else 1536.0)
         ram_max_mb = round(mem_max_bytes / (1024 ** 2), 1) if mem_max_bytes > 0 else fallback_ram_mb
 
         # CPU Metrics & Core Allocations
-        # Core limits: 20 Cores for Level 1 Priority / Riset, 2 Cores for Level 2 Standard
-        cores_limit = 20 if is_priority_user else 2
+        # Level 1: 20 cores; GPU Boost: 4 cores; Level 2 baseline: 1 core.
+        cores_limit = 20 if is_priority_user else (4 if is_gpu_boosted else 1)
         prev_time = _prev_user_cpu_times.get(uname, current_user_times.get(uname, 0.0))
         delta_time = max(0.0, current_user_times.get(uname, 0.0) - prev_time)
         cpu_percent = round((delta_time / dt) * 100.0, 1)
@@ -408,7 +415,7 @@ def get_per_user_gpu_metrics(gpus: List[Dict[str, Any]]) -> List[Dict[str, Any]]
         # Determine compute state
         if total_vram_mb > 0:
             if not is_priority_user and vram_recommended_limit_mb > 0 and total_vram_mb > vram_recommended_limit_mb:
-                status = "VRAM Exceeded (>30%)"
+                status = "VRAM Exceeded (Quota)"
                 status_color = "red"
             else:
                 status = "Training Active (GPU)"

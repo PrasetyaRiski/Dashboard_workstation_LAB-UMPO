@@ -531,6 +531,9 @@ def test_status_endpoint_includes_mode_fields(client, admin_token):
     l2 = status["level2_slots"]
     assert l2["lab_mode"] == "boost30"
     assert l2["max_slots"] == 30
+    assert l2["cpu_limit_cores"] == 2.0
+    assert l2["ram_limit_gb"] == 3.0
+    assert l2["ram_limit_mb"] == 3072.0
     assert l2["gpu_boost_allowed"] is True
     assert l2["gpu_boost_max"] == db.GPU_BOOST_MAX_SLOTS
     assert l2["gpu_boost_vram_mb"] == db.GPU_BOOST_VRAM_MB

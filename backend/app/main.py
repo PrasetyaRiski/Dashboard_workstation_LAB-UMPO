@@ -442,6 +442,11 @@ def get_capacity():
 
     lab_mode = get_lab_mode()
     gpu_boost_allowed = lab_mode == LAB_MODE_BOOST30
+    from app.db import get_lab_profile
+    prof = get_lab_profile()
+    cpu_limit_cores = float(prof.get("cpu_limit_cores", 2.0 if gpu_boost_allowed else 1.0))
+    ram_limit_gb = float(prof.get("ram_limit_gb", 3.0 if gpu_boost_allowed else 1.5))
+    ram_limit_mb = float(prof.get("ram_limit_mb", 3072.0 if gpu_boost_allowed else 1536.0))
 
     return {
         "success": True,
@@ -449,6 +454,9 @@ def get_capacity():
         "used_slots": active_boosts,
         "lab_mode": lab_mode,
         "gpu_boost_allowed": gpu_boost_allowed,
+        "cpu_limit_cores": cpu_limit_cores,
+        "ram_limit_gb": ram_limit_gb,
+        "ram_limit_mb": ram_limit_mb,
         "gpu_boost": {
             "enabled": get_gpu_boost_enabled(),
             "allowed": gpu_boost_allowed,
@@ -659,7 +667,9 @@ def get_full_snapshot():
         short_name = profile.get("short_name", "Mode 30 (30 Slot)")
         gpu_enabled = profile.get("gpu_enabled", False)
         gpu_name = profile.get("gpu_name", "GPU Boost (3 Slot)")
-        ram_limit_gb = profile.get("ram_limit_gb", 3.0)
+        ram_limit_gb = float(profile.get("ram_limit_gb", 3.0 if lab_mode == LAB_MODE_BOOST30 else 1.5))
+        ram_limit_mb = float(profile.get("ram_limit_mb", 3072.0 if lab_mode == LAB_MODE_BOOST30 else 1536.0))
+        cpu_limit_cores = float(profile.get("cpu_limit_cores", 2.0 if lab_mode == LAB_MODE_BOOST30 else 1.0))
         gpu_boost_allowed = bool(profile.get("gpu_boost_allowed", lab_mode == LAB_MODE_BOOST30))
     except Exception as e:
         logger.warning(f"Error calculating level2 slots: {e}")
@@ -672,6 +682,8 @@ def get_full_snapshot():
         gpu_enabled = False
         gpu_name = "GPU Boost (3 Slot)"
         ram_limit_gb = 3.0
+        ram_limit_mb = 3072.0
+        cpu_limit_cores = 2.0
         gpu_boost_allowed = True
 
     try:
@@ -691,6 +703,8 @@ def get_full_snapshot():
         "gpu_enabled": gpu_enabled,
         "gpu_name": gpu_name,
         "ram_limit_gb": ram_limit_gb,
+        "ram_limit_mb": ram_limit_mb,
+        "cpu_limit_cores": cpu_limit_cores,
         "gpu_boost_enabled": get_gpu_boost_enabled(),
         "gpu_boost_allowed": gpu_boost_allowed,
         "gpu_boost_active": len(active_gpu_boosts),

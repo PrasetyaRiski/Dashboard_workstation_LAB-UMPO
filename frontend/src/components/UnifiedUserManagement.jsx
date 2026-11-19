@@ -61,15 +61,20 @@ export default function UnifiedUserManagement({
 }) {
   const isSuperAdmin = Boolean(isAdmin && adminRole === 'admin');
   const isOperator   = Boolean(isAdmin && adminRole === 'aslab');
-  const l2HardwareLabel = 'CPU Only | 1 Core | 1.5 GB';
 
   const [filterType, setFilterType] = useState('all'); // 'all' | 'mhs' | 'dosen' | 'overquota'
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCohort, setSelectedCohort] = useState('all'); // 'all' | '21' | '22' | '23' dll
   const [capacity, setCapacity] = useState({ used_slots: 0, total_slots: 1 });
 
+  const isMode30 = (level2Slots?.lab_mode || capacity?.lab_mode) !== 'cpu60';
+  const l2CpuCores = level2Slots?.cpu_limit_cores ?? capacity?.cpu_limit_cores ?? (isMode30 ? 2 : 1);
+  const l2RamGb = Number(level2Slots?.ram_limit_gb ?? capacity?.ram_limit_gb ?? (isMode30 ? 3.0 : 1.5));
+  const defaultL2RamMb = Number(level2Slots?.ram_limit_mb ?? capacity?.ram_limit_mb ?? Math.round(l2RamGb * 1024));
+  const l2HardwareLabel = `CPU Only · ${l2CpuCores} Core · ${l2RamGb.toFixed(1)} GB`;
+
   const gpuBoostMax = Number(level2Slots?.gpu_boost_max ?? capacity?.gpu_boost?.total_slots ?? 3);
-  const gpuBoostAllowed = level2Slots?.gpu_boost_allowed ?? capacity?.gpu_boost_allowed ?? (capacity?.lab_mode !== 'cpu60');
+  const gpuBoostAllowed = level2Slots?.gpu_boost_allowed ?? capacity?.gpu_boost_allowed ?? isMode30;
   const gpuBoostEnabled = Boolean(level2Slots?.gpu_boost_enabled ?? capacity?.gpu_boost?.enabled ?? true) && gpuBoostAllowed;
   const gpuBoostVramMb = Number(level2Slots?.gpu_boost_vram_mb ?? capacity?.gpu_boost?.vram_mb ?? 4800);
 
@@ -524,7 +529,7 @@ export default function UnifiedUserManagement({
       const gpuTotalMb = gpuData ? gpuData.gpuTotalMb : (gpuIndex != null ? ((gpus && gpus[gpuIndex]?.vram_total_mb) || 16384) : 0);
       const vramPct = gpuTotalMb > 0 ? Math.min(100, Math.round((vramUsedMb / gpuTotalMb) * 100)) : 0;
 
-      const ramMaxMb = st.is_priority ? 61440 : (isBoosted ? 6144 : 1536);
+      const ramMaxMb = st.is_priority ? 61440 : defaultL2RamMb;
 
       list.push({
         ...st,
@@ -553,7 +558,7 @@ export default function UnifiedUserManagement({
     });
 
     return list;
-  }, [systemUsers, students, userGpuMap, gpus]);
+  }, [systemUsers, students, userGpuMap, gpus, defaultL2RamMb]);
 
   // Counts & Metrics
   const totalStudents = students?.length || 0;
@@ -932,7 +937,6 @@ export default function UnifiedUserManagement({
               ) : (
                 filteredData.map((item) => {
                   if (item.type === 'student') {
-                    const defaultL2RamMb = ((level2Slots?.lab_mode || capacity?.lab_mode) === 'cpu60') ? 1536 : 3072;
                     const ramMaxMb = item.is_priority ? 61440 : (item.ram_max_mb || defaultL2RamMb);
                     const ramUsedGb = ((item.ram_used_mb || 0) / 1024).toFixed(1);
                     const ramMaxGb = (ramMaxMb / 1024).toFixed(1);
@@ -951,7 +955,7 @@ export default function UnifiedUserManagement({
                     const hardwareLabel = item.is_priority
                       ? 'GPU 0 (Dedicated) · 20 Cores · 60 GB'
                       : isBoosted
-                        ? 'GPU 1 (Boost) · 4 Cores · 6 GB'
+                        ? `GPU 1 (Boost) · ${l2CpuCores} Core · ${l2RamGb.toFixed(1)} GB · VRAM ${gpuBoostVramMb}MB`
                         : l2HardwareLabel;
 
                     return (
@@ -1290,7 +1294,7 @@ export default function UnifiedUserManagement({
                   // System Users (training1-10, labriset)
                   const isRiset = item.username === 'labriset';
                   const isOnline = item.is_online || (item.total_process_count > 0);
-                  const ramMaxMb = isRiset ? 61440 : (item.ram_max_mb || 1536);
+                  const ramMaxMb = isRiset ? 61440 : (item.ram_max_mb || defaultL2RamMb);
                   const ramUsedGb = ((item.ram_used_mb || 0) / 1024).toFixed(1);
                   const ramMaxGb = (ramMaxMb / 1024).toFixed(1);
                   const ramPct = isOnline ? Math.min(100, Math.round(((item.ram_used_mb || 0) / ramMaxMb) * 100)) : 0;
@@ -1389,7 +1393,7 @@ export default function UnifiedUserManagement({
                       <td className="py-4 px-4">
                         <div className="flex flex-col gap-0.5">
                           <span className="font-mono text-xs text-slate-900 font-semibold">
-                            {isRiset ? 'GPU 0 (Dedicated) | 20 Cores | 60GB' : l2HardwareLabel}
+                            {isRiset ? 'GPU 0 (Dedicated) · 20 Cores · 60 GB' : l2HardwareLabel}
                           </span>
                           <span className="font-mono text-[11px] text-slate-500">
                             {isRiset ? 'Riset Dosen Tetap' : 'Batch Job Pipeline'}

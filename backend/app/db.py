@@ -506,25 +506,16 @@ def set_user_gpu_boost(nim: str, hours: int = 4, reason: str = "Admin Boost", ac
         placeholder = "%s" if engine == "postgres" else "?"
         if is_unlimited:
             expires_str = "2099-12-31 23:59:59"
-            dur_label = "tanpa batas waktu (Unlimited)"
         else:
             expires_str = (datetime.now() + timedelta(hours=clean_hours)).strftime("%Y-%m-%d %H:%M:%S")
-            dur_label = f"selama {clean_hours} jam"
 
         cur.execute(
             "UPDATE users SET gpu_boost_expires_at = {}, gpu_boost_reason = {}, gpu_boost_by = {} "
             "WHERE nim = {}".format(placeholder, placeholder, placeholder, placeholder),
             (expires_str, reason or "Admin Boost", actor, nim),
         )
-        cur.execute(
-            f"INSERT INTO audit_logs (nim, action, detail) VALUES ({placeholder}, {placeholder}, {placeholder})",
-            (
-                nim,
-                "GPU_BOOST",
-                f"GPU 1 Boost Level 2 (VRAM {GPU_BOOST_VRAM_MB} MB) {dur_label} "
-                f"oleh {actor}. Alasan: {reason or 'Admin Boost'}",
-            ),
-        )
+        # Catatan audit ditulis sekali oleh pemanggil (app.main.record_audit) agar
+        # tidak muncul duplikat dan agar tipe/aktor log konsisten.
         conn.commit()
         return True
     except Exception as exc:
@@ -546,10 +537,7 @@ def unset_user_gpu_boost(nim: str, actor: Optional[str] = None, reason: str = "D
             f"WHERE nim = {placeholder}",
             (nim,),
         )
-        cur.execute(
-            f"INSERT INTO audit_logs (nim, action, detail) VALUES ({placeholder}, {placeholder}, {placeholder})",
-            (nim, "GPU_UNBOOST", f"GPU Boost Level 2 dilepas. {reason}" + (f" Oleh {actor}." if actor else "")),
-        )
+        # Audit GPU_UNBOOST ditulis oleh pemanggil (app.main) agar tidak duplikat.
         conn.commit()
         return True
     except Exception as exc:

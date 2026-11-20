@@ -935,7 +935,7 @@ export default function App() {
           {activeTab === 'audit' && (
             <div key="audit" className="motion-view-enter">
               <ErrorBoundary title="Kendala Modul Log Audit">
-                <AuditLogView logs={data?.audit_logs || []} />
+                <AuditLogView logs={data?.audit_logs || []} adminToken={adminToken} />
               </ErrorBoundary>
             </div>
           )}

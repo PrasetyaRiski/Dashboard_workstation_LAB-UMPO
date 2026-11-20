@@ -538,3 +538,113 @@ def test_status_endpoint_includes_mode_fields(client, admin_token):
     assert l2["gpu_boost_max"] == db.GPU_BOOST_MAX_SLOTS
     assert l2["gpu_boost_vram_mb"] == db.GPU_BOOST_VRAM_MB
 
+
+# ---------------------------------------------------------------------------
+# Telemetri JupyterLab harus mengikuti status boost, bukan menebak GPU
+# ---------------------------------------------------------------------------
+
+def test_user_telemetry_defaults_to_cpu_only(client, admin_token):
+    """Mahasiswa tanpa boost TIDAK boleh terlihat memegang GPU/VRAM."""
+    nim = _student("99000101")
+    response = client.get(f"/api/user-telemetry/m{nim}", headers=_headers(admin_token))
+    assert response.status_code == 200, response.text
+    data = response.json()
+
+    assert data["tier"] == "Level 2 (CPU-only)"
+    assert data["gpu_assigned"] == "CPU only"
+    assert data["gpu_index"] is None
+    assert data["vram_limit_mb"] == 0.0
+    assert data["vram_used_mb"] == 0.0
+    assert data["gpu_name"] == "CPU Only (GPU Blocked)"
+    assert data["gpu_total_vram_mb"] == 0
+    assert data["cpu_cores_limit"] == 2
+    assert data["ram_max_mb"] == 3072.0
+
+
+def test_user_telemetry_reflects_gpu_boost_without_changing_cpu_ram(client, admin_token):
+    nim = _student("99000102")
+    grant = client.post(
+        "/api/users/gpu-boost",
+        json={"nim": nim, "hours": 1, "reason": "Uji telemetri boost"},
+        headers=_headers(admin_token),
+    )
+    assert grant.status_code == 200, grant.text
+
+    data = client.get(f"/api/user-telemetry/m{nim}", headers=_headers(admin_token)).json()
+    assert data["tier"] == "Level 2 (GPU Boost)"
+    assert data["gpu_assigned"] == "GPU 1 (Boost)"
+    assert data["gpu_index"] == 1
+    assert data["vram_limit_mb"] == float(db.GPU_BOOST_VRAM_MB)
+    # GPU Boost hanya menambah GPU 1; kuota CPU/RAM tetap baseline Mode 30.
+    assert data["cpu_cores_limit"] == 2
+    assert data["ram_max_mb"] == 3072.0
+
+
+def test_gpu_boost_audit_is_recorded_once(client, admin_token):
+    """Grant/revoke harus menghasilkan tepat satu baris audit, bukan duplikat."""
+    nim = _student("99000105")
+    headers = _headers(admin_token)
+
+    assert client.post(
+        "/api/users/gpu-boost",
+        json={"nim": nim, "hours": 2, "reason": "Uji audit"},
+        headers=headers,
+    ).status_code == 200
+
+    grant_logs = [
+        l for l in db.get_audit_logs(500)
+        if l["action"] == "GPU_BOOST" and str(l["nim"]).endswith(nim)
+    ]
+    assert len(grant_logs) == 1
+    assert "Uji audit" in grant_logs[0]["detail"]
+
+    assert client.post("/api/users/gpu-unboost", json={"nim": nim}, headers=headers).status_code == 200
+
+    unboost_logs = [
+        l for l in db.get_audit_logs(500)
+        if l["action"] == "GPU_UNBOOST" and str(l["nim"]).endswith(nim)
+    ]
+    assert len(unboost_logs) == 1
+
+
+def test_user_telemetry_follows_mode_60_baseline(client, admin_token):
+    nim = _student("99000103")
+    switch = client.post(
+        "/api/lab/profile",
+        json={"mode": "cpu60"},
+        headers=_headers(admin_token),
+    )
+    assert switch.status_code == 200, switch.text
+
+    data = client.get(f"/api/user-telemetry/m{nim}", headers=_headers(admin_token)).json()
+    assert data["tier"] == "Level 2 (CPU-only)"
+    assert data["gpu_index"] is None
+    assert data["vram_limit_mb"] == 0.0
+    assert data["cpu_cores_limit"] == 1
+    assert data["ram_max_mb"] == 1536.0
+
+
+def test_user_telemetry_keeps_running_boost_in_mode_60(client, admin_token):
+    nim = _student("99000104")
+    grant = client.post(
+        "/api/users/gpu-boost",
+        json={"nim": nim, "hours": 1, "reason": "Boost berjalan"},
+        headers=_headers(admin_token),
+    )
+    assert grant.status_code == 200, grant.text
+
+    switch = client.post(
+        "/api/lab/profile",
+        json={"mode": "cpu60"},
+        headers=_headers(admin_token),
+    )
+    assert switch.status_code == 200, switch.text
+
+    data = client.get(f"/api/user-telemetry/m{nim}", headers=_headers(admin_token)).json()
+    assert data["tier"] == "Level 2 (GPU Boost)"
+    assert data["gpu_index"] == 1
+    assert data["vram_limit_mb"] == float(db.GPU_BOOST_VRAM_MB)
+    assert data["cpu_cores_limit"] == 1
+    assert data["ram_max_mb"] == 1536.0
+
+

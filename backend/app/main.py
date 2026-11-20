@@ -849,23 +849,43 @@ def get_user_telemetry(
             target = dict(u)
             break
             
-    from app.db import is_user_priority, get_lab_profile
+    from app.db import is_user_priority, is_user_gpu_boosted, get_lab_profile
     nim = clean_user[1:] if clean_user.startswith("m") and clean_user[1:].isdigit() else clean_user
     is_priority = is_user_priority(nim)
+    # GPU Boost Level 2 hanya berlaku untuk mahasiswa non-prioritas yang sedang di-boost.
+    is_gpu_boosted = (not is_priority) and is_user_gpu_boosted(nim)
     profile = get_lab_profile()
-    is_basic_mode = (profile.get("mode") == "basic") and not is_priority
 
-    assigned_gpu_idx = 0 if is_priority else 1
-    gpu_obj = gpus[assigned_gpu_idx] if len(gpus) > assigned_gpu_idx else {}
-    
+    assigned_gpu_idx = 0 if is_priority else (1 if is_gpu_boosted else None)
+    gpu_obj = (
+        gpus[assigned_gpu_idx]
+        if assigned_gpu_idx is not None and len(gpus) > assigned_gpu_idx
+        else {}
+    )
+
     from app.telemetry import get_user_disk_metrics
     disk_info = get_user_disk_metrics(clean_user, is_priority)
 
-    default_tier = "Level 1 (Priority)" if is_priority else ("Level 2 (Pemrograman Dasar)" if is_basic_mode else "Level 2 (Praktikum AI)")
-    default_gpu_assigned = "GPU 0" if is_priority else ("CPU Only (GPU Standby)" if is_basic_mode else "GPU 1")
-    default_vram_limit = 16311.0 if is_priority else (0.0 if is_basic_mode else 4893.0)
-    default_ram_max = 61440.0 if is_priority else (2048.0 if is_basic_mode else 3072.0)
-    
+    if is_priority:
+        default_tier = "Level 1 (Priority)"
+        default_gpu_assigned = "GPU 0 (Dedicated)"
+        default_vram_limit = 16311.0
+        default_ram_max = 61440.0
+        default_cpu_limit = 20
+    elif is_gpu_boosted:
+        default_tier = "Level 2 (GPU Boost)"
+        default_gpu_assigned = "GPU 1 (Boost)"
+        default_vram_limit = float(GPU_BOOST_VRAM_MB)
+        default_ram_max = float(profile.get("ram_limit_mb", 3072.0))
+        default_cpu_limit = float(profile.get("cpu_limit_cores", 2.0))
+    else:
+        # Baseline Level 2: CPU-only, tanpa akses GPU sama sekali.
+        default_tier = "Level 2 (CPU-only)"
+        default_gpu_assigned = "CPU only"
+        default_vram_limit = 0.0
+        default_ram_max = float(profile.get("ram_limit_mb", 3072.0))
+        default_cpu_limit = float(profile.get("cpu_limit_cores", 2.0))
+
     if not target:
         target = {
             "username": clean_user,
@@ -878,7 +898,7 @@ def get_user_telemetry(
             "vram_percent_of_quota": 0.0,
             "cpu_percent": 0.0,
             "cpu_cores_used": 0.0,
-            "cpu_cores_limit": 20 if is_priority else 2,
+            "cpu_cores_limit": default_cpu_limit,
             "cpu_quota_percent": 0.0,
             "ram_used_mb": 0.0,
             "ram_max_mb": default_ram_max,
@@ -895,21 +915,34 @@ def get_user_telemetry(
         target["disk_quota_gb"] = disk_info["disk_quota_gb"]
         target["disk_percent"] = disk_info["disk_percent"]
         target["is_over_quota"] = disk_info["is_over_quota"]
-        if is_basic_mode:
-            target["tier"] = default_tier
-            target["gpu_assigned"] = default_gpu_assigned
-            target["vram_limit_mb"] = default_vram_limit
-        
-    if is_basic_mode:
-        target["gpu_name"] = "CPU Only (GPU Standby)"
+
+    # Selalu sinkronkan klasifikasi akses dengan status boost terkini, agar sesi
+    # yang sudah berjalan tidak menampilkan GPU/VRAM yang tidak ia miliki.
+    target["tier"] = default_tier
+    target["gpu_assigned"] = default_gpu_assigned
+    target["gpu_index"] = assigned_gpu_idx
+    target["vram_limit_mb"] = default_vram_limit
+    target["cpu_cores_limit"] = default_cpu_limit
+    target["ram_max_mb"] = default_ram_max
+
+    if assigned_gpu_idx is None:
+        target["gpu_name"] = "CPU Only (GPU Blocked)"
         target["gpu_compute_percent"] = 0
         target["gpu_temperature"] = 0
         target["gpu_total_vram_mb"] = 0
+        target["vram_used_mb"] = 0.0
+        target["vram_percent_of_gpu"] = 0.0
+        target["vram_percent_of_quota"] = 0.0
     else:
-        target["gpu_name"] = gpu_obj.get("name", target.get("gpu_assigned", f"GPU {assigned_gpu_idx}"))
+        target["gpu_name"] = gpu_obj.get("name", default_gpu_assigned)
         target["gpu_compute_percent"] = gpu_obj.get("compute_percent", 0)
         target["gpu_temperature"] = gpu_obj.get("temperature", 0)
         target["gpu_total_vram_mb"] = gpu_obj.get("total_vram_mb", 16384)
+        target["vram_percent_of_quota"] = (
+            round((target.get("vram_used_mb", 0.0) / default_vram_limit) * 100, 1)
+            if default_vram_limit > 0
+            else 0.0
+        )
     target["server_time"] = time.strftime("%H:%M:%S")
 
     # Informasi Peringatan Overquota & Instruksi Backup

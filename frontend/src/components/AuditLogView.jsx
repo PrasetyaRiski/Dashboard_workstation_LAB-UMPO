@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ShieldAlert, KeyRound, AlertTriangle, Info, Search, Clock,
-  XCircle, Zap, RotateCcw, UserX, UserCheck, ShieldCheck, SlidersHorizontal
+  XCircle, Zap, RotateCcw, UserX, UserCheck, ShieldCheck, SlidersHorizontal,
+  RefreshCw, Cpu, UserPlus, LogIn
 } from 'lucide-react';
 
 const ACTION_META = {
@@ -19,12 +20,40 @@ const ACTION_META = {
     badgeBorder: 'border-slate-200',
     label: 'Lepas Prioritas GPU',
   },
+  GPU_BOOST: {
+    icon: Zap,
+    color: 'text-sky-700',
+    badgeBg: 'bg-sky-50',
+    badgeBorder: 'border-sky-200',
+    label: 'GPU Boost Level 2',
+  },
+  GPU_UNBOOST: {
+    icon: RotateCcw,
+    color: 'text-slate-600',
+    badgeBg: 'bg-slate-100',
+    badgeBorder: 'border-slate-200',
+    label: 'Cabut GPU Boost',
+  },
+  AUTO_EXPIRE_BOOST: {
+    icon: Clock,
+    color: 'text-amber-700',
+    badgeBg: 'bg-amber-50',
+    badgeBorder: 'border-amber-200',
+    label: 'Boost Kedaluwarsa',
+  },
+  AUTO_EXPIRE_GPU_BOOST: {
+    icon: Clock,
+    color: 'text-amber-700',
+    badgeBg: 'bg-amber-50',
+    badgeBorder: 'border-amber-200',
+    label: 'GPU Boost Kedaluwarsa',
+  },
   KILL_PROCESS: {
     icon: XCircle,
     color: 'text-rose-600',
     badgeBg: 'bg-rose-50',
     badgeBorder: 'border-rose-200',
-    label: 'Hentikan Proses GPU',
+    label: 'Hentikan Proses',
   },
   KILL_USER_ALL: {
     icon: AlertTriangle,
@@ -40,12 +69,26 @@ const ACTION_META = {
     badgeBorder: 'border-amber-200',
     label: 'Kunci Akun Pengguna',
   },
+  BLOCK_USER: {
+    icon: UserX,
+    color: 'text-amber-600',
+    badgeBg: 'bg-amber-50',
+    badgeBorder: 'border-amber-200',
+    label: 'Blokir Akun Pengguna',
+  },
   UNLOCK_USER: {
     icon: UserCheck,
     color: 'text-emerald-600',
     badgeBg: 'bg-emerald-50',
     badgeBorder: 'border-emerald-200',
     label: 'Buka Kunci Akun',
+  },
+  UNBLOCK_USER: {
+    icon: UserCheck,
+    color: 'text-emerald-600',
+    badgeBg: 'bg-emerald-50',
+    badgeBorder: 'border-emerald-200',
+    label: 'Aktifkan Kembali Akun',
   },
   RESET_PASSWORD: {
     icon: KeyRound,
@@ -68,6 +111,13 @@ const ACTION_META = {
     badgeBorder: 'border-rose-200',
     label: 'Storage Melebihi Kuota',
   },
+  OVER_QUOTA_STORAGE: {
+    icon: ShieldAlert,
+    color: 'text-rose-600',
+    badgeBg: 'bg-rose-50',
+    badgeBorder: 'border-rose-200',
+    label: 'Storage Melebihi Kuota',
+  },
   BACKUP_DATABASE: {
     icon: ShieldCheck,
     color: 'text-emerald-600',
@@ -82,7 +132,73 @@ const ACTION_META = {
     badgeBorder: 'border-sky-200',
     label: 'Ubah Mode Lab',
   },
+  SET_LAB_MODE: {
+    icon: SlidersHorizontal,
+    color: 'text-sky-600',
+    badgeBg: 'bg-sky-50',
+    badgeBorder: 'border-sky-200',
+    label: 'Ubah Mode Lab',
+  },
+  EMERGENCY_RELEASE_IDLE: {
+    icon: Cpu,
+    color: 'text-amber-700',
+    badgeBg: 'bg-amber-50',
+    badgeBorder: 'border-amber-200',
+    label: 'Lepas Sesi Idle',
+  },
+  SWEEP_GPU_ZOMBIES: {
+    icon: Cpu,
+    color: 'text-amber-700',
+    badgeBg: 'bg-amber-50',
+    badgeBorder: 'border-amber-200',
+    label: 'Sweep Proses GPU Zombie',
+  },
+  ADD_USER: {
+    icon: UserPlus,
+    color: 'text-emerald-600',
+    badgeBg: 'bg-emerald-50',
+    badgeBorder: 'border-emerald-200',
+    label: 'Tambah Pengguna',
+  },
+  DELETE_USER: {
+    icon: UserX,
+    color: 'text-rose-600',
+    badgeBg: 'bg-rose-50',
+    badgeBorder: 'border-rose-200',
+    label: 'Hapus Pengguna',
+  },
+  LOGIN_DASHBOARD: {
+    icon: LogIn,
+    color: 'text-slate-600',
+    badgeBg: 'bg-slate-100',
+    badgeBorder: 'border-slate-200',
+    label: 'Login Dashboard',
+  },
+  LOGIN_FAILED: {
+    icon: ShieldAlert,
+    color: 'text-rose-600',
+    badgeBg: 'bg-rose-50',
+    badgeBorder: 'border-rose-200',
+    label: 'Login Gagal',
+  },
 };
+
+const FILTER_CHIPS = [
+  { id: 'ALL', label: 'Semua' },
+  { id: 'MODE', label: 'Mode Lab', actions: ['SET_LAB_MODE', 'CHANGE_LAB_PROFILE'] },
+  {
+    id: 'BOOST',
+    label: 'Boost',
+    actions: [
+      'BOOST_PRIORITY', 'UNBOOST_PRIORITY', 'GPU_BOOST', 'GPU_UNBOOST',
+      'AUTO_EXPIRE_BOOST', 'AUTO_EXPIRE_GPU_BOOST',
+    ],
+  },
+  { id: 'KILL_PROCESS', label: 'Kill Proses', actions: ['KILL_PROCESS', 'KILL_USER_ALL'] },
+  { id: 'RESET_PASSWORD', label: 'Reset PW', actions: ['RESET_PASSWORD'] },
+  { id: 'USER_ACCESS', label: 'Akun', actions: ['SET_ROLE', 'BLOCK_USER', 'UNBLOCK_USER', 'LOCK_USER', 'UNLOCK_USER', 'ADD_USER', 'DELETE_USER'] },
+  { id: 'OVER_QUOTA', label: 'Over Quota', actions: ['OVER_QUOTA', 'OVER_QUOTA_STORAGE'] },
+];
 
 function getActionMeta(action) {
   return ACTION_META[action] || {
@@ -94,14 +210,50 @@ function getActionMeta(action) {
   };
 }
 
-export default function AuditLogView({ logs = [] }) {
+export default function AuditLogView({ logs = [], adminToken = '' }) {
   const [filter, setFilter] = useState('ALL');
   const [search, setSearch] = useState('');
+  const [remoteLogs, setRemoteLogs] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [fetchError, setFetchError] = useState('');
 
-  const safeLogs = Array.isArray(logs) ? logs : [];
+  const fetchLogs = useCallback(async () => {
+    if (!adminToken) return;
+    setIsRefreshing(true);
+    try {
+      const res = await fetch(`/api/audit-logs?limit=200&_t=${Date.now()}`, {
+        headers: { 'Authorization': `Bearer ${adminToken}` },
+        cache: 'no-store',
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      if (Array.isArray(json.logs)) {
+        setRemoteLogs(json.logs);
+        setFetchError('');
+      }
+    } catch (err) {
+      setFetchError('Gagal memuat riwayat terbaru dari server.');
+      console.error('Fetch audit logs error:', err);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [adminToken]);
+
+  // Muat riwayat lengkap saat tab dibuka, lalu segarkan berkala.
+  useEffect(() => {
+    fetchLogs();
+    if (!adminToken) return undefined;
+    const interval = setInterval(fetchLogs, 15000);
+    return () => clearInterval(interval);
+  }, [fetchLogs, adminToken]);
+
+  const safeLogs = Array.isArray(remoteLogs)
+    ? remoteLogs
+    : (Array.isArray(logs) ? logs : []);
+  const activeChip = FILTER_CHIPS.find((chip) => chip.id === filter) || FILTER_CHIPS[0];
 
   const filteredLogs = safeLogs.filter((log) => {
-    if (filter !== 'ALL' && log.action !== filter) return false;
+    if (activeChip.actions && !activeChip.actions.includes(log.action)) return false;
     if (search) {
       const q = search.toLowerCase().trim();
       const targetStr = String(log.target || log.nim || '').toLowerCase();
@@ -111,15 +263,6 @@ export default function AuditLogView({ logs = [] }) {
     }
     return true;
   });
-
-  const filterChips = [
-    { id: 'ALL',                label: `Semua (${logs.length})` },
-    { id: 'CHANGE_LAB_PROFILE', label: 'Mode Lab' },
-    { id: 'BOOST_PRIORITY',     label: 'Boost' },
-    { id: 'KILL_PROCESS',       label: 'Kill Proses' },
-    { id: 'RESET_PASSWORD',     label: 'Reset PW' },
-    { id: 'OVER_QUOTA',         label: 'Over Quota' },
-  ];
 
   return (
     <div className="flex flex-col gap-4 font-sans">
@@ -147,8 +290,18 @@ export default function AuditLogView({ logs = [] }) {
 
         <div className="flex items-center gap-2">
           <span className="px-3 py-1 bg-slate-50 text-slate-800 font-mono text-xs font-semibold rounded-xl border border-slate-200 shadow-xs">
-            {logs.length} Peristiwa Terekam
+            {safeLogs.length} Peristiwa Terekam
           </span>
+          <button
+            type="button"
+            onClick={fetchLogs}
+            disabled={isRefreshing || !adminToken}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed text-slate-700 font-mono text-xs font-medium rounded-xl border border-slate-200 shadow-xs transition-colors min-h-[36px] cursor-pointer"
+            title="Muat ulang log audit dari server"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Segarkan
+          </button>
         </div>
       </div>
 
@@ -157,8 +310,11 @@ export default function AuditLogView({ logs = [] }) {
         {/* Filters and Search Bar */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-b border-slate-100 bg-slate-50/70">
           <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto p-1 bg-white rounded-xl border border-slate-200 shadow-xs">
-            {filterChips.map((chip) => {
+            {FILTER_CHIPS.map((chip) => {
               const active = filter === chip.id;
+              const chipCount = chip.id === 'ALL'
+                ? safeLogs.length
+                : safeLogs.filter((log) => chip.actions && chip.actions.includes(log.action)).length;
               return (
                 <button
                   key={chip.id}
@@ -171,6 +327,11 @@ export default function AuditLogView({ logs = [] }) {
                   type="button"
                 >
                   {chip.label}
+                  {chipCount > 0 && (
+                    <span className={`ml-1.5 text-[10px] tabular-nums ${active ? 'text-slate-300' : 'text-slate-400'}`}>
+                      {chipCount}
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -188,6 +349,12 @@ export default function AuditLogView({ logs = [] }) {
           </div>
         </div>
 
+        {fetchError && (
+          <div className="px-4 py-2.5 bg-amber-50 border-b border-amber-200 text-amber-800 text-xs font-sans">
+            {fetchError}
+          </div>
+        )}
+
         {/* Entries */}
         <div className="max-h-[550px] overflow-y-auto divide-y divide-slate-100 font-mono text-xs bg-white">
           {filteredLogs.length === 0 ? (
@@ -201,7 +368,7 @@ export default function AuditLogView({ logs = [] }) {
               const Icon = meta.icon;
               return (
                 <div
-                  key={idx}
+                  key={log.id || idx}
                   className="flex items-start justify-between gap-4 p-4 hover:bg-slate-50 transition-colors"
                 >
                   <div className="flex items-start gap-3.5 min-w-0">

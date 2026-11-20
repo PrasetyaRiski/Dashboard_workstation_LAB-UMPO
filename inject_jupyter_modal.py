@@ -117,7 +117,7 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
         <div class="lab-metric-card">
           <div style="display:flex; justify-content:space-between; align-items:center;">
             <span style="font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; color:#8b949e;">Akselerasi GPU</span>
-            <span id="gauge-txt-gpu-name" style="font-size:10.5px; color:#a78bfa; font-family:ui-monospace,monospace; font-weight:500;">GPU 1</span>
+            <span id="gauge-txt-gpu-name" style="font-size:10.5px; color:#a78bfa; font-family:ui-monospace,monospace; font-weight:500;">Memuat…</span>
           </div>
           <div id="gauge-txt-gpu-comp" style="font-size:20px; font-weight:700; color:#f0f6fc; font-family:ui-monospace,monospace; margin:4px 0 8px;">
             0% <span style="font-size:11px; font-weight:400; color:#8b949e;">(VRAM 0 MB)</span>
@@ -587,7 +587,8 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
       var ramPct = Math.min(100, Math.round((ramUsedMB / ramMaxMB) * 100));
       var gpuComp = Math.round(d.gpu_compute_percent || 0);
       var vramUsed = Math.round(d.vram_used_mb || 0);
-      var vramLimit = Math.round(d.vram_limit_mb || 4893);
+      var vramLimit = Math.round(d.vram_limit_mb != null ? d.vram_limit_mb : 0);
+      var hasGpu = (d.gpu_index !== null && d.gpu_index !== undefined) && vramLimit > 0;
       var diskUsedMB = Math.round(d.disk_used_mb || 0);
       var diskQuotaGB = Math.round(d.disk_quota_gb || 10);
       var diskPct = Math.min(100, Math.round(d.disk_percent || 0));
@@ -606,7 +607,7 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
         var ramLimitDisplay = (ramMaxMB/1024).toFixed(0) + 'G';
         pillRam.innerText = ramDisplay + '/' + ramLimitDisplay;
       }
-      if (pillGpu) pillGpu.innerText = gpuComp + '%';
+      if (pillGpu) pillGpu.innerText = hasGpu ? (gpuComp + '%') : '—';
       if (pillDisk) {
         var diskGB = (diskUsedMB/1024).toFixed(1);
         pillDisk.innerText = diskGB + '/' + diskQuotaGB + 'G';
@@ -640,11 +641,17 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
       var elGpuComp = document.getElementById('gauge-txt-gpu-comp');
       var elGpuName = document.getElementById('gauge-txt-gpu-name');
       var barGpu = document.getElementById('gauge-bar-gpu');
-      if (elGpuName) elGpuName.innerText = d.gpu_name || d.gpu_assigned || 'GPU';
+      if (elGpuName) elGpuName.innerText = d.gpu_name || d.gpu_assigned || 'CPU Only';
       if (elGpuComp) {
-        elGpuComp.innerHTML = gpuComp + '% <span style="font-size:11px; font-weight:400; color:#8b949e;">(VRAM ' + vramUsed + ' / ' + vramLimit + ' MB)</span>';
+        if (hasGpu) {
+          elGpuComp.innerHTML = gpuComp + '% <span style="font-size:11px; font-weight:400; color:#8b949e;">(VRAM ' + vramUsed + ' / ' + vramLimit + ' MB)</span>';
+        } else {
+          elGpuComp.innerHTML = '<span style="font-size:13px; font-weight:500; color:#8b949e;">Tanpa akses GPU</span>';
+        }
       }
-      if (barGpu) barGpu.style.width = Math.max(gpuComp, Math.round((vramUsed/vramLimit)*100)) + '%';
+      if (barGpu) {
+        barGpu.style.width = hasGpu ? Math.min(100, Math.max(gpuComp, Math.round((vramUsed / vramLimit) * 100))) + '%' : '0%';
+      }
 
       var elDiskQuota = document.getElementById('gauge-txt-disk-quota');
       if (elDiskQuota) {
@@ -724,7 +731,9 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
               ram_max_mb: maxMB,
               gpu_compute_percent: 0,
               vram_used_mb: 0,
-              vram_limit_mb: 4893,
+              vram_limit_mb: 0,
+              gpu_index: null,
+              gpu_name: 'CPU Only (GPU Blocked)',
               disk_used_mb: 1024,
               disk_quota_gb: 10,
               disk_percent: 10,

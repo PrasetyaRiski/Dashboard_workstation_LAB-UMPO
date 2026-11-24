@@ -1094,7 +1094,12 @@ def list_database_backups() -> List[Dict[str, Any]]:
     for bdir in dirs_to_check:
         if not os.path.exists(bdir):
             continue
-        for fname in os.listdir(bdir):
+        try:
+            fnames = os.listdir(bdir)
+        except (PermissionError, OSError) as e:
+            logger.debug(f"Akses ditolak membaca direktori backup {bdir}: {e}")
+            continue
+        for fname in fnames:
             if (fname.startswith("lab_users_backup_") or fname.startswith("pre_restore_backup_")) and fname.endswith(".db"):
                 fpath = os.path.join(bdir, fname)
                 try:

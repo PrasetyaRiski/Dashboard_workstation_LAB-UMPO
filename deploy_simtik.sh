@@ -23,8 +23,10 @@ echo "=========================================================="
 sudo mkdir -p /home/public/web/panel-lab
 sudo mkdir -p /home/public/web/data
 # Amankan direktori database: hanya root & admin/service yang boleh akses (blokir akses world-writeable mahasiswa)
-sudo chmod 770 /home/public/web/data 2>/dev/null || true
-sudo chmod 660 /home/public/web/data/*.db 2>/dev/null || true
+sudo mkdir -p /home/public/web/data/backups 2>/dev/null || true
+sudo chmod 770 /home/public/web/data /home/public/web/data/backups 2>/dev/null || true
+sudo chmod 660 /home/public/web/data/*.db /home/public/web/data/backups/*.db 2>/dev/null || true
+sudo chown -R root:edy /home/public/web/data 2>/dev/null || true
 cd /home/public/web/panel-lab
 
 # 2. Sinkronkan dengan GitHub

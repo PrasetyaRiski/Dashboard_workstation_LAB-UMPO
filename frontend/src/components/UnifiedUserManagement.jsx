@@ -3,7 +3,7 @@ import {
   Users, Zap, ShieldCheck, Search,
   AlertTriangle, Clock, UserCheck, UserX, KeyRound, RefreshCw,
   Cpu, Trash2, X, HardDrive, Layers, Database, Server, Download, Eraser,
-  Edit2, Square
+  Edit2, Square, UserPlus
 } from 'lucide-react';
 
 /* ── Live Countdown Timer Component ── */
@@ -196,6 +196,18 @@ export default function UnifiedUserManagement({
   const [gpuBoostModal, setGpuBoostModal] = useState({ isOpen: false, nim: null, nama: '', hours: 4, reason: '' });
   const [resetModal, setResetModal] = useState({ isOpen: false, username: '', newPassword: '', isSubmitting: false });
   const [editNameModal, setEditNameModal] = useState({ isOpen: false, nim: null, currentName: '', newName: '', isSubmitting: false });
+  const [addUserModal, setAddUserModal] = useState({
+    isOpen: false,
+    nim: '',
+    nama: '',
+    role: 'mahasiswa',
+    isPriority: false,
+    priorityDays: 30,
+    password: '',
+    createOsUser: true,
+    isSubmitting: false,
+    errorMsg: ''
+  });
 
   const getAuthHeaders = () => ({
     'Content-Type': 'application/json',
@@ -460,6 +472,61 @@ export default function UnifiedUserManagement({
     }
   };
 
+  const handleAddUserSubmit = async (e) => {
+    e.preventDefault();
+    const cleanNim = addUserModal.nim.trim();
+    const cleanNama = addUserModal.nama.trim();
+
+    if (!cleanNim || !cleanNama) {
+      setAddUserModal(prev => ({ ...prev, errorMsg: 'NIM/Username dan Nama Lengkap wajib diisi.' }));
+      return;
+    }
+
+    setAddUserModal(prev => ({ ...prev, isSubmitting: true, errorMsg: '' }));
+    try {
+      const res = await fetch('/api/users', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          nim: cleanNim,
+          nama: cleanNama,
+          role: addUserModal.role,
+          is_priority: addUserModal.isPriority,
+          priority_days: Number(addUserModal.priorityDays || 30),
+          password: addUserModal.password.trim() || undefined,
+          create_os_user: addUserModal.createOsUser
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast(data.message || `Pengguna ${cleanNama} berhasil ditambahkan.`, 'success');
+        setAddUserModal({
+          isOpen: false,
+          nim: '',
+          nama: '',
+          role: 'mahasiswa',
+          isPriority: false,
+          priorityDays: 30,
+          password: '',
+          createOsUser: true,
+          isSubmitting: false,
+          errorMsg: ''
+        });
+        fetchStudents();
+        fetchCapacity();
+      } else {
+        setAddUserModal(prev => ({
+          ...prev,
+          isSubmitting: false,
+          errorMsg: data.detail || 'Gagal menambahkan pengguna.'
+        }));
+      }
+    } catch (err) {
+      setAddUserModal(prev => ({ ...prev, isSubmitting: false, errorMsg: 'Error: ' + err.message }));
+    }
+  };
+
   // Combine Users & Deduplicate SIMTIK accounts with OS telemetry
   const unifiedList = useMemo(() => {
     const list = [];
@@ -659,10 +726,32 @@ export default function UnifiedUserManagement({
           </div>
 
           <div className="flex items-center gap-2.5">
+            {isAdmin && !isOperator && (
+              <button
+                onClick={() => setAddUserModal({
+                  isOpen: true,
+                  nim: '',
+                  nama: '',
+                  role: 'mahasiswa',
+                  isPriority: false,
+                  priorityDays: 30,
+                  password: '',
+                  createOsUser: true,
+                  isSubmitting: false,
+                  errorMsg: ''
+                })}
+                className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-xs transition-colors duration-150 text-xs cursor-pointer"
+                type="button"
+                title="Daftarkan pengguna baru ke database dan siapkan akun Linux OS"
+              >
+                <UserPlus className="w-3.5 h-3.5" />
+                <span>Tambah Pengguna</span>
+              </button>
+            )}
             {isAdmin && (
               <button
                 onClick={handleExportCSV}
-                className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-white hover:bg-slate-50 text-slate-700 font-semibold border border-slate-200 shadow-xs transition-colors duration-150 text-xs"
+                className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-white hover:bg-slate-50 text-slate-700 font-semibold border border-slate-200 shadow-xs transition-colors duration-150 text-xs cursor-pointer"
                 type="button"
               >
                 <Download className="w-3.5 h-3.5 text-slate-800" />
@@ -1833,6 +1922,211 @@ export default function UnifiedUserManagement({
                   )}
                 </button>
               </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Tambah Pengguna Baru */}
+      {addUserModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs font-sans">
+          <div className="w-full max-w-lg bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden flex flex-col motion-card max-h-[90vh]">
+            
+            {/* Header Modal */}
+            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-100 bg-white shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border border-emerald-200 bg-emerald-50 text-emerald-700 shadow-xs">
+                  <UserPlus className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-sans font-bold text-base text-slate-900 tracking-tight">
+                    Tambah Pengguna Baru
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Daftarkan akun mahasiswa, asisten lab, atau administrator ke sistem
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAddUserModal(prev => ({ ...prev, isOpen: false }))}
+                className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors border border-slate-200 bg-white cursor-pointer"
+                aria-label="Tutup Dialog"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Form Body */}
+            <form onSubmit={handleAddUserSubmit} className="p-5 flex flex-col gap-4 overflow-y-auto flex-1 font-sans">
+              
+              {addUserModal.errorMsg && (
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-start gap-2 leading-relaxed">
+                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600" />
+                  <span>{addUserModal.errorMsg}</span>
+                </div>
+              )}
+
+              {/* NIM / Username */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-700">
+                  NIM Mahasiswa / Username <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={addUserModal.nim}
+                  onChange={(e) => setAddUserModal(prev => ({ ...prev, nim: e.target.value }))}
+                  placeholder="Contoh: 22533001 atau aslab_ai"
+                  className="w-full px-3.5 py-2 text-xs font-mono bg-slate-50/80 border border-slate-200 rounded-xl focus:outline-none focus:border-slate-900 focus:bg-white transition-all text-slate-900"
+                  required
+                  autoFocus
+                />
+                <span className="text-[11px] font-mono text-slate-400">
+                  Untuk mahasiswa, masukkan angka NIM (otomatis dibuatkan akun OS m&lt;nim&gt;).
+                </span>
+              </div>
+
+              {/* Nama Lengkap */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-700">
+                  Nama Lengkap <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={addUserModal.nama}
+                  onChange={(e) => setAddUserModal(prev => ({ ...prev, nama: e.target.value }))}
+                  placeholder="Contoh: Muhammad Rizki"
+                  className="w-full px-3.5 py-2 text-xs bg-slate-50/80 border border-slate-200 rounded-xl focus:outline-none focus:border-slate-900 focus:bg-white transition-all text-slate-900"
+                  required
+                />
+              </div>
+
+              {/* Role Pengguna */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-700">
+                  Role / Hak Akses Pengguna
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { id: 'mahasiswa', label: 'Mahasiswa', desc: 'Praktikan' },
+                    { id: 'aslab', label: 'Aslab', desc: 'Operator Lab' },
+                    { id: 'admin', label: 'Super Admin', desc: 'Akses Penuh' },
+                  ].map(r => (
+                    <button
+                      key={r.id}
+                      type="button"
+                      onClick={() => setAddUserModal(prev => ({ ...prev, role: r.id }))}
+                      className={`p-2.5 rounded-xl border text-left flex flex-col transition-all cursor-pointer ${
+                        addUserModal.role === r.id
+                          ? 'bg-slate-900 text-white border-slate-950 shadow-xs'
+                          : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
+                      }`}
+                    >
+                      <span className="font-semibold text-xs">{r.label}</span>
+                      <span className={`text-[10px] mt-0.5 ${addUserModal.role === r.id ? 'text-slate-300' : 'text-slate-400'}`}>
+                        {r.desc}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Priority Toggle (Level 1) */}
+              <div className="p-3 rounded-xl border border-slate-200 bg-slate-50/70 flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-amber-500" />
+                    <div>
+                      <span className="text-xs font-semibold text-slate-800 block">
+                        Jalur Prioritas Riset (Level 1 Dedicated GPU 0)
+                      </span>
+                      <span className="text-[11px] text-slate-500">
+                        Alokasi 20 Core CPU, 60 GB RAM, dan akses eksklusif GPU 0
+                      </span>
+                    </div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={addUserModal.isPriority}
+                    onChange={(e) => setAddUserModal(prev => ({ ...prev, isPriority: e.target.checked }))}
+                    className="w-4 h-4 text-amber-600 rounded border-slate-300 focus:ring-amber-500 cursor-pointer"
+                  />
+                </div>
+
+                {addUserModal.isPriority && (
+                  <div className="pt-2 border-t border-slate-200/80 flex items-center gap-2 mt-1">
+                    <span className="text-xs text-slate-600 font-mono">Durasi Akses:</span>
+                    <select
+                      value={addUserModal.priorityDays}
+                      onChange={(e) => setAddUserModal(prev => ({ ...prev, priorityDays: Number(e.target.value) }))}
+                      className="px-2.5 py-1 text-xs font-mono bg-white border border-slate-200 rounded-lg focus:outline-none"
+                    >
+                      <option value={7}>7 Hari</option>
+                      <option value={14}>14 Hari</option>
+                      <option value={30}>30 Hari (1 Bulan)</option>
+                      <option value={90}>90 Hari (1 Semester)</option>
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              {/* Password Linux Lokal (Opsional) */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-700">
+                  Password Linux Lokal <span className="text-slate-400 font-normal">(Opsional)</span>
+                </label>
+                <input
+                  type="password"
+                  value={addUserModal.password}
+                  onChange={(e) => setAddUserModal(prev => ({ ...prev, password: e.target.value }))}
+                  placeholder="Kosongkan jika autentikasi diarahkan ke SSO SIMTIK..."
+                  className="w-full px-3.5 py-2 text-xs font-mono bg-slate-50/80 border border-slate-200 rounded-xl focus:outline-none focus:border-slate-900 focus:bg-white transition-all text-slate-900"
+                />
+                <span className="text-[11px] font-mono text-slate-400">
+                  Hanya diisi jika akun non-SIMTIK membutuhkan password login langsung ke OS/Jupyter.
+                </span>
+              </div>
+
+              {/* Auto Create OS User Checkbox */}
+              <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer pt-1">
+                <input
+                  type="checkbox"
+                  checked={addUserModal.createOsUser}
+                  onChange={(e) => setAddUserModal(prev => ({ ...prev, createOsUser: e.target.checked }))}
+                  className="w-4 h-4 text-slate-900 rounded border-slate-300 focus:ring-slate-900"
+                />
+                <span>Otomatis buat akun Linux OS, direktori home 0700, dan symlink dataset_shared</span>
+              </label>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200 mt-2">
+                <button
+                  type="button"
+                  onClick={() => setAddUserModal(prev => ({ ...prev, isOpen: false }))}
+                  disabled={addUserModal.isSubmitting}
+                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={addUserModal.isSubmitting}
+                  className="px-4 py-2 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 disabled:opacity-50 rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  {addUserModal.isSubmitting ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Menyimpan Pengguna...</span>
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="w-3.5 h-3.5" />
+                      <span>Simpan Pengguna</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
             </form>
           </div>
         </div>

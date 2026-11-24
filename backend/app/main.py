@@ -6,9 +6,10 @@ import subprocess
 import time
 import hmac
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from collections import deque, defaultdict
 import psutil
+import re
 
 logger = logging.getLogger("panel-lab")
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Request, Depends, File, Form, UploadFile
@@ -1639,7 +1640,12 @@ def toggle_active(req: UserActionRequest, request: Request, session: Dict[str, A
 class AddUserRequest(BaseModel):
     nim: str
     nama: str
+    role: str = "mahasiswa"
     is_admin: bool = False
+    is_priority: bool = False
+    priority_days: int = 30
+    password: Optional[str] = None
+    create_os_user: bool = True
 
 @app.post("/api/users/clear-cache")
 def clear_user_cache(req: UserActionRequest, request: Request, session: Dict[str, Any] = Depends(verify_operator_or_admin)):
@@ -2124,27 +2130,129 @@ def update_user_name(nim: str, req: UpdateUserNameRequest, request: Request, ses
     )
     return {"success": True, "message": f"Nama untuk NIM {clean_nim} berhasil diperbarui menjadi {clean_nama}."}
 
+def create_system_os_user(os_username: str, password: Optional[str] = None) -> tuple[bool, str]:
+    """Membuat akun user Linux OS, grup video/render, direktori home 0700, dan symlink dataset_shared."""
+    if os.environ.get("TESTING") or os.environ.get("PYTEST_CURRENT_TEST"):
+        return True, "Mock OS user created in test mode"
+
+    import pwd
+    try:
+        try:
+            pwd.getpwnam(os_username)
+            user_exists = True
+        except KeyError:
+            user_exists = False
+
+        if not user_exists:
+            cmd = ["useradd", "-m", "-s", "/bin/bash", "-G", "video,render", os_username]
+            if os.geteuid() != 0:
+                cmd = ["sudo", "-n"] + cmd
+            res = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+            if res.returncode != 0:
+                return False, f"Gagal membuat akun OS: {res.stderr.strip()}"
+
+            chmod_cmd = ["chmod", "0700", f"/home/{os_username}"]
+            if os.geteuid() != 0:
+                chmod_cmd = ["sudo", "-n"] + chmod_cmd
+            subprocess.run(chmod_cmd, check=False, timeout=5)
+
+        # Pasang symlink ~/dataset_shared jika ada
+        shared_path = "/home/dataset_shared"
+        symlink_path = f"/home/{os_username}/dataset_shared"
+        if os.path.exists(shared_path) and os.path.isdir(f"/home/{os_username}") and not os.path.exists(symlink_path):
+            ln_cmd = ["ln", "-s", shared_path, symlink_path]
+            if os.geteuid() != 0:
+                ln_cmd = ["sudo", "-n"] + ln_cmd
+            subprocess.run(ln_cmd, check=False, timeout=5)
+
+        # Set password jika diberikan
+        if password and password.strip():
+            ch_cmd = ["chpasswd"]
+            if os.geteuid() != 0:
+                ch_cmd = ["sudo", "-n"] + ch_cmd
+            proc = subprocess.Popen(ch_cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            _, err = proc.communicate(input=f"{os_username}:{password.strip()}\n", timeout=5)
+            if proc.returncode != 0:
+                return False, f"User OS dibuat tetapi gagal mengatur password: {err.strip()}"
+
+        return True, "Akun OS dan home direktori berhasil disiapkan"
+    except Exception as exc:
+        logger.warning(f"Error creating OS user {os_username}: {exc}")
+        return False, str(exc)
+
 @app.post("/api/users")
 def add_user(req: AddUserRequest, request: Request, session: Dict[str, Any] = Depends(verify_super_admin)):
+    clean_nim = req.nim.strip().lower()
+    if clean_nim.startswith("m") and clean_nim[1:].isdigit():
+        clean_nim = clean_nim[1:]
+
+    clean_nama = req.nama.strip()
+    if not clean_nim or not clean_nama:
+        raise HTTPException(status_code=400, detail="NIM/Username dan Nama Lengkap wajib diisi.")
+
+    if not re.match(r"^[a-zA-Z0-9_\-\.]{3,32}$", clean_nim):
+        raise HTTPException(status_code=400, detail="Format NIM/Username tidak valid (hanya huruf, angka, underscore, dash, titik; 3-32 karakter).")
+
+    target_role = (req.role or "mahasiswa").strip().lower()
+    if target_role not in ["mahasiswa", "aslab", "admin"]:
+        raise HTTPException(status_code=400, detail="Role tidak valid (pilih: mahasiswa, aslab, atau admin).")
+    if req.is_admin:
+        target_role = "admin"
+
     conn, engine = get_connection()
     cur = conn.cursor()
     placeholder = "%s" if engine == "postgres" else "?"
-    cur.execute(f"SELECT nim FROM users WHERE nim = {placeholder}", (req.nim,))
-    if cur.fetchone():
-        raise HTTPException(status_code=400, detail="NIM/Username sudah terdaftar.")
-    
-    cur.execute(
-        f"INSERT INTO users (nim, nama, is_admin) VALUES ({placeholder}, {placeholder}, {placeholder})",
-        (req.nim, req.nama, 1 if req.is_admin else 0)
-    )
-    conn.commit()
+    try:
+        cur.execute(f"SELECT nim FROM users WHERE nim = {placeholder}", (clean_nim,))
+        if cur.fetchone():
+            raise HTTPException(status_code=400, detail=f"Pengguna dengan NIM/Username '{clean_nim}' sudah terdaftar.")
+
+        expires_str = None
+        if req.is_priority:
+            expires_at = datetime.now() + timedelta(days=max(1, int(req.priority_days or 30)))
+            expires_str = expires_at.strftime("%Y-%m-%d %H:%M:%S")
+
+        cur.execute(
+            f"""INSERT INTO users (
+                nim, nama, is_admin, is_active, role, is_priority, priority_expires_at
+            ) VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder})""",
+            (
+                clean_nim,
+                clean_nama,
+                1 if target_role == "admin" else 0,
+                1,
+                target_role,
+                1 if req.is_priority else 0,
+                expires_str,
+            )
+        )
+        conn.commit()
+    finally:
+        cur.close()
+        conn.close()
+
+    os_msg = ""
+    if req.create_os_user:
+        os_username = f"m{clean_nim}" if clean_nim.isdigit() else clean_nim
+        ok, msg = create_system_os_user(os_username, req.password)
+        if not ok:
+            logger.warning(f"Akun DB dibuat tapi OS user gagal: {msg}")
+            os_msg = f" (Perhatian: {msg})"
+
+    admin_nama = session.get("nama") or "Super Admin"
+    role_label = target_role.upper()
+    prio_label = " · Level 1 Prioritas Riset" if req.is_priority else ""
     record_audit(
-        target=f"NIM {req.nim}",
+        target=f"NIM {clean_nim}",
         action="ADD_USER",
-        detail=f"Menambahkan user: {req.nama} oleh {session.get('nama')}.",
+        detail=f"Menambahkan pengguna baru: {clean_nama} ({clean_nim}) sebagai {role_label}{prio_label} oleh {admin_nama}.{os_msg}",
         log_type="info"
     )
-    return {"success": True, "message": "User berhasil ditambahkan."}
+    return {
+        "success": True,
+        "message": f"Pengguna {clean_nama} ({clean_nim}) berhasil ditambahkan sebagai {role_label}{os_msg}.",
+        "nim": clean_nim
+    }
 
 @app.delete("/api/users/{nim}")
 def delete_user(nim: str, request: Request, session: Dict[str, Any] = Depends(verify_super_admin)):

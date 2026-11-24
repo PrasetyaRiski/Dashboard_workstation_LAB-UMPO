@@ -127,14 +127,56 @@ def test_add_user_duplicate_rejected(client):
 
 def test_add_user_invalid_nim_rejected(client):
     headers = _admin_headers()
-    # Karakter ilegal / path traversal
-    res = client.post(
+    # 1. Karakter ilegal / path traversal
+    res1 = client.post(
         "/api/users",
         json={"nim": "../etc/passwd", "nama": "Hacker", "role": "mahasiswa"},
         headers=headers,
     )
+    assert res1.status_code == 400
+    assert "tidak valid" in res1.json()["detail"]
+
+    # 2. Diawali dash/hyphen (mencegah argument injection di CLI useradd)
+    res2 = client.post(
+        "/api/users",
+        json={"nim": "-admin", "nama": "Hacker Dash", "role": "mahasiswa"},
+        headers=headers,
+    )
+    assert res2.status_code == 400
+    assert "tidak valid" in res2.json()["detail"]
+
+
+def test_add_user_password_newline_rejected(client):
+    headers = _admin_headers()
+    # Password mengandung \n atau \r (mencegah chpasswd multiline injection)
+    res = client.post(
+        "/api/users",
+        json={
+            "nim": "22533104",
+            "nama": "User Password Test",
+            "role": "mahasiswa",
+            "password": "pass123\nroot:hacked\n",
+        },
+        headers=headers,
+    )
     assert res.status_code == 400
-    assert "tidak valid" in res.json()["detail"]
+    assert "newline" in res.json()["detail"]
+
+
+def test_delete_user_handles_alphanumeric_username(client):
+    headers = _admin_headers()
+    nim = "aslab_special_1"
+    res_add = client.post(
+        "/api/users",
+        json={"nim": nim, "nama": "Aslab Khusus", "role": "aslab"},
+        headers=headers,
+    )
+    assert res_add.status_code == 200
+
+    res_del = client.delete(f"/api/users/{nim}", headers=headers)
+    assert res_del.status_code == 200
+    assert res_del.json()["success"] is True
+    assert db.get_user(nim) is None
 
 
 def test_add_user_requires_super_admin(client):

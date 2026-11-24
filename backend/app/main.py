@@ -2144,7 +2144,7 @@ def create_system_os_user(os_username: str, password: Optional[str] = None) -> t
             user_exists = False
 
         if not user_exists:
-            cmd = ["useradd", "-m", "-s", "/bin/bash", "-G", "video,render", os_username]
+            cmd = ["useradd", "-m", "-s", "/bin/bash", "-G", "video,render", "--", os_username]
             if os.geteuid() != 0:
                 cmd = ["sudo", "-n"] + cmd
             res = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
@@ -2190,8 +2190,11 @@ def add_user(req: AddUserRequest, request: Request, session: Dict[str, Any] = De
     if not clean_nim or not clean_nama:
         raise HTTPException(status_code=400, detail="NIM/Username dan Nama Lengkap wajib diisi.")
 
-    if not re.match(r"^[a-zA-Z0-9_\-\.]{3,32}$", clean_nim):
-        raise HTTPException(status_code=400, detail="Format NIM/Username tidak valid (hanya huruf, angka, underscore, dash, titik; 3-32 karakter).")
+    if not re.match(r"^[a-zA-Z0-9][a-zA-Z0-9_\-\.]{2,31}$", clean_nim):
+        raise HTTPException(status_code=400, detail="Format NIM/Username tidak valid. Karakter pertama harus huruf atau angka (3-32 karakter).")
+
+    if req.password and ("\n" in req.password or "\r" in req.password):
+        raise HTTPException(status_code=400, detail="Password tidak boleh mengandung karakter baris baru (newline).")
 
     target_role = (req.role or "mahasiswa").strip().lower()
     if target_role not in ["mahasiswa", "aslab", "admin"]:
@@ -2256,22 +2259,27 @@ def add_user(req: AddUserRequest, request: Request, session: Dict[str, Any] = De
 
 @app.delete("/api/users/{nim}")
 def delete_user(nim: str, request: Request, session: Dict[str, Any] = Depends(verify_super_admin)):
+    clean_nim = nim.strip().lower()
+    if clean_nim.startswith("m") and clean_nim[1:].isdigit():
+        clean_nim = clean_nim[1:]
+
     conn, engine = get_connection()
     cur = conn.cursor()
     placeholder = "%s" if engine == "postgres" else "?"
-    cur.execute(f"DELETE FROM users WHERE nim = {placeholder}", (nim,))
+    cur.execute(f"DELETE FROM users WHERE nim = {placeholder}", (clean_nim,))
     conn.commit()
+
     import subprocess
-    os_username = f"m{nim}"
+    os_username = f"m{clean_nim}" if clean_nim.isdigit() else clean_nim
     subprocess.run(["pkill", "-9", "-u", os_username], check=False)
     try:
         subprocess.run(["loginctl", "terminate-user", os_username], check=False, timeout=2)
-    except:
+    except Exception:
         pass
     record_audit(
-        target=f"NIM {nim}",
+        target=f"NIM {clean_nim}",
         action="DELETE_USER",
-        detail="User dihapus dari sistem beserta sesinya.",
+        detail=f"User {clean_nim} (OS user {os_username}) dihapus dari sistem beserta sesinya oleh {session.get('nama')}.",
         log_type="danger"
     )
     return {"success": True, "message": "User berhasil dihapus."}

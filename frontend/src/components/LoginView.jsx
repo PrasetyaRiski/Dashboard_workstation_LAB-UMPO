@@ -160,7 +160,6 @@ export default function LoginView({ onLoginSuccess }) {
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Contoh: Admin"
                   autoComplete="username"
                   className="w-full bg-slate-50/80 border border-slate-200 focus:border-slate-900 focus:bg-white focus:ring-2 focus:ring-slate-900/10 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-900 placeholder:text-slate-400 outline-none transition-all min-h-[42px]"
                   autoFocus

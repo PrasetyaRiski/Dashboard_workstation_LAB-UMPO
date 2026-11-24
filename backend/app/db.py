@@ -727,7 +727,7 @@ def get_audit_logs(limit: int = 100) -> List[Dict[str, Any]]:
     try:
         placeholder = "%s" if engine == "postgres" else "?"
         safe_limit = max(1, min(int(limit), 1000))
-        cur.execute(f"SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT {placeholder}", (safe_limit,))
+        cur.execute(f"SELECT * FROM audit_logs ORDER BY id DESC LIMIT {placeholder}", (safe_limit,))
         rows = cur.fetchall()
         results = []
         for r in rows:
@@ -840,7 +840,7 @@ def get_user_active_session(nim: str) -> Optional[Dict[str, Any]]:
         conn.close()
 
 
-def perform_database_backup(retention_days: int = 14) -> Optional[str]:
+def perform_database_backup(retention_days: int = 14, prefix: str = "lab_users_backup_") -> Optional[str]:
     """
     Melakukan online hot-backup SQLite lab_users.db secara aman menggunakan native SQLite backup API.
     Aman terhadap transaksi konkuren WAL mode tanpa me-lock database.
@@ -889,7 +889,7 @@ def perform_database_backup(retention_days: int = 14) -> Optional[str]:
                 pass
 
         now_str = datetime.now().strftime("%Y%m%d_%H%M%S")
-        dest_filename = f"lab_users_backup_{now_str}.db"
+        dest_filename = f"{prefix}{now_str}.db"
         dest_path = os.path.join(backup_dir, dest_filename)
 
         # Hot backup menggunakan native sqlite3 backup
@@ -924,6 +924,103 @@ def perform_database_backup(retention_days: int = 14) -> Optional[str]:
         return None
 
 
+def perform_database_restore(backup_filename: str) -> Dict[str, Any]:
+    """
+    Melakukan online restore database SQLite lab_users.db dari file snapshot backup secara aman.
+    Menjalankan validasi integritas SQLite, membuat snapshot darurat sebelum restore,
+    dan menyinkronkan WAL checkpoint.
+    """
+    global SQLITE_PATH
+    if USE_POSTGRES:
+        return {"success": False, "message": "Restore otomatis hanya didukung untuk database SQLite lokal."}
+
+    # 1. Sanitasi nama file untuk mencegah path traversal
+    clean_name = os.path.basename(backup_filename.strip())
+    if not clean_name.endswith(".db"):
+        return {"success": False, "message": "Nama file backup tidak valid (harus berakhiran .db)."}
+
+    target_path = SQLITE_PATH
+    if not os.path.exists(target_path):
+        local_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "lab_users.db")
+        if os.path.exists(local_path):
+            target_path = local_path
+        else:
+            return {"success": False, "message": "Database aktif tidak ditemukan untuk dipulihkan."}
+
+    # 2. Cari letak file backup di direktori backup yang valid
+    dirs_to_check = []
+    if SQLITE_PATH:
+        dirs_to_check.append(os.path.join(os.path.dirname(SQLITE_PATH), "backups"))
+    local_backup_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "backups")
+    if local_backup_dir not in dirs_to_check:
+        dirs_to_check.append(local_backup_dir)
+
+    backup_path = None
+    for bdir in dirs_to_check:
+        candidate = os.path.join(bdir, clean_name)
+        if os.path.isfile(candidate):
+            backup_path = candidate
+            break
+
+    if not backup_path:
+        return {"success": False, "message": f"File backup '{clean_name}' tidak ditemukan di server."}
+
+    # 3. Validasi integritas SQLite dan kelengkapan tabel wajib
+    try:
+        chk_conn = sqlite3.connect(backup_path)
+        chk_cur = chk_conn.cursor()
+        chk_cur.execute("PRAGMA integrity_check;")
+        check_row = chk_cur.fetchone()
+        if not check_row or check_row[0] != "ok":
+            chk_conn.close()
+            return {"success": False, "message": f"Integritas berkas backup gagal: {check_row}"}
+
+        chk_cur.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        tables = {r[0] for r in chk_cur.fetchall()}
+        chk_conn.close()
+
+        required_tables = {"users", "system_settings", "audit_logs"}
+        if not required_tables.issubset(tables):
+            return {
+                "success": False,
+                "message": f"File backup tidak valid: tabel wajib tidak lengkap (ditemukan: {', '.join(tables)})"
+            }
+    except Exception as exc:
+        return {"success": False, "message": f"Gagal membaca atau memvalidasi file backup: {exc}"}
+
+    # 4. Emergency Pre-restore Backup: Amankan kondisi database saat ini sebelum ditimpa
+    pre_restore_file = perform_database_backup(prefix="pre_restore_backup_")
+    if not pre_restore_file:
+        return {
+            "success": False,
+            "message": "Gagal membuat snapshot cadangan darurat sebelum pemulihan. Pemulihan dibatalkan demi keselamatan data."
+        }
+
+    # 5. Reverse Hot-Restore menggunakan native SQLite backup API
+    try:
+        src_conn = sqlite3.connect(backup_path)
+        dst_conn = sqlite3.connect(target_path, timeout=15)
+        try:
+            with dst_conn:
+                src_conn.backup(dst_conn)
+            dst_conn.execute("PRAGMA wal_checkpoint(TRUNCATE);")
+            dst_conn.execute("PRAGMA optimize;")
+        finally:
+            dst_conn.close()
+            src_conn.close()
+
+        logger.info(f"✅ Database berhasil dipulihkan dari '{clean_name}'. Cadangan darurat: {pre_restore_file}")
+        return {
+            "success": True,
+            "message": f"Database berhasil dipulihkan dari snapshot '{clean_name}'.",
+            "pre_restore_backup": pre_restore_file,
+            "restored_file": clean_name
+        }
+    except Exception as e:
+        logger.error(f"❌ Gagal memulihkan database dari snapshot: {e}")
+        return {"success": False, "message": f"Kesalahan saat proses restore: {str(e)}"}
+
+
 def cleanup_old_backups(backup_dir: str, retention_days: int = 14):
     """Menghapus file backup yang lebih tua dari retention_days hari, mempertahankan minimal 5 backup terbaru."""
     try:
@@ -931,7 +1028,7 @@ def cleanup_old_backups(backup_dir: str, retention_days: int = 14):
             return
         files = [
             os.path.join(backup_dir, f) for f in os.listdir(backup_dir)
-            if f.startswith("lab_users_backup_") and f.endswith(".db")
+            if (f.startswith("lab_users_backup_") or f.startswith("pre_restore_backup_")) and f.endswith(".db")
         ]
         files.sort(key=os.path.getmtime, reverse=True)
 
@@ -998,7 +1095,7 @@ def list_database_backups() -> List[Dict[str, Any]]:
         if not os.path.exists(bdir):
             continue
         for fname in os.listdir(bdir):
-            if fname.startswith("lab_users_backup_") and fname.endswith(".db"):
+            if (fname.startswith("lab_users_backup_") or fname.startswith("pre_restore_backup_")) and fname.endswith(".db"):
                 fpath = os.path.join(bdir, fname)
                 try:
                     stat = os.stat(fpath)
@@ -1006,6 +1103,7 @@ def list_database_backups() -> List[Dict[str, Any]]:
                         "filename": fname,
                         "path": fpath,
                         "size_kb": round(stat.st_size / 1024, 1),
+                        "is_safety_snapshot": fname.startswith("pre_restore_backup_"),
                         "created_at": datetime.fromtimestamp(stat.st_mtime).isoformat()
                     })
                 except Exception:

@@ -30,7 +30,7 @@ from app.db import (
     set_user_priority, unset_user_priority,
     toggle_user_admin, toggle_user_active, set_user_role,
     is_user_priority, auto_expire_priorities, get_connection,
-    perform_database_backup, list_database_backups, checkpoint_wal_database,
+    perform_database_backup, perform_database_restore, list_database_backups, checkpoint_wal_database,
     get_user, nim_to_username,
     verify_master_pin, get_master_pin_hash, set_master_pin,
     set_user_gpu_boost, unset_user_gpu_boost,
@@ -157,6 +157,10 @@ class ChangeMasterPinRequest(BaseModel):
     current_pin: str
     new_pin: str
     confirm_pin: str
+
+class RestoreDatabaseRequest(BaseModel):
+    filename: str
+    pin: str
 
 _TRUSTED_PROXIES = {
     ip.strip()
@@ -2182,6 +2186,47 @@ def trigger_backup(request: Request, session: Dict[str, Any] = Depends(verify_op
 def get_backups(session: Dict[str, Any] = Depends(verify_operator_or_admin)):
     """Mendaftar seluruh file snapshot backup database yang tersedia"""
     return {"success": True, "backups": list_database_backups()}
+
+@app.post("/api/admin/restore")
+def trigger_restore(
+    req: RestoreDatabaseRequest,
+    request: Request,
+    session: Dict[str, Any] = Depends(verify_super_admin)
+):
+    """Memulihkan database SQLite dari snapshot cadangan (Hanya Super Admin dengan verifikasi PIN)"""
+    client_ip = get_client_ip(request)
+    pin = req.pin.strip()
+    if not pin:
+        raise HTTPException(status_code=400, detail="PIN Super Admin wajib diisi untuk verifikasi pemulihan.")
+
+    db_pin_hash = get_master_pin_hash()
+    target_pin_ref = db_pin_hash if db_pin_hash else ADMIN_PIN
+    if not verify_master_pin(pin, target_pin_ref):
+        record_audit(
+            target="SYSTEM_DATABASE",
+            action="RESTORE_FAILED",
+            detail=f"Percobaan pemulihan database dari '{req.filename}' ditolak: PIN Master salah dari {client_ip}",
+            log_type="danger"
+        )
+        raise HTTPException(status_code=401, detail="PIN Super Admin salah. Otorisasi pemulihan ditolak.")
+
+    res = perform_database_restore(req.filename)
+    if not res.get("success"):
+        raise HTTPException(status_code=500, detail=res.get("message", "Gagal memulihkan database."))
+
+    admin_nama = session.get("nama") or "Super Admin"
+    pre_file = os.path.basename(res.get("pre_restore_backup") or "")
+    record_audit(
+        target="SYSTEM_DATABASE",
+        action="RESTORE_DATABASE",
+        detail=f"Database dipulihkan dari snapshot '{req.filename}' oleh {admin_nama}. Cadangan darurat: {pre_file}",
+        log_type="danger"
+    )
+    return {
+        "success": True,
+        "message": f"Database berhasil dipulihkan dari {req.filename}. Snapshot darurat tersimpan.",
+        "pre_restore_backup": res.get("pre_restore_backup"),
+    }
 
 @app.post("/api/admin/checkpoint-wal")
 def trigger_wal_checkpoint(request: Request, session: Dict[str, Any] = Depends(verify_operator_or_admin)):

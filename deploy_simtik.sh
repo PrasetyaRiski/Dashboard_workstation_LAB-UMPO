@@ -458,7 +458,7 @@ fi
 
 # 7. Penjadwalan Crontab Auto-Backup Database (Setiap jam 02:00 pagi)
 echo "⏰ Memeriksa jadwal Crontab Auto-Backup database..."
-chmod +x /home/public/web/panel-lab/backup_db.py 2>/dev/null || true
+chmod +x /home/public/web/panel-lab/backup_db.py /home/public/web/panel-lab/restore_db.py 2>/dev/null || true
 BACKUP_CRON="0 2 * * * /home/public/web/panel-lab/venv/bin/python /home/public/web/panel-lab/backup_db.py >> /home/public/web/panel-lab/backup.log 2>&1"
 if ! crontab -l 2>/dev/null | grep -q "backup_db.py"; then
     (crontab -l 2>/dev/null; echo "$BACKUP_CRON") | crontab - 2>/dev/null || true

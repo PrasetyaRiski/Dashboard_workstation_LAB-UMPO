@@ -10,6 +10,7 @@ import AdminFileExplorer from './components/AdminFileExplorer';
 import AdminPinModal from './components/AdminPinModal';
 import ChangePinModal from './components/ChangePinModal';
 import ModeSwitchModal from './components/ModeSwitchModal';
+import DatabaseBackupModal from './components/DatabaseBackupModal';
 import CommandPalette from './components/CommandPalette';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoginView from './components/LoginView';
@@ -65,6 +66,7 @@ export default function App() {
   // Database Backup States
   const [backups, setBackups]                     = useState([]);
   const [isBackingUp, setIsBackingUp]             = useState(false);
+  const [isBackupModalOpen, setIsBackupModalOpen] = useState(false);
 
   // Kill Modal
   const [killModal, setKillModal] = useState({
@@ -273,6 +275,35 @@ export default function App() {
       showToast('Error: ' + e.message, 'error');
     } finally {
       setIsBackingUp(false);
+    }
+  };
+
+  const handleRestoreBackup = async (filename, pin) => {
+    try {
+      const res = await fetch('/api/admin/restore', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminToken}`
+        },
+        body: JSON.stringify({ filename, pin })
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        showToast(json.message || 'Database berhasil dipulihkan!', 'success');
+        fetchBackups();
+        fetchStatus();
+        fetchStudents();
+        return { success: true };
+      } else {
+        const msg = json.detail || json.message || 'Gagal memulihkan database';
+        showToast(msg, 'error');
+        return { success: false, message: msg };
+      }
+    } catch (e) {
+      const msg = 'Error: ' + e.message;
+      showToast(msg, 'error');
+      return { success: false, message: msg };
     }
   };
 
@@ -887,6 +918,7 @@ export default function App() {
                     users={data?.users || []}
                     students={students || []}
                     onTriggerBackup={handleTriggerBackup}
+                    onOpenBackupModal={() => setIsBackupModalOpen(true)}
                     isBackingUp={isBackingUp}
                     backups={backups}
                     isAdmin={isAdmin && !isDataStale}
@@ -1026,6 +1058,16 @@ export default function App() {
       />
 
       {/* Modals */}
+      <DatabaseBackupModal
+        isOpen={isBackupModalOpen}
+        onClose={() => setIsBackupModalOpen(false)}
+        backups={backups}
+        onTriggerBackup={handleTriggerBackup}
+        isBackingUp={isBackingUp}
+        onRestoreBackup={handleRestoreBackup}
+        adminRole={adminRole}
+        showToast={showToast}
+      />
       <ModeSwitchModal
         isOpen={modeSwitchModal.isOpen}
         targetMode={modeSwitchModal.targetMode}

@@ -1,7 +1,7 @@
 import React, { memo, useState } from 'react';
 import { 
   Cpu, HardDrive, ShieldCheck, DatabaseBackup, Loader2, Layers, 
-  Zap, Users, UserCheck, AlertTriangle, Check, X
+  Zap, Users, UserCheck, AlertTriangle, Check, X, RotateCcw
 } from 'lucide-react';
 
 function SystemOverview({ 
@@ -10,6 +10,7 @@ function SystemOverview({
   users = [], 
   students = [], 
   onTriggerBackup, 
+  onOpenBackupModal,
   isBackingUp, 
   backups = [], 
   isAdmin,
@@ -603,29 +604,43 @@ function SystemOverview({
               </span>
             </div>
 
-            <button
-              onClick={onTriggerBackup}
-              disabled={isBackingUp || !isAdmin}
-              className={`w-full min-h-[42px] py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 border transition-all duration-200 ${
-                !isAdmin
-                  ? 'bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed opacity-70'
-                  : 'bg-slate-900 hover:bg-slate-800 text-white border-transparent shadow-xs cursor-pointer '
-              }`}
-              type="button"
-              title={isAdmin ? "Buat cadangan snapshot database sekarang" : "Login Administrator untuk mencadangkan database"}
-            >
-              {isBackingUp ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin text-white" />
-                  <span>Mencadangkan...</span>
-                </>
-              ) : (
-                <>
-                  <DatabaseBackup className="w-4 h-4" />
-                  <span>{isAdmin ? 'Cadangkan Database' : 'Login untuk Backup'}</span>
-                </>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <button
+                onClick={onTriggerBackup}
+                disabled={isBackingUp || !isAdmin}
+                className={`flex-1 min-h-[40px] py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 border transition-all duration-200 ${
+                  !isAdmin
+                    ? 'bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed opacity-70'
+                    : 'bg-slate-900 hover:bg-slate-800 text-white border-transparent shadow-xs cursor-pointer'
+                }`}
+                type="button"
+                title={isAdmin ? "Buat cadangan snapshot database sekarang" : "Login Administrator untuk mencadangkan database"}
+              >
+                {isBackingUp ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-white" />
+                    <span>Mencadangkan...</span>
+                  </>
+                ) : (
+                  <>
+                    <DatabaseBackup className="w-4 h-4" />
+                    <span>{isAdmin ? 'Cadangkan' : 'Login'}</span>
+                  </>
+                )}
+              </button>
+
+              {isAdmin && (
+                <button
+                  onClick={onOpenBackupModal}
+                  className="px-3 min-h-[40px] rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-2xs transition-all cursor-pointer"
+                  title="Lihat riwayat snapshot dan opsi pemulihan (restore) database"
+                  type="button"
+                >
+                  <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Pulihkan</span>
+                </button>
               )}
-            </button>
+            </div>
           </div>
         </div>
 

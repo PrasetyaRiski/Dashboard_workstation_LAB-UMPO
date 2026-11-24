@@ -196,7 +196,11 @@ function SystemOverview({
               }
             >
               <span className={`w-1.5 h-1.5 rounded-full ${isLive ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-              {isLive ? 'LIVE' : `TERTUNDA ${staleSeconds}s`}
+              {isLive
+                ? 'LIVE'
+                : staleSeconds > 15
+                ? `TERTUNDA ${staleSeconds}s`
+                : 'SINKRON HTTP'}
             </span>
             <span className="text-xs font-mono text-slate-500">
               {isMode30 ? '• 2 Core · 3.0 GB RAM · GPU 1 Boost 3 Slot' : '• 1 Core · 1.5 GB RAM · CPU-only murni'}

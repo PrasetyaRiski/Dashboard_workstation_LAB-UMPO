@@ -24,7 +24,10 @@ function SystemOverview({
 
   const cpu = system?.cpu || {};
   const mem = system?.memory || {};
-  const disk = system?.disk || {};
+  // Backend mengirim `system.disks.{root,home}`; pertahankan fallback `system.disk`
+  // agar dashboard tetap kompatibel dengan payload versi lama.
+  const disks = system?.disks || {};
+  const disk = system?.disk || disks.home || disks.root || {};
 
   const cpuPercent = Math.round(cpu.percent || 0);
   const memPercent = Math.round(mem.percent || 0);
@@ -32,8 +35,11 @@ function SystemOverview({
   const memTotalGb = (mem.total_gb || 0).toFixed(0);
 
   const diskPercent = Math.round(disk.percent || 0);
-  const diskUsedGb = (disk.used_gb || 0).toFixed(0);
-  const diskTotalGb = (disk.total_gb || 0).toFixed(0);
+  const diskUsedGb = Number(disk.used_gb || 0);
+  const diskTotalGb = Number(disk.total_gb || 0);
+  const diskFreeGb = disk.free_gb != null
+    ? Number(disk.free_gb)
+    : Math.max(0, diskTotalGb - diskUsedGb);
 
   // Calculate cluster totals
   const totalGpus = gpus.length;
@@ -450,7 +456,7 @@ function SystemOverview({
             <div className="flex justify-between text-xs mb-1 font-medium">
               <span className="text-slate-500">Kapasitas Terpakai</span>
               <span className="font-mono tabular-nums font-bold text-slate-900">
-                {diskUsedGb} <span className="text-slate-400 font-normal">/ {diskTotalGb} GB</span> ({diskPercent}%)
+                {diskUsedGb.toFixed(0)} <span className="text-slate-400 font-normal">/ {diskTotalGb.toFixed(0)} GB</span> ({diskPercent}%)
               </span>
             </div>
             <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200 mb-3">
@@ -466,7 +472,7 @@ function SystemOverview({
 
             <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
               <span>Sisa Ruang:</span>
-              <span className="font-bold text-slate-900">{(diskTotalGb - diskUsedGb).toFixed(0)} GB</span>
+              <span className="font-bold text-slate-900">{diskFreeGb.toFixed(0)} GB</span>
             </div>
           </div>
         </div>

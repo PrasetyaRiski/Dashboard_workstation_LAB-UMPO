@@ -88,6 +88,10 @@ if not ADMIN_PIN:
     logger.warning("PENTING: ADMIN_PIN belum dikonfigurasi di .env. Menggunakan kunci acak sementara.")
     ADMIN_PIN = secrets.token_hex(16)
 
+# Username wajib untuk login PIN Master (mode ketat). Nilai bersifat publik;
+# rahasia tetap pada PIN. Dapat diubah lewat environment.
+ADMIN_LOGIN_USERNAME = (_read_env_value("ADMIN_LOGIN_USERNAME") or "Admin").strip() or "Admin"
+
 LAB_INTERNAL_TOKEN = _read_env_value("LAB_INTERNAL_TOKEN")
 if LAB_INTERNAL_TOKEN and len(LAB_INTERNAL_TOKEN) < 32:
     logger.warning("LAB_INTERNAL_TOKEN kurang dari 32 karakter; telemetri internal dinonaktifkan.")
@@ -137,6 +141,7 @@ def verify_super_admin(session: Dict[str, Any] = Depends(get_current_session)) -
 verify_admin = verify_operator_or_admin
 
 class LoginRequest(BaseModel):
+    username: Optional[str] = None
     pin: Optional[str] = None
     nim: Optional[str] = None
     password: Optional[str] = None
@@ -227,8 +232,17 @@ def admin_login(req: LoginRequest, request: Request):
         except Exception:
             pass
 
-    # 1. Login via Master PIN (Super Admin)
+    # 1. Login via Master PIN (Super Admin) + username wajib.
     if req.pin:
+        supplied_username = (req.username or "").strip()
+        if supplied_username.lower() != ADMIN_LOGIN_USERNAME.lower():
+            _fail(
+                "Username master kosong"
+                if not supplied_username
+                else "Username master tidak cocok"
+            )
+            raise HTTPException(status_code=401, detail="Username atau PIN Master salah")
+
         db_pin_hash = get_master_pin_hash()
         target_pin_ref = db_pin_hash if db_pin_hash else ADMIN_PIN
         if verify_master_pin(req.pin, target_pin_ref):
@@ -248,7 +262,7 @@ def admin_login(req: LoginRequest, request: Request):
                 "user": {"nim": None, "nama": "Super Admin", "role": "admin"}
             }
         _fail("PIN Master Admin salah")
-        raise HTTPException(status_code=401, detail="PIN Master Admin salah")
+        raise HTTPException(status_code=401, detail="Username atau PIN Master salah")
 
     # 2. Login via Akun SIMTIK (Aslab / Admin)
     if req.nim and req.password:

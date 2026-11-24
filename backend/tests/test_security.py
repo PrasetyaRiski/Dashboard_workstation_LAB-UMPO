@@ -48,7 +48,7 @@ def test_admin_reads_allowed(client, admin_token):
 
 
 def test_logout_revokes_token(client):
-    login = client.post("/api/admin/login", json={"pin": "test-admin-pin-123"})
+    login = client.post("/api/admin/login", json={"username": "Admin", "pin": "test-admin-pin-123"})
     token = login.json()["token"]
     headers = {"Authorization": f"Bearer {token}"}
 
@@ -59,7 +59,7 @@ def test_logout_revokes_token(client):
 
 
 def _fresh_token(client):
-    response = client.post("/api/admin/login", json={"pin": "test-admin-pin-123"})
+    response = client.post("/api/admin/login", json={"username": "Admin", "pin": "test-admin-pin-123"})
     assert response.status_code == 200, response.text
     return response.json()["token"]
 
@@ -226,7 +226,7 @@ def test_change_master_pin_api(client):
     assert anon.status_code == 401
 
     # Login sebagai admin
-    login_res = client.post("/api/admin/login", json={"pin": initial_pin})
+    login_res = client.post("/api/admin/login", json={"username": "Admin", "pin": initial_pin})
     assert login_res.status_code == 200
     token = login_res.json()["token"]
     headers = {"Authorization": f"Bearer {token}"}
@@ -269,11 +269,11 @@ def test_change_master_pin_api(client):
     assert res.json().get("success") is True
 
     # 6. PIN lama tidak bisa login lagi -> 401
-    old_login = client.post("/api/admin/login", json={"pin": initial_pin})
+    old_login = client.post("/api/admin/login", json={"username": "Admin", "pin": initial_pin})
     assert old_login.status_code == 401
 
     # 7. PIN baru berhasil login -> 200
-    new_login = client.post("/api/admin/login", json={"pin": new_pin})
+    new_login = client.post("/api/admin/login", json={"username": "Admin", "pin": new_pin})
     assert new_login.status_code == 200
     new_token = new_login.json()["token"]
 
@@ -311,7 +311,7 @@ def test_reset_admin_pin_cli(client):
     assert "BERHASIL" in res.stdout
 
     # Login dengan PIN hasil CLI -> 200
-    login_cli = client.post("/api/admin/login", json={"pin": temp_pin})
+    login_cli = client.post("/api/admin/login", json={"username": "Admin", "pin": temp_pin})
     assert login_cli.status_code == 200
 
     # Kembalikan ke initial pin
@@ -393,4 +393,59 @@ def test_backup_database_permissions(tmp_path, monkeypatch):
     # Izin direktori backup harus 0700
     dir_mode = stat.S_IMODE(os.stat(os.path.dirname(backup_path)).st_mode)
     assert dir_mode == 0o700
+
+
+def test_admin_login_requires_username(client):
+    import app.main as main_mod
+
+    # Reset counter kegagalan agar tidak terblokir rate-limit saat pengujian kegagalan
+    main_mod.FAILED_LOGIN_ATTEMPTS.clear()
+    main_mod.FAILED_LOGIN_BY_ACCOUNT.clear()
+
+    valid_pin = "test-admin-pin-123"
+
+    # 1. Login sukses dengan username "Admin" persis
+    res_exact = client.post("/api/admin/login", json={"username": "Admin", "pin": valid_pin})
+    assert res_exact.status_code == 200
+    assert res_exact.json().get("success") is True
+    assert res_exact.json().get("role") == "admin"
+
+    # 2. Case-insensitive: "admin" dan "ADMIN" tetap diterima
+    res_lower = client.post("/api/admin/login", json={"username": "admin", "pin": valid_pin})
+    assert res_lower.status_code == 200
+
+    res_upper = client.post("/api/admin/login", json={"username": "ADMIN", "pin": valid_pin})
+    assert res_upper.status_code == 200
+
+    # 3. Tanpa username ditolak (mode ketat) -> 401
+    res_no_user = client.post("/api/admin/login", json={"pin": valid_pin})
+    assert res_no_user.status_code == 401
+    assert "Username atau PIN Master salah" in res_no_user.json().get("detail", "")
+
+    # 4. Username kosong / whitespace ditolak -> 401
+    res_empty = client.post("/api/admin/login", json={"username": "   ", "pin": valid_pin})
+    assert res_empty.status_code == 401
+    assert "Username atau PIN Master salah" in res_empty.json().get("detail", "")
+
+    # 5. Username salah (misalnya 'root' atau nama sembarang) ditolak -> 401
+    res_wrong_user = client.post("/api/admin/login", json={"username": "root", "pin": valid_pin})
+    assert res_wrong_user.status_code == 401
+    assert "Username atau PIN Master salah" in res_wrong_user.json().get("detail", "")
+
+    # 6. Username benar tapi PIN salah ditolak -> 401
+    res_wrong_pin = client.post("/api/admin/login", json={"username": "Admin", "pin": "salah-kunci-9999"})
+    assert res_wrong_pin.status_code == 401
+    assert "Username atau PIN Master salah" in res_wrong_pin.json().get("detail", "")
+
+    # 7. Endpoint kompatibilitas verify-pin juga mewajibkan username
+    res_verify_valid = client.post("/api/admin/verify-pin", json={"username": "Admin", "pin": valid_pin})
+    assert res_verify_valid.status_code == 200
+
+    res_verify_no_user = client.post("/api/admin/verify-pin", json={"pin": valid_pin})
+    assert res_verify_no_user.status_code == 401
+
+    # Bersihkan kembali counter
+    main_mod.FAILED_LOGIN_ATTEMPTS.clear()
+    main_mod.FAILED_LOGIN_BY_ACCOUNT.clear()
+
 

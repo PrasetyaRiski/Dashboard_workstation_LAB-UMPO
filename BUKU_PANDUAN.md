@@ -286,9 +286,11 @@ Bagian ini ditujukan bagi Asisten Laboratorium dan Dosen Pengelola yang bertugas
 Untuk mengakses fungsi administratif pada Web Dashboard:
 1. Klik tombol **Login Admin** di pojok kanan atas bilah navigasi dashboard.
 2. Jendela sembul (*modal dialog*) otentikasi akan muncul.
-3. Masukkan **PIN Master Administrator** laboratorium yang telah ditetapkan.
-4. Tekan tombol **Masuk**.
-5. Setelah terverifikasi, label mode di bilah atas akan berubah menjadi **Super Admin Mode**, dan seluruh tombol operasional (Boost, Clear Cache, Kill Sesi, File Explorer, Log Audit, Snapshot) akan aktif secara otomatis.
+3. Pilih tab **Root / Master Admin**.
+4. Masukkan **Username Operator** (default: `Admin`).
+5. Masukkan **Password / PIN Master Administrator** laboratorium yang telah ditetapkan.
+6. Tekan tombol **Masuk ke Konsol Dashboard**.
+7. Setelah terverifikasi, label mode di bilah atas akan berubah menjadi **Super Admin Mode**, dan seluruh tombol operasional (Boost, Clear Cache, Kill Sesi, File Explorer, Log Audit, Snapshot) akan aktif secara otomatis.
 
 ---
 

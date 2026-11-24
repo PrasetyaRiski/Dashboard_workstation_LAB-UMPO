@@ -141,6 +141,8 @@ def main():
     print(f"   Hash scrypt tersimpan di DB: {hashed[:32]}...")
     if updated_files:
         print(f"   File disinkronkan          : {', '.join(updated_files)}")
+    admin_user = os.getenv("ADMIN_LOGIN_USERNAME", "Admin")
+    print(f"   Username Operator          : {admin_user}")
     print(f"   PIN Master Baru            : {new_pin}\n")
 
     # 5. Opsional restart service dashboard agar sesi in-memory lama di-refresh

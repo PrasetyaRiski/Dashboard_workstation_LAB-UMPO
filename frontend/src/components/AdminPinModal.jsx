@@ -5,6 +5,7 @@ export default function AdminPinModal({ isOpen, onSuccess, onClose }) {
   const [loginMode, setLoginMode] = useState('simtik'); // 'simtik' | 'pin'
   const [nim, setNim] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
   const [pin, setPin] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -21,8 +22,8 @@ export default function AdminPinModal({ isOpen, onSuccess, onClose }) {
         return;
       }
     } else {
-      if (!pin.trim()) {
-        setErrorMsg('PIN Operator wajib diisi.');
+      if (!username.trim() || !pin.trim()) {
+        setErrorMsg('Username dan PIN Master wajib diisi.');
         return;
       }
     }
@@ -40,7 +41,7 @@ export default function AdminPinModal({ isOpen, onSuccess, onClose }) {
         res = await fetch('/api/admin/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ pin: pin.trim() }),
+          body: JSON.stringify({ username: username.trim(), pin: pin.trim() }),
         });
       }
 
@@ -110,7 +111,7 @@ export default function AdminPinModal({ isOpen, onSuccess, onClose }) {
             }`}
           >
             <Key className="w-3.5 h-3.5" />
-            <span>PIN Root Operator</span>
+            <span>Root / Master Admin</span>
           </button>
         </div>
 
@@ -153,19 +154,36 @@ export default function AdminPinModal({ isOpen, onSuccess, onClose }) {
               </div>
             </>
           ) : (
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                PIN Master Server
-              </label>
-              <input
-                type="password"
-                value={pin}
-                onChange={(e) => setPin(e.target.value)}
-                placeholder="Masukkan kode otorisasi PIN…"
-                className="w-full bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white focus:ring-2 focus:ring-sky-500/20 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-900 placeholder:text-slate-400 outline-none transition-all min-h-[44px]"
-                autoFocus
-              />
-            </div>
+            <>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Username Operator
+                </label>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Contoh: Admin"
+                  autoComplete="username"
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white focus:ring-2 focus:ring-sky-500/20 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-900 placeholder:text-slate-400 outline-none transition-all min-h-[44px]"
+                  autoFocus
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Password / PIN Master
+                </label>
+                <input
+                  type="password"
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value)}
+                  placeholder="Masukkan kode otorisasi PIN…"
+                  autoComplete="current-password"
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white focus:ring-2 focus:ring-sky-500/20 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-900 placeholder:text-slate-400 outline-none transition-all min-h-[44px]"
+                />
+              </div>
+            </>
           )}
 
           {/* Action Buttons */}

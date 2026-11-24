@@ -29,6 +29,17 @@ def main():
         print("❌ Tidak ada file backup database yang ditemukan.")
         sys.exit(1)
 
+    if len(sys.argv) > 1 and sys.argv[1] in ("--help", "-h"):
+        print(__doc__)
+        sys.exit(0)
+
+    if len(sys.argv) > 1 and sys.argv[1] in ("--list", "-l"):
+        print("\n📋 Snapshot Cadangan yang Tersedia:")
+        for idx, b in enumerate(backups[:15], start=1):
+            tag = " [Darurat]" if b.get("is_safety_snapshot") else ""
+            print(f"  [{idx}] {b['filename']} ({b['size_kb']} KB) - {b['created_at']}{tag}")
+        sys.exit(0)
+
     target_file = None
     if len(sys.argv) > 1:
         target_file = sys.argv[1].strip()

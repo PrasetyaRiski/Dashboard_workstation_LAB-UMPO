@@ -989,6 +989,53 @@ def get_user_telemetry(
     else:
         target["over_quota_warning"] = None
 
+    # Karakteristik & Kapasitas Beban Kerja berdasarkan spesifikasi alokasi hardware
+    lab_mode = profile.get("mode", LAB_MODE_BOOST30)
+    if is_priority:
+        target["workload_specs"] = {
+            "mode": "priority",
+            "name": "Level 1 Prioritas Riset (20 Core · 60 GB RAM · GPU 0 Dedicated)",
+            "cores": 20.0,
+            "ram_gb": 60.0,
+            "gpu_allowed": True,
+            "capable_for": "Deep Learning skala penuh, pelatihan PyTorch/TensorFlow, Computer Vision resolusi tinggi, pemrosesan dataset besar, dan riset skripsi/dosen.",
+            "limitations": "Dedicated GPU 0 terisolasi penuh (16 GB VRAM, 60 GB RAM). Gunakan komputasi secara bertanggung jawab.",
+            "is_oom_risk": False,
+        }
+    elif is_gpu_boosted:
+        target["workload_specs"] = {
+            "mode": "boosted",
+            "name": f"Level 2 GPU Boost Aktif (2 Core · 3.0 GB RAM · GPU 1 {GPU_BOOST_VRAM_MB} MB)",
+            "cores": 2.0,
+            "ram_gb": 3.0,
+            "gpu_allowed": True,
+            "capable_for": "Akselerasi GPU 1 untuk model AI, CNN, Machine Learning berbasis CUDA, dan inferensi neural network (selama pemakaian VRAM < 4.8 GB).",
+            "limitations": "Batas RAM sistem tetap 3.0 GB, CPU 2 Core. Akses GPU bersifat sementara dan akan kembali ke CPU-only saat kedaluwarsa.",
+            "is_oom_risk": target.get("ram_percent", 0) >= 85.0,
+        }
+    elif lab_mode == LAB_MODE_CPU60 or lab_mode in ("cpu60", "basic", "standard"):
+        target["workload_specs"] = {
+            "mode": "cpu60",
+            "name": "Mode 60 (1 Core CPU · 1.5 GB RAM · Tanpa GPU)",
+            "cores": 1.0,
+            "ram_gb": 1.5,
+            "gpu_allowed": False,
+            "capable_for": "Scripting Python/C/Java, algoritma dasar, struktur data, pengolahan file CSV/JSON kecil (<50MB), dan visualisasi data sederhana.",
+            "limitations": "Maks RAM 1.5 GB. Beban kerja > 1.5 GB akan dihentikan paksa (OOM Kill). Tidak mendukung Machine Learning / Deep Learning (PyTorch/TensorFlow) dan GPU diblokir.",
+            "is_oom_risk": target.get("ram_percent", 0) >= 80.0,
+        }
+    else:
+        target["workload_specs"] = {
+            "mode": "boost30",
+            "name": "Mode 30 (2 Core CPU · 3.0 GB RAM · GPU Boost Ready)",
+            "cores": 2.0,
+            "ram_gb": 3.0,
+            "gpu_allowed": True,
+            "capable_for": "Analisis data menengah (Pandas/Numpy), Machine Learning klasik (Scikit-Learn/XGBoost), OpenCV dasar, multi-core 2 Core, serta opsi GPU Boost untuk model AI.",
+            "limitations": "Batas RAM sistem 3.0 GB. Tidak mendukung model AI besar / LLM (>7B). Akses GPU membutuhkan izin GPU Boost dari Asisten Lab.",
+            "is_oom_risk": target.get("ram_percent", 0) >= 85.0,
+        }
+
     return target
 
 

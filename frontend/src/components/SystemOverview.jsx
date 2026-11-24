@@ -1,7 +1,7 @@
 import React, { memo, useState } from 'react';
 import { 
   Cpu, HardDrive, ShieldCheck, DatabaseBackup, Loader2, Layers, 
-  Zap, Users, UserCheck, AlertTriangle
+  Zap, Users, UserCheck, AlertTriangle, Check, X
 } from 'lucide-react';
 
 function SystemOverview({ 
@@ -292,6 +292,42 @@ function SystemOverview({
               )}
             </button>
           )}
+        </div>
+
+        {/* Row 3: Kapasitas & Batasan Beban Kerja Teknis */}
+        <div className={`p-3 rounded-xl border text-xs flex flex-col md:flex-row md:items-start gap-3 ${
+          isMode30
+            ? 'bg-emerald-50/40 border-emerald-200/70 text-emerald-950'
+            : 'bg-sky-50/40 border-sky-200/70 text-sky-950'
+        }`}>
+          <div className="flex items-center gap-1.5 font-bold shrink-0 text-slate-800">
+            <Cpu className="w-3.5 h-3.5 text-slate-600" />
+            <span>Kapasitas Spesifikasi {isMode30 ? 'Mode 30 (2 Core · 3.0 GB)' : 'Mode 60 (1 Core · 1.5 GB)'}:</span>
+          </div>
+          <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-2.5 text-[11px] leading-relaxed text-slate-700 font-sans">
+            <div className="flex items-start gap-1.5">
+              <span className="font-bold text-emerald-700 shrink-0 flex items-center gap-0.5">
+                <Check className="w-3 h-3 text-emerald-600" />
+                Mampu:
+              </span>
+              <span>
+                {isMode30
+                  ? 'Analisis data menengah (Pandas/Numpy), Machine Learning klasik (Scikit-Learn/XGBoost), OpenCV, multi-core (2 Core). Opsi GPU Boost (VRAM 4.8 GB) untuk model AI kecil.'
+                  : 'Scripting & pemrograman umum (Python/C/Java/Bash), algoritma standar, struktur data, pengolahan file CSV/JSON kecil (< 50 MB), visualisasi data sederhana.'}
+              </span>
+            </div>
+            <div className="flex items-start gap-1.5">
+              <span className="font-bold text-rose-700 shrink-0 flex items-center gap-0.5">
+                <X className="w-3 h-3 text-rose-600" />
+                Batas:
+              </span>
+              <span>
+                {isMode30
+                  ? 'Beban memori > 3.0 GB RAM akan dihentikan cgroup. Tidak mendukung model AI besar / LLM (>7B) yang butuh VRAM > 4.8 GB.'
+                  : 'Dilarang untuk Machine Learning / Deep Learning (PyTorch/TensorFlow). Dataset > 200 MB akan melebihi RAM 1.5 GB dan memicu OOM Kill otomatis. GPU diblokir.'}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 

@@ -26,7 +26,21 @@ export default function ModeSwitchModal({
     accentColor: 'text-sky-600',
     badgeBg: 'bg-sky-50 text-sky-700 border-sky-200',
     icon: Terminal,
-    description: 'Membuka kapasitas klaster hingga 60 sesi mahasiswa praktikum sekaligus. Fitur GPU Boost dikunci mati dan dinonaktifkan secara global.',
+    description: 'Membuka kapasitas klaster hingga 60 sesi mahasiswa sekaligus (1 Core CPU · 1.5 GB RAM). Fitur GPU Boost dikunci mati dan dinonaktifkan secara global.',
+    workload: {
+      title: 'Kemampuan Beban Kerja (1 Core · 1.5 GB RAM · Tanpa GPU)',
+      supported: [
+        'Scripting & pemrograman umum (Python, C/C++, Java, Bash)',
+        'Algoritma standar, struktur data, dan simulasi logika/matematis ringan',
+        'Pengolahan data tabular kecil (CSV / JSON di bawah 50 MB)',
+        'Visualisasi data sederhana (Matplotlib / Seaborn skala kecil)',
+      ],
+      unsupported: [
+        'Machine Learning & Deep Learning (PyTorch, TensorFlow, Keras tidak didukung)',
+        'Dataset besar (> 200 MB akan melebihi RAM 1.5 GB dan memicu OOM Kill otomatis)',
+        'Komputasi grafis / AI berakselerasi GPU (akses GPU diblokir secara hardware)',
+      ],
+    },
     changes: [
       {
         label: 'Kapasitas Kuota Level 2',
@@ -70,7 +84,21 @@ export default function ModeSwitchModal({
     accentColor: 'text-emerald-600',
     badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
     icon: Layers,
-    description: 'Membatasi kapasitas praktikum menjadi maksimal 30 mahasiswa (2 Core / 3 GB) dan mengaktifkan fitur GPU Boost (hingga 3 slot akselerasi GPU 1 sementara).',
+    description: 'Membatasi kapasitas menjadi maksimal 30 mahasiswa (2 Core CPU · 3.0 GB RAM) dan mengizinkan fitur GPU Boost (hingga 3 slot akselerasi GPU 1 VRAM 4.8 GB).',
+    workload: {
+      title: 'Kemampuan Beban Kerja (2 Core · 3.0 GB RAM · GPU Boost Ready)',
+      supported: [
+        'Analisis data skala menengah (Pandas / Numpy / Polars dengan dataset ~1 GB)',
+        'Machine Learning klasik (Scikit-Learn, XGBoost, Regresi, Random Forest, SVM)',
+        'Pengolahan citra digital dasar (OpenCV filtering, deteksi fitur, transformasi)',
+        'Multi-core processing & pemodelan statistik (2 Core CPU / 3.0 GB RAM)',
+        'Dengan GPU Boost (jika aktif): Neural Network ringan / CNN / AI kecil (VRAM < 4.8 GB)',
+      ],
+      unsupported: [
+        'Model AI skala besar / LLM parameter besar (> 7B) yang butuh VRAM > 4.8 GB',
+        'Beban komputasi yang melebihi batas 3.0 GB RAM sistem (akan dihentikan cgroup)',
+      ],
+    },
     changes: [
       {
         label: 'Kapasitas Kuota Level 2',
@@ -216,6 +244,41 @@ export default function ModeSwitchModal({
               })}
             </div>
           </div>
+
+          {/* Workload Capabilities & Technical Limits */}
+          {modeConfig.workload && (
+            <div className="flex flex-col gap-2">
+              <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400">
+                Kapasitas Beban Kerja Spesifikasi Target:
+              </span>
+
+              <div className="border border-slate-200 rounded-xl p-3.5 bg-slate-50/70 flex flex-col gap-2.5 text-xs font-sans">
+                <div>
+                  <div className="font-semibold text-emerald-700 flex items-center gap-1.5 mb-1 text-[11.5px]">
+                    <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>Mampu Menjalankan (Beban Kerja yang Didukung):</span>
+                  </div>
+                  <ul className="list-disc list-inside text-slate-600 text-[11px] space-y-0.5 leading-relaxed pl-1">
+                    {modeConfig.workload.supported.map((item, idx) => (
+                      <li key={idx}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="pt-2 border-t border-slate-200/70">
+                  <div className="font-semibold text-rose-700 flex items-center gap-1.5 mb-1 text-[11.5px]">
+                    <X className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                    <span>Batas Kemampuan (Tidak Didukung):</span>
+                  </div>
+                  <ul className="list-disc list-inside text-slate-600 text-[11px] space-y-0.5 leading-relaxed pl-1">
+                    {modeConfig.workload.unsupported.map((item, idx) => (
+                      <li key={idx}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Modal Footer Actions */}

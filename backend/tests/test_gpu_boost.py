@@ -559,6 +559,10 @@ def test_user_telemetry_defaults_to_cpu_only(client, admin_token):
     assert data["gpu_total_vram_mb"] == 0
     assert data["cpu_cores_limit"] == 2
     assert data["ram_max_mb"] == 3072.0
+    assert "workload_specs" in data
+    assert data["workload_specs"]["cores"] == 2.0
+    assert "capable_for" in data["workload_specs"]
+    assert "limitations" in data["workload_specs"]
 
 
 def test_user_telemetry_reflects_gpu_boost_without_changing_cpu_ram(client, admin_token):
@@ -578,6 +582,8 @@ def test_user_telemetry_reflects_gpu_boost_without_changing_cpu_ram(client, admi
     # GPU Boost hanya menambah GPU 1; kuota CPU/RAM tetap baseline Mode 30.
     assert data["cpu_cores_limit"] == 2
     assert data["ram_max_mb"] == 3072.0
+    assert data["workload_specs"]["mode"] == "boosted"
+    assert data["workload_specs"]["gpu_allowed"] is True
 
 
 def test_gpu_boost_audit_is_recorded_once(client, admin_token):

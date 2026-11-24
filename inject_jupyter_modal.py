@@ -82,6 +82,27 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
         </div>
       </div>
 
+      <!-- Hardware Specifications & Workload Capacity Banner -->
+      <div id="workload-guideline-box" style="background:#161b22; border:1px solid #30363d; border-radius:8px; padding:12px 14px; margin-bottom:12px; font-size:11.5px; line-height:1.45;">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; flex-wrap:wrap;">
+          <div style="display:flex; align-items:center; gap:6px; font-weight:600; color:#f0f6fc;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg>
+            <span id="wg-title">Kapasitas Spesifikasi: Memuat data...</span>
+          </div>
+          <span id="wg-badge" style="font-size:10px; font-family:ui-monospace,monospace; font-weight:600; padding:2px 8px; border-radius:4px; background:#21262d; border:1px solid #30363d; color:#8b949e;">--</span>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <div style="background:#0d1117; border:1px solid #21262d; border-radius:6px; padding:7px 10px; font-size:11px;">
+            <strong style="color:#3fb950;">✓ Mampu Menjalankan:</strong>
+            <span id="wg-capable" style="color:#c9d1d9; margin-left:5px;">Scripting umum, algoritma dasar, struktur data, pengolahan CSV/JSON kecil (&lt;50MB), dan visualisasi data sederhana.</span>
+          </div>
+          <div style="background:#0d1117; border:1px solid #21262d; border-radius:6px; padding:7px 10px; font-size:11px;">
+            <strong style="color:#ff7b72;">✕ Batas Kemampuan:</strong>
+            <span id="wg-limits" style="color:#c9d1d9; margin-left:5px;">Batas memori sistem. Beban kerja melebihi kapasitas RAM akan dihentikan paksa (OOM Kill).</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Bento Grid: 4 Metric Cards (Responsive) -->
       <div class="lab-bento-grid">
         
@@ -671,6 +692,24 @@ MODAL_HTML_SNIPPET = r'''<!-- === BEGIN LAB AI UMPO MODAL ANNOUNCEMENT === -->
 
       var syncTime = document.getElementById('modal-sync-time');
       if (syncTime) syncTime.innerText = d.server_time || new Date().toLocaleTimeString();
+
+      var wgTitle = document.getElementById('wg-title');
+      var wgBadge = document.getElementById('wg-badge');
+      var wgCapable = document.getElementById('wg-capable');
+      var wgLimits = document.getElementById('wg-limits');
+
+      if (d.workload_specs) {
+        if (wgTitle) wgTitle.innerText = 'Kapasitas Spesifikasi: ' + d.workload_specs.name;
+        if (wgBadge) {
+          var isGpuReady = !!d.workload_specs.gpu_allowed;
+          wgBadge.innerText = hasGpu ? 'GPU Aktif' : (isGpuReady ? 'GPU Boost Ready' : 'CPU Only');
+          wgBadge.style.color = hasGpu ? '#58a6ff' : (isGpuReady ? '#a78bfa' : '#38bdf8');
+          wgBadge.style.borderColor = hasGpu ? '#1f6feb' : (isGpuReady ? 'rgba(167,139,250,0.4)' : 'rgba(56,189,248,0.4)');
+          wgBadge.style.background = hasGpu ? 'rgba(56,189,248,0.1)' : 'rgba(33,38,45,0.9)';
+        }
+        if (wgCapable) wgCapable.innerText = d.workload_specs.capable_for;
+        if (wgLimits) wgLimits.innerText = d.workload_specs.limitations;
+      }
 
       var oqBox = document.getElementById('overquota-alert-box');
       var oqUsed = document.getElementById('oq-used-val');

@@ -382,6 +382,24 @@ export default function App() {
     }
   }, [isAdmin, fetchStatus]);
 
+  // Jaring pengaman sinkronisasi: bila WebSocket terputus atau snapshot sudah
+  // basi, tetap tarik /api/status lewat HTTP setiap 10 detik.
+  const syncStateRef = useRef({ isConnected: false, staleSeconds: 0 });
+  useEffect(() => {
+    syncStateRef.current = { isConnected, staleSeconds };
+  }, [isConnected, staleSeconds]);
+
+  useEffect(() => {
+    if (!isAdmin) return undefined;
+    const timer = setInterval(() => {
+      const state = syncStateRef.current;
+      if (!state.isConnected || state.staleSeconds > 15) {
+        fetchStatus();
+      }
+    }, 10000);
+    return () => clearInterval(timer);
+  }, [isAdmin, fetchStatus]);
+
   // Global Keyboard Shortcuts (Hanya aktif saat login)
   useEffect(() => {
     if (!isAdmin) return;
@@ -872,6 +890,8 @@ export default function App() {
                     isBackingUp={isBackingUp}
                     backups={backups}
                     isAdmin={isAdmin && !isDataStale}
+                    isLive={isConnected && !isDataStale}
+                    staleSeconds={staleSeconds}
                     level2Slots={data?.level2_slots}
                     onEmergencyReleaseIdle={handleEmergencyReleaseIdle}
                     onSwitchMode={handleOpenModeSwitch}

@@ -19,6 +19,7 @@ import sqlite3
 import subprocess
 import time
 from datetime import datetime, timezone
+from typing import Any, Dict
 
 logger = logging.getLogger("lab_policy")
 
@@ -243,6 +244,51 @@ def get_active_level2_sessions(include_bypass: bool = False):
 
 def count_active_level2_students() -> int:
     return len(get_active_level2_sessions())
+
+
+_SESSION_SUMMARY_CACHE: Dict[str, Any] = {"ts": 0.0, "data": None}
+_SESSION_SUMMARY_TTL = 2.0
+
+
+def get_active_session_summary(use_cache: bool = True) -> Dict[str, Any]:
+    """Ringkasan sesi aktif: mahasiswa Level 2 (kuota) vs sesi bypass.
+
+    Sesi Admin, Aslab, dan mahasiswa Level 1 tidak memakai kuota praktikum,
+    tetapi tetap dilaporkan terpisah agar dashboard tidak terlihat "0" padahal
+    ada pengguna yang sedang online.
+
+    Hasil di-cache singkat karena snapshot telemetri dihitung tiap detik oleh
+    broadcaster WebSocket (setiap pemanggilan membaca systemd + SQLite JH).
+    """
+    now = time.time()
+    cached = _SESSION_SUMMARY_CACHE.get("data")
+    if (
+        use_cache
+        and cached is not None
+        and (now - float(_SESSION_SUMMARY_CACHE.get("ts") or 0.0)) < _SESSION_SUMMARY_TTL
+    ):
+        return cached
+
+    level2 = []
+    bypass = []
+    try:
+        sessions = get_active_level2_sessions(include_bypass=True)
+    except Exception as exc:
+        logger.debug(f"Gagal membaca sesi aktif: {exc}")
+        sessions = []
+
+    for session in sessions:
+        username = session.get("username", "")
+        if is_level2_student(username):
+            level2.append(session)
+        else:
+            bypass.append(session)
+
+    summary = {"level2": level2, "bypass": bypass}
+    _SESSION_SUMMARY_CACHE["ts"] = now
+    _SESSION_SUMMARY_CACHE["data"] = summary
+    return summary
+
 
 
 def idle_minutes(last_activity) -> float:

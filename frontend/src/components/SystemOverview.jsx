@@ -17,6 +17,8 @@ function SystemOverview({
   onEmergencyReleaseIdle,
   onSwitchMode,
   isSwitchingMode = false,
+  isLive = true,
+  staleSeconds = 0,
 }) {
   const [isReleasing, setIsReleasing] = useState(false);
 
@@ -79,6 +81,7 @@ function SystemOverview({
   const gpuBoostAllowed = level2Slots?.gpu_boost_allowed ?? isMode30;
   const maxSlots = level2Slots?.max_slots || (isMode30 ? 30 : 60);
   const activeSlots = level2Slots?.active_count ?? 0;
+  const activeBypass = level2Slots?.active_bypass_count ?? 0;
   const isOverCapacity = activeSlots > maxSlots;
   const availableSlots = level2Slots?.available_slots ?? Math.max(0, maxSlots - activeSlots);
   const slotPercent = Math.min(100, Math.round((activeSlots / maxSlots) * 100));
@@ -180,6 +183,21 @@ function SystemOverview({
           </div>
 
           <div className="flex items-center gap-2 self-start sm:self-auto">
+            <span
+              className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[10px] font-mono font-bold ${
+                isLive
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                  : 'bg-amber-50 text-amber-700 border-amber-200'
+              }`}
+              title={
+                isLive
+                  ? 'Data telemetri diperbarui real-time via WebSocket'
+                  : `Data terakhir ${staleSeconds} detik lalu. Sinkronisasi HTTP otomatis tiap 10 detik.`
+              }
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${isLive ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+              {isLive ? 'LIVE' : `TERTUNDA ${staleSeconds}s`}
+            </span>
             <span className="text-xs font-mono text-slate-500">
               {isMode30 ? '• 2 Core · 3.0 GB RAM · GPU 1 Boost 3 Slot' : '• 1 Core · 1.5 GB RAM · CPU-only murni'}
             </span>
@@ -234,6 +252,14 @@ function SystemOverview({
                 <span className="font-mono text-xs font-bold text-slate-900 tabular-nums">
                   {activeSlots} <span className="text-slate-500 font-normal">/ {maxSlots} Sesi</span>
                 </span>
+                {activeBypass > 0 && (
+                  <span
+                    className="text-[10px] font-mono text-slate-500 hidden md:inline"
+                    title="Sesi Admin, Aslab, dan mahasiswa Level 1 (prioritas riset) tidak memakai kuota praktikum."
+                  >
+                    • {activeBypass} sesi admin/aslab (tidak dihitung)
+                  </span>
+                )}
                 <span className="text-[10px] font-mono text-slate-500 hidden sm:inline">
                   • Jatah {isMode30 ? '2 Core · 3.0 GB RAM · GPU via Boost (Maks 3)' : '1 Core · 1.5 GB RAM · CPU-only (Boost dikunci)'}
                 </span>

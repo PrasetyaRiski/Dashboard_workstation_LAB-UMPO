@@ -659,7 +659,9 @@ def get_full_snapshot():
         from app.db import get_lab_profile
 
         profile = get_lab_profile()
-        level2_active_count = lab_policy.count_active_level2_students()
+        session_summary = lab_policy.get_active_session_summary()
+        level2_active_count = len(session_summary.get("level2", []))
+        level2_bypass_count = len(session_summary.get("bypass", []))
         level2_max_slots = profile.get("max_slots", 30)
         idle_release_minutes = profile.get("idle_release_minutes", 15)
         lab_mode = profile.get("mode", LAB_MODE_BOOST30)
@@ -674,6 +676,7 @@ def get_full_snapshot():
     except Exception as e:
         logger.warning(f"Error calculating level2 slots: {e}")
         level2_active_count = 0
+        level2_bypass_count = 0
         level2_max_slots = 30
         idle_release_minutes = 15
         lab_mode = LAB_MODE_BOOST30
@@ -695,6 +698,7 @@ def get_full_snapshot():
     s["level2_slots"] = {
         "max_slots": level2_max_slots,
         "active_count": level2_active_count,
+        "active_bypass_count": level2_bypass_count,
         "available_slots": max(0, level2_max_slots - level2_active_count),
         "idle_release_minutes": idle_release_minutes,
         "lab_mode": lab_mode,
